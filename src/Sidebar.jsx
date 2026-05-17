@@ -14,10 +14,13 @@ const RESOURCE_TYPE_COLOURS = {
   GASEOUS: '#f7e14f',
 }
 
-function Sidebar({ system, planets, materials, onClose }) {
+function Sidebar({ system, planets, materials, filteredPlanetNaturalIds, onClose }) {
   if (!system) return null
 
-  const systemPlanets = planets.filter(p => p.SystemId === system.SystemId)
+  const allSystemPlanets = planets.filter(p => p.SystemId === system.SystemId)
+  const systemPlanets = filteredPlanetNaturalIds
+    ? allSystemPlanets.filter(p => filteredPlanetNaturalIds.has(p.PlanetNaturalId))
+    : allSystemPlanets
 
   const materialMap = {}
   materials.forEach(m => { materialMap[m.MaterialId] = m })
@@ -44,7 +47,9 @@ function Sidebar({ system, planets, materials, onClose }) {
       </div>
 
       <div style={{ color: '#888', marginBottom: '16px' }}>
-        {system.NaturalId} · {systemPlanets.length} planet{systemPlanets.length !== 1 ? 's' : ''}
+        {system.NaturalId} · {filteredPlanetNaturalIds
+          ? `${systemPlanets.length} of ${allSystemPlanets.length} planet${allSystemPlanets.length !== 1 ? 's' : ''} match`
+          : `${systemPlanets.length} planet${systemPlanets.length !== 1 ? 's' : ''}`}
       </div>
 
       {systemPlanets.map(planet => {

@@ -37,12 +37,13 @@ function App() {
     return map
   }, [materials])
 
-  const filteredSystemIds = useMemo(() => {
+  const { filteredSystemIds, filteredPlanetNaturalIds } = useMemo(() => {
     const hasCogc = activeCogc.length > 0
     const hasRes = activeResources.length > 0
-    if (!hasCogc && !hasRes) return null
+    if (!hasCogc && !hasRes) return { filteredSystemIds: null, filteredPlanetNaturalIds: null }
 
-    const matched = new Set()
+    const systemMatched = new Set()
+    const planetMatched = new Set()
     planets.forEach(p => {
       if (!p.SystemId) return
 
@@ -58,9 +59,12 @@ function App() {
         resOk = activeResources.every(ticker => tickers.includes(ticker))
       }
 
-      if (cogcOk && resOk) matched.add(p.SystemId)
+      if (cogcOk && resOk) {
+        systemMatched.add(p.SystemId)
+        planetMatched.add(p.PlanetNaturalId)
+      }
     })
-    return matched
+    return { filteredSystemIds: systemMatched, filteredPlanetNaturalIds: planetMatched }
   }, [activeCogc, activeResources, planets, materialIdToTicker])
 
   if (loading) return (
@@ -113,7 +117,7 @@ function App() {
         onResourceChange={setActiveResources}
         materials={materials}
       />
-      <Sidebar system={selectedSystem} planets={planets} materials={materials} onClose={() => setSelectedSystem(null)} />
+      <Sidebar system={selectedSystem} planets={planets} materials={materials} filteredPlanetNaturalIds={filteredPlanetNaturalIds} onClose={() => setSelectedSystem(null)} />
 
       <div style={{
         position: 'fixed',
