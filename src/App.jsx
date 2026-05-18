@@ -15,6 +15,7 @@ function App() {
   const [showLines, setShowLines] = useState(true)
   const [showSectors, setShowSectors] = useState(true)
   const [showSystemNames, setShowSystemNames] = useState(false)
+  const [showGateways, setShowGateways] = useState(true)
   const [activeCogc, setActiveCogc] = useState([])
   const [activeResources, setActiveResources] = useState([])
 
@@ -96,6 +97,7 @@ function App() {
         showLines={showLines}
         showSectors={showSectors}
         showSystemNames={showSystemNames}
+        showGateways={showGateways}
         highlightedSystem={highlightedSystem}
         hoveredSystem={hoveredSystem}
         filteredSystemIds={filteredSystemIds}
@@ -132,6 +134,9 @@ function App() {
         </button>
         <button onClick={() => setShowLines(v => !v)} style={btnStyle(showLines)}>
           ╌ LINES
+        </button>
+        <button onClick={() => setShowGateways(v => !v)} style={btnStyle(showGateways)}>
+          ◈ GATEWAYS
         </button>
         <button onClick={() => setShowSystemNames(v => !v)} style={btnStyle(showSystemNames)}>
           ✦ NAMES

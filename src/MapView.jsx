@@ -61,10 +61,12 @@ function hexPath(cx, cy, r) {
   return `M${pts.map(p => p.join(',')).join('L')}Z`
 }
 
-function MapView({ systems, planets, onSystemClick, onBackgroundClick, showLines, showSectors, showSystemNames, highlightedSystem, hoveredSystem, filteredSystemIds }) {
+function MapView({ systems, planets, onSystemClick, onBackgroundClick, showLines, showSectors, showSystemNames, showGateways, highlightedSystem, hoveredSystem, filteredSystemIds }) {
   const svgRef = useRef(null)
   const sectorsGroupRef = useRef(null)
   const linesGroupRef = useRef(null)
+  const gatewaysGroupRef = useRef(null)
+  const showGatewaysRef = useRef(showGateways)
   const systemNamesGroupRef = useRef(null)
   const systemPosRef = useRef({})
   const zoomRef = useRef(null)
@@ -402,7 +404,66 @@ function MapView({ systems, planets, onSystemClick, onBackgroundClick, showLines
     drawFilterRings(filteredSystemIds)
     filteredSystemIdsRef.current = { ids: filteredSystemIds, draw: drawFilterRings }
 
-    // ── System name labels ───────────────────────────────────────────
+    // ── Gateway arcs ─────────────────────────────────────────────────
+    const gatewaysGroup = g.append('g')
+      .attr('class', 'gateways-layer')
+      .style('display', showGatewaysRef.current ? null : 'none')
+    gatewaysGroupRef.current = gatewaysGroup
+
+    // Build planet NaturalId -> SystemId map
+    const planetToSystem = {}
+    if (planets) {
+      planets.forEach(p => {
+        if (p.PlanetNaturalId && p.SystemId) planetToSystem[p.PlanetNaturalId] = p.SystemId
+      })
+    }
+
+    fetch('/gateways.json')
+      .then(r => r.json())
+      .then(gwData => {
+        gwData.forEach(gw => {
+          const sysA = planetToSystem[gw.source]
+          const sysB = planetToSystem[gw.target]
+          if (!sysA || !sysB) return
+
+          const posA = systemPosRef.current[sysA]
+          const posB = systemPosRef.current[sysB]
+          if (!posA || !posB) return
+
+          const [x1, y1] = posA
+          const [x2, y2] = posB
+          const mx = (x1 + x2) / 2
+          const my = (y1 + y2) / 2
+          const dx = x2 - x1
+          const dy = y2 - y1
+          const len = Math.sqrt(dx * dx + dy * dy)
+          // Control point: perpendicular offset = 30% of distance
+          const offset = len * 0.3
+          const cpx = mx - (dy / len) * offset
+          const cpy = my + (dx / len) * offset
+
+          // Outer glow arc
+          gatewaysGroup.append('path')
+            .attr('d', `M${x1},${y1} Q${cpx},${cpy} ${x2},${y2}`)
+            .attr('fill', 'none')
+            .attr('stroke', '#9b59b6')
+            .attr('stroke-width', 2.5)
+            .attr('stroke-opacity', 0.25)
+            .attr('pointer-events', 'none')
+
+          // Main arc
+          gatewaysGroup.append('path')
+            .attr('d', `M${x1},${y1} Q${cpx},${cpy} ${x2},${y2}`)
+            .attr('fill', 'none')
+            .attr('stroke', '#c39bd3')
+            .attr('stroke-width', 1)
+            .attr('stroke-opacity', 0.85)
+            .attr('stroke-dasharray', '3,2')
+            .attr('pointer-events', 'none')
+        })
+      })
+
+
     const systemNamesGroup = g.append('g')
       .attr('class', 'system-names-layer')
       .style('display', 'none')
@@ -448,6 +509,7 @@ function MapView({ systems, planets, onSystemClick, onBackgroundClick, showLines
       tooltip.remove()
       sectorsGroupRef.current = null
       linesGroupRef.current = null
+      gatewaysGroupRef.current = null
       systemNamesGroupRef.current = null
       systemPosRef.current = {}
       selectedSectorRef.current = null
@@ -483,7 +545,12 @@ function MapView({ systems, planets, onSystemClick, onBackgroundClick, showLines
   }, [highlightedSystem])
 
   useEffect(() => {
-    if (sectorsGroupRef.current)
+    showGatewaysRef.current = showGateways
+    if (gatewaysGroupRef.current)
+      gatewaysGroupRef.current.style('display', showGateways ? null : 'none')
+  }, [showGateways])
+
+  useEffect(() => {
       sectorsGroupRef.current.style('display', showSectors ? null : 'none')
   }, [showSectors])
 
