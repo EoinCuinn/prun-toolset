@@ -98,8 +98,6 @@ function MapView({ systems, planets, onSystemClick, onBackgroundClick, showLines
     const g = svg.append('g')
     gRef.current = g
 
-    const HEX_DATA_R = 140 / Math.sqrt(3)
-
     const sectorSystems = {}
     systems.forEach(s => {
       if (!s.SectorId) return
@@ -107,13 +105,36 @@ function MapView({ systems, planets, onSystemClick, onBackgroundClick, showLines
       sectorSystems[s.SectorId].push(s)
     })
 
-    const sectorAxial = {}
+    // Compute true centroids in data-space
+    const sectorCentroids = {}
     Object.entries(sectorSystems).forEach(([sid, sysList]) => {
       const cx = sysList.reduce((a, s) => a + s.PositionX, 0) / sysList.length
       const cy = sysList.reduce((a, s) => a + s.PositionY, 0) / sysList.length
+      sectorCentroids[sid] = [cx, cy]
+    })
+
+    // Find the natural scale of the data to pick a good hex grid size
+    // Use the median nearest-neighbour distance in data space
+    const centroidList = Object.entries(sectorCentroids)
+    const nnDists = centroidList.map(([, [cx, cy]]) => {
+      let minD = Infinity
+      centroidList.forEach(([, [ox, oy]]) => {
+        const d = Math.sqrt((cx - ox) ** 2 + (cy - oy) ** 2)
+        if (d > 0 && d < minD) minD = d
+      })
+      return minD
+    }).sort((a, b) => a - b)
+    const medianNN = nnDists[Math.floor(nnDists.length / 2)]
+
+    // Snap each centroid to axial hex grid using medianNN as grid unit
+    const HEX_DATA_R = medianNN / Math.sqrt(3)
+
+    const sectorAxial = {}
+    Object.entries(sectorCentroids).forEach(([sid, [cx, cy]]) => {
       sectorAxial[sid] = pixelToAxial(cx, -cy, HEX_DATA_R)
     })
 
+    // Find axial extent and fit to screen
     const allAxial = Object.values(sectorAxial)
     const qVals = allAxial.map(a => a[0])
     const rVals = allAxial.map(a => a[1])
@@ -121,9 +142,11 @@ function MapView({ systems, planets, onSystemClick, onBackgroundClick, showLines
     const rExtent = [Math.min(...rVals), Math.max(...rVals)]
     const qRange = qExtent[1] - qExtent[0] + 2
     const rRange = rExtent[1] - rExtent[0] + 2
+
+    // hexSize is screen pixels per grid unit — fit to screen with padding
     const hexSize = Math.min(
-      (width - 100) / (qRange * 1.5),
-      (height - 100) / (rRange * Math.sqrt(3))
+      (width - 80) / (qRange * 1.5),
+      (height - 80) / (rRange * Math.sqrt(3))
     )
 
     const [originX, originY] = axialToPixel(
