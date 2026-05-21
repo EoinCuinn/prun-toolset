@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EoinCuinn // PrUn Command</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+
+  :root {
+    --bg: #0f1117;
+    --bg2: #13161f;
+    --bg3: #1a1e2a;
+    --accent: #4f8ef7;
+    --accent2: #2a5bc4;
+    --accent-dim: rgba(79,142,247,0.12);
+    --accent-glow: rgba(79,142,247,0.3);
+    --green: #3ecf8e;
+    --green-dim: rgba(62,207,142,0.12);
+    --amber: #f7c94f;
+    --amber-dim: rgba(247,201,79,0.12);
+    --red: #f75f4f;
+    --red-dim: rgba(247,95,79,0.12);
+    --text: #c8d0e0;
+    --text-dim: #5a6278;
+    --text-mid: #8892a4;
+    --border: rgba(79,142,247,0.18);
+    --mono: 'Share Tech Mono', monospace;
+    --display: 'Orbitron', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.06) 2px,
+      rgba(0,0,0,0.06) 4px
+    );
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  /* Grid bg */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(79,142,247,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,142,247,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  /* ── HEADER ── */
+  header {
+    padding: 28px 32px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+  }
+
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 32px;
+    width: 120px;
+    height: 2px;
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--accent-glow);
+  }
+
+  .brand {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .brand-callsign {
+    font-family: var(--display);
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text-dim);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+  }
+
+  .brand-name {
+    font-family: var(--display);
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-shadow: 0 0 24px var(--accent-glow);
+  }
+
+  .header-meta {
+    text-align: right;
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.8;
+  }
+
+  .header-meta .live-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    margin-right: 5px;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* ── LAYOUT ── */
+  .main {
+    padding: 28px 32px 48px;
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 24px;
+    max-width: 1400px;
+  }
+
+  .left-col { display: flex; flex-direction: column; gap: 24px; }
+  .right-col { display: flex; flex-direction: column; gap: 24px; }
+
+  /* ── PANELS ── */
+  .panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    padding: 10px 16px;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .panel-title {
+    font-family: var(--display);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .panel-badge {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  .panel-body { padding: 16px; }
+
+  /* ── EMPIRE STATS ── */
+  .empire-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .stat-box {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+    opacity: 0.5;
+  }
+
+  .stat-box.green::before { background: var(--green); }
+  .stat-box.amber::before { background: var(--amber); }
+  .stat-box.red::before { background: var(--red); }
+
+  .stat-label {
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .stat-value {
+    font-family: var(--display);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .stat-value.accent { color: var(--accent); }
+  .stat-value.green { color: var(--green); }
+  .stat-value.amber { color: var(--amber); }
+
+  .stat-sub {
+    font-size: 10px;
+    color: var(--text-mid);
+    margin-top: 2px;
+  }
+
+  /* ── BASES TABLE ── */
+  .bases-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  .bases-table th {
+    text-align: left;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 400;
+  }
+
+  .bases-table td {
+    padding: 10px 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    vertical-align: middle;
+  }
+
+  .bases-table tr:last-child td { border-bottom: none; }
+
+  .bases-table tr:hover td { background: var(--accent-dim); }
+
+  .planet-name {
+    color: var(--accent);
+    font-weight: 400;
+  }
+
+  .planet-id {
+    color: var(--text-dim);
+    font-size: 10px;
+    margin-top: 1px;
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 2px 6px;
+    border-radius: 1px;
+    text-transform: uppercase;
+  }
+
+  .tag-blue { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(79,142,247,0.3); }
+  .tag-green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(62,207,142,0.3); }
+  .tag-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(247,201,79,0.3); }
+  .tag-red { background: var(--red-dim); color: var(--red); border: 1px solid rgba(247,95,79,0.3); }
+
+  .status-dot {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    margin-right: 6px;
+  }
+  .dot-green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .dot-amber { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+  .dot-blue { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+
+  /* ── SHIPS PANEL ── */
+  .ship-row {
+    padding: 11px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .ship-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+  .ship-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .ship-name {
+    font-size: 13px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .ship-reg {
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  .ship-eta {
+    font-size: 10px;
+    color: var(--text-mid);
+  }
+
+  .ship-route {
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  .fuel-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .fuel-label {
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    width: 28px;
+    flex-shrink: 0;
+  }
+
+  .fuel-bar {
+    flex: 1;
+    height: 3px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .fuel-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1s ease;
+  }
+
+  .fuel-stl { background: var(--accent); }
+  .fuel-ftl { background: var(--green); }
+
+  .fuel-pct {
+    font-size: 9px;
+    color: var(--text-mid);
+    width: 30px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* ── TOOL GRID ── */
+  .tool-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .tool-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 16px 14px;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tool-card::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 1px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.2s ease;
+  }
+
+  .tool-card:hover {
+    border-color: rgba(79,142,247,0.4);
+    background: var(--accent-dim);
+    box-shadow: 0 0 20px rgba(79,142,247,0.08);
+  }
+
+  .tool-card:hover::before { transform: scaleX(1); }
+
+  .tool-icon {
+    font-size: 20px;
+    line-height: 1;
+    opacity: 0.85;
+  }
+
+  .tool-name {
+    font-family: var(--display);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    line-height: 1.3;
+  }
+
+  .tool-desc {
+    font-size: 10px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  /* ── BACKLOG ── */
+  .backlog-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 12px;
+    color: var(--text-mid);
+  }
+  .backlog-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .backlog-icon { font-size: 14px; opacity: 0.5; }
+
+  /* ── LOADING STATES ── */
+  .skeleton {
+    background: linear-gradient(90deg, var(--bg3) 25%, rgba(79,142,247,0.06) 50%, var(--bg3) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 2px;
+    height: 14px;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  .error-text { color: var(--red); font-size: 11px; }
+
+  /* ── BALANCE ── */
+  .balance-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 12px;
+  }
+  .balance-row:last-child { border-bottom: none; }
+  .balance-cx { color: var(--text-dim); font-size: 10px; width: 40px; flex-shrink: 0; }
+  .balance-amt { color: var(--green); margin-left: auto; }
+  .balance-cur { color: var(--text-dim); font-size: 10px; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .main { grid-template-columns: 1fr; }
+    .empire-stats { grid-template-columns: repeat(2, 1fr); }
+    .tool-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ── TIMESTAMP ── */
+  .refresh-hint {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-align: right;
+    padding: 8px 16px;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="brand-callsign">Commander</span>
+    <span class="brand-name">EoinCuinn</span>
+  </div>
+  <div class="header-meta">
+    <div><span class="live-dot"></span>FIO LIVE</div>
+    <div id="header-time">--:--:-- UTC</div>
+    <div id="header-date" style="color:var(--text-mid)">...</div>
+  </div>
+</header>
+
+<div class="main">
+  <!-- LEFT COLUMN -->
+  <div class="left-col">
+
+    <!-- Empire Stats Row -->
+    <div class="empire-stats">
+      <div class="stat-box">
+        <div class="stat-label">Bases</div>
+        <div class="stat-value accent" id="stat-bases">—</div>
+        <div class="stat-sub" id="stat-bases-sub">loading...</div>
+      </div>
+      <div class="stat-box green">
+        <div class="stat-label">Ships</div>
+        <div class="stat-value green" id="stat-ships">—</div>
+        <div class="stat-sub" id="stat-ships-sub">loading...</div>
+      </div>
+      <div class="stat-box amber">
+        <div class="stat-label">Balance</div>
+        <div class="stat-value amber" id="stat-balance">—</div>
+        <div class="stat-sub" id="stat-balance-sub">ICA</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">In Flight</div>
+        <div class="stat-value" id="stat-inflight">—</div>
+        <div class="stat-sub" id="stat-inflight-sub">ships moving</div>
+      </div>
+    </div>
+
+    <!-- Bases Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Empire Bases</span>
+        <span class="panel-badge" id="bases-count">LOADING</span>
+      </div>
+      <div class="panel-body" style="padding:0">
+        <table class="bases-table">
+          <thead>
+            <tr>
+              <th>Planet</th>
+              <th>System</th>
+              <th>Role</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="bases-tbody">
+            <tr><td colspan="4" style="padding:20px;color:var(--text-dim);font-size:11px">
+              <div class="skeleton" style="width:60%;margin-bottom:8px"></div>
+              <div class="skeleton" style="width:40%"></div>
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Ships Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Fleet Status</span>
+        <span class="panel-badge" id="ships-count">LOADING</span>
+      </div>
+      <div class="panel-body" id="ships-body">
+        <div class="skeleton" style="width:80%;margin-bottom:10px"></div>
+        <div class="skeleton" style="width:60%"></div>
+      </div>
+      <div class="refresh-hint" id="ships-updated">Fetching fleet data...</div>
+    </div>
+
+    <!-- Tool Launcher -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Tools</span>
+        <span class="panel-badge">10 ACTIVE</span>
+      </div>
+      <div class="panel-body">
+        <div class="tool-grid">
+          <a class="tool-card" href="prun_construction_checker.html">
+            <div class="tool-icon">🏗️</div>
+            <div class="tool-name">Construction<br>Checker</div>
+            <div class="tool-desc">Paste XIT JSON → Buy + Transfer lists vs inventory</div>
+          </a>
+          <a class="tool-card" href="prun_fleet_repair.html">
+            <div class="tool-icon">🔧</div>
+            <div class="tool-name">Fleet<br>Repair</div>
+            <div class="tool-desc">Aggregate ship repair materials vs inventory</div>
+          </a>
+          <a class="tool-card" href="prun_recipe_finder.html">
+            <div class="tool-icon">⚗️</div>
+            <div class="tool-name">Recipe<br>Finder</div>
+            <div class="tool-desc">Look up any ticker, browse all recipes</div>
+          </a>
+          <a class="tool-card" href="/">
+            <div class="tool-icon">🌐</div>
+            <div class="tool-name">Planet<br>Finder</div>
+            <div class="tool-desc">Visual map, jump routing, resource filters</div>
+          </a>
+          <a class="tool-card" href="prun_fleet_status.html">
+            <div class="tool-icon">🚀</div>
+            <div class="tool-name">Fleet<br>Status</div>
+            <div class="tool-desc">Live tracker, fuel bars, ETAs, route planner</div>
+          </a>
+          <a class="tool-card" href="prun_hq_upgrade.html">
+            <div class="tool-icon">🏛️</div>
+            <div class="tool-name">HQ<br>Upgrade</div>
+            <div class="tool-desc">Pre-loaded RBH×16 RSE×12 RTA×6 materials</div>
+          </a>
+          <a class="tool-card" href="prun_base_repair.html">
+            <div class="tool-icon">⚒️</div>
+            <div class="tool-name">Base<br>Repair</div>
+            <div class="tool-desc">Building condition · repair materials · inventory diff</div>
+          </a>
+          <a class="tool-card" href="prun_infra_upkeep.html">
+            <div class="tool-icon">🏛</div>
+            <div class="tool-name">Infra<br>Upkeep</div>
+            <div class="tool-desc">Planetary infrastructure upkeep & upgrade costs vs inventory</div>
+          </a>
+          <a class="tool-card" href="prun_quick_orders.html">
+            <div class="tool-icon">🛒</div>
+            <div class="tool-name">Quick<br>Orders</div>
+            <div class="tool-desc">Standing buy order templates · XIT ACT JSON · localStorage</div>
+          </a>
+          <a class="tool-card" href="prun_jump_planner.html">
+            <div class="tool-icon">🗺️</div>
+            <div class="tool-name">Jump<br>Planner</div>
+            <div class="tool-desc">System-to-system route finder · jump count · parsecs per leg</div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div class="right-col">
+
+    <!-- Balance Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Balances</span>
+        <span class="panel-badge">ICA</span>
+      </div>
+      <div class="panel-body" id="balance-body">
+        <div class="skeleton" style="margin-bottom:8px"></div>
+        <div class="skeleton" style="width:70%"></div>
+      </div>
+    </div>
+
+    <!-- Notes Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Empire Notes</span>
+        <span class="panel-badge">MANUAL</span>
+      </div>
+      <div class="panel-body" style="font-size:11px;line-height:1.8;color:var(--text-mid)">
+        <div style="margin-bottom:10px">
+          <span class="tag tag-green" style="margin-right:6px">Promitor</span>
+          <span style="color:var(--text-dim)">VH-331a</span><br>
+          <span style="color:var(--text-mid);font-size:10px;margin-left:0">Organic farming → feeds Avalon</span>
+        </div>
+        <div style="margin-bottom:10px">
+          <span class="tag tag-blue" style="margin-right:6px">Avalon</span>
+          <span style="color:var(--text-dim)">VH-331g</span><br>
+          <span style="font-size:10px">RAT/DW production — primary money maker</span>
+        </div>
+        <div style="margin-bottom:10px">
+          <span class="tag tag-amber" style="margin-right:6px">Mayer</span>
+          <span style="color:var(--text-dim)">OT-189a</span><br>
+          <span style="font-size:10px">HAL extraction — set and forget</span>
+        </div>
+        <div>
+          <span class="tag tag-red" style="margin-right:6px">Shardonia ✦</span>
+          <span style="color:var(--text-dim)">VH-192c</span><br>
+          <span style="font-size:10px">GL production — fully built out, SIO running</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Backlog Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Backlog</span>
+        <span class="panel-badge">5 ITEMS</span>
+      </div>
+      <div class="panel-body">
+        <div class="backlog-item">
+          <span class="backlog-icon">📺</span>
+          <div>
+            <div style="color:var(--text);font-size:11px">SCRN Builder</div>
+            <div style="font-size:10px;color:var(--text-dim);margin-top:2px">Compose & save PrUn window layouts, output SCRN string</div>
+          </div>
+        </div>
+        <div class="backlog-item">
+          <span class="backlog-icon">🧱</span>
+          <div>
+            <div style="color:var(--text);font-size:11px">XIT JSON Builder</div>
+            <div style="font-size:10px;color:var(--text-dim);margin-top:2px">Visual building selector → outputs XIT JSON</div>
+          </div>
+        </div>
+        <div class="backlog-item">
+          <span class="backlog-icon">🔑</span>
+          <div>
+            <div style="color:var(--text);font-size:11px">Public sharing prep</div>
+            <div style="font-size:10px;color:var(--text-dim);margin-top:2px">Replace hardcoded API key with user input + localStorage · FIO attribution</div>
+          </div>
+        </div>
+        <div class="backlog-item">
+          <span class="backlog-icon">⚖️</span>
+          <div>
+            <div style="color:var(--text);font-size:11px">Mayer — Weight Storage (STW)</div>
+            <div style="font-size:10px;color:var(--text-dim);margin-top:2px">HAL is dense — STW gives 7500t/2500m³, better fit than STO</div>
+          </div>
+        </div>
+        <div class="backlog-item">
+          <span class="backlog-icon">🌀</span>
+          <div>
+            <div style="color:var(--text);font-size:11px">Vortex / Gateway Research</div>
+            <div style="font-size:10px;color:var(--text-dim);margin-top:2px">Revisit when FIO gets gateway endpoint</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Debug / quick info -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Session</span>
+      </div>
+      <div class="panel-body" style="font-size:10px;color:var(--text-dim);line-height:2">
+        <div>Player: <span style="color:var(--accent)">EoinCuinn</span></div>
+        <div>Playstyle: <span style="color:var(--text-mid)">Casual · ~20 min/day</span></div>
+        <div>FIO: <span style="color:var(--green)">Connected</span></div>
+        <div id="api-status">API: <span style="color:var(--text-dim)">checking...</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const API_KEY = 'b8650818-b4a1-409f-bdae-3500ea218ffb';
+const USERNAME = 'EoinCuinn';
+const BASE = 'https://rest.fnar.net';
+
+// Known base info (manual overlay since FIO sites endpoint varies)
+const BASE_META = {
+  'VH-331a': { name: 'Promitor', role: 'Organic Farming', tags: ['tag-green'], status: 'green' },
+  'VH-331g': { name: 'Avalon',   role: 'RAT / DW Prod', tags: ['tag-blue'], status: 'green' },
+  'OT-189a': { name: 'Mayer',    role: 'HAL Extraction', tags: ['tag-amber'], status: 'amber' },
+  'VH-192c': { name: 'Shardonia', role: 'GL Production', tags: ['tag-red'], status: 'amber' },
+};
+
+async function fio(path) {
+  const r = await fetch(`${BASE}${path}`, {
+    headers: { 'Authorization': API_KEY }
+  });
+  if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+  return r.json();
+}
+
+function fmtNum(n) {
+  if (n === null || n === undefined) return '—';
+  return Math.round(n).toLocaleString();
+}
+
+function fmtPct(n) {
+  return Math.round(n) + '%';
+}
+
+function fmtETA(isoStr) {
+  if (!isoStr) return '—';
+  const d = new Date(isoStr);
+  const now = new Date();
+  const diff = d - now;
+  if (diff < 0) return 'Arrived';
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  if (h > 48) return `${Math.floor(h/24)}d ${h%24}h`;
+  return `${h}h ${m}m`;
+}
+
+// Clock
+function updateClock() {
+  const now = new Date();
+  document.getElementById('header-time').textContent =
+    now.toUTCString().split(' ')[4] + ' UTC';
+  document.getElementById('header-date').textContent =
+    now.toUTCString().split(' ').slice(1,4).join(' ');
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// ── SITES (bases) ──
+async function loadSites() {
+  try {
+    const sites = await fio(`/sites/${USERNAME}`);
+    const count = sites.length;
+    document.getElementById('bases-count').textContent = `${count} BASE${count !== 1 ? 'S' : ''}`;
+    document.getElementById('stat-bases').textContent = count;
+    document.getElementById('stat-bases-sub').textContent = 'active bases';
+
+    const tbody = document.getElementById('bases-tbody');
+    tbody.innerHTML = '';
+
+    sites.forEach(site => {
+      const pid = site.PlanetNaturalId || site.PlanetId || '???';
+      const meta = BASE_META[pid] || {};
+      const pname = meta.name || site.PlanetName || pid;
+      const role = meta.role || 'Unknown';
+      const tagClass = (meta.tags || ['tag-blue'])[0];
+      const dotClass = meta.status === 'amber' ? 'dot-amber' : 'dot-green';
+      const statusTxt = meta.status === 'amber' ? 'BUILDING' : 'ACTIVE';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <div class="planet-name">${pname}</div>
+          <div class="planet-id">${pid}</div>
+        </td>
+        <td style="color:var(--text-mid);font-size:11px">${site.PlanetName || '—'}</td>
+        <td><span class="tag ${tagClass}">${role}</span></td>
+        <td><span class="status-dot ${dotClass}"></span>${statusTxt}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch(e) {
+    document.getElementById('bases-tbody').innerHTML =
+      `<tr><td colspan="4" style="padding:16px"><span class="error-text">⚠ ${e.message}</span></td></tr>`;
+    document.getElementById('bases-count').textContent = 'ERROR';
+  }
+}
+
+// ── SHIPS ──
+async function loadShips() {
+  try {
+    const ships = await fio(`/ships/username/${USERNAME}`);
+    const count = ships.length;
+    const inFlight = ships.filter(s => s.FlightStatus === 'TRANSIT' || (s.Destination && !s.Arrived));
+
+    document.getElementById('stat-ships').textContent = count;
+    document.getElementById('stat-ships-sub').textContent = `${count} in fleet`;
+    document.getElementById('stat-inflight').textContent = inFlight.length;
+    document.getElementById('stat-inflight-sub').textContent = 'ships moving';
+    document.getElementById('ships-count').textContent = `${count} SHIP${count !== 1 ? 'S' : ''}`;
+
+    const body = document.getElementById('ships-body');
+    body.innerHTML = '';
+
+    ships.forEach(ship => {
+      const stlPct = ship.StlFuelCurrent != null && ship.StlFuelCapacity
+        ? Math.round(ship.StlFuelCurrent / ship.StlFuelCapacity * 100) : 0;
+      const ftlPct = ship.FtlFuelCurrent != null && ship.FtlFuelCapacity
+        ? Math.round(ship.FtlFuelCurrent / ship.FtlFuelCapacity * 100) : 0;
+
+      const isMoving = ship.Destination && ship.ArrivalTime;
+      const etaTxt = isMoving ? `ETA ${fmtETA(ship.ArrivalTime)}` : 'Docked';
+      const routeTxt = isMoving
+        ? `${ship.Origin || '?'} → ${ship.Destination || '?'}`
+        : (ship.PlanetNaturalId || ship.Location || '—');
+
+      const stlColor = stlPct < 25 ? 'var(--red)' : stlPct < 50 ? 'var(--amber)' : 'var(--accent)';
+      const ftlColor = ftlPct < 25 ? 'var(--red)' : ftlPct < 50 ? 'var(--amber)' : 'var(--green)';
+
+      const div = document.createElement('div');
+      div.className = 'ship-row';
+      div.innerHTML = `
+        <div class="ship-top">
+          <div class="ship-name">
+            <span class="status-dot ${isMoving ? 'dot-amber' : 'dot-green'}"></span>
+            ${ship.Name || ship.ShipId?.slice(0,8) || 'Unknown'}
+            <span class="ship-reg">${ship.Registration || ''}</span>
+          </div>
+          <div class="ship-eta">${etaTxt}</div>
+        </div>
+        <div class="ship-route">${routeTxt}</div>
+        <div class="fuel-bar-wrap">
+          <div class="fuel-label">STL</div>
+          <div class="fuel-bar"><div class="fuel-fill fuel-stl" style="width:${stlPct}%;background:${stlColor}"></div></div>
+          <div class="fuel-pct">${fmtPct(stlPct)}</div>
+        </div>
+        <div class="fuel-bar-wrap">
+          <div class="fuel-label">FTL</div>
+          <div class="fuel-bar"><div class="fuel-fill fuel-ftl" style="width:${ftlPct}%;background:${ftlColor}"></div></div>
+          <div class="fuel-pct">${fmtPct(ftlPct)}</div>
+        </div>
+      `;
+      body.appendChild(div);
+    });
+
+    document.getElementById('ships-updated').textContent =
+      `Updated ${new Date().toUTCString().split(' ')[4]} UTC`;
+  } catch(e) {
+    document.getElementById('ships-body').innerHTML =
+      `<span class="error-text">⚠ ${e.message}</span>`;
+    document.getElementById('ships-count').textContent = 'ERROR';
+  }
+}
+
+// ── BALANCE ──
+async function loadBalance() {
+  try {
+    const data = await fio(`/financials/balance/${USERNAME}`);
+    const body = document.getElementById('balance-body');
+    body.innerHTML = '';
+
+    // Try to find total or per-CX balances
+    let total = 0;
+    const entries = Array.isArray(data) ? data : (data.Balances || data.CXBalances || []);
+
+    if (entries.length === 0 && typeof data === 'object') {
+      // maybe flat object
+      const row = document.createElement('div');
+      row.className = 'balance-row';
+      row.innerHTML = `<span class="balance-cx">ICA</span><span style="color:var(--text-mid)">—</span><span class="balance-cur" style="margin-left:auto">See FIO</span>`;
+      body.appendChild(row);
+    } else {
+      entries.slice(0, 6).forEach(b => {
+        const cx = b.CurrencyName || b.Currency || b.CX || '—';
+        const amt = b.Amount || b.Balance || b.CXAmount || 0;
+        total += parseFloat(amt) || 0;
+        const row = document.createElement('div');
+        row.className = 'balance-row';
+        row.innerHTML = `
+          <span class="balance-cx">${cx}</span>
+          <span class="balance-amt">${fmtNum(amt)}</span>
+          <span class="balance-cur">${b.CurrencySymbol || 'ICA'}</span>
+        `;
+        body.appendChild(row);
+      });
+    }
+
+    // Update stat
+    if (total > 0) {
+      document.getElementById('stat-balance').textContent =
+        total >= 1000000 ? (total/1000000).toFixed(1) + 'M' :
+        total >= 1000 ? (total/1000).toFixed(0) + 'K' : fmtNum(total);
+    }
+
+  } catch(e) {
+    document.getElementById('balance-body').innerHTML =
+      `<span class="error-text">⚠ ${e.message}</span>`;
+    // Try alternate endpoint
+    try {
+      const alt = await fio(`/financials/${USERNAME}`);
+      const bal = alt.TotalBalance || alt.Balance || 0;
+      if (bal) {
+        document.getElementById('stat-balance').textContent =
+          bal >= 1000000 ? (bal/1000000).toFixed(1) + 'M' : fmtNum(bal);
+        document.getElementById('balance-body').innerHTML =
+          `<div class="balance-row"><span class="balance-cx">TOTAL</span><span class="balance-amt">${fmtNum(bal)}</span><span class="balance-cur">ICA</span></div>`;
+      }
+    } catch(_) {}
+  }
+}
+
+// ── API STATUS ──
+async function checkApiStatus() {
+  try {
+    await fio(`/sites/${USERNAME}`);
+    document.getElementById('api-status').innerHTML =
+      'API: <span style="color:var(--green)">Connected ✓</span>';
+  } catch(e) {
+    document.getElementById('api-status').innerHTML =
+      'API: <span style="color:var(--red)">Error — ' + e.message + '</span>';
+  }
+}
+
+// ── INIT ──
+Promise.all([loadSites(), loadShips(), loadBalance(), checkApiStatus()]);
+</script>
+</body>
+</html>
