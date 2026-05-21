@@ -1,54 +1,32 @@
 [
-  {
-    "source": "QQ-001b",
-    "target": "OT-580b"
-  },
-  {
-    "source": "ZV-307c",
-    "target": "LS-300c"
-  },
-  {
-    "source": "XH-594b",
-    "target": "OT-580b"
-  },
-  {
-    "source": "KW-688c",
-    "target": "UV-351a"
-  },
-  {
-    "source": "ZV-307c",
-    "target": "IA-158b"
-  },
-  {
-    "source": "WB-675c",
-    "target": "OT-580b"
-  },
-  {
-    "source": "LS-300c",
-    "target": "KW-688c"
-  },
-  {
-    "source": "WB-675i",
-    "target": "YI-265j"
-  },
-  {
-    "source": "OF-375b",
-    "target": "VH-331a"
-  },
-  {
-    "source": "WB-675c",
-    "target": "YI-715b"
-  },
-  {
-    "source": "XH-594b",
-    "target": "KW-688c"
-  },
-  {
-    "source": "VH-331a",
-    "target": "IA-158b"
-  },
-  {
-    "source": "BN-908b",
-    "target": "AU-876a"
-  }
+  { "source": "QQ-001b", "target": "OT-580b" },
+  { "source": "ZV-307c", "target": "LS-300c" },
+  { "source": "OT-580b", "target": "QQ-001b" },
+  { "source": "LS-300c", "target": "ZV-307c" },
+  { "source": "XH-594b", "target": "OT-580b" },
+  { "source": "OT-580b", "target": "XH-594b" },
+  { "source": "KW-688c", "target": "UV-351a" },
+  { "source": "ZV-307c", "target": "IA-158b" },
+  { "source": "WB-675c", "target": "OT-580b" },
+  { "source": "IA-158b", "target": "ZV-307c" },
+  { "source": "UV-351a", "target": "KW-688c" },
+  { "source": "OT-580b", "target": "WB-675c" },
+  { "source": "LS-300c", "target": "KW-688c" },
+  { "source": "WB-675i", "target": "YI-265j" },
+  { "source": "KW-688c", "target": "LS-300c" },
+  { "source": "OF-375b", "target": "VH-331a" },
+  { "source": "VH-331a", "target": "OF-375b" },
+  { "source": "WB-675c", "target": "YI-715b" },
+  { "source": "YI-715b", "target": "WB-675c" },
+  { "source": "XH-594b", "target": "KW-688c" },
+  { "source": "YI-265j", "target": "WB-675i" },
+  { "source": "KW-688c", "target": "XH-594b" },
+  { "source": "VH-331a", "target": "IA-158b" },
+  { "source": "BN-908b", "target": "AU-876a" },
+  { "source": "IA-158b", "target": "VH-331a" },
+  { "source": "AU-876a", "target": "BN-908b" },
+  { "source": "LB-476b", "target": "OT-580b" },
+  { "source": "OT-580b", "target": "LB-476b" },
+  { "source": "LB-476b", "target": "OF-375b" },
+  { "source": "OF-375b", "target": "LB-476b" }
 ]

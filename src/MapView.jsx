@@ -61,7 +61,7 @@ function hexPath(cx, cy, r) {
   return `M${pts.map(p => p.join(',')).join('L')}Z`
 }
 
-function MapView({ systems, planets, onSystemClick, onBackgroundClick, showLines, showSectors, showSystemNames, showGateways, highlightedSystem, hoveredSystem, filteredSystemIds }) {
+function MapView({ systems, planets, onSystemClick, onBackgroundClick, showLines, showSectors, showSystemNames, showGateways, highlightedSystem, hoveredSystem, filteredSystemIds, routePath }) {
   const svgRef = useRef(null)
   const sectorsGroupRef = useRef(null)
   const linesGroupRef = useRef(null)
@@ -444,10 +444,16 @@ function MapView({ systems, planets, onSystemClick, onBackgroundClick, showLines
     fetch('/gateways.json')
       .then(r => r.json())
       .then(gwData => {
+        const drawn = new Set()
         gwData.forEach(gw => {
           const sysA = planetToSystem[gw.source]
           const sysB = planetToSystem[gw.target]
           if (!sysA || !sysB) return
+
+          // Deduplicate — skip if we've already drawn this pair in either direction
+          const key = [sysA, sysB].sort().join('|')
+          if (drawn.has(key)) return
+          drawn.add(key)
 
           const posA = systemPosRef.current[sysA]
           const posB = systemPosRef.current[sysB]
@@ -460,7 +466,6 @@ function MapView({ systems, planets, onSystemClick, onBackgroundClick, showLines
           const dx = x2 - x1
           const dy = y2 - y1
           const len = Math.sqrt(dx * dx + dy * dy)
-          // Control point: perpendicular offset = 30% of distance
           const offset = len * 0.3
           const cpx = mx - (dy / len) * offset
           const cpy = my + (dx / len) * offset
@@ -482,6 +487,24 @@ function MapView({ systems, planets, onSystemClick, onBackgroundClick, showLines
             .attr('stroke-width', 1)
             .attr('stroke-opacity', 0.85)
             .attr('stroke-dasharray', '3,2')
+            .attr('pointer-events', 'none')
+        })
+
+        // Purple dots on systems that have a gateway planet
+        const gatewaySystemIds = new Set()
+        gwData.forEach(gw => {
+          const sysId = planetToSystem[gw.source]
+          if (sysId) gatewaySystemIds.add(sysId)
+        })
+        gatewaySystemIds.forEach(sysId => {
+          const pos = systemPosRef.current[sysId]
+          if (!pos) return
+          gatewaysGroup.append('circle')
+            .attr('cx', pos[0])
+            .attr('cy', pos[1])
+            .attr('r', 1)
+            .attr('fill', '#c39bd3')
+            .attr('opacity', 0.9)
             .attr('pointer-events', 'none')
         })
       })
@@ -624,6 +647,45 @@ function MapView({ systems, planets, onSystemClick, onBackgroundClick, showLines
     }
     bounce()
   }, [hoveredSystem])
+
+  // ── Route path drawing ───────────────────────────────────────────
+  useEffect(() => {
+    if (!gRef.current) return
+    gRef.current.selectAll('.route-layer').remove()
+    if (!routePath || routePath.length < 2) return
+
+    const routeGroup = gRef.current.append('g').attr('class', 'route-layer')
+
+    for (let i = 0; i < routePath.length - 1; i++) {
+      const posA = systemPosRef.current[routePath[i]]
+      const posB = systemPosRef.current[routePath[i + 1]]
+      if (!posA || !posB) continue
+
+      routeGroup.append('line')
+        .attr('x1', posA[0]).attr('y1', posA[1])
+        .attr('x2', posB[0]).attr('y2', posB[1])
+        .attr('stroke', '#4f8ef7')
+        .attr('stroke-width', 0.75)
+        .attr('stroke-opacity', 0.9)
+        .attr('pointer-events', 'none')
+    }
+
+    routePath.forEach((sysId, i) => {
+      const pos = systemPosRef.current[sysId]
+      if (!pos) return
+      const isOrigin = i === 0
+      const isDestination = i === routePath.length - 1
+      const isEndpoint = isOrigin || isDestination
+      const colour = isOrigin ? '#4ff7a0' : isDestination ? '#f7814f' : '#4f8ef7'
+      routeGroup.append('circle')
+        .attr('cx', pos[0]).attr('cy', pos[1])
+        .attr('r', isEndpoint ? 5 : 3)
+        .attr('fill', 'none')
+        .attr('stroke', colour)
+        .attr('stroke-width', isEndpoint ? 1 : 0.75)
+        .attr('pointer-events', 'none')
+    })
+  }, [routePath])
 
   return <svg ref={svgRef} />
 }

@@ -3,6 +3,7 @@ import MapView from './MapView'
 import Sidebar from './Sidebar'
 import SearchBar from './SearchBar'
 import FilterPanel from './FilterPanel'
+import RoutePanel from './RoutePanel'
 
 function App() {
   const [systems, setSystems] = useState([])
@@ -18,6 +19,8 @@ function App() {
   const [showGateways, setShowGateways] = useState(true)
   const [activeCogc, setActiveCogc] = useState([])
   const [activeResources, setActiveResources] = useState([])
+  const [showRoute, setShowRoute] = useState(false)
+  const [route, setRoute] = useState(null)
 
   useEffect(() => {
     Promise.all([
@@ -101,24 +104,36 @@ function App() {
         highlightedSystem={highlightedSystem}
         hoveredSystem={hoveredSystem}
         filteredSystemIds={filteredSystemIds}
+        routePath={route}
       />
-      <SearchBar
-        systems={systems}
-        planets={planets}
-        onSelectSystem={(system) => {
-          setSelectedSystem(system)
-          setHighlightedSystem(system)
-          setHoveredSystem(null)
-        }}
-        onHoverSystem={setHoveredSystem}
-      />
-      <FilterPanel
-        activeCogc={activeCogc}
-        onCogcChange={setActiveCogc}
-        activeResources={activeResources}
-        onResourceChange={setActiveResources}
-        materials={materials}
-      />
+      {showRoute ? (
+        <RoutePanel
+          systems={systems}
+          planets={planets}
+          onClose={() => { setShowRoute(false); setRoute(null) }}
+          onRouteChange={setRoute}
+        />
+      ) : (
+        <>
+          <SearchBar
+            systems={systems}
+            planets={planets}
+            onSelectSystem={(system) => {
+              setSelectedSystem(system)
+              setHighlightedSystem(system)
+              setHoveredSystem(null)
+            }}
+            onHoverSystem={setHoveredSystem}
+          />
+          <FilterPanel
+            activeCogc={activeCogc}
+            onCogcChange={setActiveCogc}
+            activeResources={activeResources}
+            onResourceChange={setActiveResources}
+            materials={materials}
+          />
+        </>
+      )}
       <Sidebar system={selectedSystem} planets={planets} materials={materials} filteredPlanetNaturalIds={filteredPlanetNaturalIds} onClose={() => setSelectedSystem(null)} />
 
       <div style={{
@@ -140,6 +155,9 @@ function App() {
         </button>
         <button onClick={() => setShowSystemNames(v => !v)} style={btnStyle(showSystemNames)}>
           ✦ NAMES
+        </button>
+        <button onClick={() => setShowRoute(v => !v)} style={btnStyle(showRoute)}>
+          ⇢ ROUTE
         </button>
       </div>
     </>

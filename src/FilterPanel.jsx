@@ -67,11 +67,11 @@ function FilterPanel({ activeCogc, onCogcChange, activeResources, onResourceChan
   return (
     <div style={{
       position: 'fixed',
-      top: '52px',
-      left: '10px',
+      top: '56px',
+      left: '16px',
       zIndex: 200,
       fontFamily: 'monospace',
-      width: '220px',
+      width: '280px',
     }}>
       {/* Toggle button */}
       <button
