@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PrUn Fleet Status</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700&display=swap');
+
+  :root {
+    --bg:       #080c12;
+    --bg2:      #0d1420;
+    --bg3:      #111b2e;
+    --bg4:      #162035;
+    --border:   #1e2d45;
+    --border2:  #243450;
+    --text:     #c8daf0;
+    --text2:    #6a8aaa;
+    --text3:    #3a5070;
+    --accent:   #2a7fff;
+    --accent2:  #1a5fcc;
+    --green:    #29d98a;
+    --orange:   #f0922b;
+    --red:      #e84040;
+    --yellow:   #f5c842;
+    --purple:   #9b6fff;
+    --mono:     'Share Tech Mono', monospace;
+    --body:     'Barlow', sans-serif;
+    --cond:     'Barlow Condensed', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 14px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  .app { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .header-left { display: flex; flex-direction: column; gap: 4px; }
+  .header-title {
+    font-family: var(--cond);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+  .header-title span { color: var(--accent); }
+  .header-sub {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 0.08em;
+  }
+  .header-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  input[type="text"] {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text);
+    padding: 6px 10px;
+    font-size: 12px;
+    font-family: var(--mono);
+    outline: none;
+    transition: border-color 0.15s;
+    width: 200px;
+  }
+  input[type="text"]:focus { border-color: var(--accent); }
+
+  .btn {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 3px;
+    color: var(--text2);
+    padding: 6px 14px;
+    font-size: 12px;
+    font-family: var(--cond);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn:hover { background: var(--bg4); color: var(--text); border-color: var(--accent); }
+  .btn.primary {
+    background: var(--accent2);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .btn.primary:hover { background: var(--accent); }
+
+  .status-bar {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    margin-bottom: 1.25rem;
+    min-height: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--text3);
+    flex-shrink: 0;
+  }
+  .status-dot.live { background: var(--green); animation: blink 2s infinite; }
+  .status-dot.loading { background: var(--accent); animation: blink 0.6s infinite; }
+  .status-dot.err { background: var(--red); }
+  @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.2; } }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .tab {
+    font-family: var(--cond);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 8px 16px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text2); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* Fleet grid */
+  .fleet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; }
+
+  .ship-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: border-color 0.15s;
+  }
+  .ship-card:hover { border-color: var(--border2); }
+  .ship-card.in-flight { border-left: 3px solid var(--accent); }
+  .ship-card.docked { border-left: 3px solid var(--green); }
+  .ship-card.damaged { border-left: 3px solid var(--orange); }
+
+  .ship-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 10px 12px 8px;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+  }
+  .ship-reg {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.05em;
+  }
+  .ship-name { font-size: 11px; color: var(--text3); margin-top: 2px; font-family: var(--mono); }
+
+  .ship-badge {
+    font-family: var(--cond);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 2px;
+  }
+  .badge-flight { background: rgba(42,127,255,0.15); color: var(--accent); border: 1px solid rgba(42,127,255,0.3); }
+  .badge-docked { background: rgba(41,217,138,0.12); color: var(--green); border: 1px solid rgba(41,217,138,0.25); }
+  .badge-damaged { background: rgba(240,146,43,0.12); color: var(--orange); border: 1px solid rgba(240,146,43,0.25); }
+
+  .ship-body { padding: 10px 12px; }
+
+  .ship-location {
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .ship-location::before {
+    content: '◎';
+    font-size: 10px;
+    color: var(--text3);
+  }
+
+  /* Fuel bars */
+  .fuel-section { margin-bottom: 10px; }
+  .fuel-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+  .fuel-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    width: 28px;
+    flex-shrink: 0;
+    text-transform: uppercase;
+  }
+  .fuel-bar-wrap {
+    flex: 1;
+    height: 6px;
+    background: var(--bg4);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .fuel-bar {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+  .fuel-bar.stl { background: var(--accent); }
+  .fuel-bar.ftl { background: var(--purple); }
+  .fuel-bar.low { background: var(--orange); }
+  .fuel-bar.critical { background: var(--red); }
+  .fuel-qty {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text2);
+    width: 70px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* Condition */
+  .condition-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .condition-label { font-size: 11px; color: var(--text3); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.05em; }
+  .condition-val { font-family: var(--mono); font-size: 12px; font-weight: 600; }
+  .cond-good { color: var(--green); }
+  .cond-warn { color: var(--yellow); }
+  .cond-bad { color: var(--orange); }
+  .cond-crit { color: var(--red); }
+
+  /* Flight info */
+  .flight-section {
+    border-top: 1px solid var(--border);
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+  .flight-route {
+    font-size: 12px;
+    color: var(--text);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .route-arrow { color: var(--text3); font-size: 10px; }
+
+  .eta-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .eta-label { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+  .eta-val { font-family: var(--mono); font-size: 12px; color: var(--yellow); font-weight: 600; }
+
+  /* Segments */
+  .segments { margin-top: 8px; }
+  .seg-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+  }
+  .seg-row:last-child { border-bottom: none; }
+  .seg-type {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 2px 6px;
+    border-radius: 2px;
+    flex-shrink: 0;
+    min-width: 52px;
+    text-align: center;
+  }
+  .seg-TAKE_OFF { background: rgba(155,111,255,0.15); color: var(--purple); }
+  .seg-FTL      { background: rgba(42,127,255,0.15);  color: var(--accent); }
+  .seg-CHARGE   { background: rgba(245,200,66,0.12);  color: var(--yellow); }
+  .seg-LAND     { background: rgba(41,217,138,0.12);  color: var(--green); }
+  .seg-STL      { background: rgba(42,127,255,0.1);   color: var(--text2); }
+  .seg-default  { background: var(--bg4); color: var(--text3); }
+
+  .seg-info { flex: 1; color: var(--text2); font-family: var(--mono); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .seg-time { font-family: var(--mono); font-size: 10px; color: var(--text3); flex-shrink: 0; }
+  .seg-current { background: rgba(42,127,255,0.06); border-radius: 2px; }
+  .seg-done { opacity: 0.4; }
+
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text3);
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+  }
+
+  .section-head {
+    font-family: var(--cond);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 0.75rem;
+  }
+
+  .repair-warn {
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--orange);
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <a href="/home.html" style="position:fixed;top:16px;right:16px;background:#1e3a5f;color:#4f8ef7;border:1px solid #4f8ef7;border-radius:4px;padding:6px 12px;font-size:12px;font-family:monospace;text-decoration:none;letter-spacing:0.05em;z-index:100;">⌂ HOME</a>
+
+  <div class="header">
+    <div class="header-left">
+      <div class="header-sub">FLEET STATUS // live telemetry</div>
+    </div>
+    <div class="header-right">
+      <input id="apikey" type="text" placeholder="FIO API key..." />
+      <input id="username" type="text" placeholder="Username..." />
+      <button class="btn primary" id="loadBtn">Load Fleet ↗</button>
+    </div>
+  </div>
+  <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:0.75rem;">⚿ API key and username are saved in your browser only — never sent anywhere except FIO.</div>
+
+  <div class="status-bar">
+    <div class="status-dot" id="statusDot"></div>
+    <span id="statusText">Enter credentials and load fleet.</span>
+  </div>
+
+  <div class="fleet-grid" id="fleetGrid">
+    <div class="empty-state">No fleet data loaded.</div>
+  </div>
+
+</div>
+
+<script>
+function setStatus(msg, state='idle') {
+  document.getElementById('statusText').textContent = msg;
+  const dot = document.getElementById('statusDot');
+  dot.className = 'status-dot' + (state !== 'idle' ? ` ${state}` : '');
+}
+
+function formatDuration(ms) {
+  if (ms <= 0) return 'arrived';
+  const s = Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  if (h > 24) return `${Math.floor(h/24)}d ${h%24}h`;
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
+}
+
+function formatEpoch(ms) {
+  const d = new Date(ms);
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' ' + d.toLocaleDateString([], { day: 'numeric', month: 'short' });
+}
+
+function condClass(c) {
+  if (c > 0.9) return 'cond-good';
+  if (c > 0.75) return 'cond-warn';
+  if (c > 0.5) return 'cond-bad';
+  return 'cond-crit';
+}
+
+function fuelBarClass(pct, type) {
+  if (pct < 0.15) return 'critical';
+  if (pct < 0.3) return 'low';
+  return type;
+}
+
+function segTypeClass(type) {
+  const known = ['TAKE_OFF','FTL','CHARGE','LAND','STL'];
+  return known.includes(type) ? `seg-${type}` : 'seg-default';
+}
+
+function buildShipCard(ship, flight, fuelMap) {
+  const now = Date.now();
+  const inFlight = flight && !flight.IsAborted;
+  const cond = ship.Condition || 1;
+  const condPct = Math.round(cond * 100);
+
+  // Fuel
+  const stlFuel = fuelMap.stl[ship.StlFuelStoreId] || { amount: 0, cap: 1 };
+  const ftlFuel = fuelMap.ftl[ship.FtlFuelStoreId] || { amount: 0, cap: 1 };
+  const stlPct = stlFuel.amount / stlFuel.cap;
+  const ftlPct = ftlFuel.amount / ftlFuel.cap;
+
+  // Location
+  const loc = ship.AddressLines && ship.AddressLines.length > 0
+    ? ship.AddressLines.map(l => l.Name !== l.NaturalId ? `${l.Name} (${l.NaturalId})` : l.NaturalId).join(' / ')
+    : 'Unknown';
+
+  const cardClass = inFlight ? 'in-flight' : (cond < 0.75 ? 'damaged' : 'docked');
+  const badgeHtml = inFlight
+    ? `<span class="ship-badge badge-flight">In Flight</span>`
+    : cond < 0.75
+    ? `<span class="ship-badge badge-damaged">Needs Repair</span>`
+    : `<span class="ship-badge badge-docked">Docked</span>`;
+
+  let flightHtml = '';
+  if (inFlight && flight.Segments && flight.Segments.length > 0) {
+    const lastSeg = flight.Segments[flight.Segments.length - 1];
+    const dest = lastSeg.DestinationLines && lastSeg.DestinationLines.length > 0
+      ? lastSeg.DestinationLines.map(l => l.LineName !== l.LineNaturalId ? l.LineName : l.LineNaturalId).filter((v,i,a)=>a.indexOf(v)===i).join(' / ')
+      : flight.Destination || '?';
+
+    const origin = flight.Segments[0].OriginLines && flight.Segments[0].OriginLines.length > 0
+      ? flight.Segments[0].OriginLines.map(l => l.LineName !== l.LineNaturalId ? l.LineName : l.LineNaturalId).filter((v,i,a)=>a.indexOf(v)===i).join(' / ')
+      : flight.Origin || '?';
+
+    const eta = flight.ArrivalTimeEpochMs - now;
+    const totalStlFuel = flight.Segments.reduce((s, seg) => s + (seg.StlFuelConsumption || 0), 0);
+    const totalFtlFuel = flight.Segments.reduce((s, seg) => s + (seg.FtlFuelConsumption || 0), 0);
+
+    const currentSegIdx = flight.CurrentSegmentIndex || 0;
+
+    const segsHtml = flight.Segments.map((seg, i) => {
+      const isCurrent = i === currentSegIdx;
+      const isDone = i < currentSegIdx;
+      const segEta = seg.ArrivalTimeEpochMs - now;
+      const timeStr = isDone ? 'done' : formatDuration(segEta);
+      const rowClass = isCurrent ? 'seg-row seg-current' : isDone ? 'seg-row seg-done' : 'seg-row';
+      const typeClass = segTypeClass(seg.Type);
+      const destName = seg.DestinationLines && seg.DestinationLines.length > 0
+        ? seg.DestinationLines.map(l => l.LineName || l.LineNaturalId).filter((v,i,a)=>a.indexOf(v)===i).join('/')
+        : seg.Destination || '';
+      const fuelStr = seg.FtlFuelConsumption ? `FF:${seg.FtlFuelConsumption}` : seg.StlFuelConsumption ? `SF:${seg.StlFuelConsumption}` : '';
+      return `<div class="${rowClass}">
+        <span class="seg-type ${typeClass}">${seg.Type}</span>
+        <span class="seg-info">→ ${destName}</span>
+        <span class="seg-time">${fuelStr ? fuelStr + ' · ' : ''}${timeStr}</span>
+      </div>`;
+    }).join('');
+
+    flightHtml = `<div class="flight-section">
+      <div class="flight-route">
+        <span style="color:var(--text2)">${origin}</span>
+        <span class="route-arrow">→→</span>
+        <span style="color:var(--text)">${dest}</span>
+      </div>
+      <div class="eta-row">
+        <span class="eta-label">ETA</span>
+        <span class="eta-val">${formatDuration(eta)}</span>
+      </div>
+      <div class="eta-row">
+        <span class="eta-label">Arrives</span>
+        <span class="eta-label" style="color:var(--text2)">${formatEpoch(flight.ArrivalTimeEpochMs)}</span>
+      </div>
+      ${totalFtlFuel > 0 ? `<div class="eta-row"><span class="eta-label">Fuel use</span><span class="eta-label" style="color:var(--text2)">SF:${totalStlFuel} FF:${totalFtlFuel}</span></div>` : `<div class="eta-row"><span class="eta-label">Fuel use</span><span class="eta-label" style="color:var(--text2)">SF:${totalStlFuel}</span></div>`}
+      <div class="segments">${segsHtml}</div>
+    </div>`;
+  }
+
+  const repairWarn = cond < 0.75
+    ? `<div class="repair-warn">⚠ ${condPct}% condition — schedule repair</div>`
+    : '';
+
+  return `<div class="ship-card ${cardClass}">
+    <div class="ship-header">
+      <div>
+        <div class="ship-reg">${ship.Registration}</div>
+        ${ship.Name ? `<div class="ship-name">${ship.Name}</div>` : ''}
+      </div>
+      ${badgeHtml}
+    </div>
+    <div class="ship-body">
+      <div class="ship-location">${loc}</div>
+      <div class="condition-row">
+        <span class="condition-label">Condition</span>
+        <span class="condition-val ${condClass(cond)}">${condPct}%</span>
+      </div>
+      <div class="fuel-section">
+        <div class="fuel-row">
+          <span class="fuel-label">STL</span>
+          <div class="fuel-bar-wrap"><div class="fuel-bar ${fuelBarClass(stlPct,'stl')}" style="width:${Math.round(stlPct*100)}%"></div></div>
+          <span class="fuel-qty">${stlFuel.amount}/${stlFuel.cap}</span>
+        </div>
+        <div class="fuel-row">
+          <span class="fuel-label">FTL</span>
+          <div class="fuel-bar-wrap"><div class="fuel-bar ${fuelBarClass(ftlPct,'ftl')}" style="width:${Math.round(ftlPct*100)}%"></div></div>
+          <span class="fuel-qty">${ftlFuel.amount}/${ftlFuel.cap}</span>
+        </div>
+      </div>
+      ${repairWarn}
+      ${flightHtml}
+    </div>
+  </div>`;
+}
+
+async function loadFleet() {
+  const apikey = document.getElementById('apikey').value.trim();
+  const username = document.getElementById('username').value.trim();
+
+  setStatus('Fetching fleet data...', 'loading');
+  document.getElementById('fleetGrid').innerHTML = '<div class="empty-state">Loading...</div>';
+
+  try {
+    const [shipsRes, flightsRes, fuelRes, sitesRes] = await Promise.all([
+      fetch(`https://rest.fnar.net/ship/ships/${username}`, { headers: { Authorization: apikey } }),
+      fetch(`https://rest.fnar.net/ship/flights/${username}`, { headers: { Authorization: apikey } }),
+      fetch(`https://rest.fnar.net/ship/ships/fuel/${username}`, { headers: { Authorization: apikey } }),
+      fetch(`https://rest.fnar.net/sites/${username}`, { headers: { Authorization: apikey } }),
+    ]);
+
+    if (!shipsRes.ok) { setStatus('Auth failed or no data.', 'err'); return; }
+  localStorage.setItem('prun_apikey', apikey);
+  localStorage.setItem('prun_username', username);
+
+    const ships = await shipsRes.json();
+    const flights = flightsRes.ok ? await flightsRes.json() : [];
+    const fuelData = fuelRes.ok ? await fuelRes.json() : [];
+
+    // Build flight map by ship
+    const flightByShip = {};
+    flights.forEach(f => {
+      if (f.ShipId) flightByShip[f.ShipId] = f;
+    });
+
+    // Build fuel map
+    const fuelMap = { stl: {}, ftl: {} };
+    fuelData.forEach(store => {
+      const item = (store.StorageItems || [])[0];
+      const amount = item ? item.MaterialAmount : 0;
+      const cap = store.WeightCapacity || 1;
+      if (store.Type === 'STL_FUEL_STORE') {
+        fuelMap.stl[store.StorageId] = { amount, cap: Math.round(cap / 0.06) };
+      } else if (store.Type === 'FTL_FUEL_STORE') {
+        fuelMap.ftl[store.StorageId] = { amount, cap: Math.round(cap / 0.05) };
+      }
+    });
+
+    if (ships.length === 0) {
+      document.getElementById('fleetGrid').innerHTML = '<div class="empty-state">No ships found.</div>';
+      setStatus('No ships found for this user.', 'err');
+      return;
+    }
+
+    // Sort: in-flight first, then docked
+    ships.sort((a, b) => {
+      const af = flightByShip[a.ShipId] ? 1 : 0;
+      const bf = flightByShip[b.ShipId] ? 1 : 0;
+      return bf - af;
+    });
+
+    const html = ships.map(ship => buildShipCard(ship, flightByShip[ship.ShipId], fuelMap)).join('');
+    document.getElementById('fleetGrid').innerHTML = html;
+
+    const inFlight = ships.filter(s => flightByShip[s.ShipId]).length;
+    setStatus(`${ships.length} ships loaded — ${inFlight} in flight. Updated ${new Date().toLocaleTimeString()}`, 'live');
+
+  } catch(e) {
+    setStatus('Error: ' + e.message, 'err');
+  }
+}
+
+document.getElementById('loadBtn').addEventListener('click', loadFleet);
+
+// Restore saved values from localStorage
+const savedKey = localStorage.getItem('prun_apikey');
+const savedUser = localStorage.getItem('prun_username');
+if (savedKey) document.getElementById('apikey').value = savedKey;
+if (savedUser) document.getElementById('username').value = savedUser;
+if (savedKey && savedUser) loadFleet();
+</script>
+</body>
+</html>
