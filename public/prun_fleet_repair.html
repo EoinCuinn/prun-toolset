@@ -329,6 +329,7 @@
   <button class="primary" id="loadBtn">Load fleet ↗</button>
 </div>
 <div class="status" id="status">Enter your FIO API key and username to load fleet data.</div>
+<div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:1rem;">⚿ API key and username are saved in your browser only — never sent anywhere except FIO.</div>
 <div id="results"></div>
 
 <script>
@@ -490,6 +491,7 @@ async function loadAll() {
       html += `<div class="buy-row"><span>To buy</span><span class="${colCls}">${buyText}</span></div>`;
       if (inv.locations.length > 0) {
         html += '<div class="locations">';
+        html += '<div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-bottom:3px;margin-top:6px;">In storage</div>';
         inv.locations.sort((a,b) => b.qty - a.qty).forEach(l => {
           html += `<div class="location-row"><span class="location-name">${l.name}</span><span class="location-qty">${l.qty}</span></div>`;
         });
