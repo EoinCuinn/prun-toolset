@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base Repair — PrUn Tools</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700&display=swap');
+
+  :root {
+    --bg:        #0d1117;
+    --bg2:       #131920;
+    --bg3:       #1a2332;
+    --border:    #1e3048;
+    --border2:   #2a4060;
+    --accent:    #f5a623;
+    --accent2:   #e8952a;
+    --green:     #3dd68c;
+    --red:       #ff5a5a;
+    --yellow:    #f5c842;
+    --blue:      #4a9eff;
+    --dim:       #4a6080;
+    --text:      #c8d8e8;
+    --text2:     #8aa8c0;
+    --mono:      'Share Tech Mono', monospace;
+    --sans:      'Barlow', sans-serif;
+    --cond:      'Barlow Condensed', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .header-left { display: flex; flex-direction: column; gap: 4px; }
+  .title {
+    font-family: var(--cond);
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+  .subtitle {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+    letter-spacing: 0.05em;
+  }
+  .home-link {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    border: 1px solid var(--border);
+    padding: 5px 10px;
+    border-radius: 3px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .home-link:hover { color: var(--text); border-color: var(--border2); }
+
+  /* ── Controls bar ── */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .controls label {
+    font-family: var(--cond);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--dim);
+    text-transform: uppercase;
+  }
+  select {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 7px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    outline: none;
+    min-width: 220px;
+    transition: border-color 0.15s;
+  }
+  select:hover, select:focus { border-color: var(--accent); }
+
+  .btn {
+    background: var(--accent);
+    color: #0d1117;
+    border: none;
+    font-family: var(--cond);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 8px 18px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background 0.15s, opacity 0.15s;
+  }
+  .btn:hover { background: var(--accent2); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border2);
+    font-family: var(--cond);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 7px 14px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+  .status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--dim);
+    display: inline-block;
+    margin-left: 4px;
+  }
+  .status-dot.ok { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .status-dot.err { background: var(--red); }
+  .status-dot.loading { background: var(--yellow); animation: pulse 0.8s infinite alternate; }
+  @keyframes pulse { to { opacity: 0.3; } }
+
+  /* ── Summary strip ── */
+  .summary-strip {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 12px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 130px;
+  }
+  .stat-label {
+    font-family: var(--cond);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+  .stat-value {
+    font-family: var(--mono);
+    font-size: 20px;
+    color: var(--text);
+  }
+  .stat-value.warn { color: var(--yellow); }
+  .stat-value.bad  { color: var(--red); }
+  .stat-value.good { color: var(--green); }
+
+  /* ── Main grid layout ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 20px;
+    align-items: start;
+  }
+  @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+
+  /* ── Section titles ── */
+  .section-title {
+    font-family: var(--cond);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Buildings table ── */
+  .table-wrap {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    background: var(--bg3);
+    font-family: var(--cond);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--dim);
+    padding: 9px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  thead th.right { text-align: right; }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,0.02); }
+  tbody td {
+    padding: 8px 12px;
+    font-size: 13px;
+    vertical-align: middle;
+  }
+  tbody td.right { text-align: right; }
+  tbody td.mono { font-family: var(--mono); font-size: 12px; }
+
+  .ticker-badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: bold;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--accent);
+    padding: 2px 7px;
+    border-radius: 2px;
+    letter-spacing: 0.05em;
+  }
+
+  /* Condition bar */
+  .cond-wrap { display: flex; align-items: center; gap: 8px; }
+  .cond-bar-bg {
+    flex: 1;
+    max-width: 80px;
+    height: 5px;
+    background: var(--bg3);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .cond-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s;
+  }
+  .cond-pct {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text2);
+    min-width: 34px;
+    text-align: right;
+  }
+
+  /* Repair materials inline list */
+  .mat-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .mat-chip {
+    font-family: var(--mono);
+    font-size: 11px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 2px 6px;
+    white-space: nowrap;
+    color: var(--text2);
+  }
+  .mat-chip span { color: var(--text); }
+
+  /* ── Shopping list panel ── */
+  .panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .panel-header {
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .panel-title {
+    font-family: var(--cond);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text2);
+  }
+  .panel-body { padding: 0; }
+
+  .shop-row {
+    display: grid;
+    grid-template-columns: 48px 1fr 44px 44px 48px;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  .shop-row:last-child { border-bottom: none; }
+  .shop-row:hover { background: rgba(255,255,255,0.02); }
+
+  .shop-ticker {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: bold;
+    color: var(--accent);
+    min-width: 36px;
+  }
+  .shop-name {
+    font-size: 12px;
+    color: var(--text2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .shop-needed {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    text-align: right;
+    min-width: 32px;
+  }
+  .shop-have {
+    font-family: var(--mono);
+    font-size: 12px;
+    text-align: right;
+    min-width: 32px;
+  }
+  .shop-short {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: bold;
+    text-align: right;
+    min-width: 38px;
+  }
+  .ok    { color: var(--green); }
+  .short { color: var(--red); }
+  .exact { color: var(--yellow); }
+
+  .col-headers {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto auto;
+    gap: 8px;
+    padding: 7px 14px;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+  }
+  .col-h {
+    font-family: var(--cond);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+  .col-h.right { text-align: right; }
+
+  /* ── Empty / loading / error states ── */
+  .state-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    gap: 10px;
+    text-align: center;
+  }
+  .state-icon { font-size: 32px; opacity: 0.4; }
+  .state-msg {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--dim);
+    max-width: 320px;
+    line-height: 1.6;
+  }
+  .state-msg.err { color: var(--red); opacity: 0.8; }
+
+  /* spinner */
+  .spinner {
+    width: 22px; height: 22px;
+    border: 2px solid var(--border2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .hidden { display: none !important; }
+
+  /* ── Filters ── */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .filter-btn {
+    font-family: var(--cond);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 2px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.1s;
+  }
+  .filter-btn.active { background: var(--accent); color: #0d1117; border-color: var(--accent); }
+  .filter-btn:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+
+  .copy-btn {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--dim);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 3px 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+  .tag-ok   { font-family: var(--mono); font-size: 10px; background: rgba(61,214,140,0.12); color: var(--green); border: 1px solid rgba(61,214,140,0.25); border-radius: 2px; padding: 1px 6px; }
+  .tag-crit { font-family: var(--mono); font-size: 10px; background: rgba(255,90,90,0.12); color: var(--red); border: 1px solid rgba(255,90,90,0.25); border-radius: 2px; padding: 1px 6px; }
+  .tag-warn { font-family: var(--mono); font-size: 10px; background: rgba(245,200,66,0.12); color: var(--yellow); border: 1px solid rgba(245,200,66,0.25); border-radius: 2px; padding: 1px 6px; }
+
+  .toast {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 10px 16px;
+    border-radius: 4px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 100;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="title">⚒ Base Repair</div>
+    <div class="subtitle">building condition · repair materials · inventory diff</div>
+  </div>
+  <a href="/home.html" class="home-link">⌂ HOME</a>
+</div>
+
+<div style="font-size:11px;color:var(--dim);font-family:var(--mono);margin-bottom:1rem;">⚿ API key and username are saved in your browser only — never sent anywhere except FIO.</div>
+
+<!-- Status + refresh -->
+<div class="controls" style="margin-bottom:12px;">
+  <button class="btn-secondary" id="refreshBtn" onclick="refreshData()" disabled>↺ REFRESH</button>
+  <span id="statusDot" class="status-dot"></span>
+  <span id="statusText" style="font-family:var(--mono);font-size:11px;color:var(--dim)"></span>
+</div>
+
+<!-- Base summary cards -->
+<div class="section-title" style="margin-bottom:10px;">Bases — click to inspect</div>
+<div id="baseSummaryCards" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;">
+  <div class="state-box" style="padding:20px"><div class="state-msg">Loading bases…</div></div>
+</div>
+
+<!-- Main layout -->
+<div style="display:grid;grid-template-columns:220px 1fr 340px;gap:20px;align-items:start;">
+
+  <!-- Col 1: Building summary -->
+  <div>
+    <div class="section-title">Building Inventory</div>
+    <div class="filter-bar" style="visibility:hidden;">
+      <button class="filter-btn">placeholder</button>
+    </div>
+    <div class="panel" id="summaryPanel">
+      <div class="state-box" style="padding:40px 20px">
+        <div class="state-icon">🏗</div>
+        <div class="state-msg">Select a base.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Col 2: Repair condition -->
+  <div>
+    <div class="section-title">Repair Condition</div>
+    <div class="filter-bar">
+      <button class="filter-btn active" id="fAll"     onclick="setFilter('all')">All</button>
+      <button class="filter-btn"        id="fDamaged" onclick="setFilter('damaged')">Damaged</button>
+      <button class="filter-btn"        id="fCrit"    onclick="setFilter('critical')">Critical &lt;50%</button>
+    </div>
+    <div class="table-wrap" id="buildingPanel">
+      <div class="state-box">
+        <div class="state-icon">🏗</div>
+        <div class="state-msg">Select a base to load building conditions.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Col 3: Shopping list -->
+  <div>
+    <div class="section-title">Repair Shopping List</div>
+    <div class="filter-bar" style="visibility:hidden;">
+      <button class="filter-btn">placeholder</button>
+    </div>
+    <div class="panel" id="shopPanel">
+      <div class="state-box" style="padding:40px 20px">
+        <div class="state-icon">📦</div>
+        <div class="state-msg">Total materials needed vs inventory.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API   = 'https://rest.fnar.net';
+
+let USER  = '';
+let APIKEY = '';
+let headers = {};
+
+let allSites    = [];
+let allStorage  = [];
+let allMaterials = {};
+let currentSiteData = null;
+let currentFilter = 'all';
+
+// ── Boot ──────────────────────────────────────────────────────────────────
+async function init() {
+  USER   = localStorage.getItem('prun_username') || '';
+  APIKEY = localStorage.getItem('prun_apikey') || '';
+
+  if (!USER || !APIKEY) {
+    setStatus('err', 'No credentials found — please load another tool first to set your API key, or set via localStorage.');
+    return;
+  }
+
+  headers = { 'Authorization': APIKEY };
+  setStatus('loading', 'Fetching empire data…');
+  try {
+    const [sitesRes, storageRes, matsRes] = await Promise.all([
+      fetch(`${API}/sites/${USER}`, { headers }),
+      fetch(`${API}/storage/${USER}`, { headers }),
+      fetch(`${API}/material/allmaterials`, { headers }),
+    ]);
+
+    if (!sitesRes.ok) throw new Error(`Sites: ${sitesRes.status}`);
+    if (!storageRes.ok) throw new Error(`Storage: ${storageRes.status}`);
+
+    allSites   = await sitesRes.json();
+    allStorage = await storageRes.json();
+
+    if (matsRes.ok) {
+      const mats = await matsRes.json();
+      mats.forEach(m => { allMaterials[m.Ticker] = m; });
+    }
+
+    populateBaseSelect();
+    setStatus('ok', `${allSites.length} base(s) loaded`);
+    document.getElementById('refreshBtn').disabled = false;
+
+  } catch(e) {
+    setStatus('err', e.message);
+    document.getElementById('baseSummaryCards').innerHTML = '<div class="state-box"><div class="state-msg err">Error loading bases</div></div>';
+  }
+}
+
+function populateBaseSelect() {
+  renderBaseSummaryCards();
+}
+
+function renderBaseSummaryCards() {
+  const container = document.getElementById('baseSummaryCards');
+  if (!allSites.length) {
+    container.innerHTML = '<div class="state-box"><div class="state-msg">No bases found.</div></div>';
+    return;
+  }
+  container.innerHTML = allSites.map((site, i) => {
+    const name = site.PlanetName || site.PlanetNaturalId || site.SiteId;
+    const id   = site.PlanetNaturalId || site.SiteId;
+    const buildings = (site.Buildings || []).filter(b => !isHB(b));
+    const total = buildings.length;
+    const damaged = buildings.filter(b => (b.Condition||1) < 1).length;
+    const conds = buildings.map(b => typeof b.Condition === 'number' ? b.Condition : 1);
+    const avg = total ? Math.round(conds.reduce((a,c)=>a+c,0) / total * 100) : 100;
+    const avgColor = avg >= 75 ? 'var(--green)' : avg >= 50 ? 'var(--yellow)' : 'var(--red)';
+    const isSelected = currentSiteData && (currentSiteData.PlanetNaturalId || currentSiteData.SiteId) === id;
+    return `<div class="stat-card" onclick="loadBase(${i})" style="cursor:pointer;min-width:160px;border-color:${isSelected ? 'var(--accent)' : 'var(--border)'};transition:border-color 0.15s;">
+      <div class="stat-label">${name}</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--dim);margin-bottom:6px;">${id}</div>
+      <div style="display:flex;gap:12px;align-items:baseline;">
+        <div><div style="font-family:var(--mono);font-size:18px;color:${avgColor}">${avg}%</div><div class="stat-label">avg cond</div></div>
+        <div><div style="font-family:var(--mono);font-size:18px;color:${damaged > 0 ? 'var(--yellow)' : 'var(--green)'}">${damaged}</div><div class="stat-label">damaged</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Load base ─────────────────────────────────────────────────────────────
+async function loadBase(idx) {
+  const site = allSites[idx];
+  if (!site) return;
+
+  currentSiteData = site;
+  renderBaseSummaryCards(); // re-render to show selected highlight
+
+  setStatus('loading', 'Analysing…');
+  const planetId = site.PlanetNaturalId || site.SiteId;
+  const storage  = findStorageForPlanet(planetId);
+  const allBuildings = site.Buildings || [];
+  const repairBuildings = allBuildings.filter(b => !isHB(b));
+
+  renderBuildingSummary(allBuildings);
+  renderBuildings(repairBuildings, storage);
+  renderShoppingList(repairBuildings, storage);
+  renderSummary(repairBuildings, storage);
+  setStatus('ok', `${planetId} — ${allBuildings.length} buildings`);
+}
+
+function findStorageForPlanet(planetId) {
+  // Match by AddressableId or planet natural ID
+  const inv = {};
+  allStorage.forEach(store => {
+    const addr = store.AddressableId || store.PlanetId || store.NaturalId || '';
+    const type = store.Type || '';
+    // Include BASE type stores or those matching the planet
+    if (addr === planetId || type === 'BASE' || addr.includes(planetId)) {
+      (store.StorageItems || []).forEach(item => {
+        const t = item.MaterialTicker;
+        if (!t) return;
+        inv[t] = (inv[t] || 0) + (item.MaterialAmount || 0);
+      });
+    }
+  });
+  return inv;
+}
+
+// ── Render buildings ───────────────────────────────────────────────────────
+function renderBuildings(buildings, inventory) {
+  const panel = document.getElementById('buildingPanel');
+  if (!buildings.length) {
+    panel.innerHTML = `<div class="state-box"><div class="state-icon">🏚</div><div class="state-msg">No buildings found at this site.</div></div>`;
+    return;
+  }
+
+  const filtered = filterBuildings(buildings);
+
+  let rows = filtered.map(b => {
+    const cond    = typeof b.Condition === 'number' ? b.Condition : 1;
+    const condPct = Math.round(cond * 100);
+    const ticker  = b.BuildingTicker || '?';
+    const mats    = b.RepairMaterials || [];
+    const condColor = condPct >= 75 ? 'var(--green)' : condPct >= 50 ? 'var(--yellow)' : 'var(--red)';
+
+    let tag = '';
+    if (condPct >= 100) tag = '<span class="tag-ok">FULL</span>';
+    else if (condPct < 50) tag = '<span class="tag-crit">CRIT</span>';
+    else if (condPct < 75) tag = '<span class="tag-warn">DMG</span>';
+
+    const matChips = mats.length
+      ? mats.map(m => {
+          const have = inventory[m.MaterialTicker] || 0;
+          const need = m.Amount || 0;
+          const cls  = have >= need ? 'ok' : 'short';
+          return `<div class="mat-chip"><span>${m.MaterialTicker}</span> ×${need} <span class="${cls}">[${have}]</span></div>`;
+        }).join('')
+      : '<span style="color:var(--dim);font-size:11px;font-family:var(--mono)">perfect condition</span>';
+
+    return `
+    <tr data-cond="${condPct}">
+      <td><span class="ticker-badge">${ticker}</span></td>
+      <td>${tag}</td>
+      <td>
+        <div class="cond-wrap">
+          <div class="cond-bar-bg">
+            <div class="cond-bar-fill" style="width:${condPct}%;background:${condColor}"></div>
+          </div>
+          <div class="cond-pct">${condPct}%</div>
+        </div>
+      </td>
+      <td><div class="mat-chips">${matChips}</div></td>
+    </tr>`;
+  }).join('');
+
+  panel.innerHTML = `
+  <table>
+    <thead>
+      <tr>
+        <th>Building</th>
+        <th></th>
+        <th>Condition</th>
+        <th>Repair Materials Needed [Have]</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+// ── Shopping list ──────────────────────────────────────────────────────────
+function renderShoppingList(buildings, inventory) {
+  const panel = document.getElementById('shopPanel');
+
+  // Aggregate all repair materials
+  const totals = {};
+  buildings.forEach(b => {
+    (b.RepairMaterials || []).forEach(m => {
+      const t = m.MaterialTicker;
+      totals[t] = (totals[t] || 0) + (m.Amount || 0);
+    });
+  });
+
+  const keys = Object.keys(totals).sort();
+  if (!keys.length) {
+    panel.innerHTML = `<div class="state-box" style="padding:40px 20px"><div class="state-icon">✨</div><div class="state-msg">No repair materials needed — all buildings are in perfect condition!</div></div>`;
+    return;
+  }
+
+  const rows = keys.map(ticker => {
+    const need  = totals[ticker];
+    const have  = inventory[ticker] || 0;
+    const delta = have - need;
+    const matInfo = allMaterials[ticker];
+    const name    = matInfo ? matInfo.Name : ticker;
+
+    let haveCls = 'ok', shortTxt = '—';
+    if (delta < 0) { haveCls = 'short'; shortTxt = `${delta}`; }
+    else if (delta === 0) { haveCls = 'exact'; shortTxt = '✓'; }
+    else { shortTxt = `+${delta}`; }
+
+    return `
+    <div class="shop-row">
+      <div class="shop-ticker">${ticker}</div>
+      <div class="shop-name" title="${name}">${name}</div>
+      <div class="shop-needed">${need}</div>
+      <div class="shop-have ${haveCls}">${have}</div>
+      <div class="shop-short ${haveCls}">${shortTxt}</div>
+    </div>`;
+  }).join('');
+
+  const shortCount  = keys.filter(t => (inventory[t]||0) < totals[t]).length;
+  const shortfallItems = keys
+    .filter(t => (inventory[t]||0) < totals[t])
+    .map(t => ({ MaterialTicker: t, Amount: totals[t] - (inventory[t]||0) }));
+  const copyList = JSON.stringify(shortfallItems);
+
+  panel.innerHTML = `
+  <div class="panel-header">
+    <div class="panel-title">All Repair Materials</div>
+    <button class="copy-btn" onclick="copyShortfall()" title="Copy shortfall to clipboard">COPY SHORT</button>
+  </div>
+  <div class="shop-row" style="border-bottom:1px solid var(--border2);">
+    <div class="col-h">TICKER</div>
+    <div class="col-h">NAME</div>
+    <div class="col-h right">NEED</div>
+    <div class="col-h right">HAVE</div>
+    <div class="col-h right">DIFF</div>
+  </div>
+  <div class="panel-body" id="shopRows">${rows}</div>`;
+
+  // Store shortfall for copy
+  window._shortfallText = copyList;
+}
+
+
+function buildActJson(materials) {
+  const matObj = {};
+  materials.forEach(m => { matObj[m.MaterialTicker] = m.Amount; });
+  return JSON.stringify({
+    actions: [
+      {"group":"A1","exchange":"IC1","priceLimits":{},"buyPartial":false,"useCXInv":true,"name":"BuyItems","type":"CX Buy"},
+      {"type":"MTRA","name":"TransferAction","group":"A1","origin":"Hortus Station Warehouse","dest":"Configure on Execution"}
+    ],
+    global: { name: "PrUn Tools Shortfall" },
+    groups: [{ type: "Manual", name: "A1", materials: matObj }]
+  });
+}
+
+function copyShortfall() {
+  if (!window._shortfallText) { toast('Nothing to copy'); return; }
+  navigator.clipboard.writeText(buildActJson(JSON.parse(window._shortfallText)))
+    .then(() => toast('Shortfall copied as XIT ACT JSON'))
+    .catch(() => toast('Copy failed'));
+}
+
+// ── Summary strip ──────────────────────────────────────────────────────────
+function renderSummary(buildings, inventory) {
+  const strip = document.getElementById('summaryStrip');
+  strip.classList.remove('hidden');
+
+  const total  = buildings.length;
+  const conds  = buildings.map(b => typeof b.Condition === 'number' ? b.Condition : 1);
+  const avg    = total ? Math.round(conds.reduce((a,b)=>a+b,0) / total * 100) : 100;
+  const damaged = buildings.filter(b => (b.Condition||1) < 1).length;
+
+  // Aggregate totals
+  const totals = {};
+  buildings.forEach(b => {
+    (b.RepairMaterials || []).forEach(m => {
+      totals[m.MaterialTicker] = (totals[m.MaterialTicker]||0) + (m.Amount||0);
+    });
+  });
+  const shortCount = Object.keys(totals).filter(t => (inventory[t]||0) < totals[t]).length;
+  const canRepair  = Object.keys(totals).length === 0 || shortCount === 0;
+
+  document.getElementById('statBuildings').textContent  = total;
+  document.getElementById('statAvgCond').textContent    = `${avg}%`;
+  document.getElementById('statNeedRepair').textContent  = damaged;
+  document.getElementById('statShort').textContent      = shortCount;
+
+  const canEl = document.getElementById('statCanRepair');
+  if (canRepair) {
+    canEl.textContent  = 'YES';
+    canEl.className    = 'stat-value good';
+  } else {
+    canEl.textContent  = 'NO';
+    canEl.className    = 'stat-value bad';
+  }
+}
+
+// ── Filter ─────────────────────────────────────────────────────────────────
+const EXCLUDE_TICKERS = new Set(['CM','STA','STE','STO','STV','STW','HB1','HB2','HB3','HB4','HB5','HBB','HBC','HBL','HBM']);
+
+function isHB(b) {
+  return EXCLUDE_TICKERS.has((b.BuildingTicker || '').toUpperCase());
+}
+
+function filterBuildings(buildings) {
+  // HBs/storage always excluded from repair view
+  let result = buildings.filter(b => !isHB(b));
+  if (currentFilter === 'damaged')  return result.filter(b => (b.Condition||1) < 1);
+  if (currentFilter === 'critical') return result.filter(b => (b.Condition||1) < 0.5);
+  return result;
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  ['fAll','fDamaged','fCrit'].forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById(f === 'all' ? 'fAll' : f === 'damaged' ? 'fDamaged' : 'fCrit').classList.add('active');
+  if (currentSiteData) {
+    const storage = findStorageForPlanet(currentSiteData.PlanetNaturalId || currentSiteData.SiteId);
+    const buildings = (currentSiteData.Buildings || []).filter(b => !isHB(b));
+    renderBuildings(buildings, storage);
+  }
+}
+
+// ── Building inventory summary (all buildings incl HBs/storage) ────────────
+function renderBuildingSummary(buildings) {
+  const panel = document.getElementById('summaryPanel');
+  if (!buildings.length) {
+    panel.innerHTML = `<div class="state-box"><div class="state-msg">No buildings found.</div></div>`;
+    return;
+  }
+  const counts = {};
+  buildings.forEach(b => {
+    const t = b.BuildingTicker || '?';
+    counts[t] = (counts[t] || 0) + 1;
+  });
+  const rows = Object.keys(counts).sort().map(ticker => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 14px;border-bottom:1px solid var(--border);">
+      <span style="font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:bold;">${ticker}</span>
+      <span style="font-family:var(--mono);font-size:12px;color:var(--text);">×${counts[ticker]}</span>
+    </div>`).join('');
+  panel.innerHTML = `<div>${rows}</div>`;
+}
+
+// ── Refresh ────────────────────────────────────────────────────────────────
+async function refreshData() {
+  const prevId = currentSiteData ? (currentSiteData.PlanetNaturalId || currentSiteData.SiteId) : null;
+  setStatus('loading', 'Refreshing…');
+  try {
+    const [sitesRes, storageRes] = await Promise.all([
+      fetch(`${API}/sites/${USER}`, { headers }),
+      fetch(`${API}/storage/${USER}`, { headers }),
+    ]);
+    allSites   = await sitesRes.json();
+    allStorage = await storageRes.json();
+    renderBaseSummaryCards();
+    setStatus('ok', 'Refreshed');
+    toast('Data refreshed (FIO lag ~10-15min)');
+    if (prevId) {
+      const idx = allSites.findIndex(s => (s.PlanetNaturalId || s.SiteId) === prevId);
+      if (idx >= 0) loadBase(idx);
+    }
+  } catch(e) {
+    setStatus('err', e.message);
+  }
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function setStatus(state, msg) {
+  const dot  = document.getElementById('statusDot');
+  const text = document.getElementById('statusText');
+  dot.className  = `status-dot ${state === 'ok' ? 'ok' : state === 'err' ? 'err' : 'loading'}`;
+  text.textContent = msg;
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ── Start ──────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
