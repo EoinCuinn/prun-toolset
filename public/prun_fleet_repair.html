@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PrUn Fleet Repair</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --bg2: #181c27;
+    --bg3: #1e2333;
+    --border: #2a3045;
+    --text: #e2e8f0;
+    --text2: #8892a4;
+    --text3: #555f72;
+    --accent: #4f8ef7;
+    --green: #4ade80;
+    --orange: #fb923c;
+    --red: #f87171;
+    --mono: 'Courier New', monospace;
+    --radius: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 1.5rem;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  h1::before {
+    content: '';
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .config-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    min-width: 160px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: var(--mono);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input[type="text"]:focus { border-color: var(--accent); }
+
+  button {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 8px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+  button:hover { background: var(--border); border-color: var(--accent); }
+  button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-weight: 600;
+  }
+  button.primary:hover { background: #6aa0f9; }
+
+  .status {
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 1rem;
+    min-height: 16px;
+    font-family: var(--mono);
+  }
+
+  .section-head {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+    margin: 1.5rem 0 0.75rem;
+  }
+
+  /* Ship grid */
+  .ship-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 8px;
+  }
+
+  .ship-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.75rem 1rem;
+    transition: border-color 0.15s;
+  }
+  .ship-card:hover { border-color: var(--accent); }
+  .ship-card.needs-repair { border-left: 3px solid var(--orange); }
+  .ship-card.critical { border-left: 3px solid var(--red); }
+  .ship-card.good { border-left: 3px solid var(--green); }
+
+  .ship-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+
+  .ship-name {
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--mono);
+    color: var(--text);
+  }
+
+  .ship-condition {
+    font-size: 13px;
+    font-weight: 700;
+    font-family: var(--mono);
+  }
+  .condition-good { color: var(--green); }
+  .condition-warn { color: var(--orange); }
+  .condition-bad { color: var(--red); }
+
+  .repair-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+  }
+
+  .mat-pill {
+    font-size: 11px;
+    font-family: var(--mono);
+    padding: 2px 7px;
+    border-radius: 3px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--orange);
+  }
+
+  .no-repairs {
+    font-size: 12px;
+    color: var(--text3);
+  }
+
+  /* Shopping grid */
+  .shopping-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 8px;
+  }
+
+  .shopping-item {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.75rem;
+    transition: border-color 0.15s;
+  }
+  .shopping-item:hover { border-color: var(--accent); }
+  .shopping-item.covered { border-left: 3px solid var(--green); }
+  .shopping-item.partial  { border-left: 3px solid var(--orange); }
+  .shopping-item.missing  { border-left: 3px solid var(--red); }
+
+  .shopping-ticker {
+    font-size: 17px;
+    font-weight: 700;
+    font-family: var(--mono);
+    color: var(--text);
+    margin-bottom: 6px;
+    letter-spacing: 0.05em;
+  }
+
+  .shopping-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text2);
+    margin-top: 2px;
+  }
+  .shopping-row span:last-child { color: var(--text); font-weight: 500; font-family: var(--mono); }
+
+  .buy-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+  }
+  .buy-row span:last-child { font-family: var(--mono); font-weight: 600; }
+  .col-green  { color: var(--green); }
+  .col-orange { color: var(--orange); }
+  .col-red    { color: var(--red); }
+
+  .locations { margin-top: 6px; }
+  .location-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text2);
+    padding: 2px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .location-row:last-child { border-bottom: none; }
+  .location-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px; }
+  .location-qty { font-family: var(--mono); color: var(--text); }
+
+  /* Export */
+  .export-section {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .export-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+  }
+
+  .export-card-head {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text2);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .export-card-desc {
+    font-size: 12px;
+    color: var(--text3);
+    margin-bottom: 0.75rem;
+  }
+
+  .export-output {
+    font-size: 11px;
+    font-family: var(--mono);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 10px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 120px;
+    overflow-y: auto;
+    color: var(--text2);
+    margin-bottom: 8px;
+  }
+
+  .export-actions { display: flex; align-items: center; gap: 8px; }
+  .copy-success { font-size: 12px; color: var(--green); font-family: var(--mono); }
+
+  /* Summary strip */
+  .summary {
+    display: flex;
+    gap: 1px;
+    margin-bottom: 1.25rem;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .summary-stat {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    background: var(--bg2);
+    text-align: center;
+  }
+  .summary-stat strong {
+    display: block;
+    font-size: 22px;
+    font-weight: 700;
+    font-family: var(--mono);
+    margin-bottom: 2px;
+  }
+  .summary-stat span { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; }
+  .stat-green strong { color: var(--green); }
+  .stat-orange strong { color: var(--orange); }
+  .stat-red strong { color: var(--red); }
+</style>
+</head>
+<body>
+
+<a href="/home.html" style="position:fixed;top:16px;right:16px;background:#1e3a5f;color:#4f8ef7;border:1px solid #4f8ef7;border-radius:4px;padding:6px 12px;font-size:12px;font-family:monospace;text-decoration:none;letter-spacing:0.05em;z-index:100;">⌂ HOME</a>
+
+<h1>Fleet Repair</h1>
+
+<div class="config-row">
+  <input id="apikey" type="text" placeholder="FIO API key..." />
+  <input id="username" type="text" placeholder="PrUn username..." />
+  <button class="primary" id="loadBtn">Load fleet ↗</button>
+</div>
+<div class="status" id="status">Enter your FIO API key and username to load fleet data.</div>
+<div id="results"></div>
+
+<script>
+function buildActJson(materials) {
+  return {
+    actions: [
+      { group: "A1", exchange: "IC1", priceLimits: {}, buyPartial: false, useCXInv: true, name: "BuyItems", type: "CX Buy" },
+      { type: "MTRA", name: "TransferAction", group: "A1", origin: "Hortus Station Warehouse", dest: "Configure on Execution" }
+    ],
+    groups: [{ type: "Manual", name: "A1", materials }]
+  };
+}
+
+async function loadAll() {
+  const apikey = document.getElementById('apikey').value.trim();
+  const username = document.getElementById('username').value.trim();
+  const status = document.getElementById('status');
+  const results = document.getElementById('results');
+
+  if (!apikey || !username) { status.textContent = 'Please enter both fields.'; return; }
+  localStorage.setItem('prun_apikey', apikey);
+  localStorage.setItem('prun_username', username);
+  status.textContent = 'Fetching data...';
+  results.innerHTML = '';
+
+  try {
+    const [shipsRes, storageRes, sitesRes] = await Promise.all([
+      fetch(`https://rest.fnar.net/ship/ships/${username}`, { headers: { 'Authorization': apikey } }),
+      fetch(`https://rest.fnar.net/storage/${username}`, { headers: { 'Authorization': apikey } }),
+      fetch(`https://rest.fnar.net/sites/${username}`, { headers: { 'Authorization': apikey } })
+    ]);
+
+    if (shipsRes.status === 401) { status.textContent = 'Auth failed — check API key.'; return; }
+    if (!shipsRes.ok) { status.textContent = `Ships error ${shipsRes.status}.`; return; }
+
+    const ships = await shipsRes.json();
+
+    // SiteId → PlanetName map
+    const siteMap = {};
+    if (sitesRes.ok) {
+      const sites = await sitesRes.json();
+      sites.forEach(s => { if (s.SiteId && s.PlanetName) siteMap[s.SiteId] = s.PlanetName; });
+    }
+
+    // Inventory map
+    const inventory = {};
+    if (storageRes.ok) {
+      const storageData = await storageRes.json();
+      storageData.forEach(loc => {
+        if (loc.Type === 'STL_FUEL_STORE' || loc.Type === 'FTL_FUEL_STORE') return;
+        let locName = loc.Name;
+        if (!locName && loc.AddressableId && siteMap[loc.AddressableId]) locName = siteMap[loc.AddressableId];
+        if (!locName && loc.StorageId && siteMap[loc.StorageId]) locName = siteMap[loc.StorageId];
+        if (!locName) locName = loc.Type === 'WAREHOUSE_STORE' ? 'Warehouse' : 'Unknown';
+        (loc.StorageItems || []).forEach(item => {
+          const ticker = item.MaterialTicker || '?';
+          const qty = item.MaterialAmount || 0;
+          if (qty <= 0) return;
+          if (!inventory[ticker]) inventory[ticker] = { total: 0, locations: [] };
+          inventory[ticker].total += qty;
+          const existing = inventory[ticker].locations.find(l => l.name === locName);
+          if (existing) existing.qty += qty;
+          else inventory[ticker].locations.push({ name: locName, qty });
+        });
+      });
+    }
+
+    status.textContent = `Loaded ${ships.length} ship${ships.length !== 1 ? 's' : ''}.`;
+
+    // Aggregate repair needs across fleet
+    const aggregate = {};
+    let shipsGood = 0, shipsWarn = 0, shipsBad = 0;
+
+    // Fleet condition section
+    let shipsHtml = '<div class="section-head">Fleet condition</div><div class="ship-grid">';
+
+    ships.forEach(ship => {
+      const transponder = ship.Transponder || ship.Registration || ship.Name || '?';
+      const condition = ship.Condition != null ? Math.round(ship.Condition * 100) : null;
+      const repairs = ship.RepairMaterials || ship.Needs || [];
+      const hasRepairs = repairs.length > 0;
+
+      let condClass = 'condition-good';
+      let cardClass = 'good';
+      if (condition != null && condition < 85) {
+        condClass = 'condition-bad'; cardClass = 'critical'; shipsBad++;
+      } else if (condition != null && condition < 95) {
+        condClass = 'condition-warn'; cardClass = 'needs-repair'; shipsWarn++;
+      } else {
+        shipsGood++;
+      }
+
+      shipsHtml += `<div class="ship-card ${cardClass}">`;
+      shipsHtml += `<div class="ship-header">
+        <span class="ship-name">${transponder}</span>
+        <span class="ship-condition ${condClass}">${condition != null ? condition + '%' : '?'}</span>
+      </div>`;
+
+      if (hasRepairs) {
+        shipsHtml += '<div class="repair-items">';
+        repairs.forEach(mat => {
+          const ticker = mat.MaterialTicker || mat.Ticker || '?';
+          const qty = mat.MaterialAmount || mat.Amount || 1;
+          shipsHtml += `<span class="mat-pill">${qty}× ${ticker}</span>`;
+          if (!aggregate[ticker]) aggregate[ticker] = 0;
+          aggregate[ticker] += qty;
+        });
+        shipsHtml += '</div>';
+      } else {
+        shipsHtml += '<div class="no-repairs">No repairs needed ✓</div>';
+      }
+      shipsHtml += '</div>';
+    });
+    shipsHtml += '</div>';
+
+    // Summary strip
+    const totalShips = ships.length;
+    let html = `<div class="summary">
+      <div class="summary-stat stat-green"><strong>${shipsGood}</strong><span>Good</span></div>
+      <div class="summary-stat stat-orange"><strong>${shipsWarn}</strong><span>Warn</span></div>
+      <div class="summary-stat stat-red"><strong>${shipsBad}</strong><span>Critical</span></div>
+      <div class="summary-stat"><strong>${totalShips}</strong><span>Total</span></div>
+    </div>`;
+
+    html += shipsHtml;
+
+    const keys = Object.keys(aggregate).sort();
+
+    if (keys.length === 0) {
+      html += '<div class="section-head">Shopping list</div><div class="status">No repairs needed across fleet ✓</div>';
+      results.innerHTML = html;
+      return;
+    }
+
+    // Shopping list
+    let covered = 0, partial = 0, missing = 0;
+    const toBuyMaterials = {};
+
+    html += '<div class="section-head">Shopping list — have vs need</div><div class="shopping-grid">';
+    keys.forEach(ticker => {
+      const needed = aggregate[ticker];
+      const inv = inventory[ticker] || { total: 0, locations: [] };
+      const have = inv.total;
+      const toBuy = Math.max(0, needed - have);
+      const cls = toBuy === 0 ? 'covered' : (have > 0 ? 'partial' : 'missing');
+      const colCls = toBuy === 0 ? 'col-green' : (have > 0 ? 'col-orange' : 'col-red');
+      const buyText = toBuy === 0 ? '✓ covered' : `buy ${toBuy}`;
+
+      if (toBuy === 0) covered++;
+      else if (have > 0) partial++;
+      else missing++;
+
+      if (toBuy > 0) toBuyMaterials[ticker] = toBuy;
+
+      html += `<div class="shopping-item ${cls}">`;
+      html += `<div class="shopping-ticker">${ticker}</div>`;
+      html += `<div class="shopping-row"><span>Need</span><span>${needed}</span></div>`;
+      html += `<div class="shopping-row"><span>Have</span><span>${have}</span></div>`;
+      html += `<div class="buy-row"><span>To buy</span><span class="${colCls}">${buyText}</span></div>`;
+      if (inv.locations.length > 0) {
+        html += '<div class="locations">';
+        inv.locations.sort((a,b) => b.qty - a.qty).forEach(l => {
+          html += `<div class="location-row"><span class="location-name">${l.name}</span><span class="location-qty">${l.qty}</span></div>`;
+        });
+        html += '</div>';
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+
+    // XIT Export
+    const hasBuyItems = Object.keys(toBuyMaterials).length > 0;
+    const xit = buildActJson(toBuyMaterials);
+    const xitStr = JSON.stringify(xit);
+
+    html += `<div class="export-section">
+      <div class="section-head">XIT Export</div>
+      <div class="export-card">
+        <div class="export-card-head">Buy + Transfer</div>
+        <div class="export-card-desc">CX Buy missing repair materials at IC1, then MTRA from Hortus Station Warehouse → ship (configure on execution). ${hasBuyItems ? Object.keys(toBuyMaterials).length + ' item(s) to buy.' : 'Nothing to buy — all covered.'}</div>
+        <div class="export-output" id="xitOut">${xitStr}</div>
+        <div class="export-actions">
+          <button id="copyXit">Copy to clipboard</button>
+          <span class="copy-success" id="copyXitOk" style="display:none">✓ Copied!</span>
+        </div>
+      </div>
+    </div>`;
+
+    results.innerHTML = html;
+
+    document.getElementById('copyXit').addEventListener('click', () => {
+      navigator.clipboard.writeText(xitStr).then(() => {
+        const s = document.getElementById('copyXitOk');
+        s.style.display = 'inline';
+        setTimeout(() => s.style.display = 'none', 2000);
+      });
+    });
+
+  } catch(e) {
+    status.textContent = 'Error: ' + e.message;
+  }
+}
+
+document.getElementById('loadBtn').addEventListener('click', loadAll);
+document.getElementById('username').addEventListener('keydown', e => { if (e.key === 'Enter') loadAll(); });
+
+// Restore saved values from localStorage
+const savedKey = localStorage.getItem('prun_apikey');
+const savedUser = localStorage.getItem('prun_username');
+if (savedKey) document.getElementById('apikey').value = savedKey;
+if (savedUser) document.getElementById('username').value = savedUser;
+if (savedKey && savedUser) loadAll();
+</script>
+</body>
+</html>

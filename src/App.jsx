@@ -136,6 +136,21 @@ function App() {
       )}
       <Sidebar system={selectedSystem} planets={planets} materials={materials} filteredPlanetNaturalIds={filteredPlanetNaturalIds} onClose={() => setSelectedSystem(null)} />
 
+      <a
+        href="/home.html"
+        style={{
+          ...btnStyle(true),
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          zIndex: 100,
+          textDecoration: 'none',
+          display: 'inline-block',
+        }}
+      >
+        ⌂ HOME
+      </a>
+
       <div style={{
         position: 'fixed',
         bottom: '20px',
