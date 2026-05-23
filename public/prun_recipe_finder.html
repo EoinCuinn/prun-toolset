@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PrUn Recipe Finder</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --bg2: #181c27;
+    --bg3: #1e2333;
+    --border: #2a3045;
+    --border2: #3a4460;
+    --text: #e2e8f0;
+    --text2: #8892a4;
+    --text3: #555f72;
+    --dim: #555f72;
+    --accent: #4f8ef7;
+    --green: #4ade80;
+    --orange: #fb923c;
+    --red: #f87171;
+    --mono: 'Courier New', monospace;
+    --radius: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 1.5rem;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  /* ── Header ── */
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    gap: 12px;
+  }
+  .header-left { display: flex; flex-direction: column; gap: 2px; }
+  .title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .title::before {
+    content: '';
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+  .subtitle {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+    letter-spacing: 0.05em;
+  }
+  .home-link {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    border: 1px solid var(--border);
+    padding: 5px 10px;
+    border-radius: 3px;
+    transition: color 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+  .home-link:hover { color: var(--text); border-color: var(--border2); }
+
+  /* ── Search ── */
+  .input-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 0.75rem;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 8px 12px;
+    font-size: 15px;
+    font-family: var(--mono);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input[type="text"]:focus { border-color: var(--accent); }
+
+  button {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 8px 20px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+    font-family: inherit;
+  }
+  button:hover { background: var(--border); border-color: var(--accent); }
+  button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-weight: 600;
+  }
+  button.primary:hover { background: #6aa0f9; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .status {
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 1rem;
+    min-height: 16px;
+    font-family: var(--mono);
+  }
+
+  /* ── Section heading ── */
+  .section-head {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+    margin: 1.5rem 0 0.75rem;
+  }
+
+  /* ── Summary chips ── */
+  .summary-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .summary-chip {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 5px 12px;
+    font-size: 12px;
+    color: var(--text2);
+  }
+  .summary-chip strong { color: var(--text); font-weight: 600; }
+
+  /* ── Results grid ── */
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 8px;
+  }
+
+  .recipe-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.75rem 1rem;
+    transition: border-color 0.15s;
+  }
+  .recipe-card:hover { border-color: var(--accent); }
+  .recipe-card[onclick]:hover { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+
+  .building-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+
+  .recipe-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .arrow { color: var(--text3); font-size: 12px; }
+
+  .duration {
+    font-size: 11px;
+    color: var(--text3);
+    margin-left: auto;
+    font-family: var(--mono);
+    white-space: nowrap;
+  }
+
+  /* ── Material pills ── */
+  .mat-pill {
+    position: relative;
+    cursor: default;
+    font-size: 12px;
+    font-family: var(--mono);
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    border: 1px solid transparent;
+  }
+  .mat-input     { background: rgba(79,142,247,0.12); color: #7eb3fa; border-color: rgba(79,142,247,0.25); }
+  .mat-output    { background: rgba(74,222,128,0.12); color: #6ee7a0; border-color: rgba(74,222,128,0.25); }
+  .mat-highlight { background: rgba(251,146,60,0.15); color: var(--orange); border-color: rgba(251,146,60,0.35); }
+
+  /* ── Tooltip ── */
+  .mat-tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 0;
+    z-index: 100;
+    background: var(--bg3);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 8px 10px;
+    font-size: 11px;
+    font-family: var(--mono);
+    white-space: nowrap;
+    pointer-events: none;
+    color: var(--text);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    min-width: 150px;
+    text-align: left;
+  }
+  .mat-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 12px;
+    border: 5px solid transparent;
+    border-top-color: var(--accent);
+  }
+  .mat-pill:hover .mat-tooltip { display: block; }
+
+  .tt-building { color: var(--orange); font-weight: bold; display: block; margin-bottom: 2px; }
+  .tt-recipe   { color: var(--text2); font-size: 10px; display: block; line-height: 1.6; }
+  .tt-wf       { color: var(--accent); font-size: 10px; display: block; }
+  .tt-none     { color: var(--text3); font-size: 10px; }
+  .tt-divider  { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+
+  /* ── Autocomplete ── */
+  .input-wrap { position: relative; flex: 1; }
+  .autocomplete-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    background: var(--bg3);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    max-height: 260px;
+    overflow-y: auto;
+    margin-top: 2px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  }
+  .autocomplete-item {
+    padding: 6px 12px;
+    font-size: 12px;
+    font-family: var(--mono);
+    cursor: pointer;
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    border-bottom: 1px solid var(--border);
+  }
+  .autocomplete-item:last-child { border-bottom: none; }
+  .autocomplete-item:hover, .autocomplete-item.active { background: var(--accent); color: #fff; }
+  .autocomplete-item:hover .ac-name, .autocomplete-item.active .ac-name { color: #fff; }
+  .ac-ticker { font-weight: 700; min-width: 44px; }
+  .ac-name   { font-size: 11px; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="header-left">
+    <div class="title">Recipe Finder</div>
+    <div class="subtitle">look up any ticker · browse all recipes</div>
+  </div>
+  <a href="/home.html" class="home-link">⌂ HOME</a>
+</div>
+
+<div class="input-row">
+  <div class="input-wrap">
+    <input type="text" id="ticker" placeholder="e.g. HAL, FEO, GL, W..." maxlength="8" autocomplete="off" />
+    <div class="autocomplete-list" id="acList" style="display:none"></div>
+  </div>
+  <button class="primary" id="searchBtn">Look up ↗</button>
+</div>
+<div class="status" id="status">Loading all recipes from FIO...</div>
+<div id="results"></div>
+
+<script>
+let allRecipes  = [];
+let buildingMap = {};
+let producerMap = {};
+let allTickers  = []; // { ticker, name } sorted
+let loaded = false;
+let acIndex = -1;
+
+const tickerInput = document.getElementById('ticker');
+const acList      = document.getElementById('acList');
+
+function showAc(query) {
+  if (!query || allTickers.length === 0) { acList.style.display = 'none'; return; }
+  const q = query.toUpperCase();
+  const matches = allTickers.filter(m => m.ticker.startsWith(q)).slice(0, 30);
+  if (matches.length === 0) { acList.style.display = 'none'; return; }
+  acIndex = -1;
+  acList.innerHTML = matches.map((m, i) =>
+    `<div class="autocomplete-item" data-ticker="${m.ticker}" data-i="${i}">
+      <span class="ac-ticker">${m.ticker}</span>
+      <span class="ac-name">${m.name}</span>
+    </div>`
+  ).join('');
+  acList.style.display = 'block';
+  acList.querySelectorAll('.autocomplete-item').forEach(el => {
+    el.addEventListener('mousedown', e => {
+      e.preventDefault();
+      tickerInput.value = el.dataset.ticker;
+      acList.style.display = 'none';
+      search();
+    });
+  });
+}
+
+tickerInput.addEventListener('input', e => {
+  e.target.value = e.target.value.toUpperCase();
+  showAc(e.target.value);
+});
+
+tickerInput.addEventListener('keydown', e => {
+  const items = acList.querySelectorAll('.autocomplete-item');
+  if (acList.style.display === 'none' || items.length === 0) {
+    if (e.key === 'Enter') search();
+    return;
+  }
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    acIndex = Math.min(acIndex + 1, items.length - 1);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    acIndex = Math.max(acIndex - 1, -1);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (acIndex >= 0 && items[acIndex]) {
+      tickerInput.value = items[acIndex].dataset.ticker;
+      acList.style.display = 'none';
+      search();
+    } else {
+      acList.style.display = 'none';
+      search();
+    }
+    return;
+  } else if (e.key === 'Escape') {
+    acList.style.display = 'none';
+    return;
+  }
+  items.forEach((el, i) => el.classList.toggle('active', i === acIndex));
+  if (acIndex >= 0) items[acIndex]?.scrollIntoView({ block: 'nearest' });
+});
+
+document.addEventListener('click', e => {
+  if (!acList.contains(e.target) && e.target !== tickerInput) acList.style.display = 'none';
+});
+
+function fmtExpertise(raw) {
+  const map = {
+    'RESOURCE_EXTRACTION': 'Extraction',
+    'MANUFACTURING':       'Manufacturing',
+    'AGRICULTURE':         'Agriculture',
+    'CHEMISTRY':           'Chemistry',
+    'METALLURGY':          'Metallurgy',
+    'CONSTRUCTION':        'Construction',
+    'FUEL_REFINING':       'Fuel Refining',
+    'ELECTRONICS':         'Electronics',
+  };
+  return map[raw] || raw.replace(/_/g,' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function buildProducerMap() {
+  producerMap = {};
+  allRecipes.forEach(r => {
+    const building = r.BuildingTicker || r.StandardRecipeName || '?';
+    const outputs  = r.Outputs || [];
+    const inputs   = r.Inputs  || [];
+    outputs.forEach(o => {
+      const t = o.Ticker || o.CommodityTicker;
+      if (!t) return;
+      if (!producerMap[t]) producerMap[t] = [];
+      const inp    = inputs.map(i  => (i.Amount||1)  + 'x ' + (i.Ticker||i.CommodityTicker)).join(' + ');
+      const out    = outputs.map(i => (i.Amount||1)  + 'x ' + (i.Ticker||i.CommodityTicker)).join(' + ');
+      const recipe = inp ? inp + ' → ' + out : out;
+      if (!producerMap[t].find(e => e.building === building && e.recipe === recipe)) {
+        producerMap[t].push({ building, recipe });
+      }
+    });
+  });
+}
+
+function pillWithTooltip(ticker, qty, cssClass) {
+  const producers = producerMap[ticker] || [];
+  let tooltipHtml = '';
+  if (producers.length === 0) {
+    tooltipHtml = '<span class="tt-none">natural resource / no recipe</span>';
+  } else {
+    tooltipHtml = producers.slice(0, 3).map(p => {
+      const bInfo = buildingMap[p.building] || {};
+      const exp   = bInfo.expertise ? ' <span style="color:var(--green);font-size:10px">· ' + bInfo.expertise + '</span>' : '';
+      const wf    = [];
+      if (bInfo.pioneers)    wf.push(bInfo.pioneers    + ' PI');
+      if (bInfo.settlers)    wf.push(bInfo.settlers    + ' SE');
+      if (bInfo.technicians) wf.push(bInfo.technicians + ' TE');
+      if (bInfo.engineers)   wf.push(bInfo.engineers   + ' EN');
+      if (bInfo.scientists)  wf.push(bInfo.scientists  + ' SC');
+      const wfHtml = wf.length ? '<span class="tt-wf">' + wf.join(' · ') + '</span>' : '';
+      return '<span class="tt-building">' + p.building + exp + '</span>' + wfHtml +
+             '<span class="tt-recipe">' + p.recipe + '</span>';
+    }).join('<hr class="tt-divider">');
+    if (producers.length > 3) {
+      tooltipHtml += '<span class="tt-none">+' + (producers.length - 3) + ' more recipes</span>';
+    }
+  }
+  return '<span class="mat-pill ' + cssClass + '">' + qty + 'x ' + ticker +
+    '<span class="mat-tooltip">' + tooltipHtml + '</span></span>';
+}
+
+function fmtDuration(ms) {
+  if (!ms) return '';
+  const secs = Math.round(ms / 1000);
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  if (h > 0 && m > 0) return h + 'h ' + m + 'm';
+  if (h > 0) return h + 'h';
+  return m + 'm';
+}
+
+async function loadRecipes() {
+  try {
+    const [recipesRes, buildingsRes] = await Promise.all([
+      fetch('https://rest.fnar.net/recipes/allrecipes'),
+      fetch('https://rest.fnar.net/building/allbuildings')
+    ]);
+    if (!recipesRes.ok) throw new Error('HTTP ' + recipesRes.status);
+    allRecipes = await recipesRes.json();
+    if (buildingsRes.ok) {
+      const buildings = await buildingsRes.json();
+      buildings.forEach(b => {
+        if (b.Ticker) {
+          buildingMap[b.Ticker] = {
+            expertise:   b.Expertise ? fmtExpertise(b.Expertise) : null,
+            pioneers:    b.Pioneers    || 0,
+            settlers:    b.Settlers    || 0,
+            technicians: b.Technicians || 0,
+            engineers:   b.Engineers   || 0,
+            scientists:  b.Scientists  || 0,
+          };
+        }
+      });
+    }
+    loaded = true;
+    buildProducerMap();
+
+    // Build sorted ticker list from all recipe inputs + outputs, with names from buildings where possible
+    const tickerSet = {};
+    allRecipes.forEach(r => {
+      [...(r.Inputs||[]), ...(r.Outputs||[])].forEach(m => {
+        const t = m.Ticker || m.CommodityTicker;
+        const n = m.Name   || m.CommodityName  || '';
+        if (t && !tickerSet[t]) tickerSet[t] = n;
+      });
+    });
+    allTickers = Object.entries(tickerSet)
+      .map(([ticker, name]) => ({ ticker, name }))
+      .sort((a, b) => a.ticker.localeCompare(b.ticker));
+
+    document.getElementById('status').textContent = allRecipes.length.toLocaleString() + ' recipes loaded. Enter a ticker to search.';
+    document.getElementById('ticker').disabled = false;
+    document.getElementById('searchBtn').disabled = false;
+  } catch(e) {
+    document.getElementById('status').textContent = 'Could not reach FIO API. Check your connection.';
+  }
+}
+
+function drillTo(ticker) {
+  tickerInput.value = ticker;
+  acList.style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  search();
+}
+
+function search() {
+  const ticker = document.getElementById('ticker').value.trim().toUpperCase();
+  if (!ticker) return;
+  if (!loaded) { document.getElementById('status').textContent = 'Still loading recipes, please wait...'; return; }
+
+  const asInput  = allRecipes.filter(r => r.Inputs  && r.Inputs.some(i  => (i.Ticker||i.CommodityTicker) === ticker));
+  const asOutput = allRecipes.filter(r => r.Outputs && r.Outputs.some(o => (o.Ticker||o.CommodityTicker) === ticker));
+
+  const resultsEl = document.getElementById('results');
+
+  if (asInput.length === 0 && asOutput.length === 0) {
+    document.getElementById('status').textContent = 'No recipes found for "' + ticker + '".';
+    resultsEl.innerHTML = '';
+    return;
+  }
+
+  document.getElementById('status').textContent = ticker + ' appears in ' + (asInput.length + asOutput.length) + ' recipes total.';
+
+  function renderCards(recipes, highlightTicker, label) {
+    if (recipes.length === 0) return '';
+    let out = '<div class="section-head">' + label + '</div><div class="results-grid">';
+    recipes.forEach(r => {
+      const building = r.BuildingTicker || r.StandardRecipeName || '?';
+      const inputs   = r.Inputs  || [];
+      const outputs  = r.Outputs || [];
+      const duration = r.DurationMs || r.TimeMs || 0;
+
+      const primaryOutput = outputs[0] ? (outputs[0].Ticker || outputs[0].CommodityTicker) : null;
+      const clickHandler  = primaryOutput ? ` style="cursor:pointer" onclick="drillTo('${primaryOutput}')"` : '';
+      out += '<div class="recipe-card"' + clickHandler + '>';
+      out += '<div class="building-label">' + building + '</div>';
+      out += '<div class="recipe-row">';
+
+      inputs.forEach((inp, i) => {
+        const t   = inp.Ticker || inp.CommodityTicker || '?';
+        const qty = inp.Amount || inp.Quantity || 1;
+        out += pillWithTooltip(t, qty, t === highlightTicker ? 'mat-highlight' : 'mat-input');
+        if (i < inputs.length - 1) out += '<span style="color:var(--text3);font-size:11px">+</span>';
+      });
+
+      out += '<span class="arrow">→</span>';
+
+      outputs.forEach((outp, i) => {
+        const t   = outp.Ticker || outp.CommodityTicker || '?';
+        const qty = outp.Amount || outp.Quantity || 1;
+        out += pillWithTooltip(t, qty, t === highlightTicker ? 'mat-highlight' : 'mat-output');
+        if (i < outputs.length - 1) out += '<span style="color:var(--text3);font-size:11px">+</span>';
+      });
+
+      if (duration) out += '<span class="duration">' + fmtDuration(duration) + '</span>';
+      out += '</div></div>';
+    });
+    out += '</div>';
+    return out;
+  }
+
+  let html = '<div class="summary-bar">';
+  html += '<div class="summary-chip">Used as <strong>input</strong>: ' + asInput.length + ' recipes</div>';
+  html += '<div class="summary-chip">Produced as <strong>output</strong>: ' + asOutput.length + ' recipes</div>';
+  html += '</div>';
+  html += renderCards(asInput,  ticker, ticker + ' used as an input — what you can make WITH it');
+  html += renderCards(asOutput, ticker, ticker + ' as an output — how to produce it');
+
+  resultsEl.innerHTML = html;
+}
+
+document.getElementById('ticker').disabled = true;
+document.getElementById('searchBtn').disabled = true;
+document.getElementById('searchBtn').addEventListener('click', search);
+
+loadRecipes();
+</script>
+</body>
+</html>

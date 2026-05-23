@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PrUn Infra Upkeep</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --bg2: #181c27;
+    --bg3: #1e2333;
+    --border: #2a3045;
+    --border2: #3a4460;
+    --text: #e2e8f0;
+    --text2: #8892a4;
+    --text3: #555f72;
+    --dim: #555f72;
+    --accent: #4f8ef7;
+    --green: #4ade80;
+    --orange: #fb923c;
+    --red: #f87171;
+    --yellow: #facc15;
+    --purple: #a78bfa;
+    --blue: #60a5fa;
+    --mono: 'Courier New', monospace;
+    --radius: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* ── Header ── */
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    gap: 12px;
+  }
+  .header-left { display: flex; flex-direction: column; gap: 2px; }
+  .title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .title::before {
+    content: '';
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+  .subtitle {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+    letter-spacing: 0.05em;
+  }
+  .home-link {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    border: 1px solid var(--border);
+    padding: 5px 10px;
+    border-radius: 3px;
+    transition: color 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+  .home-link:hover { color: var(--text); border-color: var(--border2); }
+
+  /* ── Controls ── */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+  }
+  .controls label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--dim);
+    text-transform: uppercase;
+    font-family: var(--mono);
+  }
+
+  select, input[type="number"] {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 7px 12px;
+    border-radius: var(--radius);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  select { cursor: pointer; min-width: 200px; }
+  select:hover, select:focus,
+  input:hover, input:focus { border-color: var(--accent); }
+  input[type="number"] { width: 80px; }
+  select option { background: var(--bg2); }
+
+  .btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn:hover { background: #6aa0f9; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-sm {
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-sm.danger:hover { border-color: var(--red); color: var(--red); }
+
+  .status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--dim);
+    display: inline-block;
+    margin-left: 4px;
+  }
+  .status-dot.ok      { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .status-dot.err     { background: var(--red); }
+  .status-dot.loading { background: var(--yellow); animation: pulse 0.8s infinite alternate; }
+  @keyframes pulse { to { opacity: 0.3; } }
+
+  /* ── Main layout ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+
+  /* ── Section heading ── */
+  .section-head {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+    margin: 0 0 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  /* ── Panel ── */
+  .panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .panel-header {
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .panel-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text2);
+    font-family: var(--mono);
+  }
+
+  /* ── Add row ── */
+  .add-row {
+    display: flex;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .add-row select { min-width: 140px; flex: 1; }
+
+  /* ── Infra list ── */
+  .infra-item {
+    border-bottom: 1px solid var(--border);
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .infra-item:last-child { border-bottom: none; }
+
+  .infra-ticker {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: bold;
+    color: var(--accent);
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    padding: 2px 6px;
+    border-radius: 2px;
+    min-width: 44px;
+    text-align: center;
+  }
+  .infra-name {
+    flex: 1;
+    font-size: 11px;
+    color: var(--text2);
+    line-height: 1.4;
+  }
+  .infra-level-wrap {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+  }
+  .infra-level-wrap input { width: 46px; padding: 3px 5px; font-size: 11px; }
+
+  /* ── Category badges ── */
+  .cat-badge {
+    font-family: var(--mono);
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 2px;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .cat-Safety    { color: var(--blue);   border-color: rgba(96,165,250,0.3);  background: rgba(96,165,250,0.08);  }
+  .cat-Health    { color: var(--green);  border-color: rgba(74,222,128,0.3);  background: rgba(74,222,128,0.08);  }
+  .cat-Comfort   { color: var(--purple); border-color: rgba(167,139,250,0.3); background: rgba(167,139,250,0.08); }
+  .cat-Culture   { color: var(--yellow); border-color: rgba(250,204,21,0.3);  background: rgba(250,204,21,0.08);  }
+  .cat-Education { color: var(--orange); border-color: rgba(251,146,60,0.3);  background: rgba(251,146,60,0.08);  }
+
+  .empty-state {
+    padding: 28px 16px;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+    line-height: 1.8;
+  }
+
+  /* ── Results panel ── */
+  .results-panel { display: flex; flex-direction: column; gap: 16px; }
+
+  /* ── Days selector ── */
+  .days-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .days-bar label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+    letter-spacing: 0.05em;
+  }
+  .days-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.1s;
+  }
+  .days-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .days-btn:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+
+  /* ── Table ── */
+  .table-wrap {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    background: var(--bg3);
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--dim);
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  thead th.right { text-align: right; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,0.02); }
+  tbody td { padding: 7px 12px; font-size: 12px; vertical-align: middle; }
+  tbody td.right { text-align: right; }
+  tbody td.mono { font-family: var(--mono); font-size: 12px; }
+
+  .ticker-badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: bold;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--accent);
+    padding: 2px 6px;
+    border-radius: 2px;
+  }
+
+  .ok    { color: var(--green); }
+  .short { color: var(--red); font-weight: bold; }
+
+  .copy-btn {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--dim);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 3px 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+  .source-tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--dim);
+    border: 1px solid var(--border);
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+  .source-tag.fio { color: var(--blue); border-color: rgba(96,165,250,0.3); }
+
+  /* ── Upgrade form ── */
+  .upgrade-form {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .upgrade-mat-row {
+    display: grid;
+    grid-template-columns: 70px 1fr 90px 80px;
+    gap: 8px;
+    align-items: center;
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .upgrade-mat-row:last-child { border-bottom: none; }
+  .upgrade-mat-row input { width: 100%; }
+
+  .no-results {
+    padding: 40px 20px;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+    line-height: 1.8;
+  }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 10px 16px;
+    border-radius: var(--radius);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 100;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="header-left">
+    <div class="title">Infra Upkeep</div>
+    <div class="subtitle">planetary infrastructure · upkeep costs · inventory diff</div>
+  </div>
+  <a href="/home.html" class="home-link">⌂ HOME</a>
+</div>
+
+<div style="font-size:11px;color:var(--dim);font-family:var(--mono);margin-bottom:1rem;">⚿ API key and username are read from your browser's saved credentials — set once in Fleet Repair or Fleet Status.</div>
+
+<div class="controls">
+  <label>Planet</label>
+  <select id="planetSelect" onchange="switchPlanet()">
+    <option value="">— Loading... —</option>
+  </select>
+  <span id="statusDot" class="status-dot loading"></span>
+  <span id="statusText" style="font-family:var(--mono);font-size:11px;color:var(--dim)">Connecting to FIO…</span>
+  <button class="btn-sm" onclick="refreshInventory()">↺ Refresh Inventory</button>
+</div>
+
+<div class="main-grid">
+
+  <!-- LEFT: infra config per planet -->
+  <div>
+    <div class="section-head">Infrastructure on Planet</div>
+    <div class="panel">
+      <div class="add-row">
+        <select id="infraSelect">
+          <option value="">— Add infrastructure —</option>
+        </select>
+        <button class="btn" onclick="addInfra()">+ Add</button>
+      </div>
+      <div id="infraList">
+        <div class="empty-state">No infrastructure added yet.<br>Select a type above and click Add.</div>
+      </div>
+    </div>
+
+    <!-- Upgrade costs (manual) -->
+    <div class="section-head" style="margin-top:20px">
+      Upgrade Costs (Manual)
+    </div>
+    <div class="upgrade-form" id="upgradePanel">
+      <div class="panel-header">
+        <div class="panel-title">Materials needed to upgrade</div>
+        <button class="copy-btn" onclick="copyUpgradeShortfall()">Copy Shortfall</button>
+      </div>
+      <div class="upgrade-mat-row" style="background:var(--bg3);border-bottom:1px solid var(--border)">
+        <div style="font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:0.1em;color:var(--dim);text-transform:uppercase">Ticker</div>
+        <div style="font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:0.1em;color:var(--dim);text-transform:uppercase">Material</div>
+        <div style="font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:0.1em;color:var(--dim);text-transform:uppercase;text-align:right">Need</div>
+        <div style="font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:0.1em;color:var(--dim);text-transform:uppercase;text-align:right">Have</div>
+      </div>
+      <div id="upgradeRows">
+        <div class="empty-state">Enter upgrade materials below.</div>
+      </div>
+      <div class="add-row" style="background:var(--bg3)">
+        <input type="text" id="upgTicker" placeholder="Ticker e.g. MCG" style="width:100px;text-transform:uppercase;font-family:var(--mono);font-size:12px;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:6px 8px;border-radius:var(--radius);outline:none" oninput="this.value=this.value.toUpperCase()">
+        <input type="number" id="upgQty" placeholder="Qty" style="width:80px" min="1">
+        <button class="btn-sm" onclick="addUpgradeMat()">+ Add</button>
+        <button class="btn-sm danger" onclick="clearUpgrade()">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: results -->
+  <div class="results-panel">
+
+    <!-- Days selector -->
+    <div>
+      <div class="days-bar">
+        <label>Show consumption for</label>
+        <button class="days-btn" onclick="setDays(7)">7d</button>
+        <button class="days-btn active" onclick="setDays(14)">14d</button>
+        <button class="days-btn" onclick="setDays(30)">30d</button>
+        <button class="days-btn" onclick="setDays(90)">90d</button>
+        <input type="number" id="customDays" placeholder="Custom" min="1" max="365" style="width:80px" oninput="setDays(parseInt(this.value)||14)">
+      </div>
+
+      <div class="section-head">
+        Upkeep Requirements vs Inventory
+        <button class="copy-btn" onclick="copyUpkeepShortfall()">Copy Shortfall</button>
+      </div>
+      <div class="table-wrap" id="upkeepTable">
+        <div class="no-results">Add infrastructure on the left to see upkeep requirements.</div>
+      </div>
+    </div>
+
+    <!-- Upgrade diff table -->
+    <div>
+      <div class="section-head">Upgrade Requirements vs Inventory</div>
+      <div class="table-wrap" id="upgradeTable">
+        <div class="no-results">Add upgrade materials on the left to see the diff.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API    = 'https://rest.fnar.net';
+const LS_KEY = 'prun_infra_config';
+
+let USER   = '';
+let APIKEY = '';
+let HDR    = {};
+
+// ── Hardcoded upkeep data (qty/day at level 1) ────────────────────────────
+const INFRA_DB = {
+  SST: { name: 'Safety Station',             category: 'Safety',    materials: [{ticker:'DW',qpd:10},{ticker:'OFF',qpd:10},{ticker:'SUN',qpd:2}] },
+  EMC: { name: 'Emergency Center',           category: 'Safety',    materials: [{ticker:'BND',qpd:4},{ticker:'BSC',qpd:0.07},{ticker:'PK',qpd:2},{ticker:'POW',qpd:0.40},{ticker:'RED',qpd:0.07}] },
+  SDP: { name: 'Safety Drone Post',          category: 'Safety',    materials: [{ticker:'CCD',qpd:0.07},{ticker:'POW',qpd:1},{ticker:'RAD',qpd:0.47},{ticker:'SUD',qpd:0.07}] },
+  INF: { name: 'Infirmary',                  category: 'Health',    materials: [{ticker:'OFF',qpd:10},{ticker:'STR',qpd:0.67},{ticker:'TUB',qpd:6.67}] },
+  HOS: { name: 'Hospital',                   category: 'Health',    materials: [{ticker:'BND',qpd:4},{ticker:'BSC',qpd:0.13},{ticker:'PK',qpd:2},{ticker:'RED',qpd:0.07},{ticker:'SDR',qpd:0.07},{ticker:'SEQ',qpd:0.40}] },
+  WCE: { name: 'Wellness Center',            category: 'Health',    materials: [{ticker:'DEC',qpd:0.67},{ticker:'DW',qpd:6},{ticker:'KOM',qpd:4},{ticker:'OLF',qpd:2},{ticker:'PFE',qpd:2.67},{ticker:'SOI',qpd:6.67}] },
+  '4DA':{ name: 'Four-Day Arcade',           category: 'Comfort',   materials: [{ticker:'BID',qpd:0.20},{ticker:'EDC',qpd:0.20},{ticker:'HOG',qpd:0.20},{ticker:'MHP',qpd:2},{ticker:'OLF',qpd:4},{ticker:'POW',qpd:2}] },
+  PAR: { name: 'Park',                       category: 'Comfort',   materials: [{ticker:'DEC',qpd:0.33},{ticker:'DW',qpd:10},{ticker:'FOD',qpd:6},{ticker:'PFE',qpd:2},{ticker:'SOI',qpd:3.33}] },
+  ACA: { name: 'Art Cafe',                   category: 'Comfort',   materials: [{ticker:'COF',qpd:8},{ticker:'DEC',qpd:0.67},{ticker:'DW',qpd:10},{ticker:'GL',qpd:6.67},{ticker:'OLF',qpd:2},{ticker:'VIT',qpd:8}] },
+  PBH: { name: 'Planetary Broadcasting Hub', category: 'Culture',   materials: [{ticker:'AAR',qpd:0.67},{ticker:'EDC',qpd:0.27},{ticker:'IDC',qpd:0.13},{ticker:'MHP',qpd:1},{ticker:'OFF',qpd:10},{ticker:'SP',qpd:1.33}] },
+  VRT: { name: 'Virtual Reality Theater',    category: 'Culture',   materials: [{ticker:'BID',qpd:0.33},{ticker:'DEC',qpd:0.67},{ticker:'HOG',qpd:1.40},{ticker:'MHP',qpd:2},{ticker:'OLF',qpd:4},{ticker:'POW',qpd:1.40}] },
+  ART: { name: 'Art Gallery',                category: 'Culture',   materials: [{ticker:'DEC',qpd:0.67},{ticker:'HOG',qpd:1},{ticker:'MHP',qpd:1},{ticker:'UTS',qpd:0.67}] },
+  LIB: { name: 'Library',                    category: 'Education', materials: [{ticker:'BID',qpd:0.20},{ticker:'CD',qpd:0.33},{ticker:'DIS',qpd:0.33},{ticker:'HOG',qpd:1}] },
+  UNI: { name: 'University',                 category: 'Education', materials: [{ticker:'BID',qpd:0.33},{ticker:'COF',qpd:10},{ticker:'HD',qpd:0.67},{ticker:'IDC',qpd:0.20},{ticker:'REA',qpd:10},{ticker:'TUB',qpd:10}] },
+};
+
+// ── State ─────────────────────────────────────────────────────────────────
+let allSites   = [];
+let allStorage = [];
+let allMats    = {};
+let currentPlanetId = null;
+let days = 14;
+
+let config = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+
+// ── Boot ──────────────────────────────────────────────────────────────────
+async function init() {
+  USER   = localStorage.getItem('prun_username') || '';
+  APIKEY = localStorage.getItem('prun_apikey')   || '';
+  HDR    = { 'Authorization': APIKEY };
+
+  if (!USER || !APIKEY) {
+    setStatus('err', 'No credentials — set API key in Fleet Repair or Fleet Status first.');
+    return;
+  }
+
+  setStatus('loading', 'Fetching FIO data…');
+  try {
+    const [sitesRes, storageRes, matsRes] = await Promise.all([
+      fetch(`${API}/sites/${USER}`,              { headers: HDR }),
+      fetch(`${API}/storage/${USER}`,            { headers: HDR }),
+      fetch(`${API}/material/allmaterials`,      { headers: HDR }),
+    ]);
+
+    if (sitesRes.status === 401) { setStatus('err', 'Auth failed — check API key.'); return; }
+
+    allSites   = await sitesRes.json();
+    allStorage = await storageRes.json();
+    if (matsRes.ok) { const m = await matsRes.json(); m.forEach(x => allMats[x.Ticker] = x); }
+
+    populatePlanetSelect();
+    populateInfraSelect();
+    setStatus('ok', 'FIO connected');
+
+    if (allSites.length) {
+      document.getElementById('planetSelect').value = '0';
+      switchPlanet();
+    }
+  } catch(e) {
+    setStatus('err', e.message);
+  }
+}
+
+function populatePlanetSelect() {
+  const sel = document.getElementById('planetSelect');
+  sel.innerHTML = '';
+  allSites.forEach((site, i) => {
+    const name = site.PlanetName || site.PlanetNaturalId || site.SiteId;
+    const id   = site.PlanetNaturalId || site.SiteId;
+    const opt  = document.createElement('option');
+    opt.value  = i;
+    opt.text   = `${name}  (${id})`;
+    sel.appendChild(opt);
+  });
+}
+
+function populateInfraSelect() {
+  const sel = document.getElementById('infraSelect');
+  sel.innerHTML = '<option value="">— Add infrastructure —</option>';
+  const cats = ['Safety','Health','Comfort','Culture','Education'];
+  cats.forEach(cat => {
+    const group = document.createElement('optgroup');
+    group.label = cat;
+    Object.entries(INFRA_DB).filter(([,v]) => v.category === cat).forEach(([ticker, info]) => {
+      const opt = document.createElement('option');
+      opt.value = ticker;
+      opt.text  = `${ticker} — ${info.name}`;
+      group.appendChild(opt);
+    });
+    sel.appendChild(group);
+  });
+}
+
+function switchPlanet() {
+  const sel = document.getElementById('planetSelect');
+  if (!sel.value && sel.value !== '0') return;
+  const site = allSites[parseInt(sel.value)];
+  if (!site) return;
+  currentPlanetId = site.PlanetNaturalId || site.SiteId;
+  if (!config[currentPlanetId]) config[currentPlanetId] = { infra: [], upgrade: [] };
+  config[currentPlanetId].upgrade = (config[currentPlanetId].upgrade || []).filter(
+    item => item && typeof item === 'object' && !Array.isArray(item) && item.ticker && item.qty
+  );
+  renderInfraList();
+  renderUpgradeRows();
+  renderUpkeepTable();
+  renderUpgradeTable();
+}
+
+// ── Infra list ────────────────────────────────────────────────────────────
+function addInfra() {
+  const sel = document.getElementById('infraSelect');
+  const ticker = sel.value;
+  if (!ticker || !currentPlanetId) return;
+  config[currentPlanetId].infra.push({ ticker, level: 1 });
+  saveConfig();
+  renderInfraList();
+  renderUpkeepTable();
+  sel.value = '';
+}
+
+function removeInfra(idx) {
+  config[currentPlanetId].infra.splice(idx, 1);
+  saveConfig();
+  renderInfraList();
+  renderUpkeepTable();
+}
+
+function updateLevel(idx, val) {
+  const lvl = Math.max(1, Math.min(10, parseInt(val) || 1));
+  config[currentPlanetId].infra[idx].level = lvl;
+  saveConfig();
+  renderUpkeepTable();
+}
+
+function renderInfraList() {
+  const el  = document.getElementById('infraList');
+  const cfg = config[currentPlanetId];
+  if (!cfg || !cfg.infra.length) {
+    el.innerHTML = '<div class="empty-state">No infrastructure added yet.<br>Select a type above and click Add.</div>';
+    return;
+  }
+  el.innerHTML = cfg.infra.map((item, i) => {
+    const info     = INFRA_DB[item.ticker] || {};
+    const cats     = ['Safety','Health','Comfort','Culture','Education'];
+    const catClass = cats.includes(info.category) ? `cat-${info.category}` : '';
+    return `
+    <div class="infra-item">
+      <div class="infra-ticker">${item.ticker}</div>
+      <div class="infra-name">
+        ${info.name || item.ticker}<br>
+        <span class="cat-badge ${catClass}">${info.category || '?'}</span>
+      </div>
+      <div class="infra-level-wrap">
+        LVL <input type="number" min="1" max="10" value="${item.level}"
+          onchange="updateLevel(${i}, this.value)"
+          style="width:46px;padding:3px 5px;font-size:11px;background:var(--bg2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius);outline:none;font-family:var(--mono)">
+      </div>
+      <button class="btn-sm danger" onclick="removeInfra(${i})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+// ── Upgrade materials ─────────────────────────────────────────────────────
+function addUpgradeMat() {
+  const ticker = document.getElementById('upgTicker').value.trim().toUpperCase();
+  const qty    = parseFloat(document.getElementById('upgQty').value);
+  if (!ticker || !qty || !currentPlanetId) return;
+  config[currentPlanetId].upgrade.push({ ticker, qty });
+  saveConfig();
+  renderUpgradeRows();
+  renderUpgradeTable();
+  document.getElementById('upgTicker').value = '';
+  document.getElementById('upgQty').value    = '';
+}
+
+function removeUpgradeMat(idx) {
+  config[currentPlanetId].upgrade.splice(idx, 1);
+  saveConfig();
+  renderUpgradeRows();
+  renderUpgradeTable();
+}
+
+function clearUpgrade() {
+  if (!currentPlanetId) return;
+  config[currentPlanetId].upgrade = [];
+  saveConfig();
+  renderUpgradeRows();
+  renderUpgradeTable();
+}
+
+function renderUpgradeRows() {
+  const el  = document.getElementById('upgradeRows');
+  const cfg = config[currentPlanetId];
+  const inv = getInventory();
+  if (!cfg || !cfg.upgrade.length) {
+    el.innerHTML = '<div class="empty-state">Enter upgrade materials below.</div>';
+    return;
+  }
+  el.innerHTML = cfg.upgrade.map((item, i) => {
+    const have    = inv[item.ticker] || 0;
+    const delta   = have - item.qty;
+    const haveCls = delta >= 0 ? 'ok' : 'short';
+    const matName = allMats[item.ticker] ? allMats[item.ticker].Name : item.ticker;
+    return `
+    <div class="upgrade-mat-row">
+      <span class="ticker-badge">${item.ticker}</span>
+      <span style="font-size:11px;color:var(--text2)">${matName}</span>
+      <span style="font-family:var(--mono);font-size:12px;text-align:right">${item.qty}</span>
+      <div style="display:flex;align-items:center;gap:6px;justify-content:flex-end">
+        <span style="font-family:var(--mono);font-size:12px" class="${haveCls}">${have}</span>
+        <button class="btn-sm danger" onclick="removeUpgradeMat(${i})" style="padding:2px 6px;font-size:10px">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Upkeep table ──────────────────────────────────────────────────────────
+function renderUpkeepTable() {
+  const el  = document.getElementById('upkeepTable');
+  const cfg = config[currentPlanetId];
+  if (!cfg || !cfg.infra.length) {
+    el.innerHTML = '<div class="no-results">Add infrastructure on the left to see upkeep requirements.</div>';
+    return;
+  }
+
+  const totals = {};
+  cfg.infra.forEach(item => {
+    const info = INFRA_DB[item.ticker];
+    if (!info) return;
+    const levelMult = Math.pow(1.15, item.level - 1);
+    info.materials.forEach(m => {
+      const needed = m.qpd * days * levelMult;
+      totals[m.ticker] = (totals[m.ticker] || 0) + needed;
+    });
+  });
+
+  const inv  = getInventory();
+  const keys = Object.keys(totals).sort();
+  if (!keys.length) { el.innerHTML = '<div class="no-results">No materials required.</div>'; return; }
+
+  const rows = keys.map(ticker => {
+    const need     = totals[ticker];
+    const have     = inv[ticker] || 0;
+    const delta    = have - need;
+    const haveCls  = delta >= 0 ? 'ok' : 'short';
+    const diffTxt  = delta >= 0 ? `+${delta.toFixed(1)}` : delta.toFixed(1);
+    const daysLast = need > 0 ? Math.min((have / (need / days)), 999) : 999;
+    const daysClr  = daysLast >= days ? 'var(--green)' : daysLast >= days*0.5 ? 'var(--yellow)' : 'var(--red)';
+    const matName  = allMats[ticker] ? allMats[ticker].Name : ticker;
+    return `<tr>
+      <td><span class="ticker-badge">${ticker}</span></td>
+      <td style="font-size:11px;color:var(--text2)">${matName}</td>
+      <td class="mono right">${need.toFixed(1)}</td>
+      <td class="mono right ${haveCls}">${have}</td>
+      <td class="mono right ${haveCls}">${diffTxt}</td>
+      <td class="mono right" style="color:${daysClr}">${daysLast >= 999 ? '∞' : daysLast.toFixed(0) + 'd'}</td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML = `
+  <table>
+    <thead><tr>
+      <th>Material</th>
+      <th>Name</th>
+      <th class="right">Need (${days}d)</th>
+      <th class="right">Have <span class="source-tag fio">FIO</span></th>
+      <th class="right">Diff</th>
+      <th class="right">Lasts</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+
+  window._upkeepShortfall = keys
+    .filter(t => (inv[t]||0) < totals[t])
+    .map(t => ({ MaterialTicker: t, Amount: Math.ceil(totals[t] - (inv[t]||0)) }));
+}
+
+// ── Upgrade table ─────────────────────────────────────────────────────────
+function renderUpgradeTable() {
+  const el  = document.getElementById('upgradeTable');
+  const cfg = config[currentPlanetId];
+  if (!cfg || !cfg.upgrade.length) {
+    el.innerHTML = '<div class="no-results">Add upgrade materials on the left to see the diff.</div>';
+    return;
+  }
+
+  const inv  = getInventory();
+  const rows = cfg.upgrade.map(item => {
+    const have    = inv[item.ticker] || 0;
+    const delta   = have - item.qty;
+    const haveCls = delta >= 0 ? 'ok' : 'short';
+    const diffTxt = delta >= 0 ? `+${delta}` : `${delta}`;
+    const matName = allMats[item.ticker] ? allMats[item.ticker].Name : item.ticker;
+    return `<tr>
+      <td><span class="ticker-badge">${item.ticker}</span></td>
+      <td style="font-size:11px;color:var(--text2)">${matName}</td>
+      <td class="mono right">${item.qty}</td>
+      <td class="mono right ${haveCls}">${have}</td>
+      <td class="mono right ${haveCls}">${diffTxt}</td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML = `
+  <table>
+    <thead><tr>
+      <th>Material</th>
+      <th>Name</th>
+      <th class="right">Need</th>
+      <th class="right">Have <span class="source-tag fio">FIO</span></th>
+      <th class="right">Diff</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+
+  window._upgradeShortfall = cfg.upgrade
+    .filter(item => (inv[item.ticker]||0) < item.qty)
+    .map(item => ({ MaterialTicker: item.ticker, Amount: item.qty - (inv[item.ticker]||0) }));
+}
+
+// ── Copy functions ─────────────────────────────────────────────────────────
+function buildActJson(materials) {
+  const matObj = {};
+  materials.forEach(m => { matObj[m.MaterialTicker] = m.Amount; });
+  return JSON.stringify({
+    actions: [
+      { group:"A1", exchange:"IC1", priceLimits:{}, buyPartial:false, useCXInv:true, name:"BuyItems", type:"CX Buy" },
+      { type:"MTRA", name:"TransferAction", group:"A1", origin:"Hortus Station Warehouse", dest:"Configure on Execution" }
+    ],
+    global: { name: "PrUn Tools Shortfall" },
+    groups: [{ type:"Manual", name:"A1", materials: matObj }]
+  });
+}
+
+function copyUpkeepShortfall() {
+  const sf = window._upkeepShortfall;
+  if (!sf || !sf.length) { toast('Nothing short'); return; }
+  navigator.clipboard.writeText(buildActJson(sf))
+    .then(() => toast('Upkeep shortfall copied as XIT JSON'))
+    .catch(() => toast('Copy failed'));
+}
+
+function copyUpgradeShortfall() {
+  if (!window._upgradeShortfall || !window._upgradeShortfall.length) { toast('Nothing short'); return; }
+  navigator.clipboard.writeText(buildActJson(window._upgradeShortfall))
+    .then(() => toast('Upgrade shortfall copied as XIT JSON'))
+    .catch(() => toast('Copy failed'));
+}
+
+// ── Inventory ─────────────────────────────────────────────────────────────
+function getInventory() {
+  if (!currentPlanetId) return {};
+  const inv = {};
+  allStorage.forEach(store => {
+    const addr = store.AddressableId || store.PlanetId || store.NaturalId || '';
+    if (addr === currentPlanetId || (store.Type === 'BASE' && addr === currentPlanetId)) {
+      (store.StorageItems || []).forEach(item => {
+        if (item.MaterialTicker) inv[item.MaterialTicker] = (inv[item.MaterialTicker] || 0) + (item.MaterialAmount || 0);
+      });
+    }
+  });
+  return inv;
+}
+
+async function refreshInventory() {
+  setStatus('loading', 'Refreshing…');
+  try {
+    const res = await fetch(`${API}/storage/${USER}`, { headers: HDR });
+    allStorage = await res.json();
+    setStatus('ok', 'Refreshed');
+    renderUpkeepTable();
+    renderUpgradeRows();
+    renderUpgradeTable();
+    toast('Inventory refreshed (FIO lag ~10-15 min)');
+  } catch(e) {
+    setStatus('err', e.message);
+  }
+}
+
+// ── Days ──────────────────────────────────────────────────────────────────
+function setDays(d) {
+  if (!d || d < 1) return;
+  days = d;
+  document.querySelectorAll('.days-btn').forEach(b => b.classList.remove('active'));
+  const map = { 7:0, 14:1, 30:2, 90:3 };
+  const btns = document.querySelectorAll('.days-btn');
+  if (map[d] !== undefined) btns[map[d]].classList.add('active');
+  renderUpkeepTable();
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+function saveConfig() { localStorage.setItem(LS_KEY, JSON.stringify(config)); }
+
+function setStatus(state, msg) {
+  document.getElementById('statusDot').className = `status-dot ${state === 'ok' ? 'ok' : state === 'err' ? 'err' : 'loading'}`;
+  document.getElementById('statusText').textContent = msg;
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+init();
+</script>
+</body>
+</html>

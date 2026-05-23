@@ -184,7 +184,7 @@
   /* ── EMPIRE STATS ── */
   .empire-stats {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
 
@@ -299,84 +299,6 @@
   .dot-green { background: var(--green); box-shadow: 0 0 6px var(--green); }
   .dot-amber { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
   .dot-blue { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
-
-  /* ── SHIPS PANEL ── */
-  .ship-row {
-    padding: 11px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-  }
-  .ship-row:last-child { border-bottom: none; padding-bottom: 0; }
-
-  .ship-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .ship-name {
-    font-size: 13px;
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .ship-reg {
-    font-size: 10px;
-    color: var(--text-dim);
-  }
-
-  .ship-eta {
-    font-size: 10px;
-    color: var(--text-mid);
-  }
-
-  .ship-route {
-    font-size: 10px;
-    color: var(--text-dim);
-  }
-
-  .fuel-bar-wrap {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .fuel-label {
-    font-size: 9px;
-    color: var(--text-dim);
-    letter-spacing: 1px;
-    width: 28px;
-    flex-shrink: 0;
-  }
-
-  .fuel-bar {
-    flex: 1;
-    height: 3px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-
-  .fuel-fill {
-    height: 100%;
-    border-radius: 2px;
-    transition: width 1s ease;
-  }
-
-  .fuel-stl { background: var(--accent); }
-  .fuel-ftl { background: var(--green); }
-
-  .fuel-pct {
-    font-size: 9px;
-    color: var(--text-mid);
-    width: 30px;
-    text-align: right;
-    flex-shrink: 0;
-  }
 
   /* ── TOOL GRID ── */
   .tool-grid {
@@ -527,20 +449,10 @@
         <div class="stat-value accent" id="stat-bases">—</div>
         <div class="stat-sub" id="stat-bases-sub">loading...</div>
       </div>
-      <div class="stat-box green">
-        <div class="stat-label">Ships</div>
-        <div class="stat-value green" id="stat-ships">—</div>
-        <div class="stat-sub" id="stat-ships-sub">loading...</div>
-      </div>
       <div class="stat-box amber">
         <div class="stat-label">Balance</div>
         <div class="stat-value amber" id="stat-balance">—</div>
         <div class="stat-sub" id="stat-balance-sub">ICA</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">In Flight</div>
-        <div class="stat-value" id="stat-inflight">—</div>
-        <div class="stat-sub" id="stat-inflight-sub">ships moving</div>
       </div>
     </div>
 
@@ -568,19 +480,6 @@
           </tbody>
         </table>
       </div>
-    </div>
-
-    <!-- Ships Panel -->
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">Fleet Status</span>
-        <span class="panel-badge" id="ships-count">LOADING</span>
-      </div>
-      <div class="panel-body" id="ships-body">
-        <div class="skeleton" style="width:80%;margin-bottom:10px"></div>
-        <div class="skeleton" style="width:60%"></div>
-      </div>
-      <div class="refresh-hint" id="ships-updated">Fetching fleet data...</div>
     </div>
 
     <!-- Tool Launcher -->
@@ -846,72 +745,6 @@ async function loadSites() {
   }
 }
 
-// ── SHIPS ──
-async function loadShips() {
-  try {
-    const ships = await fio(`/ships/username/${USERNAME}`);
-    const count = ships.length;
-    const inFlight = ships.filter(s => s.FlightStatus === 'TRANSIT' || (s.Destination && !s.Arrived));
-
-    document.getElementById('stat-ships').textContent = count;
-    document.getElementById('stat-ships-sub').textContent = `${count} in fleet`;
-    document.getElementById('stat-inflight').textContent = inFlight.length;
-    document.getElementById('stat-inflight-sub').textContent = 'ships moving';
-    document.getElementById('ships-count').textContent = `${count} SHIP${count !== 1 ? 'S' : ''}`;
-
-    const body = document.getElementById('ships-body');
-    body.innerHTML = '';
-
-    ships.forEach(ship => {
-      const stlPct = ship.StlFuelCurrent != null && ship.StlFuelCapacity
-        ? Math.round(ship.StlFuelCurrent / ship.StlFuelCapacity * 100) : 0;
-      const ftlPct = ship.FtlFuelCurrent != null && ship.FtlFuelCapacity
-        ? Math.round(ship.FtlFuelCurrent / ship.FtlFuelCapacity * 100) : 0;
-
-      const isMoving = ship.Destination && ship.ArrivalTime;
-      const etaTxt = isMoving ? `ETA ${fmtETA(ship.ArrivalTime)}` : 'Docked';
-      const routeTxt = isMoving
-        ? `${ship.Origin || '?'} → ${ship.Destination || '?'}`
-        : (ship.PlanetNaturalId || ship.Location || '—');
-
-      const stlColor = stlPct < 25 ? 'var(--red)' : stlPct < 50 ? 'var(--amber)' : 'var(--accent)';
-      const ftlColor = ftlPct < 25 ? 'var(--red)' : ftlPct < 50 ? 'var(--amber)' : 'var(--green)';
-
-      const div = document.createElement('div');
-      div.className = 'ship-row';
-      div.innerHTML = `
-        <div class="ship-top">
-          <div class="ship-name">
-            <span class="status-dot ${isMoving ? 'dot-amber' : 'dot-green'}"></span>
-            ${ship.Name || ship.ShipId?.slice(0,8) || 'Unknown'}
-            <span class="ship-reg">${ship.Registration || ''}</span>
-          </div>
-          <div class="ship-eta">${etaTxt}</div>
-        </div>
-        <div class="ship-route">${routeTxt}</div>
-        <div class="fuel-bar-wrap">
-          <div class="fuel-label">STL</div>
-          <div class="fuel-bar"><div class="fuel-fill fuel-stl" style="width:${stlPct}%;background:${stlColor}"></div></div>
-          <div class="fuel-pct">${fmtPct(stlPct)}</div>
-        </div>
-        <div class="fuel-bar-wrap">
-          <div class="fuel-label">FTL</div>
-          <div class="fuel-bar"><div class="fuel-fill fuel-ftl" style="width:${ftlPct}%;background:${ftlColor}"></div></div>
-          <div class="fuel-pct">${fmtPct(ftlPct)}</div>
-        </div>
-      `;
-      body.appendChild(div);
-    });
-
-    document.getElementById('ships-updated').textContent =
-      `Updated ${new Date().toUTCString().split(' ')[4]} UTC`;
-  } catch(e) {
-    document.getElementById('ships-body').innerHTML =
-      `<span class="error-text">⚠ ${e.message}</span>`;
-    document.getElementById('ships-count').textContent = 'ERROR';
-  }
-}
-
 // ── BALANCE ──
 async function loadBalance() {
   try {
@@ -982,7 +815,7 @@ async function checkApiStatus() {
 }
 
 // ── INIT ──
-Promise.all([loadSites(), loadShips(), loadBalance(), checkApiStatus()]);
+Promise.all([loadSites(), loadBalance(), checkApiStatus()]);
 </script>
 </body>
 </html>

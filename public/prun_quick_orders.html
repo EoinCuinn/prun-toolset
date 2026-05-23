@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PrUn Quick Orders</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --bg2: #181c27;
+    --bg3: #1e2333;
+    --border: #2a3045;
+    --border2: #3a4460;
+    --text: #e2e8f0;
+    --text2: #8892a4;
+    --text3: #555f72;
+    --dim: #555f72;
+    --accent: #4f8ef7;
+    --green: #4ade80;
+    --orange: #fb923c;
+    --red: #f87171;
+    --mono: 'Courier New', monospace;
+    --radius: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 1.5rem;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  /* ── Header ── */
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    gap: 12px;
+  }
+  .header-left { display: flex; flex-direction: column; gap: 2px; }
+  .title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .title::before {
+    content: '';
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+  .subtitle {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+    letter-spacing: 0.05em;
+  }
+  .home-link {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    border: 1px solid var(--border);
+    padding: 5px 10px;
+    border-radius: 3px;
+    transition: color 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+  .home-link:hover { color: var(--text); border-color: var(--border2); }
+
+  /* ── Section heading ── */
+  .section-head {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+    margin: 1.5rem 0 0.75rem;
+  }
+
+  /* ── Inputs ── */
+  input[type="text"], input[type="number"], select {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: var(--mono);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input[type="text"]:focus,
+  input[type="number"]:focus,
+  select:focus { border-color: var(--accent); }
+  select { cursor: pointer; }
+  select option { background: var(--bg2); }
+
+  button {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 8px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+    font-family: inherit;
+  }
+  button:hover { background: var(--border); border-color: var(--accent); }
+  button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-weight: 600;
+  }
+  button.primary:hover { background: #6aa0f9; }
+  button.danger { border-color: var(--red); color: var(--red); }
+  button.danger:hover { background: rgba(248,113,113,0.1); border-color: var(--red); }
+
+  /* ── Add form ── */
+  .add-form {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  .add-form input[type="text"] { width: 90px; }
+  .add-form input[type="number"] { width: 110px; }
+  .add-form select { width: 80px; }
+  .add-form .add-label {
+    font-size: 11px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  /* ── Orders grid ── */
+  .orders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+  }
+
+  .order-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.75rem;
+    transition: border-color 0.15s;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .order-card:hover { border-color: var(--accent); }
+
+  .order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .order-ticker {
+    font-size: 20px;
+    font-weight: 700;
+    font-family: var(--mono);
+    color: var(--text);
+    letter-spacing: 0.05em;
+  }
+
+  .order-exchange {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: var(--mono);
+  }
+
+  .order-qty {
+    font-size: 13px;
+    font-family: var(--mono);
+    color: var(--text2);
+  }
+  .order-qty span { color: var(--accent); font-weight: 600; }
+
+  .order-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .order-actions button {
+    flex: 1;
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  .copy-success {
+    font-size: 11px;
+    color: var(--green);
+    font-family: var(--mono);
+    min-height: 16px;
+    text-align: center;
+  }
+
+  .empty-state {
+    color: var(--text3);
+    font-size: 13px;
+    padding: 1rem 0;
+    font-family: var(--mono);
+  }
+
+  /* ── Autocomplete ── */
+  .ticker-wrap { position: relative; display: flex; flex-direction: column; gap: 4px; }
+  .ticker-wrap .add-label-text { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .autocomplete-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 100;
+    background: var(--bg3);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    min-width: 220px;
+    max-height: 220px;
+    overflow-y: auto;
+    margin-top: 2px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  }
+  .autocomplete-item {
+    padding: 6px 10px;
+    font-size: 12px;
+    font-family: var(--mono);
+    cursor: pointer;
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    border-bottom: 1px solid var(--border);
+  }
+  .autocomplete-item:last-child { border-bottom: none; }
+  .autocomplete-item:hover, .autocomplete-item.active { background: var(--accent); color: #fff; }
+  .autocomplete-item:hover .ac-name, .autocomplete-item.active .ac-name { color: #fff; }
+  .ac-ticker { font-weight: 700; min-width: 40px; }
+  .ac-name { font-size: 11px; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ── Export preview ── */
+  .export-output {
+    font-size: 11px;
+    font-family: var(--mono);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 10px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 80px;
+    overflow-y: auto;
+    color: var(--text3);
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="header-left">
+    <div class="title">Quick Orders</div>
+    <div class="subtitle">standing buy templates · XIT JSON · localStorage</div>
+  </div>
+  <a href="/home.html" class="home-link">⌂ HOME</a>
+</div>
+
+<div class="section-head">Add order template</div>
+<div class="add-form">
+  <div class="ticker-wrap">
+    <span class="add-label-text">Ticker</span>
+    <input type="text" id="newTicker" placeholder="SF" maxlength="6" style="text-transform:uppercase;width:90px" autocomplete="off" />
+    <div class="autocomplete-list" id="acList" style="display:none"></div>
+  </div>
+  <label class="add-label">
+    Quantity
+    <input type="number" id="newQty" placeholder="10000" min="1" />
+  </label>
+  <label class="add-label">
+    Exchange
+    <select id="newExchange">
+      <option>IC1</option>
+      <option>NC1</option>
+      <option>CI1</option>
+      <option>NC2</option>
+      <option>CI2</option>
+      <option>IC2</option>
+    </select>
+  </label>
+  <label class="add-label">
+    &nbsp;
+    <button class="primary" id="addBtn">+ Add</button>
+  </label>
+</div>
+
+<div class="section-head">Templates</div>
+<div class="orders-grid" id="ordersGrid"></div>
+
+<script>
+const STORAGE_KEY = 'prun_quick_orders_v1';
+let allMaterials = [];
+let acIndex = -1;
+
+async function fetchMaterials() {
+  try {
+    const res = await fetch('https://rest.fnar.net/material/allmaterials');
+    if (!res.ok) return;
+    const data = await res.json();
+    allMaterials = data
+      .map(m => ({ ticker: (m.Ticker || m.MaterialTicker || '').toUpperCase(), name: m.Name || m.MaterialName || '' }))
+      .filter(m => m.ticker)
+      .sort((a, b) => a.ticker.localeCompare(b.ticker));
+  } catch(e) {
+    console.warn('Could not fetch materials:', e);
+  }
+}
+
+const tickerInput = document.getElementById('newTicker');
+const acList = document.getElementById('acList');
+
+function showAc(query) {
+  if (!query || allMaterials.length === 0) { acList.style.display = 'none'; return; }
+  const q = query.toUpperCase();
+  const matches = allMaterials.filter(m => m.ticker.startsWith(q) || m.name.toUpperCase().includes(q)).slice(0, 20);
+  if (matches.length === 0) { acList.style.display = 'none'; return; }
+  acIndex = -1;
+  acList.innerHTML = matches.map((m, i) =>
+    `<div class="autocomplete-item" data-ticker="${m.ticker}" data-i="${i}">
+      <span class="ac-ticker">${m.ticker}</span>
+      <span class="ac-name">${m.name}</span>
+    </div>`
+  ).join('');
+  acList.style.display = 'block';
+
+  acList.querySelectorAll('.autocomplete-item').forEach(el => {
+    el.addEventListener('mousedown', e => {
+      e.preventDefault();
+      tickerInput.value = el.dataset.ticker;
+      acList.style.display = 'none';
+      document.getElementById('newQty').focus();
+    });
+  });
+}
+
+tickerInput.addEventListener('input', e => {
+  e.target.value = e.target.value.toUpperCase();
+  showAc(e.target.value);
+});
+
+tickerInput.addEventListener('keydown', e => {
+  const items = acList.querySelectorAll('.autocomplete-item');
+  if (acList.style.display === 'none' || items.length === 0) {
+    if (e.key === 'Enter') document.getElementById('addBtn').click();
+    return;
+  }
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    acIndex = Math.min(acIndex + 1, items.length - 1);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    acIndex = Math.max(acIndex - 1, -1);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (acIndex >= 0 && items[acIndex]) {
+      tickerInput.value = items[acIndex].dataset.ticker;
+      acList.style.display = 'none';
+      document.getElementById('newQty').focus();
+    } else {
+      acList.style.display = 'none';
+      document.getElementById('addBtn').click();
+    }
+    return;
+  } else if (e.key === 'Escape') {
+    acList.style.display = 'none';
+    return;
+  }
+  items.forEach((el, i) => el.classList.toggle('active', i === acIndex));
+  if (acIndex >= 0) items[acIndex]?.scrollIntoView({ block: 'nearest' });
+});
+
+document.addEventListener('click', e => {
+  if (!acList.contains(e.target) && e.target !== tickerInput) acList.style.display = 'none';
+});
+
+function loadOrders() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch { return []; }
+}
+
+function saveOrders(orders) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+}
+
+function buildXit(ticker, qty, exchange) {
+  return {
+    actions: [
+      { group: "A1", exchange: exchange, priceLimits: {}, buyPartial: false, useCXInv: true, name: "BuyItems", type: "CX Buy" },
+      { type: "MTRA", name: "TransferAction", group: "A1", origin: "Hortus Station Warehouse", dest: "Configure on Execution" }
+    ],
+    global: { name: "PRUNplanner Transfer" },
+    groups: [{ type: "Manual", name: "A1", materials: { [ticker]: qty } }]
+  };
+}
+
+function copyXit(ticker, qty, exchange, successId) {
+  const json = JSON.stringify(buildXit(ticker, qty, exchange));
+  navigator.clipboard.writeText(json).then(() => {
+    const el = document.getElementById(successId);
+    if (el) {
+      el.textContent = '✓ Copied!';
+      setTimeout(() => { el.textContent = ''; }, 2000);
+    }
+  });
+}
+
+function deleteOrder(index) {
+  const orders = loadOrders();
+  orders.splice(index, 1);
+  saveOrders(orders);
+  render();
+}
+
+function render() {
+  const orders = loadOrders();
+  const grid = document.getElementById('ordersGrid');
+
+  if (orders.length === 0) {
+    grid.innerHTML = '<div class="empty-state">No templates yet — add one above.</div>';
+    return;
+  }
+
+  grid.innerHTML = orders.map((o, i) => {
+    const successId = `copy-ok-${i}`;
+    const xit = JSON.stringify(buildXit(o.ticker, o.qty, o.exchange));
+    return `
+      <div class="order-card">
+        <div class="order-header">
+          <span class="order-ticker">${o.ticker}</span>
+          <span class="order-exchange">${o.exchange}</span>
+        </div>
+        <div class="order-qty">Qty: <span>${o.qty.toLocaleString()}</span></div>
+        <div class="export-output"></div>
+        <div class="order-actions">
+          <button class="primary" onclick="copyXit('${o.ticker}', ${o.qty}, '${o.exchange}', '${successId}')">Copy XIT</button>
+          <button class="danger" onclick="deleteOrder(${i})">✕</button>
+        </div>
+        <div class="copy-success" id="${successId}"></div>
+      </div>
+    `;
+  }).join('');
+
+  // Populate export previews safely via textContent
+  orders.forEach((o, i) => {
+    const previews = grid.querySelectorAll('.export-output');
+    if (previews[i]) previews[i].textContent = JSON.stringify(buildXit(o.ticker, o.qty, o.exchange));
+  });
+}
+
+document.getElementById('addBtn').addEventListener('click', () => {
+  const ticker = document.getElementById('newTicker').value.trim().toUpperCase();
+  const qty = parseInt(document.getElementById('newQty').value.trim(), 10);
+  const exchange = document.getElementById('newExchange').value;
+
+  if (!ticker || !qty || qty < 1) {
+    alert('Please enter a valid ticker and quantity.');
+    return;
+  }
+
+  const orders = loadOrders();
+  orders.push({ ticker, qty, exchange });
+  saveOrders(orders);
+
+  document.getElementById('newTicker').value = '';
+  document.getElementById('newQty').value = '';
+  acList.style.display = 'none';
+  render();
+});
+
+document.getElementById('newQty').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('addBtn').click();
+});
+
+// Seed defaults if empty
+const existing = loadOrders();
+if (existing.length === 0) {
+  saveOrders([
+    { ticker: 'SF', qty: 10000, exchange: 'IC1' },
+    { ticker: 'H2O', qty: 20000, exchange: 'IC1' },
+  ]);
+}
+
+render();
+fetchMaterials();
+</script>
+</body>
+</html>
