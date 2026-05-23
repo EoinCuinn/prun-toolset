@@ -16,6 +16,7 @@
     --accent:    #f5a623;
     --accent2:   #e8952a;
     --green:     #3dd68c;
+    --orange:    #f5a623;
     --red:       #ff5a5a;
     --yellow:    #f5c842;
     --blue:      #4a9eff;
@@ -469,7 +470,33 @@
   .tag-crit { font-family: var(--mono); font-size: 10px; background: rgba(255,90,90,0.12); color: var(--red); border: 1px solid rgba(255,90,90,0.25); border-radius: 2px; padding: 1px 6px; }
   .tag-warn { font-family: var(--mono); font-size: 10px; background: rgba(245,200,66,0.12); color: var(--yellow); border: 1px solid rgba(245,200,66,0.25); border-radius: 2px; padding: 1px 6px; }
 
-  .toast {
+  /* ── What to buy cards (fleet-repair style) ── */
+  .shopping-item {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius, 4px);
+    padding: 0.75rem;
+    min-width: 160px;
+    transition: border-color 0.15s;
+  }
+  .shopping-item:hover { border-color: var(--accent); }
+  .shopping-item.covered { border-left: 3px solid var(--green); }
+  .shopping-item.partial  { border-left: 3px solid var(--orange); }
+  .shopping-item.missing  { border-left: 3px solid var(--red); }
+  .shopping-ticker { font-size: 17px; font-weight: 700; font-family: var(--mono); color: var(--text); margin-bottom: 6px; }
+  .shopping-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .shopping-row span:last-child { color: var(--text); font-weight: 500; font-family: var(--mono); }
+  .buy-row { display: flex; justify-content: space-between; font-size: 12px; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
+  .buy-row span:last-child { font-family: var(--mono); font-weight: 600; }
+  .col-green  { color: var(--green); }
+  .col-orange { color: var(--orange); }
+  .col-red    { color: var(--red); }
+  .location-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--text2); padding: 2px 0; border-bottom: 1px solid var(--border); }
+  .location-row:last-child { border-bottom: none; }
+  .location-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px; }
+  .location-qty { font-family: var(--mono); color: var(--text); }
+
+
     position: fixed;
     bottom: 24px; right: 24px;
     background: var(--bg3);
@@ -529,7 +556,7 @@
     </div>
   </div>
 
-  <!-- Col 2: Repair condition -->
+  <!-- Col 2: Repair condition (scrollable) -->
   <div>
     <div class="section-title">Repair Condition</div>
     <div class="filter-bar">
@@ -537,7 +564,7 @@
       <button class="filter-btn"        id="fDamaged" onclick="setFilter('damaged')">Damaged</button>
       <button class="filter-btn"        id="fCrit"    onclick="setFilter('critical')">Critical &lt;50%</button>
     </div>
-    <div class="table-wrap" id="buildingPanel">
+    <div class="table-wrap" id="buildingPanel" style="max-height:340px;overflow-y:auto;">
       <div class="state-box">
         <div class="state-icon">🏗</div>
         <div class="state-msg">Select a base to load building conditions.</div>
@@ -545,7 +572,7 @@
     </div>
   </div>
 
-  <!-- Col 3: Shopping list -->
+  <!-- Col 3: Shopping list summary -->
   <div>
     <div class="section-title">Repair Shopping List</div>
     <div class="filter-bar" style="visibility:hidden;">
@@ -559,6 +586,16 @@
     </div>
   </div>
 
+</div>
+
+<!-- Full-width: What to buy cards -->
+<div style="margin-top:24px;">
+  <div class="section-title">What to Buy</div>
+  <div id="buyPanel">
+    <div class="state-box" style="padding:20px">
+      <div class="state-msg">Select a base to see purchasing breakdown.</div>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -669,17 +706,29 @@ async function loadBase(idx) {
 }
 
 function findStorageForPlanet(planetId) {
-  // Match by AddressableId or planet natural ID
+  // Build SiteId → PlanetName map from allSites
+  const siteMap = {};
+  allSites.forEach(s => { if (s.SiteId && s.PlanetName) siteMap[s.SiteId] = s.PlanetName; });
+
   const inv = {};
   allStorage.forEach(store => {
     const addr = store.AddressableId || store.PlanetId || store.NaturalId || '';
     const type = store.Type || '';
-    // Include BASE type stores or those matching the planet
     if (addr === planetId || type === 'BASE' || addr.includes(planetId)) {
+      let locName = store.Name;
+      if (!locName && store.AddressableId && siteMap[store.AddressableId]) locName = siteMap[store.AddressableId];
+      if (!locName && store.StorageId && siteMap[store.StorageId]) locName = siteMap[store.StorageId];
+      if (!locName) locName = planetId;
+
       (store.StorageItems || []).forEach(item => {
         const t = item.MaterialTicker;
-        if (!t) return;
-        inv[t] = (inv[t] || 0) + (item.MaterialAmount || 0);
+        const qty = item.MaterialAmount || 0;
+        if (!t || qty <= 0) return;
+        if (!inv[t]) inv[t] = { total: 0, locations: [] };
+        inv[t].total += qty;
+        const existing = inv[t].locations.find(l => l.name === locName);
+        if (existing) existing.qty += qty;
+        else inv[t].locations.push({ name: locName, qty });
       });
     }
   });
@@ -710,7 +759,7 @@ function renderBuildings(buildings, inventory) {
 
     const matChips = mats.length
       ? mats.map(m => {
-          const have = inventory[m.MaterialTicker] || 0;
+          const have = (inventory[m.MaterialTicker] || {}).total || 0;
           const need = m.Amount || 0;
           const cls  = have >= need ? 'ok' : 'short';
           return `<div class="mat-chip"><span>${m.MaterialTicker}</span> ×${need} <span class="${cls}">[${have}]</span></div>`;
@@ -747,39 +796,39 @@ function renderBuildings(buildings, inventory) {
   </table>`;
 }
 
-// ── Shopping list ──────────────────────────────────────────────────────────
+// ── Shopping list (compact summary, right column) ──────────────────────────
 function renderShoppingList(buildings, inventory) {
   const panel = document.getElementById('shopPanel');
 
-  // Aggregate all repair materials
   const totals = {};
   buildings.forEach(b => {
     (b.RepairMaterials || []).forEach(m => {
-      const t = m.MaterialTicker;
-      totals[t] = (totals[t] || 0) + (m.Amount || 0);
+      totals[m.MaterialTicker] = (totals[m.MaterialTicker]||0) + (m.Amount||0);
     });
   });
 
   const keys = Object.keys(totals).sort();
   if (!keys.length) {
-    panel.innerHTML = `<div class="state-box" style="padding:40px 20px"><div class="state-icon">✨</div><div class="state-msg">No repair materials needed — all buildings are in perfect condition!</div></div>`;
+    panel.innerHTML = `<div class="state-box" style="padding:40px 20px"><div class="state-icon">✨</div><div class="state-msg">No repairs needed!</div></div>`;
+    document.getElementById('buyPanel').innerHTML = `<div class="state-box" style="padding:20px"><div class="state-msg">Nothing to buy — all covered.</div></div>`;
     return;
   }
 
+  const shortfallItems = [];
   const rows = keys.map(ticker => {
     const need  = totals[ticker];
-    const have  = inventory[ticker] || 0;
+    const inv   = inventory[ticker] || { total: 0, locations: [] };
+    const have  = inv.total;
     const delta = have - need;
     const matInfo = allMaterials[ticker];
     const name    = matInfo ? matInfo.Name : ticker;
 
     let haveCls = 'ok', shortTxt = '—';
-    if (delta < 0) { haveCls = 'short'; shortTxt = `${delta}`; }
+    if (delta < 0) { haveCls = 'short'; shortTxt = `${delta}`; shortfallItems.push({ MaterialTicker: ticker, Amount: -delta }); }
     else if (delta === 0) { haveCls = 'exact'; shortTxt = '✓'; }
     else { shortTxt = `+${delta}`; }
 
-    return `
-    <div class="shop-row">
+    return `<div class="shop-row">
       <div class="shop-ticker">${ticker}</div>
       <div class="shop-name" title="${name}">${name}</div>
       <div class="shop-needed">${need}</div>
@@ -788,15 +837,11 @@ function renderShoppingList(buildings, inventory) {
     </div>`;
   }).join('');
 
-  const shortCount  = keys.filter(t => (inventory[t]||0) < totals[t]).length;
-  const shortfallItems = keys
-    .filter(t => (inventory[t]||0) < totals[t])
-    .map(t => ({ MaterialTicker: t, Amount: totals[t] - (inventory[t]||0) }));
-  const copyList = JSON.stringify(shortfallItems);
+  window._shortfallText = JSON.stringify(shortfallItems);
 
   panel.innerHTML = `
   <div class="panel-header">
-    <div class="panel-title">All Repair Materials</div>
+    <div class="panel-title">All Materials</div>
     <button class="copy-btn" onclick="copyShortfall()" title="Copy shortfall to clipboard">COPY SHORT</button>
   </div>
   <div class="shop-row" style="border-bottom:1px solid var(--border2);">
@@ -806,10 +851,47 @@ function renderShoppingList(buildings, inventory) {
     <div class="col-h right">HAVE</div>
     <div class="col-h right">DIFF</div>
   </div>
-  <div class="panel-body" id="shopRows">${rows}</div>`;
+  <div class="panel-body">${rows}</div>
+  <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;">
+    <button class="copy-btn" onclick="copyXit()" style="color:var(--accent);border-color:var(--accent);">COPY XIT</button>
+    <span class="copy-success" id="copyXitOk" style="display:none;margin-left:8px;font-size:12px;color:var(--green);font-family:var(--mono);">✓ Copied!</span>
+  </div>`;
 
-  // Store shortfall for copy
-  window._shortfallText = copyList;
+  // Render buy cards below
+  renderBuyPanel(totals, inventory);
+}
+
+// ── What to buy cards (full width, with storage locations) ─────────────────
+function renderBuyPanel(totals, inventory) {
+  const panel = document.getElementById('buyPanel');
+  const keys = Object.keys(totals).sort();
+
+  const cards = keys.map(ticker => {
+    const need  = totals[ticker];
+    const inv   = inventory[ticker] || { total: 0, locations: [] };
+    const have  = inv.total;
+    const toBuy = Math.max(0, need - have);
+    const cls   = toBuy === 0 ? 'covered' : (have > 0 ? 'partial' : 'missing');
+    const colCls = toBuy === 0 ? 'col-green' : (have > 0 ? 'col-orange' : 'col-red');
+    const buyText = toBuy === 0 ? '✓ covered' : `buy ${toBuy}`;
+
+    const locRows = inv.locations.length
+      ? `<div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--dim);margin:6px 0 3px;">In storage</div>` +
+        inv.locations.sort((a,b) => b.qty - a.qty).map(l =>
+          `<div class="location-row"><span class="location-name">${l.name}</span><span class="location-qty">${l.qty}</span></div>`
+        ).join('')
+      : '';
+
+    return `<div class="shopping-item ${cls}">
+      <div class="shopping-ticker">${ticker}</div>
+      <div class="shopping-row"><span>Need</span><span>${need}</span></div>
+      <div class="shopping-row"><span>Have</span><span>${have}</span></div>
+      <div class="buy-row"><span>To buy</span><span class="${colCls}">${buyText}</span></div>
+      ${locRows}
+    </div>`;
+  }).join('');
+
+  panel.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:8px;">${cards}</div>`;
 }
 
 
@@ -833,6 +915,16 @@ function copyShortfall() {
     .catch(() => toast('Copy failed'));
 }
 
+function copyXit() {
+  if (!window._shortfallText) { toast('Nothing to buy'); return; }
+  navigator.clipboard.writeText(buildActJson(JSON.parse(window._shortfallText)))
+    .then(() => {
+      const el = document.getElementById('copyXitOk');
+      if (el) { el.style.display = 'inline'; setTimeout(() => el.style.display = 'none', 2000); }
+    })
+    .catch(() => toast('Copy failed'));
+}
+
 // ── Summary strip ──────────────────────────────────────────────────────────
 function renderSummary(buildings, inventory) {
   const strip = document.getElementById('summaryStrip');
@@ -850,7 +942,7 @@ function renderSummary(buildings, inventory) {
       totals[m.MaterialTicker] = (totals[m.MaterialTicker]||0) + (m.Amount||0);
     });
   });
-  const shortCount = Object.keys(totals).filter(t => (inventory[t]||0) < totals[t]).length;
+  const shortCount = Object.keys(totals).filter(t => (inventory[t]?.total||0) < totals[t]).length;
   const canRepair  = Object.keys(totals).length === 0 || shortCount === 0;
 
   document.getElementById('statBuildings').textContent  = total;
