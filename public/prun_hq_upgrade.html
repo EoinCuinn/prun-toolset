@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PrUn HQ Upgrade Checker</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --bg2: #181c27;
+    --bg3: #1e2333;
+    --border: #2a3045;
+    --border2: #3a4460;
+    --text: #e2e8f0;
+    --text2: #8892a4;
+    --text3: #555f72;
+    --dim: #555f72;
+    --accent: #4f8ef7;
+    --green: #4ade80;
+    --orange: #fb923c;
+    --red: #f87171;
+    --mono: 'Courier New', monospace;
+    --radius: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 1.5rem;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  /* ── Header ── */
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    gap: 12px;
+  }
+  .header-left { display: flex; flex-direction: column; gap: 2px; }
+  .title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .title::before {
+    content: '';
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+  .subtitle {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+    letter-spacing: 0.05em;
+  }
+  .home-link {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    border: 1px solid var(--border);
+    padding: 5px 10px;
+    border-radius: 3px;
+    transition: color 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+  .home-link:hover { color: var(--text); border-color: var(--border2); }
+
+  /* ── Inputs ── */
+  .config-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  textarea {
+    width: 100%;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 10px 12px;
+    font-size: 12px;
+    font-family: var(--mono);
+    resize: vertical;
+    margin-bottom: 0.75rem;
+    outline: none;
+    transition: border-color 0.15s;
+    line-height: 1.4;
+  }
+  textarea:focus { border-color: var(--accent); }
+
+  button {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 8px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+  button:hover { background: var(--border); border-color: var(--accent); }
+  button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-weight: 600;
+  }
+  button.primary:hover { background: #6aa0f9; }
+
+  /* ── Status ── */
+  .status {
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 1rem;
+    min-height: 16px;
+    font-family: var(--mono);
+  }
+
+  /* ── Summary bar ── */
+  .summary {
+    display: flex;
+    gap: 1px;
+    margin-bottom: 1.25rem;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .summary-stat {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    background: var(--bg2);
+    text-align: center;
+  }
+  .summary-stat strong {
+    display: block;
+    font-size: 22px;
+    font-weight: 700;
+    font-family: var(--mono);
+    margin-bottom: 2px;
+  }
+  .summary-stat span { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; }
+  .stat-green strong { color: var(--green); }
+  .stat-orange strong { color: var(--orange); }
+  .stat-red strong { color: var(--red); }
+
+  /* ── Section heading ── */
+  .section-head {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+    margin: 1.5rem 0 0.75rem;
+  }
+
+  /* ── Material grid ── */
+  .shopping-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 8px;
+  }
+
+  .shopping-item {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.75rem;
+    transition: border-color 0.15s;
+  }
+  .shopping-item:hover { border-color: var(--accent); }
+  .shopping-item.covered { border-left: 3px solid var(--green); }
+  .shopping-item.partial { border-left: 3px solid var(--orange); }
+  .shopping-item.missing { border-left: 3px solid var(--red); }
+
+  .shopping-ticker {
+    font-size: 17px;
+    font-weight: 700;
+    font-family: var(--mono);
+    color: var(--text);
+    margin-bottom: 6px;
+    letter-spacing: 0.05em;
+  }
+
+  .shopping-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text2);
+    margin-top: 2px;
+  }
+  .shopping-row span:last-child { color: var(--text); font-weight: 500; font-family: var(--mono); }
+
+  .buy-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+  }
+  .buy-row span:last-child { font-family: var(--mono); font-weight: 600; }
+  .col-green { color: var(--green); }
+  .col-orange { color: var(--orange); }
+  .col-red { color: var(--red); }
+
+  .locations { margin-top: 6px; }
+  .location-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text2);
+    padding: 2px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .location-row:last-child { border-bottom: none; }
+  .location-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px; }
+  .location-qty { font-family: var(--mono); color: var(--text); }
+
+  /* ── XIT export cards ── */
+  .export-section {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .export-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+  }
+
+  .export-card-head {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text2);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .export-card-desc {
+    font-size: 12px;
+    color: var(--text3);
+    margin-bottom: 0.75rem;
+  }
+
+  .export-output {
+    font-size: 11px;
+    font-family: var(--mono);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 10px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 120px;
+    overflow-y: auto;
+    color: var(--text2);
+    margin-bottom: 8px;
+  }
+
+  .export-actions { display: flex; align-items: center; gap: 8px; }
+  .copy-success { font-size: 12px; color: var(--green); font-family: var(--mono); }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="header-left">
+    <div class="title">HQ Upgrade Checker</div>
+    <div class="subtitle">inventory check · XIT export</div>
+  </div>
+  <a href="/home.html" class="home-link">⌂ HOME</a>
+</div>
+
+<div style="font-size:11px;color:var(--dim);font-family:var(--mono);margin-bottom:1rem;">⚿ API key and username are read from your browser's saved credentials — set once in Fleet Repair or Fleet Status.</div>
+
+<textarea id="cartJson" rows="4" placeholder="Paste your PrUnplanner HQ upgrade XIT JSON here..."></textarea>
+<div class="config-row">
+  <button class="primary" id="checkBtn">Check inventory ↗</button>
+</div>
+<div class="status" id="status">Paste your XIT JSON and click check.</div>
+<div id="results"></div>
+
+<script>
+async function check() {
+  const username = localStorage.getItem('prun_username') || '';
+  const apikey   = localStorage.getItem('prun_apikey')   || '';
+  const cartRaw  = document.getElementById('cartJson').value.trim();
+  const status   = document.getElementById('status');
+  const results  = document.getElementById('results');
+
+  results.innerHTML = '';
+
+  if (!username || !apikey) {
+    status.textContent = 'No credentials found — please set your API key and username in Fleet Repair or Fleet Status first.';
+    return;
+  }
+
+  let needed = {};
+  let cartObj = null;
+  try {
+    cartObj = JSON.parse(cartRaw);
+    if (cartObj.groups && cartObj.groups.length > 0) {
+      cartObj.groups.forEach(g => { if (g.materials) Object.assign(needed, g.materials); });
+    }
+    if (Object.keys(needed).length === 0 && cartObj.materials) needed = cartObj.materials;
+  } catch(e) {
+    status.textContent = 'Could not parse JSON — check the XIT export.';
+    return;
+  }
+
+  if (Object.keys(needed).length === 0) { status.textContent = 'No materials found in JSON.'; return; }
+
+  status.textContent = 'Fetching inventory...';
+
+  try {
+    const [storageRes, sitesRes] = await Promise.all([
+      fetch(`https://rest.fnar.net/storage/${username}`, { headers: { 'Authorization': apikey } }),
+      fetch(`https://rest.fnar.net/sites/${username}`,   { headers: { 'Authorization': apikey } })
+    ]);
+
+    if (storageRes.status === 401) { status.textContent = 'Auth failed — check API key.'; return; }
+
+    const siteMap = {};
+    if (sitesRes.ok) {
+      const sites = await sitesRes.json();
+      sites.forEach(s => { if (s.SiteId && s.PlanetName) siteMap[s.SiteId] = s.PlanetName; });
+    }
+
+    const inventory = {};
+    if (storageRes.ok) {
+      const storageData = await storageRes.json();
+      storageData.forEach(loc => {
+        if (loc.Type === 'STL_FUEL_STORE' || loc.Type === 'FTL_FUEL_STORE') return;
+        let locName = loc.Name;
+        if (!locName && loc.AddressableId && siteMap[loc.AddressableId]) locName = siteMap[loc.AddressableId];
+        if (!locName && loc.StorageId    && siteMap[loc.StorageId])    locName = siteMap[loc.StorageId];
+        if (!locName) locName = loc.Type === 'WAREHOUSE_STORE' ? 'Warehouse' : 'Unknown';
+        (loc.StorageItems || []).forEach(item => {
+          const ticker = item.MaterialTicker || '?';
+          const qty    = item.MaterialAmount || 0;
+          if (qty <= 0) return;
+          if (!inventory[ticker]) inventory[ticker] = { total: 0, locations: [] };
+          inventory[ticker].total += qty;
+          const existing = inventory[ticker].locations.find(l => l.name === locName);
+          if (existing) existing.qty += qty;
+          else inventory[ticker].locations.push({ name: locName, qty });
+        });
+      });
+    }
+
+    const tickers = Object.keys(needed).sort();
+    let fullyCovered = 0, partiallyCovered = 0, notCovered = 0;
+
+    const toBuyMaterials      = {};
+    const toTransferMaterials = {};
+
+    tickers.forEach(ticker => {
+      const need       = needed[ticker];
+      const have       = (inventory[ticker] || {}).total || 0;
+      const toBuy      = Math.max(0, need - have);
+      const toTransfer = Math.min(have, need);
+
+      if (toBuy === 0) fullyCovered++;
+      else if (have > 0) partiallyCovered++;
+      else notCovered++;
+
+      if (toBuy > 0)      toBuyMaterials[ticker]      = toBuy;
+      if (toTransfer > 0) toTransferMaterials[ticker] = toTransfer;
+    });
+
+    // Build Buy + Transfer XIT
+    const buyTransferCart = JSON.parse(JSON.stringify(cartObj));
+    buyTransferCart.actions = [
+      { group: "A1", exchange: "IC1", priceLimits: {}, buyPartial: false, useCXInv: true, name: "BuyItems", type: "CX Buy" },
+      { type: "MTRA", name: "TransferAction", group: "A1", origin: "Hortus Station Warehouse", dest: "Configure on Execution" }
+    ];
+    buyTransferCart.groups = [{ type: "Manual", name: "A1", materials: toBuyMaterials }];
+
+    // Build Transfer Only XIT
+    const transferOnlyCart = JSON.parse(JSON.stringify(cartObj));
+    transferOnlyCart.actions = [
+      { type: "MTRA", name: "TransferAction", group: "A1", origin: "Hortus Station Warehouse", dest: "Configure on Execution" }
+    ];
+    transferOnlyCart.groups = [{ type: "Manual", name: "A1", materials: toTransferMaterials }];
+
+    status.textContent = `${tickers.length} material${tickers.length !== 1 ? 's' : ''} checked.`;
+
+    let html = `<div class="summary">
+      <div class="summary-stat stat-green"><strong>${fullyCovered}</strong><span>Covered</span></div>
+      <div class="summary-stat stat-orange"><strong>${partiallyCovered}</strong><span>Partial</span></div>
+      <div class="summary-stat stat-red"><strong>${notCovered}</strong><span>Need to buy</span></div>
+    </div>`;
+
+    html += '<div class="section-head">Material breakdown</div><div class="shopping-grid">';
+    tickers.forEach(ticker => {
+      const need   = needed[ticker];
+      const inv    = inventory[ticker] || { total: 0, locations: [] };
+      const have   = inv.total;
+      const toBuy  = Math.max(0, need - have);
+      const cls    = toBuy === 0 ? 'covered' : (have > 0 ? 'partial' : 'missing');
+      const colCls = toBuy === 0 ? 'col-green' : (have > 0 ? 'col-orange' : 'col-red');
+      const buyText = toBuy === 0 ? '✓ covered' : `buy ${toBuy}`;
+
+      html += `<div class="shopping-item ${cls}">`;
+      html += `<div class="shopping-ticker">${ticker}</div>`;
+      html += `<div class="shopping-row"><span>Need</span><span>${need}</span></div>`;
+      html += `<div class="shopping-row"><span>Have</span><span>${have}</span></div>`;
+      html += `<div class="buy-row"><span>To buy</span><span class="${colCls}">${buyText}</span></div>`;
+      if (inv.locations.length > 0) {
+        html += '<div class="locations">';
+        inv.locations.sort((a,b) => b.qty - a.qty).forEach(l => {
+          html += `<div class="location-row"><span class="location-name">${l.name}</span><span class="location-qty">${l.qty}</span></div>`;
+        });
+        html += '</div>';
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+
+    const hasBuyItems      = Object.keys(toBuyMaterials).length > 0;
+    const hasTransferItems = Object.keys(toTransferMaterials).length > 0;
+
+    html += `<div class="export-section">
+      <div class="section-head">XIT Export</div>
+
+      <div class="export-card">
+        <div class="export-card-head">Buy + Transfer</div>
+        <div class="export-card-desc">CX Buy missing items at IC1, then MTRA from Hortus Station Warehouse → ship (configure on execution). ${hasBuyItems ? Object.keys(toBuyMaterials).length + ' item(s) to buy.' : 'Nothing to buy — all covered.'}</div>
+        <div class="export-output" id="buyTransferOut">${''}</div>
+        <div class="export-actions">
+          <button id="copyBuyTransfer">Copy to clipboard</button>
+          <span class="copy-success" id="copyBuyTransferOk" style="display:none">✓ Copied!</span>
+        </div>
+      </div>
+
+      <div class="export-card">
+        <div class="export-card-head">Transfer Only</div>
+        <div class="export-card-desc">MTRA what you already have from Hortus Station Warehouse → ship (configure on execution). ${hasTransferItems ? Object.keys(toTransferMaterials).length + ' item(s) to move.' : 'Nothing in inventory to transfer.'}</div>
+        <div class="export-output" id="transferOnlyOut">${''}</div>
+        <div class="export-actions">
+          <button id="copyTransferOnly">Copy to clipboard</button>
+          <span class="copy-success" id="copyTransferOnlyOk" style="display:none">✓ Copied!</span>
+        </div>
+      </div>
+    </div>`;
+
+    results.innerHTML = html;
+
+    // Populate export outputs safely
+    document.getElementById('buyTransferOut').textContent  = JSON.stringify(buyTransferCart);
+    document.getElementById('transferOnlyOut').textContent = JSON.stringify(transferOnlyCart);
+
+    document.getElementById('copyBuyTransfer').addEventListener('click', () => {
+      navigator.clipboard.writeText(JSON.stringify(buyTransferCart)).then(() => {
+        const s = document.getElementById('copyBuyTransferOk');
+        s.style.display = 'inline';
+        setTimeout(() => s.style.display = 'none', 2000);
+      });
+    });
+
+    document.getElementById('copyTransferOnly').addEventListener('click', () => {
+      navigator.clipboard.writeText(JSON.stringify(transferOnlyCart)).then(() => {
+        const s = document.getElementById('copyTransferOnlyOk');
+        s.style.display = 'inline';
+        setTimeout(() => s.style.display = 'none', 2000);
+      });
+    });
+
+  } catch(e) {
+    status.textContent = 'Error: ' + e.message;
+  }
+}
+
+document.getElementById('checkBtn').addEventListener('click', check);
+</script>
+</body>
+</html>
