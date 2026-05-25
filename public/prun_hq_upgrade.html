@@ -297,10 +297,12 @@
   <a href="/home.html" class="home-link">⌂ HOME</a>
 </div>
 
-<div style="font-size:11px;color:var(--dim);font-family:var(--mono);margin-bottom:1rem;">⚿ API key and username are read from your browser's saved credentials — set once in Fleet Repair or Fleet Status.</div>
+<div style="font-size:11px;color:var(--dim);font-family:var(--mono);margin-bottom:1rem;">⚿ API key and username are saved in your browser only — never sent anywhere except FIO.</div>
 
 <textarea id="cartJson" rows="4" placeholder="Paste your PrUnplanner HQ upgrade XIT JSON here..."></textarea>
 <div class="config-row">
+  <input id="inputApikey" type="text" placeholder="FIO API key…" style="font-family:var(--mono);font-size:12px;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:var(--radius);outline:none;width:260px;" />
+  <input id="inputUsername" type="text" placeholder="Username…" style="font-family:var(--mono);font-size:12px;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:var(--radius);outline:none;width:130px;" />
   <button class="primary" id="checkBtn">Check inventory ↗</button>
 </div>
 <div class="status" id="status">Paste your XIT JSON and click check.</div>
@@ -308,8 +310,17 @@
 
 <script>
 async function check() {
-  const username = localStorage.getItem('prun_username') || '';
-  const apikey   = localStorage.getItem('prun_apikey')   || '';
+  const inputKey  = document.getElementById('inputApikey').value.trim();
+  const inputUser = document.getElementById('inputUsername').value.trim();
+  const username  = inputUser || localStorage.getItem('prun_username') || '';
+  const apikey    = inputKey  || localStorage.getItem('prun_apikey')   || '';
+  if (inputKey && inputUser) {
+    localStorage.setItem('prun_apikey',   apikey);
+    localStorage.setItem('prun_username', username);
+  } else {
+    document.getElementById('inputApikey').value   = apikey;
+    document.getElementById('inputUsername').value = username;
+  }
   const cartRaw  = document.getElementById('cartJson').value.trim();
   const status   = document.getElementById('status');
   const results  = document.getElementById('results');
@@ -317,7 +328,7 @@ async function check() {
   results.innerHTML = '';
 
   if (!username || !apikey) {
-    status.textContent = 'No credentials found — please set your API key and username in Fleet Repair or Fleet Status first.';
+    status.textContent = 'Enter your FIO API key and username above, then click Check inventory.';
     return;
   }
 
@@ -498,6 +509,12 @@ async function check() {
 }
 
 document.getElementById('checkBtn').addEventListener('click', check);
+
+// Pre-fill credential inputs from localStorage
+const _savedKey  = localStorage.getItem('prun_apikey');
+const _savedUser = localStorage.getItem('prun_username');
+if (_savedKey)  document.getElementById('inputApikey').value   = _savedKey;
+if (_savedUser) document.getElementById('inputUsername').value = _savedUser;
 </script>
 </body>
 </html>

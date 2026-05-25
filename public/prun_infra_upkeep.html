@@ -441,9 +441,11 @@
   <a href="/home.html" class="home-link">⌂ HOME</a>
 </div>
 
-<div style="font-size:11px;color:var(--dim);font-family:var(--mono);margin-bottom:1rem;">⚿ API key and username are read from your browser's saved credentials — set once in Fleet Repair or Fleet Status.</div>
+<div style="font-size:11px;color:var(--dim);font-family:var(--mono);margin-bottom:1rem;">⚿ API key and username are saved in your browser only — never sent anywhere except FIO.</div>
 
 <div class="controls">
+  <input id="inputApikey" type="text" placeholder="FIO API key…" style="font-family:var(--mono);font-size:12px;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:var(--radius);outline:none;width:260px;" />
+  <input id="inputUsername" type="text" placeholder="Username…" style="font-family:var(--mono);font-size:12px;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:var(--radius);outline:none;width:130px;" />
   <label>Planet</label>
   <select id="planetSelect" onchange="switchPlanet()">
     <option value="">— Loading... —</option>
@@ -570,12 +572,21 @@ let config = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
 
 // ── Boot ──────────────────────────────────────────────────────────────────
 async function init() {
-  USER   = localStorage.getItem('prun_username') || '';
-  APIKEY = localStorage.getItem('prun_apikey')   || '';
-  HDR    = { 'Authorization': APIKEY };
+  const inputKey  = document.getElementById('inputApikey').value.trim();
+  const inputUser = document.getElementById('inputUsername').value.trim();
+  USER   = inputUser || localStorage.getItem('prun_username') || '';
+  APIKEY = inputKey  || localStorage.getItem('prun_apikey')   || '';
+  if (inputKey && inputUser) {
+    localStorage.setItem('prun_apikey',   APIKEY);
+    localStorage.setItem('prun_username', USER);
+  } else {
+    document.getElementById('inputApikey').value   = APIKEY;
+    document.getElementById('inputUsername').value = USER;
+  }
+  HDR = { 'Authorization': APIKEY };
 
   if (!USER || !APIKEY) {
-    setStatus('err', 'No credentials — set API key in Fleet Repair or Fleet Status first.');
+    setStatus('err', 'Enter your FIO API key and username above, then click Refresh Inventory.');
     return;
   }
 
@@ -908,6 +919,15 @@ function getInventory() {
 }
 
 async function refreshInventory() {
+  const inputKey  = document.getElementById('inputApikey').value.trim();
+  const inputUser = document.getElementById('inputUsername').value.trim();
+  if (inputKey && inputUser) {
+    APIKEY = inputKey; USER = inputUser;
+    localStorage.setItem('prun_apikey', APIKEY);
+    localStorage.setItem('prun_username', USER);
+    HDR = { 'Authorization': APIKEY };
+  }
+  if (!USER || !APIKEY) { setStatus('err', 'Enter your FIO API key and username above.'); return; }
   setStatus('loading', 'Refreshing…');
   try {
     const res = await fetch(`${API}/storage/${USER}`, { headers: HDR });
@@ -947,6 +967,12 @@ function toast(msg) {
   el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), 2500);
 }
+
+// Pre-fill credential inputs from localStorage
+const _savedKey  = localStorage.getItem('prun_apikey');
+const _savedUser = localStorage.getItem('prun_username');
+if (_savedKey)  document.getElementById('inputApikey').value   = _savedKey;
+if (_savedUser) document.getElementById('inputUsername').value = _savedUser;
 
 init();
 </script>
