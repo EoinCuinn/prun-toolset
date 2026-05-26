@@ -663,6 +663,13 @@ async function init() {
   }
 }
 
+// ── Filter ─────────────────────────────────────────────────────────────────
+const EXCLUDE_TICKERS = new Set(['CM','STA','STE','STO','STV','STW','HB1','HB2','HB3','HB4','HB5','HBB','HBC','HBL','HBM']);
+
+function isHB(b) {
+  return EXCLUDE_TICKERS.has((b.BuildingTicker || '').toUpperCase());
+}
+
 function populateBaseSelect() {
   renderBaseSummaryCards();
 }
@@ -971,12 +978,6 @@ function renderSummary(buildings, inventory) {
 }
 
 // ── Filter ─────────────────────────────────────────────────────────────────
-const EXCLUDE_TICKERS = new Set(['CM','STA','STE','STO','STV','STW','HB1','HB2','HB3','HB4','HB5','HBB','HBC','HBL','HBM']);
-
-function isHB(b) {
-  return EXCLUDE_TICKERS.has((b.BuildingTicker || '').toUpperCase());
-}
-
 function filterBuildings(buildings) {
   // HBs/storage always excluded from repair view
   let result = buildings.filter(b => !isHB(b));
