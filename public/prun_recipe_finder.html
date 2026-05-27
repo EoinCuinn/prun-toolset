@@ -99,7 +99,6 @@
     font-size: 15px;
     font-family: var(--mono);
     letter-spacing: 0.05em;
-    text-transform: uppercase;
     outline: none;
     transition: border-color 0.15s;
   }
@@ -350,13 +349,15 @@ const acList      = document.getElementById('acList');
 function showAc(query) {
   if (!query || allTickers.length === 0) { acList.style.display = 'none'; return; }
   const q = query.toUpperCase();
-  const matches = allTickers.filter(m => m.ticker.startsWith(q)).slice(0, 30);
+  const matches = allTickers.filter(m =>
+    m.ticker.startsWith(q) || m.name.toUpperCase().includes(q)
+  ).slice(0, 30);
   if (matches.length === 0) { acList.style.display = 'none'; return; }
   acIndex = -1;
   acList.innerHTML = matches.map((m, i) =>
     `<div class="autocomplete-item" data-ticker="${m.ticker}" data-i="${i}">
       <span class="ac-ticker">${m.ticker}</span>
-      <span class="ac-name">${m.name}</span>
+      <span class="ac-name">${m.name || '—'}</span>
     </div>`
   ).join('');
   acList.style.display = 'block';
@@ -371,7 +372,6 @@ function showAc(query) {
 }
 
 tickerInput.addEventListener('input', e => {
-  e.target.value = e.target.value.toUpperCase();
   showAc(e.target.value);
 });
 
@@ -483,17 +483,31 @@ function fmtDuration(ms) {
 
 async function loadRecipes() {
   try {
-    const [recipesRes, buildingsRes] = await Promise.all([
+    const [recipesRes, buildingsRes, matsRes] = await Promise.all([
       fetch('https://rest.fnar.net/recipes/allrecipes'),
-      fetch('https://rest.fnar.net/building/allbuildings')
+      fetch('https://rest.fnar.net/building/allbuildings'),
+      fetch('https://rest.fnar.net/material/allmaterials')
     ]);
     if (!recipesRes.ok) throw new Error('HTTP ' + recipesRes.status);
     allRecipes = await recipesRes.json();
+
+    // Build material name map from dedicated endpoint
+    const matNameMap = {};
+    if (matsRes.ok) {
+      const mats = await matsRes.json();
+      mats.forEach(m => {
+        const t = (m.Ticker || m.MaterialTicker || '').toUpperCase();
+        const n = m.Name || m.MaterialName || '';
+        if (t) matNameMap[t] = n;
+      });
+    }
+    window.materialNames = matNameMap;
     if (buildingsRes.ok) {
       const buildings = await buildingsRes.json();
       buildings.forEach(b => {
         if (b.Ticker) {
           buildingMap[b.Ticker] = {
+            name:        b.Name || b.BuildingName || null,
             expertise:   b.Expertise ? fmtExpertise(b.Expertise) : null,
             pioneers:    b.Pioneers    || 0,
             settlers:    b.Settlers    || 0,
@@ -507,17 +521,16 @@ async function loadRecipes() {
     loaded = true;
     buildProducerMap();
 
-    // Build sorted ticker list from all recipe inputs + outputs, with names from buildings where possible
-    const tickerSet = {};
+    // Build ticker list from recipe inputs/outputs, names from matNameMap
+    const tickerSet = new Set();
     allRecipes.forEach(r => {
       [...(r.Inputs||[]), ...(r.Outputs||[])].forEach(m => {
         const t = m.Ticker || m.CommodityTicker;
-        const n = m.Name   || m.CommodityName  || '';
-        if (t && !tickerSet[t]) tickerSet[t] = n;
+        if (t) tickerSet.add(t.toUpperCase());
       });
     });
-    allTickers = Object.entries(tickerSet)
-      .map(([ticker, name]) => ({ ticker, name }))
+    allTickers = [...tickerSet]
+      .map(ticker => ({ ticker, name: matNameMap[ticker] || '' }))
       .sort((a, b) => a.ticker.localeCompare(b.ticker));
 
     document.getElementById('status').textContent = allRecipes.length.toLocaleString() + ' recipes loaded. Enter a ticker to search.';
@@ -585,7 +598,8 @@ function search() {
     return;
   }
 
-  document.getElementById('status').textContent = ticker + ' appears in ' + (asInput.length + asOutput.length) + ' recipes total.';
+  const matName = (window.materialNames && window.materialNames[ticker]) ? window.materialNames[ticker] : '';
+  document.getElementById('status').textContent = ticker + (matName ? ' — ' + matName : '') + ' · appears in ' + (asInput.length + asOutput.length) + ' recipes total.';
 
   function renderCards(recipes, highlightTicker, label) {
     if (recipes.length === 0) return '';
@@ -596,8 +610,11 @@ function search() {
       const outputs  = r.Outputs || [];
       const duration = r.DurationMs || r.TimeMs || 0;
 
+      const bInfo      = buildingMap[building] || {};
+      const bFullName  = bInfo.name ? building + ' · ' + bInfo.name : building;
+      const bExpertise = bInfo.expertise ? ' <span style="color:var(--green);font-weight:600">' + bInfo.expertise + '</span>' : '';
       out += '<div class="recipe-card">';
-      out += '<div class="building-label">' + building + '</div>';
+      out += '<div class="building-label">' + bFullName + bExpertise + '</div>';
       out += '<div class="recipe-row">';
 
       inputs.forEach((inp, i) => {
@@ -627,8 +644,8 @@ function search() {
   html += '<div class="summary-chip">Used as <strong>input</strong>: ' + asInput.length + ' recipes</div>';
   html += '<div class="summary-chip">Produced as <strong>output</strong>: ' + asOutput.length + ' recipes</div>';
   html += '</div>';
-  html += renderCards(asInput,  ticker, ticker + ' used as an input — what you can make WITH it');
-  html += renderCards(asOutput, ticker, ticker + ' as an output — how to produce it');
+  html += renderCards(asInput,  ticker, ticker + (matName ? ' (' + matName + ')' : '') + ' used as an input — what you can make WITH it');
+  html += renderCards(asOutput, ticker, ticker + (matName ? ' (' + matName + ')' : '') + ' as an output — how to produce it');
 
   resultsEl.innerHTML = html;
 }
