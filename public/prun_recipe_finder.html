@@ -179,7 +179,6 @@
     transition: border-color 0.15s;
   }
   .recipe-card:hover { border-color: var(--accent); }
-  .recipe-card[onclick]:hover { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 
   .building-label {
     font-size: 11px;
@@ -206,6 +205,30 @@
     font-family: var(--mono);
     white-space: nowrap;
   }
+
+  /* ── Breadcrumb ── */
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+    min-height: 24px;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+  .bc-item {
+    color: var(--accent);
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid rgba(79,142,247,0.3);
+    background: rgba(79,142,247,0.08);
+    transition: background 0.1s;
+  }
+  .bc-item:hover { background: rgba(79,142,247,0.2); }
+  .bc-item.current { color: var(--text); border-color: var(--border); background: var(--bg2); cursor: default; }
+  .bc-sep { color: var(--text3); }
 
   /* ── Material pills ── */
   .mat-pill {
@@ -309,6 +332,7 @@
   <button class="primary" id="searchBtn">Look up ↗</button>
 </div>
 <div class="status" id="status">Loading all recipes from FIO...</div>
+<div class="breadcrumb" id="breadcrumb"></div>
 <div id="results"></div>
 
 <script>
@@ -318,6 +342,7 @@ let producerMap = {};
 let allTickers  = []; // { ticker, name } sorted
 let loaded = false;
 let acIndex = -1;
+let navHistory = []; // breadcrumb trail
 
 const tickerInput = document.getElementById('ticker');
 const acList      = document.getElementById('acList');
@@ -442,7 +467,7 @@ function pillWithTooltip(ticker, qty, cssClass) {
       tooltipHtml += '<span class="tt-none">+' + (producers.length - 3) + ' more recipes</span>';
     }
   }
-  return '<span class="mat-pill ' + cssClass + '">' + qty + 'x ' + ticker +
+  return '<span class="mat-pill ' + cssClass + '" style="cursor:pointer" onclick="drillTo(\'' + ticker + '\')">' + qty + 'x ' + ticker +
     '<span class="mat-tooltip">' + tooltipHtml + '</span></span>';
 }
 
@@ -504,16 +529,50 @@ async function loadRecipes() {
 }
 
 function drillTo(ticker) {
+  const current = tickerInput.value.trim().toUpperCase();
+  if (current && (navHistory.length === 0 || navHistory[navHistory.length - 1] !== current)) {
+    navHistory.push(current);
+  }
   tickerInput.value = ticker;
   acList.style.display = 'none';
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  renderBreadcrumb(ticker);
   search();
+}
+
+function jumpTo(ticker, index) {
+  navHistory = navHistory.slice(0, index);
+  tickerInput.value = ticker;
+  acList.style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  renderBreadcrumb(ticker);
+  search();
+}
+
+function renderBreadcrumb(current) {
+  const el = document.getElementById('breadcrumb');
+  if (navHistory.length === 0) { el.innerHTML = ''; return; }
+  let html = '';
+  navHistory.forEach((t, i) => {
+    html += `<span class="bc-item" onclick="jumpTo('${t}', ${i})">${t}</span>`;
+    html += '<span class="bc-sep">›</span>';
+  });
+  html += `<span class="bc-item current">${current}</span>`;
+  el.innerHTML = html;
 }
 
 function search() {
   const ticker = document.getElementById('ticker').value.trim().toUpperCase();
   if (!ticker) return;
   if (!loaded) { document.getElementById('status').textContent = 'Still loading recipes, please wait...'; return; }
+
+  // If this is a manual search (not a drill), reset history
+  if (navHistory.length === 0 || navHistory[navHistory.length - 1] !== ticker) {
+    navHistory = [];
+    renderBreadcrumb(ticker);
+    // Only show breadcrumb if there's history
+    if (navHistory.length === 0) document.getElementById('breadcrumb').innerHTML = '';
+  }
 
   const asInput  = allRecipes.filter(r => r.Inputs  && r.Inputs.some(i  => (i.Ticker||i.CommodityTicker) === ticker));
   const asOutput = allRecipes.filter(r => r.Outputs && r.Outputs.some(o => (o.Ticker||o.CommodityTicker) === ticker));
@@ -537,9 +596,7 @@ function search() {
       const outputs  = r.Outputs || [];
       const duration = r.DurationMs || r.TimeMs || 0;
 
-      const primaryOutput = outputs[0] ? (outputs[0].Ticker || outputs[0].CommodityTicker) : null;
-      const clickHandler  = primaryOutput ? ` style="cursor:pointer" onclick="drillTo('${primaryOutput}')"` : '';
-      out += '<div class="recipe-card"' + clickHandler + '>';
+      out += '<div class="recipe-card">';
       out += '<div class="building-label">' + building + '</div>';
       out += '<div class="recipe-row">';
 
