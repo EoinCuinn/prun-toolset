@@ -319,7 +319,13 @@
   </label>
 </div>
 
-<div class="section-head">Templates</div>
+<div class="section-head" style="display:flex;align-items:center;justify-content:space-between">
+  <span>Templates</span>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span class="copy-success" id="copyAllOk" style="font-size:11px"></span>
+    <button class="primary" id="copyAllBtn" style="padding:4px 12px;font-size:12px">Copy All XIT</button>
+  </div>
+</div>
 <div class="orders-grid" id="ordersGrid"></div>
 
 <script>
@@ -415,6 +421,20 @@ function loadOrders() {
 
 function saveOrders(orders) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+}
+
+function buildAllXit(orders) {
+  const materials = {};
+  orders.forEach(o => { materials[o.ticker] = (materials[o.ticker] || 0) + o.qty; });
+  const exchange = orders[0]?.exchange || 'IC1';
+  return {
+    actions: [
+      { group: "A1", exchange: exchange, priceLimits: {}, buyPartial: false, useCXInv: true, name: "BuyItems", type: "CX Buy" },
+      { type: "MTRA", name: "TransferAction", group: "A1", origin: "Hortus Station Warehouse", dest: "Configure on Execution" }
+    ],
+    global: { name: "PRUNplanner Transfer" },
+    groups: [{ type: "Manual", name: "A1", materials }]
+  };
 }
 
 function buildXit(ticker, qty, exchange) {
@@ -514,6 +534,17 @@ if (existing.length === 0) {
     { ticker: 'H2O', qty: 20000, exchange: 'IC1' },
   ]);
 }
+
+document.getElementById('copyAllBtn').addEventListener('click', () => {
+  const orders = loadOrders();
+  if (orders.length === 0) return;
+  const json = JSON.stringify(buildAllXit(orders));
+  navigator.clipboard.writeText(json).then(() => {
+    const el = document.getElementById('copyAllOk');
+    el.textContent = '✓ Copied all!';
+    setTimeout(() => { el.textContent = ''; }, 2000);
+  });
+});
 
 render();
 fetchMaterials();
