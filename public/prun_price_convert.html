@@ -208,6 +208,30 @@
     color: var(--text3);
   }
   .stat span { color: var(--text); font-weight: 600; }
+
+  .search-wrap {
+    margin-bottom: 0.75rem;
+  }
+  .search-wrap input {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 7px 12px;
+    font-size: 12px;
+    font-family: var(--mono);
+    outline: none;
+    width: 200px;
+    transition: border-color 0.15s;
+  }
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-wrap input::placeholder { color: var(--text3); }
+  .no-results {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text3);
+    padding: 12px;
+  }
 </style>
 </head>
 <body>
@@ -235,6 +259,9 @@
 <div id="previewSection" style="display:none">
   <div class="section-head">Preview</div>
   <div class="stat-row" id="statRow" style="margin-bottom:0.75rem"></div>
+  <div class="search-wrap">
+    <input type="text" id="searchInput" placeholder="Filter ticker…" autocomplete="off" />
+  </div>
   <div class="preview-table-wrap">
     <table>
       <thead>
@@ -338,6 +365,7 @@ document.getElementById('fetchBtn').addEventListener('click', async () => {
       `<div class="stat">Format: <span>semicolon CSV</span></div>` +
       `<div class="stat">Location: <span>EMPIRE</span></div>`;
 
+    document.getElementById('searchInput').value = '';
     document.getElementById('previewSection').style.display = '';
     downloadBtn.disabled = false;
     setStatus(`✓ ${convertedRows.length} items converted — ready to download.`, 'ok');
@@ -347,6 +375,30 @@ document.getElementById('fetchBtn').addEventListener('click', async () => {
     fetchBtn.disabled = false;
   }
 });
+
+function filterTable() {
+  const q = document.getElementById('searchInput').value.trim().toUpperCase();
+  const rows = document.getElementById('previewBody').querySelectorAll('tr');
+  let visible = 0;
+  rows.forEach(row => {
+    const ticker = row.cells[3] ? row.cells[3].textContent.toUpperCase() : '';
+    const show = !q || ticker.includes(q);
+    row.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  // show/hide no-results
+  let noRes = document.getElementById('noResults');
+  if (!noRes) {
+    noRes = document.createElement('div');
+    noRes.id = 'noResults';
+    noRes.className = 'no-results';
+    noRes.textContent = 'No matching tickers.';
+    document.querySelector('.preview-table-wrap').after(noRes);
+  }
+  noRes.style.display = visible === 0 ? '' : 'none';
+}
+
+document.getElementById('searchInput').addEventListener('input', filterTable);
 
 document.getElementById('downloadBtn').addEventListener('click', () => {
   if (convertedRows.length === 0) return;
