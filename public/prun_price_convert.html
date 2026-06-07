@@ -379,6 +379,11 @@
   <div class="calc-total-row">
     <span class="calc-total-label">Total</span>
     <span class="calc-total-value" id="calcTotal">0.00 ICA</span>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="calc-warn" id="contdWarn" style="display:none"></span>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--green)" id="contdOk"></span>
+      <button id="contdBtn" style="padding:6px 14px;font-size:12px">Copy as CONTD</button>
+    </div>
   </div>
 </div>
 
@@ -386,6 +391,7 @@
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSG_rqZ_TCSTe12_FzJRw0_mbDCYJ5HnGvnmgI3Sd-CFd0AxkSzc88e3glLeM-5ZpI2ILcFSzEX8Nvg/pub?output=csv';
 
 let convertedRows = [];
+let materialMap = {}; // ticker -> full material object from FIO
 
 function parseCSV(text) {
   // Handles quoted fields with commas inside (e.g. "1,669.19")
@@ -447,13 +453,33 @@ document.getElementById('fetchBtn').addEventListener('click', async () => {
   fetchBtn.disabled = true;
   downloadBtn.disabled = true;
   document.getElementById('previewSection').style.display = 'none';
-  setStatus('Fetching price schedule...', 'loading');
+  setStatus('Fetching price schedule & materials...', 'loading');
 
   try {
-    const res = await fetch(SHEET_URL);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const text = await res.text();
+    const [sheetRes, matRes] = await Promise.all([
+      fetch(SHEET_URL),
+      fetch('https://rest.fnar.net/material/allmaterials')
+    ]);
+    if (!sheetRes.ok) throw new Error('Sheet HTTP ' + sheetRes.status);
+    if (!matRes.ok)   throw new Error('FIO HTTP '   + matRes.status);
+
+    const [text, mats] = await Promise.all([sheetRes.text(), matRes.json()]);
     setStatus('Converting...', 'loading');
+
+    // Build material map: ticker -> full object
+    materialMap = {};
+    mats.forEach(m => {
+      const t = (m.Ticker || m.MaterialTicker || '').toUpperCase();
+      if (t) materialMap[t] = {
+        name:     m.Name || m.MaterialName || '',
+        id:       m.MatId || m.MaterialId || m.Id || '',
+        ticker:   t,
+        category: m.CategoryId || m.CategoryName || '',
+        weight:   m.Weight || 0,
+        volume:   m.Volume || 0,
+        resource: m.IsResource || false
+      };
+    });
 
     convertedRows = convert(text);
     if (convertedRows.length === 0) throw new Error('No valid rows found in sheet.');
@@ -574,6 +600,87 @@ document.getElementById('calcQty').addEventListener('keydown', e => {
 });
 document.getElementById('calcTicker').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('calcQty').focus();
+});
+
+document.getElementById('contdBtn').addEventListener('click', () => {
+  const warn = document.getElementById('contdWarn');
+  const ok   = document.getElementById('contdOk');
+  warn.style.display = 'none'; ok.textContent = '';
+
+  if (calcItems.length === 0) {
+    warn.textContent = 'Add items first.'; warn.style.display = ''; return;
+  }
+
+  const missing = calcItems.filter(i => priceFor(i.ticker) === null).map(i => i.ticker);
+  if (missing.length) {
+    warn.textContent = 'No price for: ' + missing.join(', '); warn.style.display = ''; return;
+  }
+
+  const noMat = calcItems.filter(i => !materialMap[i.ticker]).map(i => i.ticker);
+  if (noMat.length) {
+    warn.textContent = 'No material data for: ' + noMat.join(', '); warn.style.display = ''; return;
+  }
+
+  const uid = () => 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'.replace(/x/g, () =>
+    Math.floor(Math.random()*16).toString(16));
+
+  // Hortus Station entities — matching exported format exactly
+  const systemEntity  = { id: 'f2f57766ebaca9d69efae41ccf4d8853', naturalId: 'VH-331', name: 'Hortus',         _type: 'system',  _proxy_key: 'f2f57766ebaca9d69efae41ccf4d8853' };
+  const stationEntity = { id: '0deca369a92788b8079e7ac245be66f7', naturalId: 'HRT',    name: 'Hortus Station', _type: 'station', _proxy_key: '0deca369a92788b8079e7ac245be66f7' };
+  const address = { lines: [{ entity: systemEntity, type: 'SYSTEM' }, { entity: stationEntity, type: 'STATION' }] };
+
+  const contracts = calcItems.map((item, idx) => {
+    const unitPrice = priceFor(item.ticker);
+    const totalICA  = Math.round(unitPrice * item.qty);
+    const mat = materialMap[item.ticker];
+
+    const draftId = uid(), provId = uid(), payId = uid(), pickId = uid();
+
+    return {
+      id: String(idx + 1),
+      command: 'CONTD',
+      state: { game: {}, rprun: {} },
+      data: {
+        draft: {
+          id: draftId,
+          name: `${item.ticker} x ${item.qty} @ ${Math.round(unitPrice)}`,
+          naturalId: null,
+          status: 'VALID',
+          preamble: '',
+          creation: { timestamp: Date.now() },
+          conditions: [
+            {
+              quantity: { material: mat, amount: item.qty },
+              address,
+              autoProvisionStoreId: null,
+              id: provId, index: 0, party: 'SELF', type: 'PROVISION',
+              dependencies: [], linked: [pickId], deadline: 5
+            },
+            {
+              amount: { amount: totalICA, currency: 'ICA' },
+              id: payId, index: 1, party: 'OTHER', type: 'PAYMENT',
+              dependencies: [], linked: [], deadline: 5
+            },
+            {
+              quantity: { material: mat, amount: item.qty },
+              address,
+              id: pickId, index: 2, party: 'OTHER', type: 'PICKUP',
+              dependencies: [provId], linked: [provId, payId], deadline: 5
+            }
+          ]
+        }
+      }
+    };
+  });
+
+  const json = calcItems.length === 1
+    ? JSON.stringify(contracts[0])
+    : JSON.stringify(contracts);
+
+  navigator.clipboard.writeText(json).then(() => {
+    ok.textContent = '✓ Copied!';
+    setTimeout(() => { ok.textContent = ''; }, 2000);
+  });
 });
 
 document.getElementById('downloadBtn').addEventListener('click', () => {
