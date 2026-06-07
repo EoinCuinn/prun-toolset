@@ -232,6 +232,84 @@
     color: var(--text3);
     padding: 12px;
   }
+
+  /* ── Calculator ── */
+  .calc-form {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+  }
+  .calc-form input {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 7px 10px;
+    font-size: 13px;
+    font-family: var(--mono);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .calc-form input:focus { border-color: var(--accent); }
+  .calc-form input[type="text"] { width: 90px; text-transform: uppercase; }
+  .calc-form input[type="number"] { width: 110px; }
+  .calc-label {
+    font-size: 11px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .calc-items {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+  }
+  .calc-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .calc-item:last-child { border-bottom: none; }
+  .calc-item .ci-ticker { color: var(--accent); font-weight: 700; width: 50px; }
+  .calc-item .ci-qty { color: var(--text2); width: 80px; }
+  .calc-item .ci-unit { color: var(--text3); width: 90px; }
+  .calc-item .ci-total { color: var(--green); font-weight: 600; margin-left: auto; }
+  .calc-item .ci-remove { color: var(--red); cursor: pointer; background: none; border: none; font-size: 13px; padding: 0 4px; opacity: 0.6; }
+  .calc-item .ci-remove:hover { opacity: 1; background: none; border: none; }
+  .calc-empty {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text3);
+    padding: 12px;
+  }
+  .calc-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    font-family: var(--mono);
+  }
+  .calc-total-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .calc-total-value { font-size: 18px; color: var(--green); font-weight: 700; }
+  .calc-warn { font-size: 11px; color: var(--orange); font-family: var(--mono); margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -275,6 +353,32 @@
       </thead>
       <tbody id="previewBody"></tbody>
     </table>
+  </div>
+</div>
+
+<div id="calcSection" style="display:none">
+  <div class="section-head">Price Calculator</div>
+  <div class="calc-form">
+    <label class="calc-label">
+      Ticker
+      <input type="text" id="calcTicker" placeholder="PSM" maxlength="6" autocomplete="off" />
+    </label>
+    <label class="calc-label">
+      Quantity
+      <input type="number" id="calcQty" placeholder="100" min="1" />
+    </label>
+    <label class="calc-label">
+      &nbsp;
+      <button class="primary" id="calcAddBtn">+ Add</button>
+    </label>
+    <div id="calcAddWarn" class="calc-warn" style="display:none"></div>
+  </div>
+  <div class="calc-items" id="calcItems">
+    <div class="calc-empty">Add items above to calculate total.</div>
+  </div>
+  <div class="calc-total-row">
+    <span class="calc-total-label">Total</span>
+    <span class="calc-total-value" id="calcTotal">0.00 ICA</span>
   </div>
 </div>
 
@@ -367,6 +471,7 @@ document.getElementById('fetchBtn').addEventListener('click', async () => {
 
     document.getElementById('searchInput').value = '';
     document.getElementById('previewSection').style.display = '';
+    document.getElementById('calcSection').style.display = '';
     downloadBtn.disabled = false;
     setStatus(`✓ ${convertedRows.length} items converted — ready to download.`, 'ok');
   } catch(e) {
@@ -399,6 +504,77 @@ function filterTable() {
 }
 
 document.getElementById('searchInput').addEventListener('input', filterTable);
+
+// ── CALCULATOR ──
+let calcItems = [];
+
+function priceFor(ticker) {
+  const row = convertedRows.find(r => r.ticker.toUpperCase() === ticker.toUpperCase());
+  return row ? parseFloat(row.price) : null;
+}
+
+function renderCalc() {
+  const container = document.getElementById('calcItems');
+  if (calcItems.length === 0) {
+    container.innerHTML = '<div class="calc-empty">Add items above to calculate total.</div>';
+    document.getElementById('calcTotal').textContent = '0.00 ICA';
+    return;
+  }
+  let grand = 0;
+  let html = '';
+  let warnings = [];
+  for (let i = 0; i < calcItems.length; i++) {
+    const item = calcItems[i];
+    const unitPrice = priceFor(item.ticker);
+    const lineTotal = unitPrice !== null ? unitPrice * item.qty : null;
+    if (lineTotal !== null) grand += lineTotal;
+    else warnings.push(item.ticker);
+    html += `<div class="calc-item">
+      <span class="ci-ticker">${item.ticker}</span>
+      <span class="ci-qty">${item.qty.toLocaleString()}x</span>
+      <span class="ci-unit">${unitPrice !== null ? unitPrice.toFixed(2) + ' ea' : '⚠ not found'}</span>
+      <span class="ci-total">${lineTotal !== null ? lineTotal.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' ICA' : '—'}</span>
+      <button class="ci-remove" onclick="removeCalcItem(${i})">✕</button>
+    </div>`;
+  }
+  container.innerHTML = html;
+  document.getElementById('calcTotal').textContent = grand.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' ICA';
+}
+
+function removeCalcItem(i) {
+  calcItems.splice(i, 1);
+  renderCalc();
+}
+
+document.getElementById('calcAddBtn').addEventListener('click', () => {
+  const ticker = document.getElementById('calcTicker').value.trim().toUpperCase();
+  const qty = parseInt(document.getElementById('calcQty').value.trim(), 10);
+  const warn = document.getElementById('calcAddWarn');
+
+  if (!ticker || !qty || qty < 1) {
+    warn.textContent = 'Enter a valid ticker and quantity.';
+    warn.style.display = '';
+    return;
+  }
+  if (convertedRows.length === 0) {
+    warn.textContent = 'Fetch the price schedule first.';
+    warn.style.display = '';
+    return;
+  }
+  warn.style.display = 'none';
+  calcItems.push({ ticker, qty });
+  document.getElementById('calcTicker').value = '';
+  document.getElementById('calcQty').value = '';
+  document.getElementById('calcTicker').focus();
+  renderCalc();
+});
+
+document.getElementById('calcQty').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('calcAddBtn').click();
+});
+document.getElementById('calcTicker').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('calcQty').focus();
+});
 
 document.getElementById('downloadBtn').addEventListener('click', () => {
   if (convertedRows.length === 0) return;
