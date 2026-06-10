@@ -411,6 +411,7 @@ async function check() {
       { group: "A1", exchange: "IC1", priceLimits: {}, buyPartial: false, useCXInv: true, name: "BuyItems", type: "CX Buy" },
       { type: "MTRA", name: "TransferAction", group: "A1", origin: "Hortus Station Warehouse", dest: "Configure on Execution" }
     ];
+    buyTransferCart.global = { name: "HQ Upgrade" };
     buyTransferCart.groups = [{ type: "Manual", name: "A1", materials: toBuyMaterials }];
 
     // Build Transfer Only XIT

@@ -19,6 +19,7 @@ function App() {
   const [showGateways, setShowGateways] = useState(true)
   const [activeCogc, setActiveCogc] = useState([])
   const [activeResources, setActiveResources] = useState([])
+  const [activePlanetFilters, setActivePlanetFilters] = useState({ fertile: false, gravity: [], temp: [], pressure: [] })
   const [showRoute, setShowRoute] = useState(false)
   const [route, setRoute] = useState(null)
 
@@ -44,7 +45,16 @@ function App() {
   const { filteredSystemIds, filteredPlanetNaturalIds } = useMemo(() => {
     const hasCogc = activeCogc.length > 0
     const hasRes = activeResources.length > 0
-    if (!hasCogc && !hasRes) return { filteredSystemIds: null, filteredPlanetNaturalIds: null }
+    const hasFertile = activePlanetFilters.fertile
+    const hasGravity = activePlanetFilters.gravity.length > 0
+    const hasTemp = activePlanetFilters.temp.length > 0
+    const hasPressure = activePlanetFilters.pressure.length > 0
+    const hasAny = hasCogc || hasRes || hasFertile || hasGravity || hasTemp || hasPressure
+    if (!hasAny) return { filteredSystemIds: null, filteredPlanetNaturalIds: null }
+
+    const gravityBand = (v) => v < 0.25 ? 'low' : v <= 2.5  ? 'med' : 'high'
+    const tempBand    = (v) => v < -25  ? 'low' : v <= 75   ? 'med' : 'high'
+    const pressureBand= (v) => v < 0.25 ? 'low' : v <= 2    ? 'med' : 'high'
 
     const systemMatched = new Set()
     const planetMatched = new Set()
@@ -63,13 +73,28 @@ function App() {
         resOk = activeResources.every(ticker => tickers.includes(ticker))
       }
 
-      if (cogcOk && resOk) {
+      let fertileOk = true
+      if (hasFertile) fertileOk = p.Fertility > 0
+
+      let gravityOk = true
+      if (hasGravity && p.Gravity != null)
+        gravityOk = activePlanetFilters.gravity.includes(gravityBand(p.Gravity))
+
+      let tempOk = true
+      if (hasTemp && p.Temperature != null)
+        tempOk = activePlanetFilters.temp.includes(tempBand(p.Temperature))
+
+      let pressureOk = true
+      if (hasPressure && p.Pressure != null)
+        pressureOk = activePlanetFilters.pressure.includes(pressureBand(p.Pressure))
+
+      if (cogcOk && resOk && fertileOk && gravityOk && tempOk && pressureOk) {
         systemMatched.add(p.SystemId)
         planetMatched.add(p.PlanetNaturalId)
       }
     })
     return { filteredSystemIds: systemMatched, filteredPlanetNaturalIds: planetMatched }
-  }, [activeCogc, activeResources, planets, materialIdToTicker])
+  }, [activeCogc, activeResources, activePlanetFilters, planets, materialIdToTicker])
 
   if (loading) return (
     <div style={{ background: '#0f1117', color: '#4f8ef7', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'monospace', fontSize: '24px' }}>
@@ -130,6 +155,8 @@ function App() {
             onCogcChange={setActiveCogc}
             activeResources={activeResources}
             onResourceChange={setActiveResources}
+            activePlanetFilters={activePlanetFilters}
+            onPlanetFiltersChange={setActivePlanetFilters}
             materials={materials}
           />
         </>

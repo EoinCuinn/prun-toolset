@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PrUn Sell Finder</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --bg2: #181c27;
+    --bg3: #1e2333;
+    --border: #2a3045;
+    --text: #e2e8f0;
+    --text2: #8892a4;
+    --text3: #555f72;
+    --accent: #4f8ef7;
+    --green: #4ade80;
+    --orange: #fb923c;
+    --red: #f87171;
+    --mono: 'Courier New', monospace;
+    --radius: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 1.5rem;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  h1::before {
+    content: '';
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .config-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  input[type="text"], input[type="number"] {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: var(--mono);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input[type="text"]:focus, input[type="number"]:focus { border-color: var(--accent); }
+  #tickerInput { width: 100px; text-transform: uppercase; }
+  #qtyInput { width: 120px; }
+
+  button {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 8px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+  button:hover { background: var(--border); border-color: var(--accent); }
+  button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-weight: 600;
+  }
+  button.primary:hover { background: #6aa0f9; }
+
+  .status {
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 1rem;
+    min-height: 16px;
+    font-family: var(--mono);
+  }
+
+  .section-head {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+    margin: 1.5rem 0 0.75rem;
+  }
+
+  /* Exchange cards */
+  .exchange-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 10px;
+  }
+
+  .exchange-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    transition: border-color 0.15s;
+  }
+  .exchange-card:hover { border-color: var(--accent); }
+  .exchange-card.best { border-color: var(--green); box-shadow: 0 0 0 1px var(--green); }
+  .exchange-card.no-demand { opacity: 0.5; }
+
+  .exchange-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .exchange-name {
+    font-size: 16px;
+    font-weight: 700;
+    font-family: var(--mono);
+    color: var(--text);
+    letter-spacing: 0.08em;
+  }
+
+  .best-badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--green);
+    background: rgba(74,222,128,0.1);
+    border: 1px solid rgba(74,222,128,0.3);
+    border-radius: 3px;
+    padding: 2px 7px;
+    text-transform: uppercase;
+  }
+
+  .fill-summary {
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .fill-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text2);
+    margin-top: 3px;
+  }
+  .fill-row span:last-child {
+    font-family: var(--mono);
+    color: var(--text);
+    font-weight: 500;
+  }
+  .fill-row.highlight span:last-child { color: var(--green); font-weight: 700; }
+
+  .order-book-head {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 5px;
+  }
+
+  .order-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    font-family: var(--mono);
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(42,48,69,0.5);
+  }
+  .order-row:last-child { border-bottom: none; }
+  .order-price { color: var(--green); font-weight: 600; }
+  .order-qty { color: var(--text2); }
+  .order-fill { color: var(--accent); font-size: 10px; }
+  .order-row.dimmed { opacity: 0.4; }
+
+  .no-demand-msg {
+    font-size: 12px;
+    color: var(--text3);
+    font-style: italic;
+  }
+
+  /* Best deal summary banner */
+  .best-banner {
+    background: rgba(74,222,128,0.07);
+    border: 1px solid rgba(74,222,128,0.25);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .best-stat { text-align: center; }
+  .best-stat strong {
+    display: block;
+    font-size: 20px;
+    font-weight: 700;
+    font-family: var(--mono);
+    color: var(--green);
+  }
+  .best-stat span { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  .spinner {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<a href="/home.html" style="position:fixed;top:16px;right:16px;background:#1e3a5f;color:#4f8ef7;border:1px solid #4f8ef7;border-radius:4px;padding:6px 12px;font-size:12px;font-family:monospace;text-decoration:none;letter-spacing:0.05em;z-index:100;">⌂ HOME</a>
+
+<h1>Sell Finder</h1>
+
+<div class="config-row">
+  <input id="tickerInput" type="text" placeholder="Ticker e.g. GL" maxlength="8" list="tickerList" autocomplete="off" />
+<datalist id="tickerList"></datalist>
+  <input id="qtyInput" type="number" placeholder="Qty e.g. 2900" min="1" />
+  <button class="primary" id="searchBtn">Find best price ↗</button>
+</div>
+<div class="status" id="status">Enter a material ticker and quantity to find the best sell opportunity.</div>
+
+<div id="results"></div>
+
+<script src="/config.js"></script>
+<script>
+const EXCHANGES = ['IC1', 'NC1', 'NC2', 'CI1', 'CI2'];
+
+// Populate ticker datalist from material data
+fetch('/material_data.json')
+  .then(r => r.json())
+  .then(materials => {
+    const list = document.getElementById('tickerList');
+    materials
+      .sort((a, b) => a.Ticker.localeCompare(b.Ticker))
+      .forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.Ticker;
+        opt.label = m.Name || m.Ticker;
+        list.appendChild(opt);
+      });
+  })
+  .catch(() => {}); // silently fail if unavailable
+const API_KEY = window.FIO_API_KEY;
+const BASE = 'https://rest.fnar.net';
+
+function fmtNum(n) {
+  return n.toLocaleString();
+}
+
+function fmtPrice(p) {
+  return p.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+async function fetchExchange(ticker, exchange) {
+  const res = await fetch(`${BASE}/exchange/${ticker.toUpperCase()}.${exchange}`, {
+    headers: API_KEY ? { 'Authorization': API_KEY } : {}
+  });
+  if (!res.ok) return null;
+  return res.json();
+}
+
+function simulateFill(buyOrders, qty) {
+  // buyOrders sorted descending by price — simulate selling into them
+  let remaining = qty;
+  let totalRevenue = 0;
+  let filledQty = 0;
+  const fills = [];
+
+  for (const order of buyOrders) {
+    if (remaining <= 0) break;
+    const canFill = Math.min(remaining, order.ItemCount);
+    fills.push({ price: order.ItemCost, qty: canFill, orderId: order.OrderId });
+    totalRevenue += canFill * order.ItemCost;
+    filledQty += canFill;
+    remaining -= canFill;
+  }
+
+  const avgPrice = filledQty > 0 ? totalRevenue / filledQty : 0;
+  return { fills, filledQty, remaining, totalRevenue, avgPrice };
+}
+
+async function search() {
+  const ticker = document.getElementById('tickerInput').value.trim().toUpperCase();
+  const qty = parseInt(document.getElementById('qtyInput').value.trim(), 10);
+  const status = document.getElementById('status');
+  const results = document.getElementById('results');
+
+  if (!ticker) { status.textContent = 'Please enter a material ticker.'; return; }
+  if (!qty || qty <= 0) { status.textContent = 'Please enter a valid quantity.'; return; }
+
+  status.innerHTML = '<span class="spinner"></span>Fetching order books from all exchanges...';
+  results.innerHTML = '';
+
+  // Fetch all exchanges in parallel
+  const fetches = await Promise.all(EXCHANGES.map(ex => fetchExchange(ticker, ex).catch(() => null)));
+
+  const exchangeData = [];
+  for (let i = 0; i < EXCHANGES.length; i++) {
+    const ex = EXCHANGES[i];
+    const data = fetches[i];
+    if (!data) { exchangeData.push({ exchange: ex, buyOrders: [], error: true }); continue; }
+
+    // Buy orders = people wanting to buy = good for us as sellers
+    const buyOrders = (data.BuyingOrders || [])
+      .filter(o => o.ItemCost > 0 && o.ItemCount > 0)
+      .sort((a, b) => b.ItemCost - a.ItemCost);
+
+    const sim = simulateFill(buyOrders, qty);
+    exchangeData.push({ exchange: ex, buyOrders, sim, totalDemand: buyOrders.reduce((s, o) => s + o.ItemCount, 0) });
+  }
+
+  // Find best exchange by avg price (only ones with any demand)
+  const withDemand = exchangeData.filter(e => e.sim && e.sim.filledQty > 0);
+  let bestEx = null;
+  if (withDemand.length > 0) {
+    bestEx = withDemand.reduce((best, cur) => cur.sim.avgPrice > best.sim.avgPrice ? cur : best);
+  }
+
+  status.textContent = `Order books loaded across ${EXCHANGES.length} exchanges for ${ticker}.`;
+
+  let html = '';
+
+  // Best deal banner
+  if (bestEx) {
+    const b = bestEx.sim;
+    const topPrice = bestEx.buyOrders[0]?.ItemCost || 0;
+    html += `<div class="best-banner">
+      <div class="best-stat"><strong>${bestEx.exchange}</strong><span>Best Exchange</span></div>
+      <div class="best-stat"><strong>${fmtPrice(topPrice)}</strong><span>Top Bid / unit</span></div>
+      <div class="best-stat"><strong>${fmtPrice(b.avgPrice)}</strong><span>Avg Price (your qty)</span></div>
+      <div class="best-stat"><strong>${fmtNum(b.filledQty)} / ${fmtNum(qty)}</strong><span>Units Fillable</span></div>
+      <div class="best-stat"><strong>${fmtPrice(b.totalRevenue)}</strong><span>Total Revenue</span></div>
+    </div>`;
+  } else {
+    html += `<div style="color:var(--red);font-size:13px;margin-bottom:1rem;">No buy orders found for ${ticker} on any exchange.</div>`;
+  }
+
+  html += '<div class="section-head">All exchanges</div>';
+  html += '<div class="exchange-grid">';
+
+  // Sort: best first, then by avg price descending, no-demand last
+  exchangeData.sort((a, b) => {
+    const aAvg = a.sim?.avgPrice || 0;
+    const bAvg = b.sim?.avgPrice || 0;
+    return bAvg - aAvg;
+  });
+
+  for (const ex of exchangeData) {
+    const isBest = bestEx && ex.exchange === bestEx.exchange;
+    const hasDemand = ex.sim && ex.sim.filledQty > 0;
+
+    html += `<div class="exchange-card ${isBest ? 'best' : ''} ${!hasDemand ? 'no-demand' : ''}">`;
+    html += `<div class="exchange-header">
+      <span class="exchange-name">${ex.exchange}</span>
+      ${isBest ? '<span class="best-badge">★ Best</span>' : ''}
+    </div>`;
+
+    if (!hasDemand) {
+      html += `<div class="no-demand-msg">No buy orders</div>`;
+    } else {
+      const s = ex.sim;
+      html += `<div class="fill-summary">
+        <div class="fill-row"><span>Total demand</span><span>${fmtNum(ex.totalDemand)} units</span></div>
+        <div class="fill-row"><span>Your fill</span><span>${fmtNum(s.filledQty)} / ${fmtNum(qty)}</span></div>
+        <div class="fill-row ${isBest ? 'highlight' : ''}"><span>Avg price</span><span>${fmtPrice(s.avgPrice)} / u</span></div>
+        <div class="fill-row highlight"><span>Revenue</span><span>${fmtPrice(s.totalRevenue)}</span></div>
+        ${s.remaining > 0 ? `<div class="fill-row"><span style="color:var(--orange)">Unfilled</span><span style="color:var(--orange)">${fmtNum(s.remaining)} units</span></div>` : ''}
+      </div>`;
+
+      html += `<div class="order-book-head">Buy orders (best first)</div>`;
+      let shownFillQty = qty;
+      ex.buyOrders.slice(0, 8).forEach(order => {
+        const willFill = Math.min(shownFillQty, order.ItemCount);
+        const dimmed = shownFillQty <= 0;
+        shownFillQty -= willFill;
+        html += `<div class="order-row ${dimmed ? 'dimmed' : ''}">
+          <span class="order-price">${fmtPrice(order.ItemCost)}</span>
+          <span class="order-qty">${fmtNum(order.ItemCount)} u</span>
+          <span class="order-fill">${willFill > 0 ? `sell ${fmtNum(willFill)}` : '—'}</span>
+        </div>`;
+      });
+      if (ex.buyOrders.length > 8) {
+        html += `<div style="font-size:10px;color:var(--text3);margin-top:4px;">+${ex.buyOrders.length - 8} more orders</div>`;
+      }
+    }
+
+    html += '</div>';
+  }
+
+  html += '</div>';
+  results.innerHTML = html;
+}
+
+document.getElementById('searchBtn').addEventListener('click', search);
+document.getElementById('tickerInput').addEventListener('keydown', e => { if (e.key === 'Enter') search(); });
+document.getElementById('qtyInput').addEventListener('keydown', e => { if (e.key === 'Enter') search(); });
+
+// Pre-fill from URL params if any
+const params = new URLSearchParams(window.location.search);
+if (params.get('ticker')) document.getElementById('tickerInput').value = params.get('ticker').toUpperCase();
+if (params.get('qty')) document.getElementById('qtyInput').value = params.get('qty');
+if (params.get('ticker') && params.get('qty')) search();
+</script>
+</body>
+</html>
