@@ -284,28 +284,28 @@ const SLOTS = [
     {name:'Large',       ticker:'LCB'}, {name:'High-Load',    ticker:'WCB'},
     {name:'High-Volume', ticker:'VCB'}, {name:'Huge',         ticker:'HCB'},
   ]},
-  { id:'hullPlates',      label:'Hull Plates',          required:true,  options:[
+  { id:'hullPlates',      label:'Hull Plates',          required:true,  desc:'General damage reduction', options:[
     {name:'Basic',       ticker:'BHP'}, {name:'Lightweight',  ticker:'LHP'},
     {name:'Reinforced',  ticker:'RHP'}, {name:'Hardened',     ticker:'HHP'},
     {name:'Advanced',    ticker:'AHP'},
   ]},
-  { id:'heatShielding',   label:'Heat Shielding',       required:false, options:[
+  { id:'heatShielding',   label:'Heat Shielding',       required:false, desc:'Damage from proximity to stars', options:[
     {name:'Basic',    ticker:'BPT'}, {name:'Advanced', ticker:'APT'},
   ]},
-  { id:'whippleShielding',label:'Whipple Shielding',    required:false, options:[
+  { id:'whippleShielding',label:'Whipple Shielding',    required:false, desc:'STL through meteoroid-dense systems', options:[
     {name:'Basic',    ticker:'BWH'}, {name:'Advanced', ticker:'AWH'},
   ]},
-  { id:'stabilitySystem', label:'Stability System',     required:false, options:[
+  { id:'stabilitySystem', label:'Stability System',     required:false, desc:'Gravity anomaly systems', options:[
     {name:'Stability Support System', ticker:'STS'},
   ]},
-  { id:'radiationShielding',label:'Radiation Shielding',required:false, options:[
+  { id:'radiationShielding',label:'Radiation Shielding',required:false, desc:'Radiation-heavy systems', options:[
     {name:'Basic',        ticker:'BRP'}, {name:'Specialized',  ticker:'SRP'},
     {name:'Advanced',     ticker:'ARP'},
   ]},
-  { id:'selfRepairDrones',label:'Self-repair Drones',   required:false, options:[
+  { id:'selfRepairDrones',label:'Self-repair Drones',   required:false, desc:'Passive hull repair in flight', options:[
     {name:'Small', ticker:'RDS'}, {name:'Large', ticker:'RDL'},
   ]},
-  { id:'highGSeats',      label:'High-G Seats',         required:false, options:[
+  { id:'highGSeats',      label:'High-G Seats',         required:false, desc:'Crew G-force tolerance for faster STL', options:[
     {name:'Basic', ticker:'BGS'}, {name:'Advanced', ticker:'AGS'},
   ]},
 ];
@@ -536,10 +536,10 @@ function modLabel(ticker) {
   if (m.MAX_G_FACTOR_INCREASE != null)  parts.push(`+${m.MAX_G_FACTOR_INCREASE}G`);
   if (m.SHIELDING_GENERAL != null && m.SHIELDING_GENERAL !== 0)
                                         parts.push(`shield ${m.SHIELDING_GENERAL > 0 ? '+' : ''}${Math.round(m.SHIELDING_GENERAL * 100)}%`);
-  if (m.SHIELDING_HEAT != null)         parts.push(`heat ×${m.SHIELDING_HEAT}`);
-  if (m.SHIELDING_RADIATION != null)    parts.push(`rad ×${m.SHIELDING_RADIATION}`);
-  if (m.SHIELDING_WHIPPLE != null)      parts.push(`whipple ×${m.SHIELDING_WHIPPLE}`);
-  if (m.SHIELDING_GRAVITY != null)      parts.push(`grav ×${m.SHIELDING_GRAVITY}`);
+  if (m.SHIELDING_HEAT != null)         parts.push(`${Math.round(m.SHIELDING_HEAT*100)}% dmg red`);
+  if (m.SHIELDING_RADIATION != null)    parts.push(`${Math.round(m.SHIELDING_RADIATION*100)}% dmg red`);
+  if (m.SHIELDING_WHIPPLE != null)      parts.push(`${Math.round(m.SHIELDING_WHIPPLE*100)}% dmg red`);
+  if (m.SHIELDING_GRAVITY != null)      parts.push(`${Math.round(m.SHIELDING_GRAVITY*100)}% dmg red`);
   if (m.FTL_VOLUME_SPAN != null)        parts.push(`${m.FTL_VOLUME_SPAN}m³ span`);
   return parts.length ? `  —  ${parts.join('  ·  ')}` : '';
 }
@@ -564,10 +564,10 @@ function modHints(ticker) {
   if (m.SHIELDING_GENERAL != null && m.SHIELDING_GENERAL !== 0) {
     tag(m.SHIELDING_GENERAL > 0 ? 'green' : 'red', `shield ${m.SHIELDING_GENERAL > 0 ? '+' : ''}${Math.round(m.SHIELDING_GENERAL * 100)}%`);
   }
-  if (m.SHIELDING_HEAT != null)          tag('amber', `heat ×${m.SHIELDING_HEAT}`);
-  if (m.SHIELDING_RADIATION != null)     tag('amber', `rad ×${m.SHIELDING_RADIATION}`);
-  if (m.SHIELDING_WHIPPLE != null)       tag('amber', `whipple ×${m.SHIELDING_WHIPPLE}`);
-  if (m.SHIELDING_GRAVITY != null)       tag('amber', `grav ×${m.SHIELDING_GRAVITY}`);
+  if (m.SHIELDING_HEAT != null)          tag('amber', `${Math.round(m.SHIELDING_HEAT*100)}% dmg red`);
+  if (m.SHIELDING_RADIATION != null)     tag('amber', `${Math.round(m.SHIELDING_RADIATION*100)}% dmg red`);
+  if (m.SHIELDING_WHIPPLE != null)       tag('amber', `${Math.round(m.SHIELDING_WHIPPLE*100)}% dmg red`);
+  if (m.SHIELDING_GRAVITY != null)       tag('amber', `${Math.round(m.SHIELDING_GRAVITY*100)}% dmg red`);
   if (m.FTL_VOLUME_SPAN != null)         tag('', `${m.FTL_VOLUME_SPAN} m³ span`);
 
   return tags.length ? `<div class="mod-hints">${tags.join('')}</div>` : '';
@@ -624,7 +624,10 @@ function renderGrid() {
     // Slots
     for (const slotId of section.slots) {
       const slot = SLOTS.find(s => s.id === slotId);
-      html += `<div class="label-cell">${slot.label}${slot.required ? '' : '<span style="color:var(--text3);font-size:10px;margin-left:4px">opt</span>'}</div>`;
+      html += `<div class="label-cell" style="flex-direction:column;align-items:flex-start;gap:2px;padding:5px 10px">
+        <span>${slot.label}${slot.required ? '' : '<span style="color:var(--text3);font-size:10px;margin-left:4px">opt</span>'}</span>
+        ${slot.desc ? `<span style="font-size:10px;color:var(--text3);line-height:1.3">${slot.desc}</span>` : ''}
+      </div>`;
       activeShips.forEach((ship, si) => {
         const cur = ship.sel[slotId];
         html += `<div class="ship-cell" style="flex-direction:column;align-items:stretch;padding:4px 8px;gap:0">`;
