@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PrUn Ship Builder</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --bg2: #181c27;
+    --bg3: #1e2333;
+    --border: #2a3045;
+    --text: #e2e8f0;
+    --text2: #8892a4;
+    --text3: #555f72;
+    --accent: #4f8ef7;
+    --green: #4ade80;
+    --orange: #fb923c;
+    --red: #f87171;
+    --mono: 'Courier New', monospace;
+    --radius: 6px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 13px;
+    padding: 1.5rem;
+    min-height: 100vh;
+  }
+  h1 {
+    font-size: 13px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--text2); margin-bottom: 1.25rem;
+    display: flex; align-items: center; gap: 8px;
+  }
+  h1::before {
+    content: ''; display: inline-block; width: 8px; height: 8px;
+    background: var(--accent); border-radius: 50%;
+  }
+
+  /* Top controls */
+  .top-controls {
+    display: flex; gap: 10px; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap;
+  }
+  .ship-count-btn {
+    background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius);
+    color: var(--text2); padding: 6px 14px; font-size: 12px; cursor: pointer;
+    transition: all 0.15s; font-family: var(--mono); letter-spacing: 0.05em;
+  }
+  .ship-count-btn.active {
+    background: #1e3a5f; color: var(--accent); border-color: var(--accent);
+  }
+
+  /* Comparison grid */
+  .comparison-wrap { overflow-x: auto; }
+  .comparison-grid {
+    display: grid;
+    gap: 0;
+    min-width: 600px;
+  }
+  .comparison-grid.ships-1 { grid-template-columns: 220px 1fr; }
+  .comparison-grid.ships-2 { grid-template-columns: 220px 1fr 1fr; }
+  .comparison-grid.ships-3 { grid-template-columns: 220px 1fr 1fr 1fr; }
+
+  /* Label column */
+  .label-col { }
+  .label-cell {
+    background: var(--bg2); border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    padding: 5px 10px; font-size: 11px; color: var(--text2);
+    display: flex; align-items: center; min-height: 34px;
+  }
+  .label-cell.section-head {
+    background: var(--bg3); color: var(--text3); font-size: 10px;
+    font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    min-height: 28px; padding: 4px 10px;
+  }
+  .label-cell.col-header {
+    background: var(--bg); min-height: 44px; font-size: 12px; font-weight: 600;
+    color: var(--text3); border-right: 1px solid var(--border);
+  }
+
+  /* Ship column */
+  .ship-col { }
+  .ship-cell {
+    border-bottom: 1px solid var(--border); border-right: 1px solid var(--border);
+    padding: 3px 8px; min-height: 34px; display: flex; align-items: center;
+    background: var(--bg);
+  }
+  .ship-cell.section-head {
+    background: var(--bg3); min-height: 28px;
+    border-right: 1px solid var(--border);
+  }
+  .ship-cell.col-header {
+    background: var(--bg2); min-height: 44px; padding: 6px 10px;
+    flex-direction: column; align-items: flex-start; gap: 4px;
+  }
+  .ship-cell select {
+    width: 100%; background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 3px; color: var(--text); padding: 3px 6px; font-size: 12px;
+    font-family: var(--mono); outline: none; cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .ship-cell select:focus { border-color: var(--accent); }
+  .ship-cell.stat { font-family: var(--mono); font-size: 12px; }
+  .ship-cell.best { background: rgba(74,222,128,0.06); }
+  .ship-cell.worst { background: rgba(247,95,79,0.04); }
+
+  /* Stat value formatting */
+  .stat-val { font-weight: 600; }
+  .stat-val.green { color: var(--green); }
+  .stat-val.orange { color: var(--orange); }
+  .stat-val.red { color: var(--red); }
+  .stat-val.dim { color: var(--text3); }
+
+  /* Ship name input */
+  .ship-name-input {
+    background: transparent; border: none; border-bottom: 1px solid var(--border);
+    color: var(--accent); font-size: 12px; font-family: var(--mono);
+    font-weight: 700; letter-spacing: 0.05em; outline: none; width: 100%;
+    padding: 1px 0;
+  }
+  .ship-name-input:focus { border-bottom-color: var(--accent); }
+
+  /* BOM section */
+  .bom-section { margin-top: 1.5rem; }
+  .bom-grid { display: grid; gap: 12px; }
+  .bom-grid.ships-1 { grid-template-columns: 1fr; }
+  .bom-grid.ships-2 { grid-template-columns: 1fr 1fr; }
+  .bom-grid.ships-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+  .bom-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1rem;
+  }
+  .bom-title {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text2); margin-bottom: 10px;
+    padding-bottom: 6px; border-bottom: 1px solid var(--border);
+  }
+  .bom-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 3px 0; border-bottom: 1px solid rgba(42,48,69,0.5);
+    font-size: 12px;
+  }
+  .bom-row:last-child { border-bottom: none; }
+  .bom-ticker { color: var(--accent); font-family: var(--mono); font-weight: 600; min-width: 40px; }
+  .bom-name { color: var(--text2); flex: 1; padding: 0 8px; font-size: 11px; }
+  .bom-qty { font-family: var(--mono); font-weight: 600; color: var(--text); }
+  .bom-buildtime {
+    margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; font-size: 12px;
+    color: var(--text2);
+  }
+  .bom-buildtime span:last-child { font-family: var(--mono); color: var(--text); font-weight: 600; }
+
+  .section-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text3);
+  }
+</style>
+</head>
+<body>
+
+<a href="/home.html" style="position:fixed;top:16px;right:16px;background:#1e3a5f;color:#4f8ef7;border:1px solid #4f8ef7;border-radius:4px;padding:6px 12px;font-size:12px;font-family:monospace;text-decoration:none;letter-spacing:0.05em;z-index:100;">⌂ HOME</a>
+
+<h1>Ship Builder</h1>
+
+<div class="top-controls">
+  <span style="font-size:11px;color:var(--text3);font-family:monospace;letter-spacing:0.05em;">COMPARE</span>
+  <button class="ship-count-btn active" id="btn1" onclick="setShipCount(1)">1 Ship</button>
+  <button class="ship-count-btn" id="btn2" onclick="setShipCount(2)">2 Ships</button>
+  <button class="ship-count-btn" id="btn3" onclick="setShipCount(3)">3 Ships</button>
+</div>
+
+<div class="comparison-wrap">
+  <div class="comparison-grid ships-1" id="compGrid"></div>
+</div>
+
+<div class="bom-section">
+  <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;">Bill of Materials</div>
+  <div class="bom-grid ships-1" id="bomGrid"></div>
+</div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────
+
+const MODULE_STATS = {
+  AEN: { ticker:'AEN', option:'STL_ENGINE_ADVANCED',        slotType:'STL_ENGINE',       bomWeight:14,   bomVolume:7,    modifiers:{ STL_USAGE:0.02 } },
+  AGS: { ticker:'AGS', option:'HIGH_G_SEATS_ADVANCED',      slotType:'HIGH_G_SEATS',      bomWeight:30,   bomVolume:5,    modifiers:{ MAX_G_FACTOR_INCREASE:12 } },
+  AHP: { ticker:'AHP', option:'HULL_PLATES_ADVANCED',       slotType:'HULL_TYPE',         bomWeight:10,   bomVolume:10,   modifiers:{ SHIELDING_GENERAL:0.3, MAX_G_FACTOR:15 } },
+  APT: { ticker:'APT', option:'HEAT_SHIELD_ADVANCED',       slotType:'HEAT_SHIELD',       bomWeight:0.03, bomVolume:0.3,  modifiers:{ SHIELDING_HEAT:1 } },
+  ARP: { ticker:'ARP', option:'RADIATION_SHIELD_ADVANCED',  slotType:'RADIATION_SHIELD',  bomWeight:0.04, bomVolume:0.2,  modifiers:{ SHIELDING_RADIATION:0.35 } },
+  AWH: { ticker:'AWH', option:'WHIPPLE_SHIELD_ADVANCED',    slotType:'WHIPPLE_SHIELD',    bomWeight:0.12, bomVolume:1,    modifiers:{ SHIELDING_WHIPPLE:1 } },
+  BGS: { ticker:'BGS', option:'HIGH_G_SEATS_BASIC',         slotType:'HIGH_G_SEATS',      bomWeight:20,   bomVolume:3,    modifiers:{ MAX_G_FACTOR_INCREASE:5 } },
+  BHP: { ticker:'BHP', option:'HULL_PLATES_BASIC',          slotType:'HULL_TYPE',         bomWeight:9,    bomVolume:10,   modifiers:{ SHIELDING_GENERAL:0, MAX_G_FACTOR:8 } },
+  BPT: { ticker:'BPT', option:'HEAT_SHIELD_BASIC',          slotType:'HEAT_SHIELD',       bomWeight:0.02, bomVolume:0.3,  modifiers:{ SHIELDING_HEAT:0.5 } },
+  BR1: { ticker:'BR1', option:'COMMAND_BRIDGE_MK1',         slotType:'COMMAND_BRIDGE',    bomWeight:180,  bomVolume:300,  modifiers:{} },
+  BR2: { ticker:'BR2', option:'COMMAND_BRIDGE_MK2',         slotType:'COMMAND_BRIDGE',    bomWeight:280,  bomVolume:400,  modifiers:{} },
+  BRP: { ticker:'BRP', option:'RADIATION_SHIELD_BASIC',     slotType:'RADIATION_SHIELD',  bomWeight:0.03, bomVolume:0.2,  modifiers:{ SHIELDING_RADIATION:0.15 } },
+  BRS: { ticker:'BRS', option:'COMMAND_BRIDGE_SHORT',       slotType:'COMMAND_BRIDGE',    bomWeight:150,  bomVolume:200,  modifiers:{} },
+  BWH: { ticker:'BWH', option:'WHIPPLE_SHIELD_BASIC',       slotType:'WHIPPLE_SHIELD',    bomWeight:0.1,  bomVolume:1,    modifiers:{ SHIELDING_WHIPPLE:0.5 } },
+  CQL: { ticker:'CQL', option:'CREW_QUARTERS_STANDARD',     slotType:'CREW_QUARTERS',     bomWeight:75,   bomVolume:150,  modifiers:{} },
+  CQM: { ticker:'CQM', option:'CREW_QUARTERS_MEDIUM',       slotType:'CREW_QUARTERS',     bomWeight:50,   bomVolume:100,  modifiers:{} },
+  CQS: { ticker:'CQS', option:'CREW_QUARTERS_SMALL',        slotType:'CREW_QUARTERS',     bomWeight:25,   bomVolume:50,   modifiers:{} },
+  CQT: { ticker:'CQT', option:'CREW_QUARTERS_TINY',         slotType:'CREW_QUARTERS',     bomWeight:12.5, bomVolume:25,   modifiers:{} },
+  ENG: { ticker:'ENG', option:'STL_ENGINE_STANDARD',        slotType:'STL_ENGINE',        bomWeight:8,    bomVolume:4,    modifiers:{ STL_USAGE:0.015 } },
+  FFC: { ticker:'FFC', option:'FTL_FIELD_CONTROLLER',       slotType:'FTL_FIELD_CONTROLLER', bomWeight:50, bomVolume:16,  modifiers:{} },
+  FSE: { ticker:'FSE', option:'STL_ENGINE_FUEL_SAVING',     slotType:'STL_ENGINE',        bomWeight:6,    bomVolume:3,    modifiers:{ STL_USAGE:0.0075 } },
+  GEN: { ticker:'GEN', option:'STL_ENGINE_GLASS',           slotType:'STL_ENGINE',        bomWeight:5,    bomVolume:3,    modifiers:{ STL_USAGE:0.015 } },
+  HCB: { ticker:'HCB', option:'CARGO_BAY_HUGE',             slotType:'CARGO_BAY',         bomWeight:500,  bomVolume:500,  modifiers:{ CARGO_CAPACITY_VOLUME:5000, CARGO_CAPACITY_WEIGHT:5000 } },
+  HHP: { ticker:'HHP', option:'HULL_PLATES_HARDENED',       slotType:'HULL_TYPE',         bomWeight:10,   bomVolume:10,   modifiers:{ SHIELDING_GENERAL:0.15, MAX_G_FACTOR:13 } },
+  HPR: { ticker:'HPR', option:'FTL_REACTOR_HIGH_POWER',     slotType:'FTL_REACTOR',       bomWeight:16,   bomVolume:15,   modifiers:{ FTL_POWER:4800, FTL_CHARGE_FACTOR:15 } },
+  HTE: { ticker:'HTE', option:'STL_ENGINE_HYPERTHRUST',     slotType:'STL_ENGINE',        bomWeight:16,   bomVolume:10,   modifiers:{ STL_USAGE:0.03 } },
+  HYR: { ticker:'HYR', option:'FTL_REACTOR_HYPER_POWER',    slotType:'FTL_REACTOR',       bomWeight:25,   bomVolume:25,   modifiers:{ FTL_POWER:7200, FTL_CHARGE_FACTOR:30 } },
+  LCB: { ticker:'LCB', option:'CARGO_BAY_LARGE',            slotType:'CARGO_BAY',         bomWeight:200,  bomVolume:200,  modifiers:{ CARGO_CAPACITY_VOLUME:2000, CARGO_CAPACITY_WEIGHT:2000 } },
+  LFE: { ticker:'LFE', option:'FTL_FIELD_EMITTER_LARGE',    slotType:'FTL_FIELD_EMITTER_LARGE', bomWeight:0.4, bomVolume:1.6, modifiers:{ FTL_VOLUME_SPAN:1000, POWER_REQUIREMENT:300 } },
+  LFL: { ticker:'LFL', option:'FTL_FUEL_TANK_LARGE',        slotType:'FTL_FUEL_TANK',     bomWeight:60,   bomVolume:10,   modifiers:{ FTL_FUEL_CAPACITY:2000 } },
+  LHP: { ticker:'LHP', option:'HULL_PLATES_LIGHTWEIGHT',    slotType:'HULL_TYPE',         bomWeight:4,    bomVolume:10,   modifiers:{ SHIELDING_GENERAL:-0.1, MAX_G_FACTOR:10 } },
+  LSL: { ticker:'LSL', option:'STL_FUEL_TANK_LARGE',        slotType:'STL_FUEL_TANK',     bomWeight:125,  bomVolume:100,  modifiers:{ STL_FUEL_CAPACITY:8000 } },
+  MCB: { ticker:'MCB', option:'CARGO_BAY_MEDIUM',           slotType:'CARGO_BAY',         bomWeight:100,  bomVolume:100,  modifiers:{ CARGO_CAPACITY_VOLUME:1000, CARGO_CAPACITY_WEIGHT:1000 } },
+  MFE: { ticker:'MFE', option:'FTL_FIELD_EMITTER_MEDIUM',   slotType:'FTL_FIELD_EMITTER_MEDIUM', bomWeight:0.2, bomVolume:0.8, modifiers:{ FTL_VOLUME_SPAN:500, POWER_REQUIREMENT:175 } },
+  MFL: { ticker:'MFL', option:'FTL_FUEL_TANK_MEDIUM',       slotType:'FTL_FUEL_TANK',     bomWeight:24,   bomVolume:4,    modifiers:{ FTL_FUEL_CAPACITY:800 } },
+  MSL: { ticker:'MSL', option:'STL_FUEL_TANK_MEDIUM',       slotType:'STL_FUEL_TANK',     bomWeight:50,   bomVolume:50,   modifiers:{ STL_FUEL_CAPACITY:3500 } },
+  QCR: { ticker:'QCR', option:'FTL_REACTOR_QUICK_CHARGE',   slotType:'FTL_REACTOR',       bomWeight:14,   bomVolume:10,   modifiers:{ FTL_POWER:2000, FTL_CHARGE_FACTOR:10 } },
+  RCT: { ticker:'RCT', option:'FTL_REACTOR_STANDARD',       slotType:'FTL_REACTOR',       bomWeight:7,    bomVolume:4,    modifiers:{ FTL_POWER:2400, FTL_CHARGE_FACTOR:2 } },
+  RDL: { ticker:'RDL', option:'REPAIR_DRONES_LARGE',        slotType:'REPAIR_DRONES',     bomWeight:150,  bomVolume:30,   modifiers:{ SHIELDING_GENERAL:0.1 } },
+  RDS: { ticker:'RDS', option:'REPAIR_DRONES_SMALL',        slotType:'REPAIR_DRONES',     bomWeight:50,   bomVolume:10,   modifiers:{ SHIELDING_GENERAL:0.05 } },
+  RHP: { ticker:'RHP', option:'HULL_PLATES_REINFORCED',     slotType:'HULL_TYPE',         bomWeight:10,   bomVolume:10,   modifiers:{ SHIELDING_GENERAL:0.1, MAX_G_FACTOR:11 } },
+  SCB: { ticker:'SCB', option:'CARGO_BAY_SMALL',            slotType:'CARGO_BAY',         bomWeight:50,   bomVolume:50,   modifiers:{ CARGO_CAPACITY_VOLUME:500, CARGO_CAPACITY_WEIGHT:500 } },
+  SFE: { ticker:'SFE', option:'FTL_FIELD_EMITTER_SMALL',    slotType:'FTL_FIELD_EMITTER_SMALL', bomWeight:0.1, bomVolume:0.4, modifiers:{ FTL_VOLUME_SPAN:250, POWER_REQUIREMENT:100 } },
+  SFL: { ticker:'SFL', option:'FTL_FUEL_TANK_SMALL',        slotType:'FTL_FUEL_TANK',     bomWeight:9,    bomVolume:1.5,  modifiers:{ FTL_FUEL_CAPACITY:300 } },
+  SRP: { ticker:'SRP', option:'RADIATION_SHIELD_SPECIALIZED', slotType:'RADIATION_SHIELD', bomWeight:0.1, bomVolume:0.2, modifiers:{ SHIELDING_RADIATION:0.7 } },
+  SSC: { ticker:'SSC', option:'STRUCTURAL_SPACECRAFT_COMPONENT', slotType:'STRUCTURE',    bomWeight:1,    bomVolume:1,    modifiers:{} },
+  SSL: { ticker:'SSL', option:'STL_FUEL_TANK_SMALL',        slotType:'STL_FUEL_TANK',     bomWeight:20,   bomVolume:20,   modifiers:{ STL_FUEL_CAPACITY:1500 } },
+  STS: { ticker:'STS', option:'GRAVITY_SHIELD_BASIC',       slotType:'GRAVITY_SHIELD',    bomWeight:0.1,  bomVolume:0.1,  modifiers:{ SHIELDING_GRAVITY:1 } },
+  TCB: { ticker:'TCB', option:'CARGO_BAY_TINY',             slotType:'CARGO_BAY',         bomWeight:20,   bomVolume:20,   modifiers:{ CARGO_CAPACITY_VOLUME:100, CARGO_CAPACITY_WEIGHT:100 } },
+  VCB: { ticker:'VCB', option:'CARGO_BAY_HIGH_VOLUME',      slotType:'CARGO_BAY',         bomWeight:200,  bomVolume:200,  modifiers:{ CARGO_CAPACITY_VOLUME:3000, CARGO_CAPACITY_WEIGHT:1000 } },
+  VSC: { ticker:'VSC', option:'CARGO_BAY_VERY_SMALL',       slotType:'CARGO_BAY',         bomWeight:35,   bomVolume:35,   modifiers:{ CARGO_CAPACITY_VOLUME:250, CARGO_CAPACITY_WEIGHT:250 } },
+  WCB: { ticker:'WCB', option:'CARGO_BAY_HIGH_LOAD',        slotType:'CARGO_BAY',         bomWeight:200,  bomVolume:200,  modifiers:{ CARGO_CAPACITY_VOLUME:1000, CARGO_CAPACITY_WEIGHT:3000 } },
+};
+
+const MATERIAL_NAMES = {
+  AEN:'Advanced STL Engine', AGS:'Advanced High-G Seats', AHP:'Advanced Hull Plate',
+  APT:'Advanced Thermal Protection', ARP:'Advanced Radiation Protection', AWH:'Advanced Whipple Shield',
+  BGS:'Basic High-G Seats', BHP:'Basic Hull Plate', BPT:'Basic Thermal Protection',
+  BR1:'Command Bridge MK1', BR2:'Command Bridge MK2', BRP:'Basic Radiation Protection',
+  BRS:'Short-range Command Bridge', BWH:'Basic Whipple Shield',
+  CQL:'Crew Quarters (Large)', CQM:'Crew Quarters (Medium)', CQS:'Crew Quarters (Small)', CQT:'Crew Quarters (Tiny)',
+  ENG:'Standard STL Engine', FFC:'FTL Field Controller', FSE:'Fuel-saving STL Engine',
+  GEN:'Glass STL Engine', HCB:'Huge Cargo Bay', HHP:'Hardened Hull Plate',
+  HPR:'High-power FTL Reactor', HTE:'Hyperthrust Engine', HYR:'Hyper-power FTL Reactor',
+  LCB:'Large Cargo Bay', LFE:'Large FTL Emitter', LFL:'Large FTL Fuel Tank',
+  LHP:'Lightweight Hull Plate', LSL:'Large STL Fuel Tank', MCB:'Medium Cargo Bay',
+  MFE:'Medium FTL Emitter', MFL:'Medium FTL Fuel Tank', MSL:'Medium STL Fuel Tank',
+  QCR:'Quick-charge FTL Reactor', RCT:'Standard FTL Reactor', RDL:'Large Repair Drones',
+  RDS:'Small Repair Drones', RHP:'Reinforced Hull Plate', SCB:'Small Cargo Bay',
+  SFE:'Small FTL Emitter', SFL:'Small FTL Fuel Tank', SRP:'Specialized Radiation Protection',
+  SSC:'Ship Structure Component', SSL:'Small STL Fuel Tank', STS:'Stability Support System',
+  TCB:'Tiny Cargo Bay', VCB:'High-Volume Cargo Bay', VSC:'Very Small Cargo Bay', WCB:'High-Load Cargo Bay',
+};
+
+const SLOTS = [
+  { id:'stlEngine',       label:'STL Engine',          required:true,  options:[
+    {name:'Standard',    ticker:'ENG'}, {name:'Fuel-saving', ticker:'FSE'},
+    {name:'Glass',       ticker:'GEN'}, {name:'Advanced',    ticker:'AEN'},
+    {name:'Hyperthrust', ticker:'HTE'},
+  ]},
+  { id:'stlFuelTank',     label:'STL Fuel Tank',        required:true,  options:[
+    {name:'Small',  ticker:'SSL'}, {name:'Medium', ticker:'MSL'}, {name:'Large', ticker:'LSL'},
+  ]},
+  { id:'ftlReactor',      label:'FTL Reactor',          required:false, options:[
+    {name:'Standard',     ticker:'RCT'}, {name:'Quick-charge', ticker:'QCR'},
+    {name:'High-power',   ticker:'HPR'}, {name:'Hyper-power',  ticker:'HYR'},
+  ]},
+  { id:'ftlFuelTank',     label:'FTL Fuel Tank',        required:false, options:[
+    {name:'Small',  ticker:'SFL'}, {name:'Medium', ticker:'MFL'}, {name:'Large', ticker:'LFL'},
+  ]},
+  { id:'cargoBay',        label:'Cargo Bay',            required:true,  options:[
+    {name:'Tiny',        ticker:'TCB'}, {name:'Very Small',   ticker:'VSC'},
+    {name:'Small',       ticker:'SCB'}, {name:'Medium',       ticker:'MCB'},
+    {name:'Large',       ticker:'LCB'}, {name:'High-Load',    ticker:'WCB'},
+    {name:'High-Volume', ticker:'VCB'}, {name:'Huge',         ticker:'HCB'},
+  ]},
+  { id:'hullPlates',      label:'Hull Plates',          required:true,  options:[
+    {name:'Basic',       ticker:'BHP'}, {name:'Lightweight',  ticker:'LHP'},
+    {name:'Reinforced',  ticker:'RHP'}, {name:'Hardened',     ticker:'HHP'},
+    {name:'Advanced',    ticker:'AHP'},
+  ]},
+  { id:'heatShielding',   label:'Heat Shielding',       required:false, options:[
+    {name:'Basic',    ticker:'BPT'}, {name:'Advanced', ticker:'APT'},
+  ]},
+  { id:'whippleShielding',label:'Whipple Shielding',    required:false, options:[
+    {name:'Basic',    ticker:'BWH'}, {name:'Advanced', ticker:'AWH'},
+  ]},
+  { id:'stabilitySystem', label:'Stability System',     required:false, options:[
+    {name:'Stability Support System', ticker:'STS'},
+  ]},
+  { id:'radiationShielding',label:'Radiation Shielding',required:false, options:[
+    {name:'Basic',        ticker:'BRP'}, {name:'Specialized',  ticker:'SRP'},
+    {name:'Advanced',     ticker:'ARP'},
+  ]},
+  { id:'selfRepairDrones',label:'Self-repair Drones',   required:false, options:[
+    {name:'Small', ticker:'RDS'}, {name:'Large', ticker:'RDL'},
+  ]},
+  { id:'highGSeats',      label:'High-G Seats',         required:false, options:[
+    {name:'Basic', ticker:'BGS'}, {name:'Advanced', ticker:'AGS'},
+  ]},
+];
+
+const SECTIONS = [
+  { label:'Drive System', slots:['stlEngine','stlFuelTank','ftlReactor','ftlFuelTank'] },
+  { label:'Cargo',        slots:['cargoBay'] },
+  { label:'Hull & Shielding', slots:['hullPlates','heatShielding','whippleShielding','stabilitySystem','radiationShielding'] },
+  { label:'Equipment',    slots:['selfRepairDrones','highGSeats'] },
+];
+
+const VOLUME_REFERENCE = 963;
+const VOLUME_DELTAS = {
+  STL_ENGINE: { STL_ENGINE_STANDARD:{v:0}, STL_ENGINE_FUEL_SAVING:{v:-1}, STL_ENGINE_GLASS:{v:-1}, STL_ENGINE_ADVANCED:{v:3}, STL_ENGINE_HYPERTHRUST:{v:7} },
+  STL_FUEL_TANK: { STL_FUEL_TANK_SMALL:{v:0}, STL_FUEL_TANK_MEDIUM:{v:126}, STL_FUEL_TANK_LARGE:{v:410} },
+  FTL_REACTOR: { FTL_REACTOR_STANDARD:{v:0}, FTL_REACTOR_QUICK_CHARGE:{v:7}, FTL_REACTOR_HIGH_POWER:{v:117}, FTL_REACTOR_HYPER_POWER:{v:127} },
+  FTL_FUEL_TANK: { FTL_FUEL_TANK_SMALL:{v:0}, FTL_FUEL_TANK_MEDIUM:{v:6}, FTL_FUEL_TANK_LARGE:{v:18} },
+  CARGO_BAY: { CARGO_BAY_TINY:{v:-420}, CARGO_BAY_VERY_SMALL:{v:-262}, CARGO_BAY_SMALL:{v:0}, CARGO_BAY_MEDIUM:{v:525}, CARGO_BAY_LARGE:{v:1575}, CARGO_BAY_HIGH_LOAD:{v:525}, CARGO_BAY_HIGH_VOLUME:{v:2625}, CARGO_BAY_HUGE:{v:4725} },
+  HULL_TYPE: { HULL_PLATES_BASIC:{v:0}, HULL_PLATES_LIGHTWEIGHT:{v:0}, HULL_PLATES_REINFORCED:{v:0}, HULL_PLATES_HARDENED:{v:0}, HULL_PLATES_ADVANCED:{v:0} },
+  HEAT_SHIELD: { HEAT_SHIELD_BASIC:{v:0}, HEAT_SHIELD_ADVANCED:{v:0} },
+  WHIPPLE_SHIELD: { WHIPPLE_SHIELD_BASIC:{v:0}, WHIPPLE_SHIELD_ADVANCED:{v:0} },
+  GRAVITY_SHIELD: { GRAVITY_SHIELD_BASIC:{v:0} },
+  RADIATION_SHIELD: { RADIATION_SHIELD_BASIC:{v:0}, RADIATION_SHIELD_ADVANCED:{v:0}, RADIATION_SHIELD_SPECIALIZED:{v:0} },
+  REPAIR_DRONES: { REPAIR_DRONES_SMALL:{v:0}, REPAIR_DRONES_LARGE:{v:0} },
+  HIGH_G_SEATS: { HIGH_G_SEATS_BASIC:{v:0}, HIGH_G_SEATS_ADVANCED:{v:0} },
+};
+
+const CQ_THRESHOLDS = [
+  {maxVolume:999, ticker:'CQT'}, {maxVolume:1749, ticker:'CQS'},
+  {maxVolume:2749, ticker:'CQM'}, {maxVolume:null, ticker:'CQL'},
+];
+const BRIDGE_MAP = {
+  FTL_REACTOR_STANDARD:'BR1', FTL_REACTOR_QUICK_CHARGE:'BR1',
+  FTL_REACTOR_HIGH_POWER:'BR2', FTL_REACTOR_HYPER_POWER:'BR2',
+};
+const EMITTER = { LFE_SPAN:1000, MFE_SPAN:500, SFE_SPAN:250, BASE_D:10, MULTIPLIER:20 };
+
+// ── Formulas ──────────────────────────────────────────────────────────────
+
+function calcVolume(sel) {
+  let vol = VOLUME_REFERENCE;
+  const entries = [
+    [sel.stlEngine,'STL_ENGINE'], [sel.stlFuelTank,'STL_FUEL_TANK'],
+    [sel.cargoBay,'CARGO_BAY'], [sel.hullPlates,'HULL_TYPE'],
+    [sel.ftlReactor,'FTL_REACTOR'], [sel.ftlFuelTank,'FTL_FUEL_TANK'],
+    [sel.heatShielding,'HEAT_SHIELD'], [sel.whippleShielding,'WHIPPLE_SHIELD'],
+    [sel.stabilitySystem,'GRAVITY_SHIELD'], [sel.radiationShielding,'RADIATION_SHIELD'],
+    [sel.selfRepairDrones,'REPAIR_DRONES'], [sel.highGSeats,'HIGH_G_SEATS'],
+  ];
+  for (const [ticker, slotType] of entries) {
+    if (!ticker) continue;
+    const stats = MODULE_STATS[ticker];
+    if (!stats) continue;
+    const delta = VOLUME_DELTAS[slotType]?.[stats.option];
+    if (delta) vol += delta.v;
+  }
+  if (!sel.ftlReactor && !sel.ftlFuelTank) vol -= 129;
+  return vol;
+}
+
+function calcSSC(vol) { return Math.ceil(vol / 21); }
+function calcPlates(vol) { return Math.ceil(Math.pow(vol, 2/3) / 2.07); }
+
+function calcEmitters(vol) {
+  const { LFE_SPAN, MFE_SPAN, SFE_SPAN, BASE_D, MULTIPLIER } = EMITTER;
+  const large = Math.floor(vol / LFE_SPAN);
+  const rem = vol % LFE_SPAN;
+  if (rem === 0) return { small:0, medium:0, large };
+  const working = (rem * MULTIPLIER) / (BASE_D + large);
+  const medium = Math.floor(working / MFE_SPAN);
+  const leftover = working - medium * MFE_SPAN;
+  const small = leftover > 0 ? Math.ceil(leftover / SFE_SPAN) : 0;
+  return { small, medium, large };
+}
+
+function getBridge(ftlReactor) {
+  if (!ftlReactor) return 'BRS';
+  const stats = MODULE_STATS[ftlReactor];
+  return BRIDGE_MAP[stats?.option] ?? 'BRS';
+}
+
+function getCQ(vol) {
+  for (const { maxVolume, ticker } of CQ_THRESHOLDS) {
+    if (maxVolume === null || vol <= maxVolume) return ticker;
+  }
+  return 'CQL';
+}
+
+function calcMass(sel, vol) {
+  const plateCount = calcPlates(vol);
+  let mass = 0;
+  const add = (ticker, qty) => {
+    const s = MODULE_STATS[ticker]; if (s) mass += qty * s.bomWeight;
+  };
+  add(sel.stlEngine, 1); add(sel.stlFuelTank, 1); add(sel.cargoBay, 1);
+  if (sel.ftlReactor) add(sel.ftlReactor, 1);
+  if (sel.ftlFuelTank) add(sel.ftlFuelTank, 1);
+  add(sel.hullPlates, plateCount);
+  if (sel.heatShielding) add(sel.heatShielding, plateCount);
+  if (sel.whippleShielding) add(sel.whippleShielding, plateCount);
+  if (sel.radiationShielding) add(sel.radiationShielding, plateCount);
+  if (sel.stabilitySystem) add(sel.stabilitySystem, 1);
+  if (sel.selfRepairDrones) add(sel.selfRepairDrones, 1);
+  if (sel.highGSeats) add(sel.highGSeats, 1);
+  add('SSC', calcSSC(vol));
+  add(getBridge(sel.ftlReactor), 1);
+  add(getCQ(vol), 1);
+  if (sel.ftlReactor) {
+    add('FFC', 1);
+    const em = calcEmitters(vol);
+    if (em.large > 0) add('LFE', em.large);
+    if (em.medium > 0) add('MFE', em.medium);
+    if (em.small > 0) add('SFE', em.small);
+  }
+  return mass;
+}
+
+function calcBOM(sel) {
+  const vol = calcVolume(sel);
+  const plateCount = calcPlates(vol);
+  const entries = [];
+  const add = (ticker, qty) => {
+    const name = MATERIAL_NAMES[ticker] || ticker;
+    entries.push({ ticker, name, qty });
+  };
+  add(sel.stlEngine, 1); add(sel.stlFuelTank, 1); add(sel.cargoBay, 1);
+  if (sel.ftlReactor) add(sel.ftlReactor, 1);
+  if (sel.ftlFuelTank) add(sel.ftlFuelTank, 1);
+  add(sel.hullPlates, plateCount);
+  if (sel.heatShielding) add(sel.heatShielding, plateCount);
+  if (sel.whippleShielding) add(sel.whippleShielding, plateCount);
+  if (sel.radiationShielding) add(sel.radiationShielding, plateCount);
+  if (sel.stabilitySystem) add(sel.stabilitySystem, 1);
+  if (sel.selfRepairDrones) add(sel.selfRepairDrones, 1);
+  if (sel.highGSeats) add(sel.highGSeats, 1);
+  add('SSC', calcSSC(vol));
+  if (sel.ftlReactor) {
+    add('FFC', 1);
+    const em = calcEmitters(vol);
+    if (em.large > 0) add('LFE', em.large);
+    if (em.medium > 0) add('MFE', em.medium);
+    if (em.small > 0) add('SFE', em.small);
+  }
+  add(getBridge(sel.ftlReactor), 1);
+  add(getCQ(vol), 1);
+  return entries;
+}
+
+function getStats(sel) {
+  const vol = calcVolume(sel);
+  const mass = calcMass(sel, vol);
+  const cargoBayStats = MODULE_STATS[sel.cargoBay];
+  const cargoVol  = cargoBayStats?.modifiers?.CARGO_CAPACITY_VOLUME  || 0;
+  const cargoWeight = cargoBayStats?.modifiers?.CARGO_CAPACITY_WEIGHT || 0;
+  const stlUsage = MODULE_STATS[sel.stlEngine]?.modifiers?.STL_USAGE || 0;
+  const stlFuelCap = MODULE_STATS[sel.stlFuelTank]?.modifiers?.STL_FUEL_CAPACITY || 0;
+  const ftlPower = sel.ftlReactor ? (MODULE_STATS[sel.ftlReactor]?.modifiers?.FTL_POWER || 0) : null;
+  const ftlCharge = sel.ftlReactor ? (MODULE_STATS[sel.ftlReactor]?.modifiers?.FTL_CHARGE_FACTOR || 0) : null;
+  const ftlFuelCap = sel.ftlFuelTank ? (MODULE_STATS[sel.ftlFuelTank]?.modifiers?.FTL_FUEL_CAPACITY || 0) : null;
+
+  // Hull G-factor
+  const hullGFactor = MODULE_STATS[sel.hullPlates]?.modifiers?.MAX_G_FACTOR || 0;
+  const gIncrease = sel.highGSeats ? (MODULE_STATS[sel.highGSeats]?.modifiers?.MAX_G_FACTOR_INCREASE || 0) : 0;
+  const maxGFactor = hullGFactor + gIncrease;
+
+  // Acceleration: thrust is implicit from G-factor; we show G-factor max
+  // FTL speed: ftlPower / (mass * 1000) * some constant — drydock uses FTL_POWER * FTL_CHARGE_FACTOR approach
+  // Approx FTL speed in parsec/h based on community formula
+  let ftlSpeed = null;
+  if (ftlPower && ftlCharge) {
+    ftlSpeed = (ftlPower * ftlCharge) / (mass * 1000);
+  }
+
+  // Acceleration approx: (G * 9.8) capped but we just show max G
+  return {
+    cargoVol, cargoWeight, maxGFactor, mass: Math.round(mass * 10) / 10,
+    vol: Math.round(vol), stlFuelCap, stlUsage,
+    ftlPower, ftlCharge, ftlFuelCap, ftlSpeed: ftlSpeed ? Math.round(ftlSpeed * 100) / 100 : null,
+    buildTime: Math.round(mass / 50 * 10) / 10,
+  };
+}
+
+// ── State ─────────────────────────────────────────────────────────────────
+
+let shipCount = 1;
+const ships = [
+  { name:'Ship 1', sel:{ stlEngine:'ENG', stlFuelTank:'SSL', ftlReactor:'RCT', ftlFuelTank:'SFL', cargoBay:'SCB', hullPlates:'BHP', heatShielding:null, whippleShielding:null, stabilitySystem:null, radiationShielding:null, selfRepairDrones:null, highGSeats:null } },
+  { name:'Ship 2', sel:{ stlEngine:'FSE', stlFuelTank:'MSL', ftlReactor:'HYR', ftlFuelTank:'LFL', cargoBay:'HCB', hullPlates:'LHP', heatShielding:null, whippleShielding:null, stabilitySystem:null, radiationShielding:null, selfRepairDrones:null, highGSeats:null } },
+  { name:'Ship 3', sel:{ stlEngine:'ENG', stlFuelTank:'MSL', ftlReactor:'HPR', ftlFuelTank:'MFL', cargoBay:'LCB', hullPlates:'RHP', heatShielding:null, whippleShielding:null, stabilitySystem:null, radiationShielding:null, selfRepairDrones:null, highGSeats:null } },
+];
+
+// ── Render ─────────────────────────────────────────────────────────────────
+
+function setShipCount(n) {
+  shipCount = n;
+  [1,2,3].forEach(i => {
+    document.getElementById('btn'+i).classList.toggle('active', i === n);
+  });
+  render();
+}
+
+function updateSel(shipIdx, slotId, ticker) {
+  ships[shipIdx].sel[slotId] = ticker || null;
+  render();
+}
+
+function updateName(shipIdx, name) {
+  ships[shipIdx].name = name;
+  renderBOM();
+}
+
+function fmt(n, decimals=0) {
+  if (n == null) return '—';
+  return n.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
+const PERF_ROWS = [
+  { label:'Cargo capacity (t)',   key:'cargoWeight', higherBetter:true,  fmt:v=>fmt(v) },
+  { label:'Cargo capacity (m³)',  key:'cargoVol',    higherBetter:true,  fmt:v=>fmt(v) },
+  { label:'Max G-factor',         key:'maxGFactor',  higherBetter:true,  fmt:v=>fmt(v) },
+  { label:'STL fuel / sec',       key:'stlUsage',    higherBetter:false, fmt:v=>v.toFixed(4) },
+  { label:'STL fuel capacity',    key:'stlFuelCap',  higherBetter:true,  fmt:v=>fmt(v) },
+  { label:'FTL power (GW)',       key:'ftlPower',    higherBetter:true,  fmt:v=>v ? fmt(v) : '—' },
+  { label:'FTL charge factor',    key:'ftlCharge',   higherBetter:true,  fmt:v=>v ? fmt(v) : '—' },
+  { label:'FTL fuel capacity',    key:'ftlFuelCap',  higherBetter:true,  fmt:v=>v ? fmt(v) : '—' },
+  { label:'Empty mass (t)',       key:'mass',        higherBetter:false, fmt:v=>fmt(v,1) },
+  { label:'Volume (m³)',          key:'vol',         higherBetter:false, fmt:v=>fmt(v) },
+  { label:'Build time (h)',       key:'buildTime',   higherBetter:false, fmt:v=>fmt(v,1) },
+];
+
+function render() {
+  renderGrid();
+  renderBOM();
+}
+
+function renderGrid() {
+  const grid = document.getElementById('compGrid');
+  grid.className = `comparison-grid ships-${shipCount}`;
+
+  const activeShips = ships.slice(0, shipCount);
+  const stats = activeShips.map(s => getStats(s.sel));
+
+  let html = '';
+
+  // Column headers
+  html += `<div class="label-cell col-header"></div>`;
+  activeShips.forEach((ship, si) => {
+    html += `<div class="ship-cell col-header">
+      <div class="section-label">SHIP ${si+1}</div>
+      <input class="ship-name-input" value="${ship.name}" oninput="updateName(${si}, this.value)" />
+    </div>`;
+  });
+
+  // Slot sections
+  for (const section of SECTIONS) {
+    // Section header
+    html += `<div class="label-cell section-head">${section.label}</div>`;
+    activeShips.forEach(() => { html += `<div class="ship-cell section-head"></div>`; });
+
+    // Slots
+    for (const slotId of section.slots) {
+      const slot = SLOTS.find(s => s.id === slotId);
+      html += `<div class="label-cell">${slot.label}${slot.required ? '' : '<span style="color:var(--text3);font-size:10px;margin-left:4px">opt</span>'}</div>`;
+      activeShips.forEach((ship, si) => {
+        const cur = ship.sel[slotId];
+        html += `<div class="ship-cell"><select onchange="updateSel(${si},'${slotId}',this.value)">`;
+        if (!slot.required) html += `<option value="">— none —</option>`;
+        slot.options.forEach(opt => {
+          const selected = cur === opt.ticker ? 'selected' : '';
+          html += `<option value="${opt.ticker}" ${selected}>${opt.name}</option>`;
+        });
+        html += `</select></div>`;
+      });
+    }
+  }
+
+  // Auto-calculated display rows
+  html += `<div class="label-cell section-head">Auto-calculated</div>`;
+  activeShips.forEach(() => { html += `<div class="ship-cell section-head"></div>`; });
+
+  const autoRows = [
+    { label:'Structure (SSC)', fn: (sel, vol) => calcSSC(vol) + ' units' },
+    { label:'Command Bridge',  fn: (sel) => MATERIAL_NAMES[getBridge(sel.ftlReactor)] || getBridge(sel.ftlReactor) },
+    { label:'Crew Quarters',   fn: (sel, vol) => MATERIAL_NAMES[getCQ(vol)] || getCQ(vol) },
+    { label:'FTL Field Controller', fn: (sel) => sel.ftlReactor ? 'Required' : '—' },
+    { label:'FTL Emitters',    fn: (sel, vol) => {
+      if (!sel.ftlReactor) return '—';
+      const em = calcEmitters(vol);
+      const parts = [];
+      if (em.large) parts.push(`${em.large}× Large`);
+      if (em.medium) parts.push(`${em.medium}× Med`);
+      if (em.small) parts.push(`${em.small}× Small`);
+      return parts.join(', ') || '—';
+    }},
+  ];
+
+  for (const row of autoRows) {
+    html += `<div class="label-cell">${row.label}</div>`;
+    activeShips.forEach((ship) => {
+      const vol = calcVolume(ship.sel);
+      const val = row.fn(ship.sel, vol);
+      html += `<div class="ship-cell stat"><span class="stat-val dim">${val}</span></div>`;
+    });
+  }
+
+  // Performance section
+  html += `<div class="label-cell section-head">Performance</div>`;
+  activeShips.forEach(() => { html += `<div class="ship-cell section-head"></div>`; });
+
+  for (const row of PERF_ROWS) {
+    const values = stats.map(s => s[row.key]);
+    const numVals = values.filter(v => v != null && v !== 0);
+    let best = null, worst = null;
+    if (numVals.length > 1) {
+      best  = row.higherBetter ? Math.max(...numVals) : Math.min(...numVals);
+      worst = row.higherBetter ? Math.min(...numVals) : Math.max(...numVals);
+    }
+
+    html += `<div class="label-cell">${row.label}</div>`;
+    values.forEach((val, vi) => {
+      const displayed = row.fmt(val);
+      const isBest  = best  != null && val === best  && best !== worst;
+      const isWorst = worst != null && val === worst && best !== worst;
+      const cls = isBest ? 'best' : isWorst ? 'worst' : '';
+      const valCls = isBest ? 'green' : isWorst ? 'red' : '';
+      html += `<div class="ship-cell stat ${cls}"><span class="stat-val ${valCls}">${displayed}</span></div>`;
+    });
+  }
+
+  grid.innerHTML = html;
+}
+
+function renderBOM() {
+  const bomGrid = document.getElementById('bomGrid');
+  bomGrid.className = `bom-grid ships-${shipCount}`;
+  const activeShips = ships.slice(0, shipCount);
+  let html = '';
+  activeShips.forEach((ship, si) => {
+    const bom = calcBOM(ship.sel);
+    const vol = calcVolume(ship.sel);
+    const mass = calcMass(ship.sel, vol);
+    const buildTime = Math.round(mass / 50 * 10) / 10;
+    html += `<div class="bom-card">
+      <div class="bom-title">${ship.name}</div>`;
+    bom.forEach(entry => {
+      html += `<div class="bom-row">
+        <span class="bom-ticker">${entry.ticker}</span>
+        <span class="bom-name">${entry.name}</span>
+        <span class="bom-qty">${entry.qty}</span>
+      </div>`;
+    });
+    html += `<div class="bom-buildtime">
+      <span>Est. build time</span>
+      <span>~${buildTime}h</span>
+    </div></div>`;
+  });
+  bomGrid.innerHTML = html;
+}
+
+// Initial render
+render();
+</script>
+</body>
+</html>
