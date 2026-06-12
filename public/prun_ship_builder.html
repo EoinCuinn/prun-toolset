@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -59,9 +59,9 @@
     gap: 0;
     min-width: 600px;
   }
-  .comparison-grid.ships-1 { grid-template-columns: 220px 1fr; }
-  .comparison-grid.ships-2 { grid-template-columns: 220px 1fr 1fr; }
-  .comparison-grid.ships-3 { grid-template-columns: 220px 1fr 1fr 1fr; }
+  .comparison-grid.ships-1 { grid-template-columns: 220px 340px; }
+  .comparison-grid.ships-2 { grid-template-columns: 220px 340px 340px; }
+  .comparison-grid.ships-3 { grid-template-columns: 220px 340px 340px 340px; }
 
   /* Label column */
   .label-col { }
@@ -98,12 +98,29 @@
   }
   .ship-cell select {
     width: 100%; background: var(--bg3); border: 1px solid var(--border);
-    border-radius: 3px; color: var(--text); padding: 3px 6px; font-size: 12px;
+    border-radius: 3px; color: var(--text); padding: 3px 24px 3px 6px; font-size: 12px;
     font-family: var(--mono); outline: none; cursor: pointer;
     transition: border-color 0.15s;
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238892a4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 10px 6px;
   }
   .ship-cell select:focus { border-color: var(--accent); }
   .ship-cell.stat { font-family: var(--mono); font-size: 12px; }
+  .mod-hints {
+    display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;
+  }
+  .mod-hint {
+    font-size: 10px; font-family: var(--mono); padding: 1px 5px;
+    border-radius: 2px; white-space: nowrap;
+    background: rgba(79,142,247,0.1); color: #7ab3ff;
+    border: 1px solid rgba(79,142,247,0.2);
+  }
+  .mod-hint.green { background: rgba(74,222,128,0.08); color: #6ee7a0; border-color: rgba(74,222,128,0.2); }
+  .mod-hint.amber { background: rgba(251,146,60,0.08); color: #fbb36a; border-color: rgba(251,146,60,0.2); }
+  .mod-hint.red   { background: rgba(248,113,113,0.08); color: #fca5a5; border-color: rgba(248,113,113,0.2); }
   .ship-cell.best { background: rgba(74,222,128,0.06); }
   .ship-cell.worst { background: rgba(247,95,79,0.04); }
 
@@ -123,17 +140,6 @@
   }
   .ship-name-input:focus { border-bottom-color: var(--accent); }
 
-  /* BOM section */
-  .bom-section { margin-top: 1.5rem; }
-  .bom-grid { display: grid; gap: 12px; }
-  .bom-grid.ships-1 { grid-template-columns: 1fr; }
-  .bom-grid.ships-2 { grid-template-columns: 1fr 1fr; }
-  .bom-grid.ships-3 { grid-template-columns: 1fr 1fr 1fr; }
-
-  .bom-card {
-    background: var(--bg2); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 1rem;
-  }
   .bom-title {
     font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
     text-transform: uppercase; color: var(--text2); margin-bottom: 10px;
@@ -176,11 +182,6 @@
 
 <div class="comparison-wrap">
   <div class="comparison-grid ships-1" id="compGrid"></div>
-</div>
-
-<div class="bom-section">
-  <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;">Bill of Materials</div>
-  <div class="bom-grid ships-1" id="bomGrid"></div>
 </div>
 
 <script>
@@ -487,6 +488,9 @@ function getStats(sel) {
   };
 }
 
+
+const GLOBAL_MAX_OPTION_LEN = Math.max(...SLOTS.flatMap(s => s.options.map(o => o.name.length)));
+
 // ── State ─────────────────────────────────────────────────────────────────
 
 let shipCount = 1;
@@ -514,6 +518,59 @@ function updateSel(shipIdx, slotId, ticker) {
 function updateName(shipIdx, name) {
   ships[shipIdx].name = name;
   renderBOM();
+}
+
+function modLabel(ticker) {
+  if (!ticker) return '';
+  const s = MODULE_STATS[ticker];
+  if (!s) return '';
+  const m = s.modifiers;
+  const parts = [];
+  if (m.CARGO_CAPACITY_VOLUME != null)  parts.push(`${m.CARGO_CAPACITY_VOLUME.toLocaleString()}m³ / ${m.CARGO_CAPACITY_WEIGHT.toLocaleString()}t`);
+  if (m.STL_FUEL_CAPACITY != null)      parts.push(`${m.STL_FUEL_CAPACITY.toLocaleString()} fuel`);
+  if (m.FTL_FUEL_CAPACITY != null)      parts.push(`${m.FTL_FUEL_CAPACITY.toLocaleString()} fuel`);
+  if (m.STL_USAGE != null)              parts.push(`${m.STL_USAGE}/s`);
+  if (m.FTL_POWER != null)              parts.push(`${m.FTL_POWER} GW`);
+  if (m.FTL_CHARGE_FACTOR != null)      parts.push(`×${m.FTL_CHARGE_FACTOR} charge`);
+  if (m.MAX_G_FACTOR != null)           parts.push(`${m.MAX_G_FACTOR}G max`);
+  if (m.MAX_G_FACTOR_INCREASE != null)  parts.push(`+${m.MAX_G_FACTOR_INCREASE}G`);
+  if (m.SHIELDING_GENERAL != null && m.SHIELDING_GENERAL !== 0)
+                                        parts.push(`shield ${m.SHIELDING_GENERAL > 0 ? '+' : ''}${Math.round(m.SHIELDING_GENERAL * 100)}%`);
+  if (m.SHIELDING_HEAT != null)         parts.push(`heat ×${m.SHIELDING_HEAT}`);
+  if (m.SHIELDING_RADIATION != null)    parts.push(`rad ×${m.SHIELDING_RADIATION}`);
+  if (m.SHIELDING_WHIPPLE != null)      parts.push(`whipple ×${m.SHIELDING_WHIPPLE}`);
+  if (m.SHIELDING_GRAVITY != null)      parts.push(`grav ×${m.SHIELDING_GRAVITY}`);
+  if (m.FTL_VOLUME_SPAN != null)        parts.push(`${m.FTL_VOLUME_SPAN}m³ span`);
+  return parts.length ? `  —  ${parts.join('  ·  ')}` : '';
+}
+
+function modHints(ticker) {
+  if (!ticker) return '';
+  const s = MODULE_STATS[ticker];
+  if (!s) return '';
+  const m = s.modifiers;
+  const tags = [];
+  const tag = (cls, text) => tags.push(`<span class="mod-hint ${cls}">${text}</span>`);
+
+  if (m.CARGO_CAPACITY_VOLUME != null)   tag('green', `${(m.CARGO_CAPACITY_VOLUME).toLocaleString()} m³`);
+  if (m.CARGO_CAPACITY_WEIGHT != null)   tag('green', `${(m.CARGO_CAPACITY_WEIGHT).toLocaleString()} t`);
+  if (m.STL_FUEL_CAPACITY != null)       tag('', `${m.STL_FUEL_CAPACITY.toLocaleString()} fuel`);
+  if (m.FTL_FUEL_CAPACITY != null)       tag('', `${m.FTL_FUEL_CAPACITY.toLocaleString()} fuel`);
+  if (m.STL_USAGE != null)               tag(m.STL_USAGE <= 0.01 ? 'green' : m.STL_USAGE >= 0.025 ? 'red' : 'amber', `${m.STL_USAGE}/s`);
+  if (m.FTL_POWER != null)               tag('', `${m.FTL_POWER} GW`);
+  if (m.FTL_CHARGE_FACTOR != null)       tag(m.FTL_CHARGE_FACTOR >= 20 ? 'green' : '', `×${m.FTL_CHARGE_FACTOR} charge`);
+  if (m.MAX_G_FACTOR != null)            tag('', `${m.MAX_G_FACTOR}G max`);
+  if (m.MAX_G_FACTOR_INCREASE != null)   tag('green', `+${m.MAX_G_FACTOR_INCREASE}G`);
+  if (m.SHIELDING_GENERAL != null && m.SHIELDING_GENERAL !== 0) {
+    tag(m.SHIELDING_GENERAL > 0 ? 'green' : 'red', `shield ${m.SHIELDING_GENERAL > 0 ? '+' : ''}${Math.round(m.SHIELDING_GENERAL * 100)}%`);
+  }
+  if (m.SHIELDING_HEAT != null)          tag('amber', `heat ×${m.SHIELDING_HEAT}`);
+  if (m.SHIELDING_RADIATION != null)     tag('amber', `rad ×${m.SHIELDING_RADIATION}`);
+  if (m.SHIELDING_WHIPPLE != null)       tag('amber', `whipple ×${m.SHIELDING_WHIPPLE}`);
+  if (m.SHIELDING_GRAVITY != null)       tag('amber', `grav ×${m.SHIELDING_GRAVITY}`);
+  if (m.FTL_VOLUME_SPAN != null)         tag('', `${m.FTL_VOLUME_SPAN} m³ span`);
+
+  return tags.length ? `<div class="mod-hints">${tags.join('')}</div>` : '';
 }
 
 function fmt(n, decimals=0) {
@@ -570,13 +627,15 @@ function renderGrid() {
       html += `<div class="label-cell">${slot.label}${slot.required ? '' : '<span style="color:var(--text3);font-size:10px;margin-left:4px">opt</span>'}</div>`;
       activeShips.forEach((ship, si) => {
         const cur = ship.sel[slotId];
-        html += `<div class="ship-cell"><select onchange="updateSel(${si},'${slotId}',this.value)">`;
+        html += `<div class="ship-cell" style="flex-direction:column;align-items:stretch;padding:4px 8px;gap:0">`;
+        html += `<select onchange="updateSel(${si},'${slotId}',this.value)">`;
         if (!slot.required) html += `<option value="">— none —</option>`;
-        slot.options.forEach(opt => {
+                slot.options.forEach(opt => {
           const selected = cur === opt.ticker ? 'selected' : '';
-          html += `<option value="${opt.ticker}" ${selected}>${opt.name}</option>`;
+          const padded = opt.name.padEnd(GLOBAL_MAX_OPTION_LEN, ' ');
+          html += `<option value="${opt.ticker}" ${selected}>${padded}${modLabel(opt.ticker)}</option>`;
         });
-        html += `</select></div>`;
+        html += `</select>${modHints(cur)}</div>`;
       });
     }
   }
@@ -634,21 +693,18 @@ function renderGrid() {
     });
   }
 
-  grid.innerHTML = html;
-}
+  // BOM section — lives inside the same grid so columns align perfectly
+  html += `<div class="label-cell section-head">Bill of Materials</div>`;
+  activeShips.forEach(() => { html += `<div class="ship-cell section-head"></div>`; });
 
-function renderBOM() {
-  const bomGrid = document.getElementById('bomGrid');
-  bomGrid.className = `bom-grid ships-${shipCount}`;
-  const activeShips = ships.slice(0, shipCount);
-  let html = '';
-  activeShips.forEach((ship, si) => {
+  html += `<div class="label-cell" style="align-self:start"></div>`;
+  activeShips.forEach((ship) => {
     const bom = calcBOM(ship.sel);
     const vol = calcVolume(ship.sel);
     const mass = calcMass(ship.sel, vol);
     const buildTime = Math.round(mass / 50 * 10) / 10;
-    html += `<div class="bom-card">
-      <div class="bom-title">${ship.name}</div>`;
+    html += `<div class="ship-cell" style="align-self:start;padding:12px;display:block">`;
+    html += `<div class="bom-title">${ship.name}</div>`;
     bom.forEach(entry => {
       html += `<div class="bom-row">
         <span class="bom-ticker">${entry.ticker}</span>
@@ -656,13 +712,14 @@ function renderBOM() {
         <span class="bom-qty">${entry.qty}</span>
       </div>`;
     });
-    html += `<div class="bom-buildtime">
-      <span>Est. build time</span>
-      <span>~${buildTime}h</span>
-    </div></div>`;
+    html += `<div class="bom-buildtime"><span>Est. build time</span><span>~${buildTime}h</span></div>`;
+    html += `</div>`;
   });
-  bomGrid.innerHTML = html;
+
+  grid.innerHTML = html;
 }
+
+function renderBOM() {} // BOM now rendered inside renderGrid
 
 // Initial render
 render();
