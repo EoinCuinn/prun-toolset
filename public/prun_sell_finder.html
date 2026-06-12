@@ -253,8 +253,10 @@
 
 <div class="config-row">
   <input id="tickerInput" type="text" placeholder="Ticker e.g. GL" maxlength="8" list="tickerList" autocomplete="off" />
-<datalist id="tickerList"></datalist>
+  <datalist id="tickerList"></datalist>
   <input id="qtyInput" type="number" placeholder="Qty e.g. 2900" min="1" />
+  <input id="originInput" type="text" placeholder="Origin system e.g. Hortus" list="systemList" autocomplete="off" style="min-width:180px;" />
+  <datalist id="systemList"></datalist>
   <button class="primary" id="searchBtn">Find best price ↗</button>
 </div>
 <div class="status" id="status">Enter a material ticker and quantity to find the best sell opportunity.</div>
@@ -264,6 +266,67 @@
 <script src="/config.js"></script>
 <script>
 const EXCHANGES = ['IC1', 'NC1', 'NC2', 'CI1', 'CI2'];
+
+// Exchange → system NaturalId mapping
+const EXCHANGE_SYSTEMS = {
+  IC1: 'VH-331',  // Hortus
+  NC1: 'OT-580',  // Moria
+  NC2: 'UV-351',  // Benten / Katoa
+  CI1: 'ZV-759',  // Antares II
+  CI2: 'AM-783',  // Arclight
+};
+
+let universeData = null; // loaded once
+
+// BFS jump counter — all edges weight 1
+function jumpsBetween(systems, fromNatId, toNatId) {
+  if (fromNatId === toNatId) return 0;
+  const idMap = {};
+  systems.forEach(s => { idMap[s.SystemId] = s; });
+  const natToId = {};
+  systems.forEach(s => { natToId[s.NaturalId] = s.SystemId; });
+  const startId = natToId[fromNatId];
+  const endId   = natToId[toNatId];
+  if (!startId || !endId) return null;
+
+  const visited = new Set([startId]);
+  const queue = [[startId, 0]];
+  while (queue.length) {
+    const [cur, dist] = queue.shift();
+    const sys = idMap[cur];
+    for (const c of (sys?.Connections || [])) {
+      if (c.ConnectingId === endId) return dist + 1;
+      if (!visited.has(c.ConnectingId)) {
+        visited.add(c.ConnectingId);
+        queue.push([c.ConnectingId, dist + 1]);
+      }
+    }
+  }
+  return null;
+}
+
+// Load universe data + populate system datalist
+fetch('/prun_universe_data.json')
+  .then(r => r.json())
+  .then(data => {
+    universeData = data;
+    const list = document.getElementById('systemList');
+    data
+      .filter(s => s.Name && s.Name.length > 2 && !/^[A-Z]{2}-\d/.test(s.Name))
+      .sort((a, b) => a.Name.localeCompare(b.Name))
+      .forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.Name;
+        list.appendChild(opt);
+      });
+    // Also add NaturalId options for people who type those
+    data.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.NaturalId;
+      list.appendChild(opt);
+    });
+  })
+  .catch(() => {});
 
 // Populate ticker datalist from material data
 fetch('/material_data.json')
@@ -279,7 +342,7 @@ fetch('/material_data.json')
         list.appendChild(opt);
       });
   })
-  .catch(() => {}); // silently fail if unavailable
+  .catch(() => {});
 const API_KEY = window.FIO_API_KEY;
 const BASE = 'https://rest.fnar.net';
 
@@ -322,11 +385,22 @@ function simulateFill(buyOrders, qty) {
 async function search() {
   const ticker = document.getElementById('tickerInput').value.trim().toUpperCase();
   const qty = parseInt(document.getElementById('qtyInput').value.trim(), 10);
+  const originRaw = document.getElementById('originInput').value.trim();
   const status = document.getElementById('status');
   const results = document.getElementById('results');
 
   if (!ticker) { status.textContent = 'Please enter a material ticker.'; return; }
   if (!qty || qty <= 0) { status.textContent = 'Please enter a valid quantity.'; return; }
+
+  // Resolve origin system NaturalId from name or NaturalId input
+  let originNatId = null;
+  if (originRaw && universeData) {
+    const lower = originRaw.toLowerCase();
+    const match = universeData.find(s =>
+      s.Name?.toLowerCase() === lower || s.NaturalId?.toLowerCase() === lower
+    );
+    if (match) originNatId = match.NaturalId;
+  }
 
   status.innerHTML = '<span class="spinner"></span>Fetching order books from all exchanges...';
   results.innerHTML = '';
@@ -338,15 +412,21 @@ async function search() {
   for (let i = 0; i < EXCHANGES.length; i++) {
     const ex = EXCHANGES[i];
     const data = fetches[i];
-    if (!data) { exchangeData.push({ exchange: ex, buyOrders: [], error: true }); continue; }
 
-    // Buy orders = people wanting to buy = good for us as sellers
+    // Calculate jump distance if origin is set
+    let jumps = null;
+    if (originNatId && universeData) {
+      jumps = jumpsBetween(universeData, originNatId, EXCHANGE_SYSTEMS[ex]);
+    }
+
+    if (!data) { exchangeData.push({ exchange: ex, buyOrders: [], error: true, jumps }); continue; }
+
     const buyOrders = (data.BuyingOrders || [])
       .filter(o => o.ItemCost > 0 && o.ItemCount > 0)
       .sort((a, b) => b.ItemCost - a.ItemCost);
 
     const sim = simulateFill(buyOrders, qty);
-    exchangeData.push({ exchange: ex, buyOrders, sim, totalDemand: buyOrders.reduce((s, o) => s + o.ItemCount, 0) });
+    exchangeData.push({ exchange: ex, buyOrders, sim, totalDemand: buyOrders.reduce((s, o) => s + o.ItemCount, 0), jumps });
   }
 
   // Find best exchange by avg price (only ones with any demand)
@@ -389,10 +469,17 @@ async function search() {
     const isBest = bestEx && ex.exchange === bestEx.exchange;
     const hasDemand = ex.sim && ex.sim.filledQty > 0;
 
+    const jumpLabel = ex.jumps != null
+      ? `<span style="font-size:11px;font-family:var(--mono);color:${ex.jumps <= 3 ? 'var(--green)' : ex.jumps <= 6 ? 'var(--orange)' : 'var(--red)'}">${ex.jumps}j</span>`
+      : '';
+
     html += `<div class="exchange-card ${isBest ? 'best' : ''} ${!hasDemand ? 'no-demand' : ''}">`;
     html += `<div class="exchange-header">
       <span class="exchange-name">${ex.exchange}</span>
-      ${isBest ? '<span class="best-badge">★ Best</span>' : ''}
+      <div style="display:flex;align-items:center;gap:6px;">
+        ${jumpLabel}
+        ${isBest ? '<span class="best-badge">★ Best</span>' : ''}
+      </div>
     </div>`;
 
     if (!hasDemand) {
