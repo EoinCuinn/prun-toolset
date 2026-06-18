@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react'
+
 function Tag({ tag, label }) {
   return (
     <span title={label} style={{
@@ -14,7 +16,35 @@ const RESOURCE_TYPE_COLOURS = {
   GASEOUS: '#f7e14f',
 }
 
+function activeCogcTypes(programs) {
+  const now = Date.now()
+  return [...new Set(
+    (programs || [])
+      .filter(p => p.ProgramType && p.StartEpochMs <= now && p.EndEpochMs > now)
+      .map(p => p.ProgramType)
+  )]
+}
+
 function Sidebar({ system, planets, materials, filteredPlanetNaturalIds, onClose }) {
+  const [liveCogc, setLiveCogc] = useState({})
+
+  useEffect(() => {
+    if (!system) return
+    setLiveCogc({})
+    const surfacePlanets = planets.filter(p => p.SystemId === system.SystemId && p.Surface)
+    surfacePlanets.forEach(p => {
+      fetch(`https://rest.fnar.net/planet/${p.PlanetNaturalId}`)
+        .then(r => r.json())
+        .then(data => {
+          setLiveCogc(prev => ({
+            ...prev,
+            [p.PlanetNaturalId]: activeCogcTypes(data.COGCPrograms),
+          }))
+        })
+        .catch(() => {}) // fall back to static data on error
+    })
+  }, [system, planets])
+
   if (!system) return null
 
   const allSystemPlanets = planets.filter(p => p.SystemId === system.SystemId)
@@ -53,9 +83,11 @@ function Sidebar({ system, planets, materials, filteredPlanetNaturalIds, onClose
       </div>
 
       {systemPlanets.map(planet => {
-        const cogcTypes = planet.COGCPrograms
-          ? [...new Set(planet.COGCPrograms.map(p => p.ProgramType).filter(Boolean))]
-          : []
+        const cogcTypes = liveCogc.hasOwnProperty(planet.PlanetNaturalId)
+          ? liveCogc[planet.PlanetNaturalId]
+          : activeCogcTypes(planet.COGCPrograms)
+
+        const cogcLoading = planet.Surface && !liveCogc.hasOwnProperty(planet.PlanetNaturalId)
 
         const facilities = [
           planet.HasLocalMarket && { tag: 'LM', label: 'Local Market' },
@@ -94,7 +126,13 @@ function Sidebar({ system, planets, materials, filteredPlanetNaturalIds, onClose
                 : 'No facilities'}
             </div>
 
-            {cogcTypes.length > 0 && (
+            {cogcLoading && planet.HasChamberOfCommerce && (
+              <div style={{ color: '#4a5a7a', fontSize: '11px', marginBottom: '6px' }}>
+                COGC: <span style={{ fontStyle: 'italic' }}>loading…</span>
+              </div>
+            )}
+
+            {!cogcLoading && cogcTypes.length > 0 && (
               <div style={{ color: '#f7a84f', fontSize: '11px', marginBottom: '6px' }}>
                 COGC: {cogcTypes.join(', ')}
               </div>

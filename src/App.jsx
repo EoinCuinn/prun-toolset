@@ -33,6 +33,14 @@ function App() {
       setPlanets(planetData)
       setMaterials(materialData)
       setLoading(false)
+      const param = new URLSearchParams(window.location.search).get('system')
+      if (param) {
+        const sys = systemData.find(s =>
+          s.NaturalId.toUpperCase() === param.toUpperCase() ||
+          s.Name?.toUpperCase() === param.toUpperCase()
+        )
+        if (sys) { setSelectedSystem(sys); setHighlightedSystem(sys) }
+      }
     })
   }, [])
 
@@ -63,7 +71,10 @@ function App() {
 
       let cogcOk = true
       if (hasCogc) {
-        const types = (p.COGCPrograms || []).map(c => c.ProgramType).filter(Boolean)
+        const now = Date.now()
+        const types = (p.COGCPrograms || [])
+          .filter(c => c.ProgramType && c.StartEpochMs <= now && c.EndEpochMs > now)
+          .map(c => c.ProgramType)
         cogcOk = activeCogc.some(f => types.includes(f))
       }
 

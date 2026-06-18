@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Planet Compare — PRUN Tools</title>
+<script src="/config.js"></script>
+<style>
+:root {
+  --bg:#0f1117; --bg2:#1a1f2e; --bg3:#0d1018;
+  --border:#1e2a3f; --accent:#4f8ef7; --accent2:#3a6fd0;
+  --text1:#c8d0e0; --text2:#8090a8; --text3:#4a5a7a;
+  --mono:'Courier New',monospace;
+  --green:#4f9f70; --amber:#c0a840; --red:#c05050;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text1);font-family:var(--mono);font-size:13px;min-height:100vh}
+.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:10}
+.title{color:var(--accent);font-size:14px;letter-spacing:.1em;margin-right:8px;white-space:nowrap}
+label{color:var(--text3);font-size:10px;letter-spacing:.08em}
+.ig{display:flex;align-items:center;gap:5px}
+input,select{background:var(--bg3);border:1px solid var(--border);color:var(--text1);font-family:var(--mono);font-size:12px;padding:5px 8px;border-radius:3px;outline:none}
+input:focus,select:focus{border-color:var(--accent)}
+input[type=number]{width:58px}
+input[list]{width:110px}
+.btn{background:transparent;border:1px solid var(--accent);color:var(--accent);font-family:var(--mono);font-size:11px;letter-spacing:.08em;padding:5px 14px;border-radius:3px;cursor:pointer}
+.btn:hover{background:var(--accent);color:#0f1117}
+.btn:disabled{opacity:.4;cursor:default}
+.home{position:fixed;top:10px;right:16px;z-index:20;text-decoration:none}
+.status{padding:16px;color:var(--text3);font-size:12px}
+.status.loading{color:var(--accent)}
+.layout{display:flex;height:calc(100vh - 52px)}
+.sidebar{width:290px;min-width:250px;border-right:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column}
+.sh{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text3);font-size:10px;letter-spacing:.08em;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.cogcpills{padding:6px 10px;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:4px;flex-shrink:0}
+.cpill{background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer;letter-spacing:.04em}
+.cpill:hover{border-color:var(--amber);color:var(--amber)}
+.cpill.on{border-color:var(--amber);color:var(--amber);background:rgba(192,168,64,.1)}
+#pl{overflow-y:auto;flex:1}
+.sbtns{display:flex;gap:3px}
+.sbtn{background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:3px;cursor:pointer}
+.sbtn:hover,.sbtn.on{border-color:var(--accent);color:var(--accent)}
+.pitem{padding:9px 12px;border-bottom:1px solid #111620;cursor:pointer}
+.pitem:hover{background:var(--bg2)}
+.pitem.sel{background:rgba(79,142,247,.08);border-left:3px solid var(--accent);padding-left:9px}
+.pname{font-size:12px;margin-bottom:3px;display:flex;justify-content:space-between;align-items:center}
+.psub{color:var(--text3);font-size:10px;display:flex;gap:6px;flex-wrap:wrap}
+.area{flex:1;overflow:auto;padding:14px}
+.empty{display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);flex-direction:column;gap:8px;text-align:center}
+table.ct{border-collapse:collapse;width:100%;min-width:500px}
+table.ct th,table.ct td{border:1px solid var(--border);padding:6px 10px;text-align:left;vertical-align:top;font-size:12px}
+table.ct th{background:var(--bg2);color:var(--accent);font-size:11px;letter-spacing:.04em}
+table.ct .rl{color:var(--text3);font-size:10px;letter-spacing:.07em;background:var(--bg2);white-space:nowrap;min-width:120px}
+table.ct .sh2{background:#0d1018;color:var(--text3);font-size:9px;letter-spacing:.12em;padding:3px 10px}
+.rbar{display:flex;align-items:center;gap:5px}
+.rb{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden;min-width:50px}
+.rbf{height:100%;border-radius:2px}
+.tag{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px}
+.tg{background:rgba(79,159,112,.15);color:#4f9f70;border:1px solid rgba(79,159,112,.3)}
+.ta{background:rgba(192,168,64,.15);color:#c0a840;border:1px solid rgba(192,168,64,.3)}
+.tr{background:rgba(192,80,80,.15);color:#c05050;border:1px solid rgba(192,80,80,.3)}
+.tb{background:rgba(79,142,247,.12);color:#4f8ef7;border:1px solid rgba(79,142,247,.3)}
+</style>
+</head>
+<body>
+
+<a href="/home.html" class="home btn">⌂ HOME</a>
+
+<div class="header">
+  <span class="title">◈ PLANET COMPARE</span>
+  <div class="ig">
+    <button class="sbtn on" id="mProd" onclick="setMode('produce')" style="font-size:10px;padding:3px 8px">PRODUCE</button>
+    <button class="sbtn" id="mRes" onclick="setMode('resources')" style="font-size:10px;padding:3px 8px">RESOURCES</button>
+    <input id="ri" list="rl" placeholder="RAT, DW, HAL…" autocomplete="off" style="width:140px" onkeydown="if(event.key==='Enter')doSearch()">
+    <datalist id="rl"></datalist>
+  </div>
+  <div class="ig"><label>BUILDINGS</label><input id="nb" type="number" value="4" min="1" max="20" oninput="renderCompare()"></div>
+  <div class="ig"><label>CX</label>
+    <select id="cx" onchange="renderCompare()">
+      <option>IC1</option><option>NC1</option><option>NC2</option><option>CI1</option><option>CI2</option>
+    </select>
+  </div>
+  <button class="btn" id="sb" onclick="doSearch()" disabled>SEARCH</button>
+  <span id="rinfo" style="color:var(--text3);font-size:10px"></span>
+</div>
+
+<div id="sts" class="status loading">Loading game data…</div>
+
+<div class="layout" id="lay" style="display:none">
+  <div class="sidebar">
+    <div class="sh">
+      <span id="rc">—</span>
+      <div class="sbtns">
+        <button class="sbtn on" id="sj" onclick="setSort('j')">JUMPS</button>
+        <button class="sbtn" id="sc" onclick="setSort('c')">COGC</button>
+        <button class="sbtn" id="sr" onclick="setSort('r')">RES</button>
+        <button class="sbtn" id="sfert" onclick="toggleFertile()" style="border-color:#2a4a2a;color:#4a5a7a">FERTILE</button>
+      </div>
+    </div>
+    <div class="cogcpills" id="cogcpills" style="display:none"></div>
+    <div id="pl"></div>
+  </div>
+  <div class="area">
+    <div class="empty" id="em"><div>Select planets from the list to compare</div><div style="font-size:11px">Up to 4 at once</div></div>
+    <div id="ct" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+const PP = 'https://api.prunplanner.org';
+const FIO = 'https://rest.fnar.net';
+const PPK = window.PRUNPLANNER_API_KEY || '';
+const FIOK = window.FIO_API_KEY || '';
+const HRT = 'VH-331';
+
+// Planet-extractable resource tickers
+const EXT = new Set([
+  'H2O','O','N','CO','CO2','H','HE','HE3','NE','AR','F','CL','NH3','CH4','I','S',
+  'FEO','SI','ALO','CU','TI','TIO','MNO','MGO','NI','ZNO','GEO','CRO','PTO','BO',
+  'LIO','BEO','VO','WO','MOO','SNO','ZRO','HAL','LST','AEN','TCO','GAL','AUO',
+]);
+
+// Resource → extractor building mapping
+const EXTRACTOR = {
+  // RIG: subsurface liquids
+  H2O:'RIG',
+  // COL: atmospheric gases
+  O:'COL',N:'COL',CO:'COL',CO2:'COL',H:'COL',HE:'COL',HE3:'COL',
+  NE:'COL',AR:'COL',F:'COL',CL:'COL',NH3:'COL',CH4:'COL',I:'COL',S:'COL',
+  // EXT: solid surface/subsurface ores
+  FEO:'EXT',SI:'EXT',ALO:'EXT',CU:'EXT',TI:'EXT',TIO:'EXT',
+  MNO:'EXT',MGO:'EXT',NI:'EXT',ZNO:'EXT',GEO:'EXT',CRO:'EXT',
+  PTO:'EXT',BO:'EXT',LIO:'EXT',BEO:'EXT',VO:'EXT',WO:'EXT',
+  MOO:'EXT',SNO:'EXT',ZRO:'EXT',HAL:'EXT',LST:'EXT',AEN:'EXT',
+  TCO:'EXT',GAL:'EXT',AUO:'EXT',
+};
+
+// Worker supply (per 100 workers per day)
+const CONS = {
+  pioneer:    {DW:4,RAT:4,OVE:.5,EXO:.5,PT:.5},
+  settler:    {DW:5,RAT:4,OVE:.5,COF:1,MED:1,HMS:.5},
+  technician: {DW:5,RAT:2.5,MED:1,HMS:.5,SCN:.5,ALE:1},
+  engineer:   {DW:5,OVE:.5,MED:1,HMS:.5,SCN:.5,ALE:1,GIN:.5,VG:1},
+  scientist:  {DW:5,MED:2,HMS:1,SCN:1,ALE:1,GIN:1,VG:1,NST:.5},
+};
+
+let _bld={}, _rec=[], _graph={}, _sysById={}, _sysByKey={}, _prices={};
+let _results=[], _sort='j', _sel=[], _pdata={}, _mats=[], _bldTicker=null;
+let _cogcFilter=new Set(), _fertileFilter=false, _mode='produce';
+let _plotData={}; // naturalId → { count, cap }
+
+async function ppGet(path) {
+  const r = await fetch(PP+path, {headers:{'Authorization':`Api-Key ${PPK}`}});
+  if (!r.ok) throw new Error(`PP ${path} → ${r.status}`);
+  return r.json();
+}
+
+async function init() {
+  try {
+    await Promise.all([loadBld(), loadRec(), loadGraph(), loadPrices()]);
+    buildAC();
+    document.getElementById('sts').style.display='none';
+    document.getElementById('lay').style.display='flex';
+    document.getElementById('sb').disabled=false;
+  } catch(e) {
+    document.getElementById('sts').textContent='Error: '+e.message;
+    document.getElementById('sts').className='status';
+    console.error(e);
+  }
+}
+
+async function loadBld() {
+  const d = await ppGet('/data/buildings/');
+  d.forEach(b => { _bld[b.building_ticker]=b; });
+}
+
+async function loadRec() {
+  _rec = await ppGet('/data/recipes/');
+}
+
+async function loadGraph() {
+  const [u,g] = await Promise.all([
+    fetch('/prun_universe_data.json').then(r=>r.json()),
+    fetch('/gateways.json').then(r=>r.json()),
+  ]);
+  u.forEach(s => {
+    _sysById[s.SystemId]=s;
+    _sysByKey[s.NaturalId.toUpperCase()]=s.SystemId;
+    if (s.Name) _sysByKey[s.Name.toUpperCase()]=s.SystemId;
+    _graph[s.SystemId]=(s.Connections||[]).map(c=>c.ConnectingId);
+  });
+  g.forEach(gw => {
+    const si=_sysByKey[gw.source.slice(0,-1).toUpperCase()];
+    const ti=_sysByKey[gw.target.slice(0,-1).toUpperCase()];
+    if (si&&ti&&!_graph[si].includes(ti)) _graph[si].push(ti);
+  });
+}
+
+async function loadPrices() {
+  const r = await fetch(`${FIO}/exchange/full`, {headers:{'Authorization':FIOK}});
+  if (!r.ok) throw new Error('FIO prices');
+  const d = await r.json();
+  d.forEach(x => {
+    if (!_prices[x.MaterialTicker]) _prices[x.MaterialTicker]={};
+    _prices[x.MaterialTicker][x.ExchangeCode] = x.Ask>0 ? x.Ask : (x.Bid||0);
+  });
+}
+
+function px(ticker, cx) { return (_prices[ticker]||{})[cx]||0; }
+
+function buildAC() {
+  const dl=document.getElementById('rl');
+  dl.innerHTML='';
+  if (_mode==='resources') {
+    [...EXT].sort().forEach(t=>{
+      const opt=document.createElement('option');
+      opt.value=t; dl.appendChild(opt);
+    });
+  } else {
+    const seen=new Set();
+    _rec.forEach(r=>r.outputs.forEach(o=>{
+      if (!seen.has(o.material_ticker)) {
+        seen.add(o.material_ticker);
+        const opt=document.createElement('option');
+        opt.value=o.material_ticker; dl.appendChild(opt);
+      }
+    }));
+  }
+}
+
+function bfs(fromId, toId) {
+  if (!fromId||!toId||fromId===toId) return 0;
+  const vis=new Set([fromId]), q=[[fromId,0]];
+  while (q.length) {
+    const [cur,d]=q.shift();
+    for (const nx of (_graph[cur]||[])) {
+      if (nx===toId) return d+1;
+      if (!vis.has(nx)) { vis.add(nx); q.push([nx,d+1]); }
+    }
+  }
+  return 99;
+}
+
+async function doSearch() {
+  const val=document.getElementById('ri').value.trim().toUpperCase();
+  if (!val) return;
+
+  const infoEl=document.getElementById('rinfo');
+
+  if (_mode==='resources') {
+    _mats=val.split(/[\s,]+/).map(t=>t.trim()).filter(t=>t&&EXT.has(t));
+    _bldTicker=null;
+    if (!_mats.length) { alert('No valid extractable resource tickers found.\nExample: H2O, FEO, SI'); return; }
+    if (_mats.length===1) {
+      _bldTicker=EXTRACTOR[_mats[0]]||null;
+    }
+    infoEl.textContent=`resources: ${_mats.join(', ')}${_bldTicker?' · extractor: '+_bldTicker:''}`;
+  } else {
+    const recipes=_rec.filter(r=>r.outputs.some(o=>o.material_ticker===val));
+    if (!recipes.length) { alert('No recipe found for '+val); return; }
+    const recipe=recipes[0];
+    _bldTicker=recipe.building_ticker;
+    _mats=recipe.inputs.map(i=>i.material_ticker).filter(t=>EXT.has(t));
+    infoEl.textContent=`${_bldTicker} · ${recipe.time_ms/1000/60|0}min · inputs: ${recipe.inputs.map(i=>`${i.material_amount}×${i.material_ticker}`).join(', ')}`;
+  }
+
+  const btn=document.getElementById('sb');
+  btn.disabled=true; btn.textContent='SEARCHING…';
+
+  try {
+    const body={
+      materials: _mats,
+      cogc_programs:[],
+      must_be_fertile:false,
+      environment_rocky:false,environment_gaseous:false,
+      environment_low_gravity:false,environment_high_gravity:false,
+      environment_low_pressure:false,environment_high_pressure:false,
+      environment_low_temperature:false,environment_high_temperature:false,
+      must_have_localmarket:false,must_have_chamberofcommerce:false,
+      must_have_warehouse:false,must_have_administrationcenter:false,must_have_shipyard:false,
+    };
+    const r=await fetch(`${PP}/data/planets/search/`, {
+      method:'POST',
+      headers:{'Authorization':`Api-Key ${PPK}`,'Content-Type':'application/json'},
+      body:JSON.stringify(body),
+    });
+    if (!r.ok) throw new Error('Search '+r.status);
+    _results=await r.json();
+
+    const hrtId=_sysByKey[HRT];
+    _results.forEach(p => {
+      p._jumps = bfs(p.system_id, hrtId);
+      p._hasAll = _mats.every(m=>(p.resources||[]).some(r=>r.material_ticker===m));
+      _pdata[p.planet_natural_id]=p;
+    });
+
+    _sel=[];
+    _cogcFilter=new Set();
+    _fertileFilter=false;
+    const fertBtn=document.getElementById('sfert');
+    fertBtn.style.borderColor='#2a4a2a'; fertBtn.style.color='#4a5a7a';
+    renderCogcPills();
+    renderList();
+    renderCompare();
+  } catch(e) {
+    alert('Search error: '+e.message);
+  } finally {
+    btn.disabled=false; btn.textContent='SEARCH';
+  }
+}
+
+function setMode(m) {
+  _mode=m;
+  document.getElementById('mProd').classList.toggle('on', m==='produce');
+  document.getElementById('mRes').classList.toggle('on', m==='resources');
+  const inp=document.getElementById('ri');
+  inp.placeholder = m==='produce' ? 'RAT, DW, HAL…' : 'H2O, FEO, SI…';
+  inp.value='';
+  document.getElementById('rinfo').textContent='';
+  buildAC();
+}
+
+function toggleFertile() {
+  _fertileFilter=!_fertileFilter;
+  const btn=document.getElementById('sfert');
+  btn.style.borderColor=_fertileFilter?'var(--green)':'#2a4a2a';
+  btn.style.color=_fertileFilter?'var(--green)':'#4a5a7a';
+  renderList();
+}
+
+function cogcLabel(t) { return t.replace(/^ADVERTISING_/,'').replace(/_/g,' '); }
+
+function toggleCogc(type) {
+  if (_cogcFilter.has(type)) _cogcFilter.delete(type);
+  else _cogcFilter.add(type);
+  renderCogcPills();
+  renderList();
+}
+
+function renderCogcPills() {
+  const el=document.getElementById('cogcpills');
+  const types=[...new Set(_results.map(p=>p.active_cogc_program_type).filter(Boolean))].sort();
+  if (!types.length) { el.style.display='none'; return; }
+  el.style.display='flex';
+  el.innerHTML=types.map(t=>
+    `<button class="cpill${_cogcFilter.has(t)?' on':''}" onclick="toggleCogc('${t}')">${cogcLabel(t)}</button>`
+  ).join('');
+}
+
+function setSort(mode) {
+  _sort=mode;
+  document.querySelectorAll('.sbtn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('s'+mode).classList.add('on');
+  renderList();
+}
+
+function renderList() {
+  const filtered=_results.filter(p=>
+    (!_cogcFilter.size || _cogcFilter.has(p.active_cogc_program_type)) &&
+    (!_fertileFilter || (p.fertility||0) > 0)
+  );
+  const sorted=[...filtered].sort((a,b)=>{
+    if (_sort==='j') return a._jumps-b._jumps;
+    if (_sort==='c') return (a.active_cogc_program_type?0:1)-(b.active_cogc_program_type?0:1)||a._jumps-b._jumps;
+    if (_sort==='r') {
+      const avgRes=p=>_mats.length
+        ? _mats.reduce((s,m)=>{const r=(p.resources||[]).find(x=>x.material_ticker===m);return s+(r?r.factor||0:0);},0)/_mats.length
+        : 0;
+      return avgRes(b)-avgRes(a)||a._jumps-b._jumps;
+    }
+    return 0;
+  });
+
+  document.getElementById('rc').textContent=`${sorted.length} PLANETS · ${_sel.length}/4`;
+
+  document.getElementById('pl').innerHTML=sorted.map(p=>{
+    const isSel=_sel.includes(p.planet_natural_id);
+    const jc=p._jumps<=3?'#4f9f70':p._jumps<=6?'#c0a840':'#c05050';
+    const resChips=_mats.map(m=>{
+      const res=(p.resources||[]).find(r=>r.material_ticker===m);
+      return res
+        ? `<span style="color:#4f9f70">${m}${Math.round((res.factor||0)*100)}%</span>`
+        : `<span style="color:#4a5a7a">✗${m}</span>`;
+    }).join(' ');
+    const cogc=p.active_cogc_program_type
+      ? `<span style="color:#c0a840">${p.active_cogc_program_type.replace(/_/g,' ')}</span>`:'';
+    const pd=_plotData[p.planet_natural_id];
+    const fullBadge=(pd&&pd.count>=pd.cap)?'<span style="color:#c05050;font-size:10px;font-weight:bold">⛔ FULL</span>':'';
+    return `<div class="pitem${isSel?' sel':''}" onclick="togglePlanet('${p.planet_natural_id}')">
+      <div class="pname">
+        <span style="color:${isSel?'var(--accent)':'var(--text1)'}">${p.planet_name||p.planet_natural_id} <span style="color:var(--text3);font-size:10px">${p.planet_natural_id}</span></span>
+        ${isSel?'<span style="color:var(--accent);font-size:10px">✓</span>':''}${fullBadge}
+      </div>
+      <div class="psub">
+        <span style="color:${jc}">${p._jumps}j</span>
+        ${cogc?`<span>·</span>${cogc}`:''}
+        ${resChips?`<span>·</span><span>${resChips}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function fetchPlotData(id) {
+  if (_plotData[id] !== undefined) return;
+  _plotData[id] = null; // loading sentinel
+  try {
+    const [planet, sites] = await Promise.all([
+      fetch(`${FIO}/planet/${id}`).then(r=>r.json()),
+      fetch(`${FIO}/planet/sites/${id}`, {headers:{'Authorization':FIOK}}).then(r=>r.json()),
+    ]);
+    const cap = Math.floor(208 + (planet.Radius||0) / 1000 / 36.1);
+    const count = Array.isArray(sites) ? sites.length : 0;
+    _plotData[id] = { count, cap };
+  } catch(e) { console.error('plot data', e); _plotData[id] = null; }
+  renderCompare();
+  renderList();
+}
+
+async function togglePlanet(id) {
+  if (_sel.includes(id)) {
+    _sel=_sel.filter(x=>x!==id);
+  } else {
+    if (_sel.length>=4) return;
+    if (!_pdata[id]) {
+      try { _pdata[id]=await ppGet(`/data/planet/${id}/`); }
+      catch(e) { console.error(e); return; }
+    }
+    _sel.push(id);
+    fetchPlotData(id); // fire and forget — rerenders when done
+  }
+  renderList();
+  renderCompare();
+}
+
+function renderCompare() {
+  const em=document.getElementById('em'), ct=document.getElementById('ct');
+  if (!_sel.length) { em.style.display='flex'; ct.style.display='none'; return; }
+  em.style.display='none'; ct.style.display='block';
+
+  const cx=document.getElementById('cx').value;
+  const nb=parseInt(document.getElementById('nb').value)||4;
+  const bld=_bld[_bldTicker];
+  const planets=_sel.map(id=>_pdata[id]).filter(Boolean);
+  const hrtId=_sysByKey[HRT];
+
+  const fmtK=v=>v>0?Math.round(v).toLocaleString()+' ICA':'—';
+  const best=(arr,fn)=>{
+    const vals=arr.map(fn).filter(v=>v>0);
+    return vals.length?Math.min(...vals):null;
+  };
+
+  function buildCost() {
+    if (!bld) return planets.map(()=>0);
+    const perBld=bld.costs.reduce((s,c)=>s+c.material_amount*px(c.material_ticker,cx),0);
+    return planets.map(()=>perBld*nb);
+  }
+
+  function supplyCost() {
+    if (!bld) return planets.map(()=>0);
+    const workers={
+      pioneer:(bld.pioneers||0)*nb, settler:(bld.settlers||0)*nb,
+      technician:(bld.technicians||0)*nb, engineer:(bld.engineers||0)*nb,
+      scientist:(bld.scientists||0)*nb,
+    };
+    let total=0;
+    Object.entries(workers).forEach(([tier,cnt])=>{
+      if (!cnt) return;
+      Object.entries(CONS[tier]).forEach(([mat,rate])=>{
+        total+=(cnt/100)*rate*30*px(mat,cx);
+      });
+    });
+    return planets.map(()=>total);
+  }
+
+  function supportCost() {
+    if (!bld) return planets.map(()=>0);
+    const HAB = {pioneer:'HB1',settler:'HB2',technician:'HB3',engineer:'HB4',scientist:'HB5'};
+    const tiers = {pioneer:(bld.pioneers||0)*nb, settler:(bld.settlers||0)*nb,
+      technician:(bld.technicians||0)*nb, engineer:(bld.engineers||0)*nb, scientist:(bld.scientists||0)*nb};
+    let cost=0;
+    const cm=_bld['CM'];
+    if (cm) cost+=cm.costs.reduce((s,c)=>s+c.material_amount*px(c.material_ticker,cx),0);
+    Object.entries(tiers).forEach(([tier,cnt])=>{
+      if (!cnt) return;
+      const hb=_bld[HAB[tier]];
+      if (!hb) return;
+      cost+=hb.costs.reduce((s,c)=>s+c.material_amount*px(c.material_ticker,cx),0)*Math.ceil(cnt/100);
+    });
+    return planets.map(()=>cost);
+  }
+
+  const builds=buildCost(), supports=supportCost(), supplies=supplyCost();
+  const totals=builds.map((b,i)=>b+supports[i]);
+  const repairs=totals.map(b=>b*0.03);
+  const minB=best(planets,(_,i)=>totals[i]);
+  const minS=best(planets,(_,i)=>supplies[i]);
+
+  const col='min-width:160px;max-width:220px';
+  let h=`<table class="ct"><thead><tr>
+    <th class="rl"></th>
+    ${planets.map(p=>`<th style="${col}">
+      <div style="font-size:13px">${p.planet_name||p.planet_natural_id}</div>
+      <div style="color:var(--text3);font-size:10px;font-weight:normal">${p.planet_natural_id}</div>
+      <div style="margin-top:4px"><button onclick="togglePlanet('${p.planet_natural_id}')" style="background:transparent;border:1px solid #4a5a7a;color:#4a5a7a;font-size:9px;padding:1px 6px;border-radius:2px;cursor:pointer;font-family:var(--mono)">✕ REMOVE</button></div>
+    </th>`).join('')}
+  </tr></thead><tbody>`;
+
+  // ACCESS
+  h+=row0('ACCESS',planets.length);
+  h+=row('PLOTS',planets.map(p=>{
+    const pd=_plotData[p.planet_natural_id];
+    if (pd === undefined) return '<span style="color:var(--text3)">—</span>';
+    if (pd === null) return '<span style="color:var(--text3);font-style:italic">loading…</span>';
+    const {count,cap}=pd;
+    const full=count>=cap;
+    const pct=count/cap;
+    const c=full?'#c05050':pct>=0.9?'#c0a840':'#4f9f70';
+    return full
+      ? `<span style="color:${c}">⛔ FULL (${count}/${cap})</span>`
+      : `<span style="color:${c}">${count} / ${cap} <span style="color:var(--text3);font-size:10px">(${cap-count} free)</span></span>`;
+  }));
+  h+=row('JUMPS TO HRT',planets.map(p=>{
+    const j=bfs(p.system_id,hrtId);
+    const c=j<=3?'#4f9f70':j<=6?'#c0a840':'#c05050';
+    return `<span style="color:${c}">${j===99?'?':j}</span>`;
+  }));
+  h+=row('FACTION',planets.map(p=>`<span style="color:var(--text2)">${p.faction_name||'—'}</span>`));
+  h+=row('FACILITIES',planets.map(p=>{
+    const t=[];
+    if(p.has_localmarket) t.push('<span class="tag tb">LM</span>');
+    if(p.has_chamberofcommerce) t.push('<span class="tag tb">CoC</span>');
+    if(p.has_warehouse) t.push('<span class="tag tb">WH</span>');
+    if(p.has_shipyard) t.push('<span class="tag tb">SY</span>');
+    return t.join(' ')||'<span style="color:var(--text3)">—</span>';
+  }));
+
+  // COGC
+  h+=row0('COGC',planets.length);
+  h+=row('ACTIVE COGC',planets.map(p=>{
+    const c=p.active_cogc_program_type;
+    return c?`<span class="tag ta">${c.replace(/_/g,' ')}</span>`:'<span style="color:var(--text3)">—</span>';
+  }));
+
+  // RESOURCES
+  if (_mats.length) {
+    h+=row0(_mode==='resources'
+      ? `RESOURCES — ${_bldTicker?_bldTicker+' extraction':'extraction'}`
+      : `RESOURCES — ${_bldTicker||''} inputs`,planets.length);
+    _mats.forEach(mat=>{
+      h+=row(mat,planets.map(p=>{
+        const res=(p.resources||[]).find(r=>r.material_ticker===mat);
+        if (!res) return '<span style="color:#4a5a7a">✗ absent</span>';
+        const pct=Math.round((res.factor||0)*100);
+        const c=pct>=75?'#4f9f70':pct>=40?'#c0a840':'#c05050';
+        const daily=res.daily_extraction?`<div style="color:var(--text3);font-size:10px">${res.daily_extraction.toFixed(1)}/d</div>`:'';
+        return `<div class="rbar"><div class="rb"><div class="rbf" style="width:${pct}%;background:${c}"></div></div><span style="color:${c};font-size:10px;min-width:28px;text-align:right">${pct}%</span></div>${daily}`;
+      }));
+    });
+    // Other notable resources on planet
+  }
+
+  // CONDITIONS
+  h+=row0('CONDITIONS',planets.length);
+  const condRows=[
+    {lbl:'GRAVITY',k:'gravity',fmt:v=>v!=null?`${v.toFixed(2)}g`:'—',c:v=>v==null?'#4a5a7a':(v<0.25||v>2.5)?'#c05050':(v<0.4||v>2.0)?'#c0a840':'#4f9f70'},
+    {lbl:'TEMPERATURE',k:'temperature',fmt:v=>v!=null?`${Math.round(v)}°C`:'—',c:v=>v==null?'#4a5a7a':(v<-25||v>75)?'#c05050':'#4f9f70'},
+    {lbl:'PRESSURE',k:'pressure',fmt:v=>v!=null?`${v.toFixed(2)} atm`:'—',c:v=>v==null?'#4a5a7a':(v<0.25||v>2.0)?'#c05050':'#4f9f70'},
+    {lbl:'FERTILE',k:'fertility',fmt:v=>v>0?'✓ YES':'✗ NO',c:v=>v>0?'#4f9f70':'#4a5a7a'},
+    {lbl:'SURFACE',k:'surface',fmt:v=>v?'Rocky':'Gaseous',c:()=>'#8090a8'},
+  ];
+  condRows.forEach(({lbl,k,fmt,c})=>{
+    h+=row(lbl,planets.map(p=>`<span style="color:${c(p[k])}">${fmt(p[k])}</span>`));
+  });
+
+  // COSTS
+  if (bld) {
+    h+=row0(`COSTS · ${nb}× ${_bldTicker} + CM + habitation · ${cx}`,planets.length);
+    h+=row('PRODUCTION BUILD',builds.map(v=>`<span style="color:var(--text2)">${fmtK(v)}</span>`));
+    h+=row('SUPPORT BUILD',supports.map(v=>`<span style="color:var(--text2)">${fmtK(v)}</span>`));
+    h+=row('TOTAL BUILD',totals.map((v,i)=>`<span style="color:${v===minB?'#4f9f70':'var(--text1)'};font-weight:bold">${fmtK(v)}</span>`));
+    h+=row('30D SUPPLY',supplies.map((v,i)=>`<span style="color:${v===minS?'#4f9f70':'var(--text1)'}">${fmtK(v)}</span>`));
+    h+=row('EST REPAIR/MO',repairs.map(v=>`<span style="color:var(--text2)">${fmtK(v)}</span>`));
+
+    // Workers
+    const wtiers=[['pioneers','PIONEERS'],['settlers','SETTLERS'],['technicians','TECHNICIANS'],['engineers','ENGINEERS'],['scientists','SCIENTISTS']];
+    const workerRows=wtiers.filter(([k])=>(bld[k]||0)>0);
+    if (workerRows.length) {
+      h+=row0(`WORKERS / ${nb}× ${_bldTicker}`,planets.length);
+      workerRows.forEach(([k,lbl])=>{
+        const cnt=(bld[k]||0)*nb;
+        h+=row(lbl,planets.map(()=>`<span style="color:var(--text2)">${cnt}</span>`));
+      });
+    }
+  }
+
+  // LINKS
+  h+=row0('LINKS',planets.length);
+  h+=row('PRUNPLANNER',planets.map(p=>`<a href="https://prunplanner.org/plan/${p.planet_natural_id}" target="_blank" style="color:var(--accent)">Open →</a>`));
+  h+=row('STAR MAP',planets.map(p=>{
+    const sysId=(_sysById[p.system_id]||{}).NaturalId||p.planet_natural_id.slice(0,-1);
+    return `<a href="/?system=${sysId}" target="_blank" style="color:var(--accent)">Open →</a>`;
+  }));
+
+  h+='</tbody></table>';
+  ct.innerHTML=h;
+}
+
+function row0(label,n) {
+  return `<tr><td colspan="${n+1}" class="sh2">${label}</td></tr>`;
+}
+function row(label,cells) {
+  return `<tr><td class="rl">${label}</td>${cells.map(c=>`<td>${c}</td>`).join('')}</tr>`;
+}
+
+init();
+</script>
+</body>
+</html>

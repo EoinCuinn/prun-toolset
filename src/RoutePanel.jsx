@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import dijkstra from 'dijkstrajs'
 
 function RouteSearchBox({ label, systems, planets, onSelect, onClear }) {
@@ -112,6 +112,20 @@ function RoutePanel({ systems, planets, onClose, onRouteChange }) {
   const [destination, setDestination] = useState(null)
   const [result, setResult] = useState(null)
   const [clearKey, setClearKey] = useState(0)
+  const gatewayEdgesRef = useRef(new Set())
+
+  // Load gateways once on mount
+  useEffect(() => {
+    fetch('/gateways.json').then(r => r.json()).then(gateways => {
+      const natIdToSysId = {}
+      systems.forEach(s => { natIdToSysId[s.NaturalId] = s.SystemId })
+      gateways.forEach(g => {
+        const srcId = natIdToSysId[g.source.slice(0, -1).toUpperCase()]
+        const tgtId = natIdToSysId[g.target.slice(0, -1).toUpperCase()]
+        if (srcId && tgtId) gatewayEdgesRef.current.add(srcId + '→' + tgtId)
+      })
+    })
+  }, [])
 
   useEffect(() => {
     if (!origin || !destination) {
@@ -125,7 +139,7 @@ function RoutePanel({ systems, planets, onClose, onRouteChange }) {
       return
     }
 
-    // Build adjacency graph
+    // Build adjacency graph including gateways
     const graph = {}
     systems.forEach(s => {
       graph[s.SystemId] = {}
@@ -133,10 +147,15 @@ function RoutePanel({ systems, planets, onClose, onRouteChange }) {
         graph[s.SystemId][c.ConnectingId] = 1
       })
     })
+    gatewayEdgesRef.current.forEach(edge => {
+      const [src, tgt] = edge.split('→')
+      if (graph[src]) graph[src][tgt] = 1
+    })
 
     try {
       const path = dijkstra.find_path(graph, origin.SystemId, destination.SystemId)
-      setResult({ path, jumps: path.length - 1 })
+      const usesGateway = path.some((id, i) => i > 0 && gatewayEdgesRef.current.has(path[i-1] + '→' + id))
+      setResult({ path, jumps: path.length - 1, usesGateway })
       onRouteChange(path)
     } catch {
       setResult({ error: 'No route found between these systems.' })
@@ -177,6 +196,9 @@ function RoutePanel({ systems, planets, onClose, onRouteChange }) {
           color: '#4f8ef7', textAlign: 'center', letterSpacing: '0.05em',
         }}>
           {result.jumps} jump{result.jumps !== 1 ? 's' : ''}
+          {result.usesGateway && (
+            <span style={{ color: '#a050ff', marginLeft: '8px', fontSize: '10px' }}>via gateway</span>
+          )}
         </div>
       )}
 

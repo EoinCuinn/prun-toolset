@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Base Repair — PrUn Tools</title>
+<script src="/config.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700&display=swap');
 
@@ -617,17 +618,11 @@ let currentFilter = 'all';
 
 // ── Boot ──────────────────────────────────────────────────────────────────
 async function init() {
-  USER   = (document.getElementById('inputApikey').value.trim() ? document.getElementById('inputUsername').value.trim() : localStorage.getItem('prun_username')) || '';
-  APIKEY = (document.getElementById('inputApikey').value.trim()) || localStorage.getItem('prun_apikey') || '';
-  if (document.getElementById('inputApikey').value.trim()) {
-    localStorage.setItem('prun_apikey',   APIKEY);
-    localStorage.setItem('prun_username', USER);
-  } else {
-    USER   = localStorage.getItem('prun_username') || '';
-    APIKEY = localStorage.getItem('prun_apikey')   || '';
-    document.getElementById('inputApikey').value   = APIKEY;
-    document.getElementById('inputUsername').value = USER;
-  }
+  APIKEY = document.getElementById('inputApikey').value.trim() || '';
+  USER   = document.getElementById('inputUsername').value.trim() || '';
+
+  if (APIKEY) localStorage.setItem('prun_apikey', APIKEY);
+  if (USER)   localStorage.setItem('prun_username', USER);
 
   if (!USER || !APIKEY) {
     setStatus('err', 'Enter your FIO API key and username above, then click Refresh.');
@@ -723,31 +718,36 @@ async function loadBase(idx) {
 }
 
 function findStorageForPlanet(planetId) {
-  // Build SiteId → PlanetName map from allSites
-  const siteMap = {};
-  allSites.forEach(s => { if (s.SiteId && s.PlanetName) siteMap[s.SiteId] = s.PlanetName; });
+  // Build SiteId → PlanetNaturalId map so we can resolve AddressableId → planet
+  const siteIdToPlanet = {};
+  const siteIdToName   = {};
+  allSites.forEach(s => {
+    if (s.SiteId && s.PlanetNaturalId) siteIdToPlanet[s.SiteId] = s.PlanetNaturalId;
+    if (s.SiteId && s.PlanetName)      siteIdToName[s.SiteId]   = s.PlanetName;
+  });
 
   const inv = {};
   allStorage.forEach(store => {
     const addr = store.AddressableId || store.PlanetId || store.NaturalId || '';
-    const type = store.Type || '';
-    if (addr === planetId || type === 'BASE' || addr.includes(planetId)) {
-      let locName = store.Name;
-      if (!locName && store.AddressableId && siteMap[store.AddressableId]) locName = siteMap[store.AddressableId];
-      if (!locName && store.StorageId && siteMap[store.StorageId]) locName = siteMap[store.StorageId];
-      if (!locName) locName = planetId;
+    // Resolve SiteId → PlanetNaturalId; fall back to addr as-is
+    const resolvedPlanet = siteIdToPlanet[addr] || addr;
+    if (resolvedPlanet !== planetId && !addr.includes(planetId)) return;
 
-      (store.StorageItems || []).forEach(item => {
-        const t = item.MaterialTicker;
-        const qty = item.MaterialAmount || 0;
-        if (!t || qty <= 0) return;
-        if (!inv[t]) inv[t] = { total: 0, locations: [] };
-        inv[t].total += qty;
-        const existing = inv[t].locations.find(l => l.name === locName);
-        if (existing) existing.qty += qty;
-        else inv[t].locations.push({ name: locName, qty });
-      });
-    }
+    let locName = store.Name;
+    if (!locName && siteIdToName[store.AddressableId]) locName = siteIdToName[store.AddressableId];
+    if (!locName && siteIdToName[store.StorageId])     locName = siteIdToName[store.StorageId];
+    if (!locName) locName = planetId;
+
+    (store.StorageItems || []).forEach(item => {
+      const t = item.MaterialTicker;
+      const qty = item.MaterialAmount || 0;
+      if (!t || qty <= 0) return;
+      if (!inv[t]) inv[t] = { total: 0, locations: [] };
+      inv[t].total += qty;
+      const existing = inv[t].locations.find(l => l.name === locName);
+      if (existing) existing.qty += qty;
+      else inv[t].locations.push({ name: locName, qty });
+    });
   });
   return inv;
 }
@@ -777,7 +777,7 @@ function renderBuildings(buildings, inventory) {
     const matChips = mats.length
       ? mats.map(m => {
           const have = (inventory[m.MaterialTicker] || {}).total || 0;
-          const need = m.Amount || 0;
+          const need = m.MaterialAmount || 0;
           const cls  = have >= need ? 'ok' : 'short';
           return `<div class="mat-chip"><span>${m.MaterialTicker}</span> ×${need} <span class="${cls}">[${have}]</span></div>`;
         }).join('')
@@ -820,7 +820,7 @@ function renderShoppingList(buildings, inventory) {
   const totals = {};
   buildings.forEach(b => {
     (b.RepairMaterials || []).forEach(m => {
-      totals[m.MaterialTicker] = (totals[m.MaterialTicker]||0) + (m.Amount||0);
+      totals[m.MaterialTicker] = (totals[m.MaterialTicker]||0) + (m.MaterialAmount||0);
     });
   });
 
@@ -855,6 +855,7 @@ function renderShoppingList(buildings, inventory) {
   }).join('');
 
   window._shortfallText = JSON.stringify(shortfallItems);
+  window._allMatsText   = JSON.stringify(keys.map(t => ({ MaterialTicker: t, Amount: totals[t] })));
 
   panel.innerHTML = `
   <div class="panel-header">
@@ -869,9 +870,10 @@ function renderShoppingList(buildings, inventory) {
     <div class="col-h right">DIFF</div>
   </div>
   <div class="panel-body">${rows}</div>
-  <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;">
+  <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;justify-content:flex-end;">
+    <button id="ignoreStorageBtn" class="copy-btn" onclick="toggleIgnoreStorage()" style="color:var(--dim);">IGNORE STORAGE</button>
     <button class="copy-btn" onclick="copyXit()" style="color:var(--accent);border-color:var(--accent);">COPY XIT</button>
-    <span class="copy-success" id="copyXitOk" style="display:none;margin-left:8px;font-size:12px;color:var(--green);font-family:var(--mono);">✓ Copied!</span>
+    <span class="copy-success" id="copyXitOk" style="display:none;font-size:12px;color:var(--green);font-family:var(--mono);">✓ Copied!</span>
   </div>`;
 
   // Render buy cards below
@@ -932,9 +934,20 @@ function copyShortfall() {
     .catch(() => toast('Copy failed'));
 }
 
+let _ignoreStorage = false;
+function toggleIgnoreStorage() {
+  _ignoreStorage = !_ignoreStorage;
+  const btn = document.getElementById('ignoreStorageBtn');
+  if (btn) {
+    btn.style.color = _ignoreStorage ? 'var(--accent)' : 'var(--dim)';
+    btn.style.borderColor = _ignoreStorage ? 'var(--accent)' : '';
+  }
+}
+
 function copyXit() {
-  if (!window._shortfallText) { toast('Nothing to buy'); return; }
-  navigator.clipboard.writeText(buildActJson(JSON.parse(window._shortfallText)))
+  const src = _ignoreStorage ? window._allMatsText : window._shortfallText;
+  if (!src) { toast('Nothing to buy'); return; }
+  navigator.clipboard.writeText(buildActJson(JSON.parse(src)))
     .then(() => {
       const el = document.getElementById('copyXitOk');
       if (el) { el.style.display = 'inline'; setTimeout(() => el.style.display = 'none', 2000); }
@@ -956,7 +969,7 @@ function renderSummary(buildings, inventory) {
   const totals = {};
   buildings.forEach(b => {
     (b.RepairMaterials || []).forEach(m => {
-      totals[m.MaterialTicker] = (totals[m.MaterialTicker]||0) + (m.Amount||0);
+      totals[m.MaterialTicker] = (totals[m.MaterialTicker]||0) + (m.MaterialAmount||0);
     });
   });
   const shortCount = Object.keys(totals).filter(t => (inventory[t]?.total||0) < totals[t]).length;
@@ -1067,8 +1080,8 @@ function toast(msg) {
 
 // ── Start ──────────────────────────────────────────────────────────────────
 // Pre-fill credential inputs from localStorage
-const _savedKey  = localStorage.getItem('prun_apikey');
-const _savedUser = localStorage.getItem('prun_username');
+const _savedKey  = localStorage.getItem('prun_apikey') || window.FIO_API_KEY || '';
+const _savedUser = localStorage.getItem('prun_username') || '';
 if (_savedKey)  document.getElementById('inputApikey').value   = _savedKey;
 if (_savedUser) document.getElementById('inputUsername').value = _savedUser;
 

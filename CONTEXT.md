@@ -28,15 +28,16 @@ Entry: `index.html` → `src/main.jsx`
 |------|---------|
 | `src/App.jsx` | Root — loads universe/planet/material data, manages all state |
 | `src/MapView.jsx` | D3 star map — renders systems, sectors, jump lines, gateways |
-| `src/Sidebar.jsx` | System detail panel — shows planets, resources, COGC info |
+| `src/Sidebar.jsx` | System detail panel — shows planets, resources, live COGC (fetched from FIO on open) |
 | `src/SearchBar.jsx` | Search systems/planets by name |
 | `src/FilterPanel.jsx` | Filter map by COGC program type, resources, and planet conditions (gravity/temp/pressure/fertile) |
-| `src/RoutePanel.jsx` | Route planner between two systems (Dijkstra pathfinding) |
+| `src/RoutePanel.jsx` | Route planner between two systems (Dijkstra pathfinding, gateway-aware) |
 
 Data files (static JSON in `/public`):
 - `prun_universe_data.json` — star systems with coords and connections
 - `planet_data.json` — planets with resources, COGC, fertility etc.
 - `material_data.json` — material ticker/ID mapping
+- `systemstars.json` — star system physics: MeteoroidDensity + Luminosity per system. Sourced from [github.com/Taiyi-94/prun_universe_map](https://github.com/Taiyi-94/prun_universe_map) (MIT licence). Not available from the FIO API.
 
 ### Tool Pages (`/public/*.html`) — all standalone vanilla HTML+JS
 | Page | Purpose |
@@ -83,11 +84,29 @@ Built from scratch using component data sourced from https://github.com/Zillatro
 
 **Shielding mechanics (in-game):**
 - Whipple: damage from STL flight through meteoroid-dense systems
-- Heat: damage from proximity to stars
-- Radiation: damage from radiation-heavy systems
-- Gravity (STS): damage from gravity anomaly systems
+- Heat: damage from high-pressure planet atmospheres (>2 atm)
+- Radiation: damage from high-luminosity stars during FTL (A/O/B type)
+- Gravity (STS): damage from landing on extreme gravity planets (<0.25g or >2g)
 - General (hull plates): all damage types
 - Values are damage reduction percentages (0.5 = 50%)
+
+**Flight Planner (top of page):**
+- Origin/destination autocomplete: system name, system code, planet name, planet code (bidirectional labels)
+- BFS pathfinding with **gateway support** — GTW hops shown in purple, regular hops numbered
+- FTL time/fuel/parsecs per hop + running totals
+- DEP/APP rows: real STL distance from `OrbitSemiMajorAxis` + time estimate (~7min + dist/900000 km/min)
+- Hazard badges per hop: RAD (luminosity-based), MET (MeteoroidDensity from systemstars.json)
+- Hazard badges on DEP/APP: HEAT (pressure >2atm), GRAV (gravity <0.25g or >2g)
+- **Damage estimation column** calibrated from in-game BTF data:
+  - FTL radiation: 0.000353% × parsecs
+  - STL meteoroid: 2.5e-9% × dist_km × density^0.625
+  - HEAT/GRAV damage not yet modelled
+- **Ship selector** (FOR SHIP buttons) — applies that ship's shields to damage, shows shielded/raw
+- Shield recommendation summary below table
+- Empirically calibrated: FP_MIN_PER_PARSEC=28.5, FP_FUEL_PER_PARSEC=14.2, FP_SCALE=12.67
+- All STL engines give identical transit time — hull G-factor is the real limiter (confirmed in-game)
+- FTL reactor type makes no difference to time/fuel (confirmed in-game)
+- Gateway FTL speed ~20 min/pc in-game vs our 28.5 estimate — gateways are faster per parsec
 
 ---
 

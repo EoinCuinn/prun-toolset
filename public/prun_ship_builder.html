@@ -165,6 +165,68 @@
     font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
     text-transform: uppercase; color: var(--text3);
   }
+
+  /* ── Flight Planner ─────────────────────────────────────────── */
+  .flight-planner {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 16px; margin-bottom: 1.5rem;
+    max-width: 860px;
+  }
+  .fp-header { margin-bottom: 10px; }
+  .fp-inputs { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .fp-input {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--text);
+    padding: 6px 10px; font-size: 12px; font-family: var(--mono);
+    outline: none; width: 200px;
+  }
+  .fp-input:focus { border-color: var(--accent); }
+  .fp-arrow { color: var(--text3); font-size: 18px; padding: 0 2px; }
+  .fp-btn {
+    background: #1e3a5f; border: 1px solid var(--accent);
+    border-radius: var(--radius); color: var(--accent);
+    padding: 6px 14px; font-size: 11px; font-family: var(--mono);
+    cursor: pointer; letter-spacing: 0.05em;
+  }
+  .fp-btn:hover { background: #25477a; }
+  .fp-summary {
+    display: flex; gap: 28px; margin-top: 14px; padding-top: 12px;
+    border-top: 1px solid var(--border); flex-wrap: wrap;
+  }
+  .fp-summary-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .fp-summary-val { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--text); margin-top: 2px; }
+  .fp-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 12px; }
+  .fp-table th {
+    text-align: left; padding: 4px 10px; color: var(--text3);
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+  .fp-table td {
+    padding: 5px 10px; border-bottom: 1px solid rgba(42,48,69,0.4);
+    font-family: var(--mono); color: var(--text2);
+  }
+  .fp-table tbody tr:last-child td { border-bottom: none; }
+  .fp-table .fp-sys { color: var(--accent); }
+  .fp-table .fp-n { text-align: right; }
+  .fp-table .fp-tfoot td {
+    border-top: 1px solid var(--border); border-bottom: none;
+    padding-top: 8px; color: var(--text); font-weight: 700;
+  }
+  .fp-note { margin-top: 8px; font-size: 11px; color: var(--text3); font-style: italic; }
+  .fp-error { color: var(--red); font-size: 12px; margin-top: 8px; }
+  .fp-hz { display: inline-flex; gap: 3px; align-items: center; }
+  .hz-heat { color: #ff8060; font-size: 10px; font-weight: 700; background: rgba(255,128,96,0.12); padding: 1px 5px; border-radius: 3px; letter-spacing: 0.04em; }
+  .hz-grav { color: #80b4ff; font-size: 10px; font-weight: 700; background: rgba(128,180,255,0.12); padding: 1px 5px; border-radius: 3px; letter-spacing: 0.04em; }
+  .hz-rad-hi { color: #f0c030; font-size: 10px; font-weight: 700; background: rgba(240,192,48,0.12); padding: 1px 5px; border-radius: 3px; letter-spacing: 0.04em; }
+  .hz-rad-md { color: #c8a040; font-size: 10px; font-weight: 700; background: rgba(200,160,64,0.10); padding: 1px 5px; border-radius: 3px; letter-spacing: 0.04em; }
+  .hz-met { color: var(--text3); font-size: 10px; font-weight: 600; background: rgba(128,128,128,0.12); padding: 1px 5px; border-radius: 3px; letter-spacing: 0.04em; }
+  .fp-shields { margin-top: 8px; font-size: 11px; color: var(--text2); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .fp-shields-label { color: var(--text3); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+  .fp-shields-none { color: var(--text3); font-size: 10px; font-style: italic; }
+  .fp-ship-sel { display: flex; align-items: center; gap: 6px; margin: 6px 0 2px; }
+  .fp-ship-btn { background: transparent; border: 1px solid #2a3a5f; border-radius: 4px; color: var(--text3); font-family: var(--mono); font-size: 10px; padding: 3px 8px; cursor: pointer; letter-spacing: 0.05em; }
+  .fp-ship-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .fp-ship-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(79,142,247,0.08); }
 </style>
 </head>
 <body>
@@ -172,6 +234,18 @@
 <a href="/home.html" style="position:fixed;top:16px;right:16px;background:#1e3a5f;color:#4f8ef7;border:1px solid #4f8ef7;border-radius:4px;padding:6px 12px;font-size:12px;font-family:monospace;text-decoration:none;letter-spacing:0.05em;z-index:100;">⌂ HOME</a>
 
 <h1>Ship Builder</h1>
+
+<div class="flight-planner">
+  <div class="fp-header"><span class="section-label">Flight Planner</span></div>
+  <div class="fp-inputs">
+    <input id="fpOrigin" class="fp-input" list="fpSystemList" placeholder="Origin (e.g. VH-331)" autocomplete="off">
+    <span class="fp-arrow">→</span>
+    <input id="fpDest" class="fp-input" list="fpSystemList" placeholder="Destination" autocomplete="off">
+    <button class="fp-btn" onclick="planFlight()">PLAN ROUTE</button>
+    <datalist id="fpSystemList"></datalist>
+  </div>
+  <div id="fpResult"></div>
+</div>
 
 <div class="top-controls">
   <span style="font-size:11px;color:var(--text3);font-family:monospace;letter-spacing:0.05em;">COMPARE</span>
@@ -724,8 +798,407 @@ function renderGrid() {
 
 function renderBOM() {} // BOM now rendered inside renderGrid
 
-// Initial render
+// ── Flight Planner ────────────────────────────────────────────────────────
+
+const FP_MIN_PER_PARSEC = 28.5;
+const FP_FUEL_PER_PARSEC = 14.2;
+const FP_SCALE = 12.67; // coordinate units per parsec (calibrated VH-331→VH-778)
+
+let _fpData = null;
+let _fpGraph = {};
+let _fpById = {};
+let _fpByKey = {};
+let _fpPlanetById = {};          // PlanetNaturalId → { sysId, pressure, gravity, radiation, orbitAU }
+let _fpPlanetKeyToId = {};       // uppercased key (natId or name) → PlanetNaturalId
+let _fpSystemPrimaryPlanet = {}; // SystemId → { id: PlanetNaturalId, orbitIndex }
+let _fpSystemStats = {};         // SystemId → { meteoroidDensity, luminosity }
+let _fpGatewayEdges = new Set(); // "fromSysId→toSysId" for gateway hops
+let _fpShipIdx = 0;              // which ship's shields to use for damage calc
+
+async function fpLoad() {
+  if (_fpData) return;
+  const [raw, planets, stars, gateways] = await Promise.all([
+    fetch('/prun_universe_data.json').then(r => r.json()),
+    fetch('/planet_data.json').then(r => r.json()),
+    fetch('/systemstars.json').then(r => r.json()), // sourced from github.com/Taiyi-94/prun_universe_map (MIT)
+    fetch('/gateways.json').then(r => r.json()),
+  ]);
+  stars.forEach(s => {
+    _fpSystemStats[s.SystemId] = { meteoroidDensity: s.MeteoroidDensity, luminosity: s.Luminosity };
+  });
+  _fpData = Object.values(raw);
+  _fpData.forEach(s => {
+    _fpById[s.SystemId] = s;
+    _fpByKey[s.NaturalId.toUpperCase()] = s.SystemId;
+    if (s.Name && s.Name !== s.NaturalId) _fpByKey[s.Name.toUpperCase()] = s.SystemId;
+    _fpGraph[s.SystemId] = (s.Connections || []).map(c => c.ConnectingId);
+  });
+  // Add gateway connections after _fpByKey is populated
+  gateways.forEach(g => {
+    const srcKey = g.source.slice(0, -1).toUpperCase();
+    const tgtKey = g.target.slice(0, -1).toUpperCase();
+    const srcId = _fpByKey[srcKey], tgtId = _fpByKey[tgtKey];
+    if (srcId && tgtId && !_fpGraph[srcId].includes(tgtId)) {
+      _fpGraph[srcId].push(tgtId);
+      _fpGatewayEdges.add(srcId + '→' + tgtId);
+    }
+  });
+  // Build planet hazard lookup + system/name resolvers
+  planets.forEach(p => {
+    if (p.SystemId && _fpById[p.SystemId]) {
+      _fpByKey[p.PlanetName.toUpperCase()] = p.SystemId;
+    }
+    if (p.Surface && p.SystemId) {
+      const orbitAU = p.OrbitSemiMajorAxis / 1.496e11;
+      _fpPlanetById[p.PlanetNaturalId] = { sysId: p.SystemId, pressure: p.Pressure, gravity: p.Gravity, radiation: p.Radiation, orbitAU };
+      _fpPlanetKeyToId[p.PlanetNaturalId.toUpperCase()] = p.PlanetNaturalId;
+      if (p.PlanetName && p.PlanetName !== p.PlanetNaturalId)
+        _fpPlanetKeyToId[p.PlanetName.toUpperCase()] = p.PlanetNaturalId;
+      const cur = _fpSystemPrimaryPlanet[p.SystemId];
+      if (!cur || p.OrbitIndex < cur.orbitIndex)
+        _fpSystemPrimaryPlanet[p.SystemId] = { id: p.PlanetNaturalId, orbitIndex: p.OrbitIndex };
+    }
+  });
+
+  const dl = document.getElementById('fpSystemList');
+  // Named systems by name (e.g. "Hortus", "Moria")
+  _fpData.filter(s => s.Name && s.Name !== s.NaturalId)
+    .sort((a, b) => a.Name.localeCompare(b.Name))
+    .forEach(s => { const o = document.createElement('option'); o.value = s.Name; dl.appendChild(o); });
+  // Planet names (e.g. "Mayer", "Promitor") — label shows planet code "OZ-189a"
+  const _namedPlanetIds = new Set();
+  planets.filter(p => p.PlanetName && p.PlanetName !== p.PlanetNaturalId && p.Surface && _fpById[p.SystemId])
+    .sort((a, b) => a.PlanetName.localeCompare(b.PlanetName))
+    .forEach(p => {
+      _namedPlanetIds.add(p.PlanetNaturalId);
+      const o = document.createElement('option');
+      o.value = p.PlanetName;
+      o.label = p.PlanetNaturalId;
+      dl.appendChild(o);
+    });
+  // All systems by NaturalId (e.g. "VH-331", "OT-580")
+  _fpData.sort((a, b) => a.NaturalId.localeCompare(b.NaturalId))
+    .forEach(s => { const o = document.createElement('option'); o.value = s.NaturalId; if (s.Name && s.Name !== s.NaturalId) o.label = s.Name; dl.appendChild(o); });
+  // Surface planet codes — label shows custom name if the planet has one (e.g. "OZ-189a" → "Mayer")
+  planets.filter(p => p.Surface && _fpById[p.SystemId])
+    .sort((a, b) => a.PlanetNaturalId.localeCompare(b.PlanetNaturalId))
+    .forEach(p => {
+      const o = document.createElement('option');
+      o.value = p.PlanetNaturalId;
+      if (_namedPlanetIds.has(p.PlanetNaturalId)) o.label = p.PlanetName;
+      dl.appendChild(o);
+    });
+}
+
+// Returns { sysId, planetNatId } or null
+function fpResolve(input) {
+  const key = input.trim().toUpperCase();
+  // Direct planet code or planet name match (e.g. "VH-331a", "Promitor")
+  const planetNatId = _fpPlanetKeyToId[key];
+  if (planetNatId) {
+    const p = _fpPlanetById[planetNatId];
+    return { sysId: p.sysId, planetNatId };
+  }
+  // System code or system name
+  let sysId = _fpByKey[key];
+  if (!sysId) {
+    const stripped = key.replace(/[A-Z]$/, '');
+    sysId = _fpByKey[stripped];
+  }
+  if (!sysId) {
+    for (const [k, v] of Object.entries(_fpByKey)) {
+      if (k.startsWith(key)) { sysId = v; break; }
+    }
+  }
+  if (!sysId) return null;
+  const primary = _fpSystemPrimaryPlanet[sysId];
+  return { sysId, planetNatId: primary ? primary.id : null };
+}
+
+// luminosity: A=24, F=4, G=1, K=0.3, M=0.002, O=1670
+function fpRadLevel(sysId) {
+  const lum = (_fpSystemStats[sysId] || {}).luminosity || 0;
+  if (lum > 100) return 2; // O/B: extreme
+  if (lum > 10)  return 1; // A: high
+  return 0;
+}
+
+function fpMetLevel(sysId) {
+  const d = (_fpSystemStats[sysId] || {}).meteoroidDensity || 0;
+  if (d > 3.5) return 2; // high
+  if (d > 2.0) return 1; // moderate
+  return 0;
+}
+
+function fpSysBadges(sysId) {
+  const lum = (_fpSystemStats[sysId] || {}).luminosity || 0;
+  const d   = (_fpSystemStats[sysId] || {}).meteoroidDensity || 0;
+  let s = '';
+  if (lum > 100) s += ` <span class="hz-rad-hi" title="Luminosity ${lum.toFixed(0)}× solar — extreme radiation">RAD</span>`;
+  else if (lum > 10) s += ` <span class="hz-rad-md" title="Luminosity ${lum.toFixed(0)}× solar — high radiation">RAD</span>`;
+  if (d > 3.5) s += ` <span class="hz-met" style="color:#e09040" title="Meteoroid density ${d.toFixed(2)} — Whipple shielding recommended">MET</span>`;
+  else if (d > 2.0) s += ` <span class="hz-met" title="Meteoroid density ${d.toFixed(2)} — moderate">MET</span>`;
+  return s;
+}
+
+function fpLandingHazards(planetNatId) {
+  if (!planetNatId) return '';
+  const p = _fpPlanetById[planetNatId];
+  if (!p) return '';
+  let s = '<span class="fp-hz">';
+  if (p.pressure > 2) s += `<span class="hz-heat" title="High pressure (${p.pressure.toFixed(1)} atm) — heat shielding recommended">HEAT</span>`;
+  if (p.gravity > 2.0 || p.gravity < 0.25) s += `<span class="hz-grav" title="Extreme gravity (${p.gravity.toFixed(2)}g) — stability support recommended">GRAV</span>`;
+  s += '</span>';
+  return s;
+}
+
+function fpShieldsRec(originPlanetId, destPlanetId, hops) {
+  const planets = [originPlanetId, destPlanetId].filter(Boolean).map(id => _fpPlanetById[id]).filter(Boolean);
+  const needHeat = planets.some(p => p.pressure > 2);
+  const needGrav = planets.some(p => p.gravity > 2.0 || p.gravity < 0.25);
+  const allSysIds = hops.map(h => h.to.SystemId);
+  const maxRad = Math.max(0, ...allSysIds.map(id => fpRadLevel(id)));
+  const maxMet = Math.max(0, ...allSysIds.map(id => fpMetLevel(id)));
+  const shields = [];
+  if (needHeat) shields.push('<span class="hz-heat">HEAT</span>');
+  if (needGrav) shields.push('<span class="hz-grav">GRAV</span>');
+  if (maxRad === 2) shields.push('<span class="hz-rad-hi">RAD</span>');
+  else if (maxRad === 1) shields.push('<span class="hz-rad-md">RAD</span>');
+  if (maxMet === 2) shields.push('<span class="hz-met" style="color:#e09040">WHIPPLE</span>');
+  else if (maxMet === 1) shields.push('<span class="hz-met">WHIPPLE</span>');
+  if (!shields.length) return `<div class="fp-shields"><span class="fp-shields-label">Shields:</span> <span class="fp-shields-none">no specific hazards detected on this route</span></div>`;
+  return `<div class="fp-shields"><span class="fp-shields-label">Shields:</span> ${shields.join(' ')}</div>`;
+}
+
+function fpBFS(startId, endId) {
+  if (startId === endId) return [startId];
+  const visited = new Set([startId]);
+  const queue = [[startId, [startId]]];
+  while (queue.length) {
+    const [curr, path] = queue.shift();
+    for (const next of (_fpGraph[curr] || [])) {
+      if (next === endId) return [...path, next];
+      if (!visited.has(next)) {
+        visited.add(next);
+        queue.push([next, [...path, next]]);
+      }
+    }
+  }
+  return null;
+}
+
+function fpDist(a, b) {
+  const dx = a.PositionX - b.PositionX, dy = a.PositionY - b.PositionY, dz = a.PositionZ - b.PositionZ;
+  return Math.sqrt(dx*dx + dy*dy + dz*dz);
+}
+
+function fpFmt(minutes) {
+  if (minutes < 60) return `${Math.round(minutes)}m`;
+  const h = Math.floor(minutes / 60), m = Math.round(minutes % 60);
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
+
+function fpSysLabel(sys) {
+  return (sys.Name && sys.Name !== sys.NaturalId) ? `${sys.NaturalId} <span style="color:var(--text3)">(${sys.Name})</span>` : sys.NaturalId;
+}
+
+// ── Damage & STL Estimation ───────────────────────────────────────────────
+
+function fpGetShields() {
+  const sel = ships?.[_fpShipIdx]?.sel;
+  if (!sel) return { general:0, whipple:0, heat:0, radiation:0, gravity:0 };
+  const mod = k => MODULE_STATS[sel[k]]?.modifiers || {};
+  return {
+    general:   mod('hullPlates').SHIELDING_GENERAL          || 0,
+    whipple:   mod('whippleShielding').SHIELDING_WHIPPLE    || 0,
+    heat:      mod('heatShielding').SHIELDING_HEAT          || 0,
+    radiation: mod('radiationShielding').SHIELDING_RADIATION|| 0,
+    gravity:   mod('stabilitySystem').SHIELDING_GRAVITY     || 0,
+  };
+}
+
+function fpStlEstimate(planetNatId) {
+  if (!planetNatId || !_fpPlanetById[planetNatId]) return null;
+  const distKm = _fpPlanetById[planetNatId].orbitAU * 149597870;
+  const timeMin = 7 + distKm / 900000; // 7min accel/decel overhead + cruise at ~15,000 km/s
+  return { distKm, timeMin };
+}
+
+function fpStlMeteorDmg(planetNatId, sysId) {
+  const stl = fpStlEstimate(planetNatId);
+  if (!stl) return 0;
+  const density = (_fpSystemStats[sysId] || {}).meteoroidDensity || 0.1;
+  return 2.5e-9 * stl.distKm * Math.pow(Math.max(0.001, density), 0.625);
+}
+
+function fpFtlRadDmg(parsecs) {
+  return 0.000353 * parsecs; // calibrated from in-game BTF (0.006%/17pc)
+}
+
+function fpApplyShield(raw, specific, general) {
+  return raw * Math.max(0, 1 - specific) * Math.max(0, 1 - general);
+}
+
+function fpDmgFmt(raw, shielded) {
+  if (raw < 0.0005) return '<span style="color:var(--text3);font-size:10px">—</span>';
+  const eff = (shielded !== undefined) ? shielded : raw;
+  const col = eff > 0.5 ? '#f74f4f' : eff > 0.1 ? '#e09040' : eff > 0.02 ? '#c0a840' : '#8aaa70';
+  const main = `<span style="color:${col}">${eff.toFixed(3)}%</span>`;
+  if (shielded !== undefined && Math.abs(raw - shielded) > 0.0001)
+    return main + `<span style="color:var(--text3);font-size:10px">/${raw.toFixed(3)}</span>`;
+  return main;
+}
+
+function fpDistFmt(km) { return `~${(km/1e6).toFixed(0)}M km`; }
+
+function fpStlTimeFmt(min) {
+  if (min < 60) return `~${Math.round(min)}min`;
+  const h = Math.floor(min/60), m = Math.round(min%60);
+  return `~${h}h${m > 0 ? ` ${m}m` : ''}`;
+}
+
+function fpSelectShip(idx) { _fpShipIdx = idx; planFlight(); }
+
+async function planFlight() {
+  const result = document.getElementById('fpResult');
+  result.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:8px 0">Finding route…</div>';
+  try { await fpLoad(); } catch(e) { result.innerHTML = '<div class="fp-error">Failed to load universe data.</div>'; return; }
+
+  const originInput = document.getElementById('fpOrigin').value.trim();
+  const destInput   = document.getElementById('fpDest').value.trim();
+  if (!originInput || !destInput) { result.innerHTML = '<div class="fp-error">Enter both origin and destination.</div>'; return; }
+
+  const origin = fpResolve(originInput);
+  const dest   = fpResolve(destInput);
+  if (!origin) { result.innerHTML = `<div class="fp-error">System "${originInput}" not found. Try the system code e.g. VH-331 or planet code VH-331a.</div>`; return; }
+  if (!dest)   { result.innerHTML = `<div class="fp-error">System "${destInput}" not found. Try the system code e.g. OT-580.</div>`; return; }
+
+  const originId = origin.sysId, destId = dest.sysId;
+
+  if (originId === destId) {
+    result.innerHTML = '<div class="fp-note" style="margin-top:10px">Same system — in-system STL flight only. No FTL required (~20–60 min).</div>';
+    return;
+  }
+
+  const path = fpBFS(originId, destId);
+  if (!path) { result.innerHTML = '<div class="fp-error">No route found between these systems.</div>'; return; }
+
+  let totalParsecs = 0;
+  const hops = [];
+  for (let i = 0; i < path.length - 1; i++) {
+    const from = _fpById[path[i]], to = _fpById[path[i+1]];
+    const pc = Math.max(1, Math.round(fpDist(from, to) / FP_SCALE));
+    totalParsecs += pc;
+    hops.push({ from, to, pc, time: pc * FP_MIN_PER_PARSEC, fuel: Math.round(pc * FP_FUEL_PER_PARSEC) });
+  }
+
+  const totalTime = totalParsecs * FP_MIN_PER_PARSEC;
+  const totalFuel = Math.round(totalParsecs * FP_FUEL_PER_PARSEC);
+
+  const originSys = _fpById[originId], destSys = _fpById[destId];
+  const originHz = fpLandingHazards(origin.planetNatId);
+  const destHz   = fpLandingHazards(dest.planetNatId);
+
+  // ── Damage calculations ────────────────────────────────────────────────
+  const sh = fpGetShields();
+
+  const depStl    = fpStlEstimate(origin.planetNatId);
+  const depRawMet = fpStlMeteorDmg(origin.planetNatId, originId);
+  const depShdMet = fpApplyShield(depRawMet, sh.whipple, sh.general);
+
+  const appStl    = fpStlEstimate(dest.planetNatId);
+  const appRawMet = fpStlMeteorDmg(dest.planetNatId, destId);
+  const appShdMet = fpApplyShield(appRawMet, sh.whipple, sh.general);
+
+  const hopRawRad = hops.map(h => fpFtlRadDmg(h.pc));
+  const hopShdRad = hopRawRad.map(r => fpApplyShield(r, sh.radiation, sh.general));
+
+  const totalRawDmg = depRawMet + hopRawRad.reduce((a,b)=>a+b,0) + appRawMet;
+  const totalShdDmg = depShdMet + hopShdRad.reduce((a,b)=>a+b,0) + appShdMet;
+  const hasShields  = Math.abs(totalRawDmg - totalShdDmg) > 0.0001;
+
+  // ── Ship selector ─────────────────────────────────────────────────────
+  const shipBtns = ships.map((s, i) =>
+    `<button class="fp-ship-btn${i === _fpShipIdx ? ' active' : ''}" onclick="fpSelectShip(${i})">${s.name}</button>`
+  ).join('');
+
+  const dmgCol = totalShdDmg > 0.5 ? '#f74f4f' : totalShdDmg > 0.1 ? '#e09040' : '#8aaa70';
+  const dmgChip = hasShields
+    ? `${totalShdDmg.toFixed(3)}% <span style="color:var(--text3);font-size:12px">/ ${totalRawDmg.toFixed(3)} raw</span>`
+    : `~${totalRawDmg.toFixed(3)}%`;
+
+  let html = `
+  <div class="fp-ship-sel">
+    <span style="font-size:10px;color:var(--text3);font-family:var(--mono);letter-spacing:0.08em">FOR SHIP:</span>
+    ${shipBtns}
+  </div>
+  <div class="fp-summary">
+    <div><div class="fp-summary-label">FTL Time</div><div class="fp-summary-val" style="color:var(--green)">${fpFmt(totalTime)}</div></div>
+    <div><div class="fp-summary-label">FTL Fuel</div><div class="fp-summary-val">${totalFuel}</div></div>
+    <div><div class="fp-summary-label">Jumps</div><div class="fp-summary-val">${hops.length}</div></div>
+    <div><div class="fp-summary-label">Parsecs</div><div class="fp-summary-val">${totalParsecs}pc</div></div>
+    <div><div class="fp-summary-label">Damage</div><div class="fp-summary-val" style="font-size:14px;color:${dmgCol}">${dmgChip}</div></div>
+  </div>
+  <table class="fp-table">
+    <thead><tr><th>#</th><th>From</th><th>To</th><th class="fp-n">Parsecs</th><th class="fp-n">Time</th><th class="fp-n">FTL Fuel</th><th class="fp-n">Damage</th></tr></thead>
+    <tbody>
+    <tr style="opacity:0.65;font-style:italic">
+      <td style="color:var(--text3)">DEP</td>
+      <td class="fp-sys">${fpSysLabel(originSys)}${originHz}</td>
+      <td style="color:var(--text2)">jump point</td>
+      <td class="fp-n">—</td>
+      <td class="fp-n">${depStl ? `${fpDistFmt(depStl.distKm)}<br><span style="font-size:10px">${fpStlTimeFmt(depStl.timeMin)} STL</span>` : '~15–45m STL'}</td>
+      <td class="fp-n">—</td>
+      <td class="fp-n">${fpDmgFmt(depRawMet, depShdMet)}</td>
+    </tr>`;
+
+  let ftlHopNum = 0;
+  hops.forEach((h, i) => {
+    const isGtw = _fpGatewayEdges.has(h.from.SystemId + '→' + h.to.SystemId);
+    const hopLabel = isGtw ? 'GTW' : ++ftlHopNum;
+    const rowStyle = isGtw ? ' style="background:rgba(160,80,255,0.06)"' : '';
+    const numStyle = isGtw ? 'color:#a050ff;font-weight:700' : 'color:var(--text3)';
+    html += `<tr${rowStyle}>
+      <td style="${numStyle};width:28px">${hopLabel}</td>
+      <td class="fp-sys">${fpSysLabel(h.from)}</td>
+      <td class="fp-sys">${fpSysLabel(h.to)}${fpSysBadges(h.to.SystemId)}</td>
+      <td class="fp-n">${h.pc}pc</td>
+      <td class="fp-n">${fpFmt(h.time)}</td>
+      <td class="fp-n">${h.fuel}</td>
+      <td class="fp-n">${fpDmgFmt(hopRawRad[i], hopShdRad[i])}</td>
+    </tr>`;
+  });
+
+  html += `<tr style="opacity:0.65;font-style:italic">
+      <td style="color:var(--text3)">APP</td>
+      <td style="color:var(--text2)">jump point</td>
+      <td class="fp-sys">${fpSysLabel(destSys)}${destHz}</td>
+      <td class="fp-n">—</td>
+      <td class="fp-n">${appStl ? `${fpDistFmt(appStl.distKm)}<br><span style="font-size:10px">${fpStlTimeFmt(appStl.timeMin)} STL</span>` : '~15–45m STL'}</td>
+      <td class="fp-n">—</td>
+      <td class="fp-n">${fpDmgFmt(appRawMet, appShdMet)}</td>
+    </tr>
+    </tbody>
+    <tr class="fp-tfoot">
+      <td></td><td colspan="2" style="font-family:var(--mono);font-weight:700;color:var(--text)">TOTAL — ${hops.length} jump${hops.length!==1?'s':''}</td>
+      <td class="fp-n">${totalParsecs}pc</td>
+      <td class="fp-n">${fpFmt(totalTime)} <span style="color:var(--text3);font-weight:400">+ STL</span></td>
+      <td class="fp-n">${totalFuel}</td>
+      <td class="fp-n">${fpDmgFmt(totalRawDmg, totalShdDmg)}</td>
+    </tr>
+  </table>
+  ${fpShieldsRec(origin.planetNatId, dest.planetNatId, hops)}
+  <div class="fp-note">STL times and damage are estimates. Speed varies by ship; orbital position shifts STL distance. HEAT/GRAV damage not yet modelled. Parsec estimates ±10%.</div>`;
+
+  result.innerHTML = html;
+}
+
+document.getElementById('fpOrigin').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('fpDest').focus(); });
+document.getElementById('fpDest').addEventListener('keydown', e => { if (e.key === 'Enter') planFlight(); });
+
+// Initial render + eager-load universe data so datalist is populated before user types
 render();
+fpLoad();
 </script>
 </body>
 </html>
