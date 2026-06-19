@@ -60,6 +60,7 @@ Data files (static JSON in `/public`):
 | `prun_sell_finder.html` | Best exchange to sell a material — live order book, fill simulation, jump distance from origin |
 | `prun_ship_builder.html` | Ship builder/comparison tool + flight planner (see below) |
 | `prun_corp_prices.html` | Corp price list vs IC1 CX ask — discount badges, watchlist, sortable (see below) |
+| `prun_flight_log.html` | Passive flight recorder — snapshots ship state, detects completed flights, calibrates FTL constants (see below) |
 
 ---
 
@@ -203,6 +204,32 @@ Shows all corp contract prices (from Google Sheet CSV) compared to live IC1 CX a
 - MY LIST / ALL toggle — MY LIST is default when watchlist has entries
 - Chips with × to remove; text input + ADD button to add by ticker
 - In ALL view: `+` button per row adds that ticker to watchlist (greys out if already in list)
+
+---
+
+## Flight Log (`prun_flight_log.html`)
+Passively records completed flights by snapshotting FIO ship state on each REFRESH and diffing against the previous snapshot. FIO exposes no historical flight data — only current state — so this is the only way to accumulate calibration data over time.
+
+**FIO endpoints used:**
+- `/ship/ships/{user}` — ship list: `ShipId`, `Registration`, `Name`, `AddressLines`, `StlFuelStoreId`, `FtlFuelStoreId`
+- `/ship/flights/{user}` — active flights: `ShipId`, `IsAborted`, `ArrivalTimeEpochMs`, `Segments[]{Type, StlFuelConsumption, FtlFuelConsumption, OriginLines[]{LineName,LineNaturalId}, DestinationLines[]{LineName,LineNaturalId}}`
+- `/ship/ships/fuel/{user}` — fuel stores: `StorageId`, `Type` (STL_FUEL_STORE/FTL_FUEL_STORE), `StorageItems[0].MaterialAmount`, `WeightCapacity`
+
+**In-flight detection:** ship has an entry in `/ship/flights` with `IsAborted !== true`.
+
+**No departure timestamp in the API.** `ArrivalTimeEpochMs` is accurate; departure is approximated as `detectedAt` (when we first saw the ship go in-flight — within one polling interval of actual departure).
+
+**Elapsed time** = `ArrivalTimeEpochMs − detectedAt`. Accurate if detected at departure; inflated if detected mid-flight.
+
+**Parsecs** — same formula as Ship Builder: filter segments by `Type === 'FTL'`, strip trailing lowercase planet letter from `LineNaturalId` to get system NaturalId (e.g. `"VH-331a"` → `"VH-331"`), look up 3D coords in `prun_universe_data.json`, Euclidean distance ÷ `FP_SCALE=12.67`, round up to nearest 1.
+
+**Fuel used** — summed from `segment.StlFuelConsumption` / `segment.FtlFuelConsumption` across all segments. Accurate regardless of when detection happened (segments always contain the full flight plan).
+
+**localStorage keys:**
+- `prun_flightlog` — JSON array of completed flight entries (persisted log)
+- `prun_flightsnap_{shipId}` — per-ship snapshot: `{inFlight, reg, name, segments, arrivalEpochMs, detectedAt, destSysId, ...}`
+
+**Calibration stats:** avg `min/parsec` and `FTL fuel/parsec` from logged flights vs hardcoded `FP_MIN_PER_PARSEC=28.5` / `FP_FUEL_PER_PARSEC=14.2`. Note: `min/pc` from log includes STL transit time so will read higher than the FTL-only constant.
 
 ---
 

@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PrUn Flight Log</title>
+  <style>
+    :root {
+      --bg: #0d0f10; --bg2: #141618; --bg3: #1a1d1f;
+      --border: #2a2d30; --border2: #3a3d40;
+      --accent: #4fc3f7; --green: #4caf50; --orange: #ff9800; --red: #f44336;
+      --text: #e0e0e0; --text2: #9e9e9e; --text3: #616161;
+      --mono: 'Courier New', monospace;
+      --cond: 'Arial Narrow', Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: var(--cond); font-size: 13px; }
+
+    .header {
+      background: var(--bg2); border-bottom: 1px solid var(--border);
+      padding: 8px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+    .home-link { color: var(--accent); text-decoration: none; font-size: 13px; white-space: nowrap; }
+    .home-link:hover { color: #fff; }
+    .page-title { font-size: 15px; font-weight: 700; letter-spacing: 1px; flex: 1; }
+    .header input {
+      background: var(--bg3); border: 1px solid var(--border); color: var(--text);
+      padding: 4px 8px; font-size: 12px; font-family: var(--mono); border-radius: 3px;
+    }
+    .header input:focus { outline: none; border-color: var(--accent); }
+    .btn {
+      background: var(--accent); color: #000; border: none; padding: 5px 12px;
+      font-size: 12px; font-weight: 700; font-family: var(--cond); cursor: pointer; border-radius: 3px;
+    }
+    .btn:hover { background: #81d4fa; }
+    .btn-danger {
+      background: transparent; color: var(--text3); border: 1px solid var(--border);
+      padding: 4px 10px; font-size: 11px; font-family: var(--cond); cursor: pointer; border-radius: 3px;
+    }
+    .btn-danger:hover { border-color: var(--red); color: var(--red); }
+
+    .status-bar {
+      padding: 6px 16px; font-size: 11px; color: var(--text2);
+      border-bottom: 1px solid var(--border); min-height: 28px; display: flex; align-items: center; gap: 6px;
+    }
+    .spinner {
+      display: inline-block; width: 10px; height: 10px;
+      border: 2px solid var(--border); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .main { padding: 16px; max-width: 1400px; margin: 0 auto; }
+
+    /* Stats panel */
+    .stats-panel {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 4px;
+      padding: 12px 16px; margin-bottom: 14px;
+      display: flex; gap: 0; align-items: stretch; flex-wrap: wrap;
+    }
+    .stat-block {
+      padding: 0 20px; display: flex; flex-direction: column; gap: 3px;
+      border-right: 1px solid var(--border);
+    }
+    .stat-block:first-child { padding-left: 0; }
+    .stat-block:last-child { border-right: none; padding-right: 0; }
+    .stat-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-val { font-size: 20px; font-family: var(--mono); color: var(--text); line-height: 1.2; }
+    .stat-sub { font-size: 11px; color: var(--text2); font-family: var(--mono); }
+    .stat-note { font-size: 10px; color: var(--text3); max-width: 220px; line-height: 1.4; }
+    .good { color: var(--green); }
+    .warn { color: var(--orange); }
+    .dim { color: var(--text3); }
+
+    /* Tracking chips */
+    .tracking-panel {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 4px;
+      padding: 10px 14px; margin-bottom: 14px;
+    }
+    .tracking-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+    .tracking-ships { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip {
+      font-family: var(--mono); font-size: 11px; padding: 3px 9px;
+      border-radius: 3px; border: 1px solid var(--border); background: var(--bg3); color: var(--text3);
+    }
+    .chip.flying { border-color: var(--accent); color: var(--accent); }
+
+    /* Log table */
+    .section-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+    .section-head { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text2); }
+    .entry-count { font-size: 11px; color: var(--text3); }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th {
+      text-align: left; padding: 5px 8px; font-size: 10px; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--text3); border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    th.r { text-align: right; }
+    td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--bg2); }
+    .col-reg { font-family: var(--mono); font-size: 11px; color: var(--accent); }
+    .col-name { font-size: 10px; color: var(--text3); font-family: var(--mono); }
+    .col-route { font-family: var(--mono); }
+    .col-ts { font-size: 11px; color: var(--text2); white-space: nowrap; }
+    .col-ts-note { font-size: 10px; color: var(--text3); }
+    .col-num { font-family: var(--mono); text-align: right; }
+
+    .empty-state { padding: 32px 16px; text-align: center; color: var(--text3); }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <a class="home-link" href="home.html">⌂ HOME</a>
+  <div class="page-title">FLIGHT LOG</div>
+  <input id="usernameInput" type="text" placeholder="Username" style="width:110px">
+  <input id="apikeyInput" type="password" placeholder="FIO API key" style="width:180px">
+  <button class="btn" onclick="doRefresh()">↺ REFRESH</button>
+  <button class="btn-danger" onclick="clearLog()">CLEAR LOG</button>
+</div>
+
+<div class="status-bar" id="statusBar">Enter credentials and hit REFRESH to start logging flights.</div>
+
+<div class="main">
+
+  <div class="stats-panel">
+    <div class="stat-block">
+      <div class="stat-label">Flights logged</div>
+      <div class="stat-val" id="statCount">0</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">Avg min / parsec &nbsp;<span style="color:var(--text3);font-size:10px">hardcoded: 28.5</span></div>
+      <div class="stat-val" id="statMinPc">—</div>
+      <div class="stat-sub" id="statMinPcSub"></div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">Avg FTL fuel / parsec &nbsp;<span style="color:var(--text3);font-size:10px">hardcoded: 14.2</span></div>
+      <div class="stat-val" id="statFuelPc">—</div>
+      <div class="stat-sub" id="statFuelPcSub"></div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">Note</div>
+      <div class="stat-note">
+        min/pc includes STL transit time — expect it to run higher than the FTL-only constant (28.5).
+        Departure time is when the in-flight state was <em>detected</em>, not actual departure — elapsed is approximate.
+      </div>
+    </div>
+  </div>
+
+  <div class="tracking-panel">
+    <div class="tracking-label">Tracked ships</div>
+    <div class="tracking-ships" id="trackingShips"><span class="dim">Hit REFRESH to load ships.</span></div>
+  </div>
+
+  <div class="section-row">
+    <div class="section-head">Flight Log</div>
+    <div class="entry-count" id="entryCount"></div>
+  </div>
+  <div class="table-wrap">
+    <div id="logTable"><div class="empty-state">No flights logged yet. Refresh periodically — completed flights are detected automatically by comparing ship state to the last snapshot.</div></div>
+  </div>
+
+</div>
+
+<script>
+const BASE = 'https://rest.fnar.net';
+const FP_SCALE = 12.67;
+const HARD_MIN_PC  = 28.5;
+const HARD_FUEL_PC = 14.2;
+
+const LOG_KEY     = 'prun_flightlog';
+const SNAP_PREFIX = 'prun_flightsnap_';
+
+let _sysById = null;
+
+// ── Persistence ───────────────────────────────────────────────────────────
+
+function loadLog()             { try { return JSON.parse(localStorage.getItem(LOG_KEY) || '[]'); } catch { return []; } }
+function saveLog(e)            { localStorage.setItem(LOG_KEY, JSON.stringify(e)); }
+function loadSnap(id)          { try { return JSON.parse(localStorage.getItem(SNAP_PREFIX + id)); } catch { return null; } }
+function saveSnap(id, snap)    { localStorage.setItem(SNAP_PREFIX + id, JSON.stringify(snap)); }
+
+// ── Universe / parsec calc ────────────────────────────────────────────────
+
+async function loadUniverse() {
+  if (_sysById) return _sysById;
+  const data = await fetch('/prun_universe_data.json').then(r => r.json());
+  _sysById = {};
+  data.forEach(s => { if (s.NaturalId) _sysById[s.NaturalId] = s; });
+  return _sysById;
+}
+
+function toSysId(lineId) {
+  // "VH-331a" → "VH-331";  "VH-331" stays unchanged
+  return (lineId || '').replace(/[a-z]$/, '');
+}
+
+function calcParsecs(segments, sysById) {
+  let total = 0;
+  for (const seg of segments) {
+    if (seg.Type !== 'FTL') continue;
+    const oId = toSysId(seg.OriginLines?.[0]?.LineNaturalId);
+    const dId = toSysId(seg.DestinationLines?.[0]?.LineNaturalId);
+    const o = sysById[oId], d = sysById[dId];
+    if (!o || !d) continue;
+    const dx = o.PositionX - d.PositionX, dy = o.PositionY - d.PositionY, dz = o.PositionZ - d.PositionZ;
+    total += Math.max(1, Math.round(Math.sqrt(dx*dx + dy*dy + dz*dz) / FP_SCALE));
+  }
+  return total > 0 ? total : null;
+}
+
+function segFuel(segments) {
+  let stl = 0, ftl = 0;
+  for (const seg of (segments || [])) {
+    stl += seg.StlFuelConsumption || 0;
+    ftl += seg.FtlFuelConsumption || 0;
+  }
+  return { stl, ftl };
+}
+
+function routeLabels(segments) {
+  if (!segments?.length) return ['?', '?'];
+  const firstSeg = segments[0];
+  const lastSeg  = segments[segments.length - 1];
+  const origin = firstSeg.OriginLines?.[0]?.LineName
+              || firstSeg.OriginLines?.[0]?.LineNaturalId
+              || '?';
+  const dest   = lastSeg.DestinationLines?.[0]?.LineName
+              || lastSeg.DestinationLines?.[0]?.LineNaturalId
+              || '?';
+  return [origin, dest];
+}
+
+function destSysId(segments) {
+  if (!segments?.length) return null;
+  return toSysId(segments[segments.length - 1]?.DestinationLines?.[0]?.LineNaturalId);
+}
+
+// ── Formatting ────────────────────────────────────────────────────────────
+
+function fmtDur(ms) {
+  if (!ms || ms <= 0) return '—';
+  const h = Math.floor(ms / 3_600_000);
+  const m = Math.floor((ms % 3_600_000) / 60_000);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
+function fmtTs(ms) {
+  if (!ms) return '—';
+  return new Date(ms).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function setStatus(html, spinning = false) {
+  document.getElementById('statusBar').innerHTML = (spinning ? '<span class="spinner"></span>' : '') + html;
+}
+
+// ── Core refresh logic ────────────────────────────────────────────────────
+
+async function doRefresh() {
+  const key  = document.getElementById('apikeyInput').value.trim();
+  const user = document.getElementById('usernameInput').value.trim();
+  if (!key || !user) { setStatus('Enter username and FIO API key first.'); return; }
+  localStorage.setItem('prun_apikey', key);
+  localStorage.setItem('prun_username', user);
+
+  setStatus('Fetching ship data from FIO…', true);
+
+  let ships, flights, fuelData;
+  try {
+    const hdrs = { Authorization: key };
+    const [sr, fr, fur] = await Promise.all([
+      fetch(`${BASE}/ship/ships/${user}`,       { headers: hdrs }),
+      fetch(`${BASE}/ship/flights/${user}`,     { headers: hdrs }),
+      fetch(`${BASE}/ship/ships/fuel/${user}`,  { headers: hdrs }),
+    ]);
+    if (!sr.ok) { setStatus(`FIO error ${sr.status} — check API key.`); return; }
+    ships    = await sr.json();
+    flights  = fr.ok  ? await fr.json()  : [];
+    fuelData = fur.ok ? await fur.json() : [];
+  } catch (e) {
+    setStatus('Fetch failed: ' + e.message);
+    return;
+  }
+
+  // Build lookup maps
+  const flightByShip = {};
+  flights.forEach(f => { if (f.ShipId && !f.IsAborted) flightByShip[f.ShipId] = f; });
+
+  const fuelMap = { stl: {}, ftl: {} };
+  fuelData.forEach(store => {
+    const amount = store.StorageItems?.[0]?.MaterialAmount || 0;
+    const cap    = store.WeightCapacity || 1;
+    if (store.Type === 'STL_FUEL_STORE')
+      fuelMap.stl[store.StorageId] = { amount, cap: Math.round(cap / 0.06) };
+    else if (store.Type === 'FTL_FUEL_STORE')
+      fuelMap.ftl[store.StorageId] = { amount, cap: Math.round(cap / 0.05) };
+  });
+
+  const sysById = await loadUniverse();
+  const now = Date.now();
+  const newEntries = [];
+
+  for (const ship of ships) {
+    const { ShipId: id, Registration: reg, Name: name } = ship;
+    const flight  = flightByShip[id] || null;
+    const inFlight = !!flight;
+    const stlFuel = (fuelMap.stl[ship.StlFuelStoreId] || {}).amount || 0;
+    const ftlFuel = (fuelMap.ftl[ship.FtlFuelStoreId] || {}).amount || 0;
+    const snap = loadSnap(id);
+
+    if (inFlight) {
+      const curDest = destSysId(flight.Segments);
+
+      if (!snap || !snap.inFlight) {
+        // Newly in-flight — start snapshot
+        saveSnap(id, {
+          inFlight: true, reg, name,
+          arrivalEpochMs: flight.ArrivalTimeEpochMs,
+          segments: flight.Segments,
+          stlFuelAtDetect: stlFuel,
+          ftlFuelAtDetect: ftlFuel,
+          detectedAt: now,
+          destSysId: curDest,
+        });
+      } else if (curDest && snap.destSysId && curDest !== snap.destSysId) {
+        // Destination changed mid-track — likely a new flight or data anomaly; reset
+        saveSnap(id, {
+          inFlight: true, reg, name,
+          arrivalEpochMs: flight.ArrivalTimeEpochMs,
+          segments: flight.Segments,
+          stlFuelAtDetect: stlFuel,
+          ftlFuelAtDetect: ftlFuel,
+          detectedAt: now,
+          destSysId: curDest,
+        });
+      }
+      // else: still same flight, no update needed
+    } else {
+      if (snap?.inFlight) {
+        // Flight just completed
+        const segments  = snap.segments || [];
+        const [originLabel, destLabel] = routeLabels(segments);
+        const { stl: stlUsed, ftl: ftlUsed } = segFuel(segments);
+        const parsecs   = calcParsecs(segments, sysById);
+
+        // Use FIO's ArrivalTimeEpochMs as accurate arrival; fall back to now
+        const arrivedAt = (snap.arrivalEpochMs && snap.arrivalEpochMs < now)
+          ? snap.arrivalEpochMs
+          : now;
+        const elapsedMs = arrivedAt - snap.detectedAt;
+
+        if (elapsedMs > 0) {
+          newEntries.push({
+            shipReg: reg || snap.reg,
+            shipName: name || snap.name || '',
+            originLabel, destLabel,
+            departedAt: snap.detectedAt,
+            arrivedAt,
+            elapsedMs,
+            stlUsed,
+            ftlUsed,
+            parsecs,
+          });
+        }
+      }
+      // Update to docked snapshot
+      saveSnap(id, { inFlight: false, reg, name, dockedAt: now });
+    }
+  }
+
+  if (newEntries.length) {
+    const log = loadLog();
+    log.unshift(...newEntries);
+    saveLog(log);
+  }
+
+  const inFlightCount = ships.filter(s => flightByShip[s.ShipId]).length;
+  setStatus(
+    `${ships.length} ship${ships.length !== 1 ? 's' : ''} · ${inFlightCount} in flight · ` +
+    `${newEntries.length} new flight${newEntries.length !== 1 ? 's' : ''} logged · ` +
+    `updated ${new Date().toLocaleTimeString()}`
+  );
+
+  renderTracking(ships, flightByShip);
+  renderAll();
+}
+
+// ── Render ────────────────────────────────────────────────────────────────
+
+function renderAll() {
+  const log = loadLog();
+  renderStats(log);
+  renderLog(log);
+}
+
+function renderStats(log) {
+  document.getElementById('statCount').textContent = log.length;
+
+  const withPc  = log.filter(e => e.parsecs > 0 && e.elapsedMs > 0);
+  const withFtl = log.filter(e => e.parsecs > 0 && e.ftlUsed > 0);
+
+  if (withPc.length) {
+    const avg = withPc.reduce((s, e) => s + (e.elapsedMs / 60_000 / e.parsecs), 0) / withPc.length;
+    const delta = ((avg - HARD_MIN_PC) / HARD_MIN_PC * 100);
+    document.getElementById('statMinPc').textContent = avg.toFixed(1);
+    document.getElementById('statMinPcSub').innerHTML =
+      `<span class="${Math.abs(delta) < 10 ? 'good' : 'warn'}">${delta > 0 ? '+' : ''}${delta.toFixed(1)}% vs hardcoded</span>` +
+      ` <span class="dim">(${withPc.length} route${withPc.length !== 1 ? 's' : ''})</span>`;
+  } else {
+    document.getElementById('statMinPc').textContent = '—';
+    document.getElementById('statMinPcSub').textContent = 'No parsec data yet';
+  }
+
+  if (withFtl.length) {
+    const avg = withFtl.reduce((s, e) => s + (e.ftlUsed / e.parsecs), 0) / withFtl.length;
+    const delta = ((avg - HARD_FUEL_PC) / HARD_FUEL_PC * 100);
+    document.getElementById('statFuelPc').textContent = avg.toFixed(1);
+    document.getElementById('statFuelPcSub').innerHTML =
+      `<span class="${Math.abs(delta) < 10 ? 'good' : 'warn'}">${delta > 0 ? '+' : ''}${delta.toFixed(1)}% vs hardcoded</span>` +
+      ` <span class="dim">(${withFtl.length} route${withFtl.length !== 1 ? 's' : ''})</span>`;
+  } else {
+    document.getElementById('statFuelPc').textContent = '—';
+    document.getElementById('statFuelPcSub').textContent = 'No FTL data yet';
+  }
+}
+
+function renderTracking(ships, flightByShip) {
+  if (!ships?.length) { document.getElementById('trackingShips').innerHTML = '<span class="dim">No ships.</span>'; return; }
+  document.getElementById('trackingShips').innerHTML = ships.map(s => {
+    const inf = !!flightByShip[s.ShipId];
+    return `<span class="chip ${inf ? 'flying' : ''}">${s.Registration || s.ShipId}${inf ? ' ✈' : ' ◎'}</span>`;
+  }).join('');
+}
+
+function renderLog(log) {
+  document.getElementById('entryCount').textContent = log.length ? `${log.length} entries` : '';
+  if (!log.length) {
+    document.getElementById('logTable').innerHTML =
+      '<div class="empty-state">No flights logged yet. Each REFRESH checks whether any in-flight ships have landed since the last snapshot.</div>';
+    return;
+  }
+
+  const rows = log.map(e => {
+    const minPc  = (e.parsecs && e.elapsedMs) ? (e.elapsedMs / 60_000 / e.parsecs) : null;
+    const fuelPc = (e.parsecs && e.ftlUsed)   ? (e.ftlUsed / e.parsecs)             : null;
+    const minPcStr  = minPc  != null ? minPc.toFixed(1)  : '—';
+    const fuelPcStr = fuelPc != null ? fuelPc.toFixed(1) : '—';
+    const minCls  = minPc  != null ? (Math.abs(minPc  - HARD_MIN_PC)  / HARD_MIN_PC  < 0.10 ? 'good' : 'warn') : 'dim';
+    const fuelCls = fuelPc != null ? (Math.abs(fuelPc - HARD_FUEL_PC) / HARD_FUEL_PC < 0.10 ? 'good' : 'warn') : 'dim';
+
+    return `<tr>
+      <td>
+        <div class="col-reg">${e.shipReg}</div>
+        ${e.shipName ? `<div class="col-name">${e.shipName}</div>` : ''}
+      </td>
+      <td class="col-route">${e.originLabel} → ${e.destLabel}</td>
+      <td>
+        <div class="col-ts">${fmtTs(e.departedAt)}</div>
+        <div class="col-ts-note">≈ detected</div>
+      </td>
+      <td><div class="col-ts">${fmtTs(e.arrivedAt)}</div></td>
+      <td class="col-num">${fmtDur(e.elapsedMs)}</td>
+      <td class="col-num dim">${e.stlUsed || '—'}</td>
+      <td class="col-num">${e.ftlUsed || '—'}</td>
+      <td class="col-num">${e.parsecs ?? '—'}</td>
+      <td class="col-num ${minCls}">${minPcStr}</td>
+      <td class="col-num ${fuelCls}">${fuelPcStr}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('logTable').innerHTML = `<table>
+    <thead>
+      <tr>
+        <th>Ship</th>
+        <th>Route</th>
+        <th>Departed</th>
+        <th>Arrived</th>
+        <th>Elapsed</th>
+        <th class="r">STL fuel</th>
+        <th class="r">FTL fuel</th>
+        <th class="r">Parsecs</th>
+        <th class="r">min/pc</th>
+        <th class="r">FTL/pc</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function clearLog() {
+  if (!confirm('Clear all logged flights? Snapshots are kept so in-progress tracking continues.')) return;
+  saveLog([]);
+  renderAll();
+  setStatus('Flight log cleared.');
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+
+const _savedKey  = localStorage.getItem('prun_apikey')  || '';
+const _savedUser = localStorage.getItem('prun_username') || '';
+if (_savedKey)  document.getElementById('apikeyInput').value  = _savedKey;
+if (_savedUser) document.getElementById('usernameInput').value = _savedUser;
+
+renderAll(); // render any existing log immediately
+if (_savedKey && _savedUser) doRefresh();
+</script>
+</body>
+</html>
