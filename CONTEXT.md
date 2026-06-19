@@ -15,15 +15,10 @@ The project lives at `C:\prun-tools\prun-map` and is served via **Vite** (`npm r
 - **Vanilla HTML/JS** (all the tool pages in `/public`)
 - **D3.js** for the star map rendering
 - **Dijkstra.js** for route-finding
-- **FIO API** (`rest.fnar.net`) — the community PrUn data API, authenticated with an API key stored in `.env` as `VITE_FIO_API_KEY`
-- **PrUn Planner API** (`api.prunplanner.org`) — used for buildings, recipes, planet search. Key stored in `.env` as `VITE_PRUNPLANNER_API_KEY`
+- **FIO API** (`rest.fnar.net`) — the community PrUn data API. Key is user-supplied via a UI input on each page, saved to `localStorage` as `prun_apikey` and pre-filled on return visits.
+- **PrUn Planner API** (`api.prunplanner.org`) — used for buildings, recipes, planet search. Key saved to `localStorage` as `prun_ppkey` (planet compare only).
 
-Both API keys are injected at runtime via a Vite plugin that writes `public/config.js`:
-```js
-window.FIO_API_KEY = "...";
-window.PRUNPLANNER_API_KEY = "...";
-```
-All tool pages load `<script src="/config.js"></script>` in their `<head>`.
+No hardcoded keys anywhere. No `config.js`. Each tool has its own key input in the header; keys auto-save on input and are shared across all tools via `localStorage`.
 
 ---
 
@@ -64,6 +59,7 @@ Data files (static JSON in `/public`):
 | `prun_jump_planner.html` | System-to-system route finder |
 | `prun_sell_finder.html` | Best exchange to sell a material — live order book, fill simulation, jump distance from origin |
 | `prun_ship_builder.html` | Ship builder/comparison tool + flight planner (see below) |
+| `prun_corp_prices.html` | Corp price list vs IC1 CX ask — discount badges, watchlist, sortable (see below) |
 
 ---
 
@@ -188,6 +184,25 @@ Added to `FilterPanel.jsx` / `App.jsx`. Band thresholds matching PrUn in-game cl
 - Temperature: Low <−25°C / Med −25–75°C / High >75°C
 - Pressure: Low <0.25atm / Med 0.25–2atm / High >2atm
 - Fertile: checkbox for fertile planets only
+
+---
+
+## Corp Price List (`prun_corp_prices.html`)
+Shows all corp contract prices (from Google Sheet CSV) compared to live IC1 CX ask prices.
+
+**Data sources:**
+- Google Sheet CSV (same URL as `prun_price_convert.html`): col 1 = row index, col 2 = ticker, col 3 = corp price
+- FIO `/exchange/full`: filter `ExchangeCode === 'IC1'` for IC1 Ask prices
+
+**Table columns:** Ticker | Discount | Corp Price | IC1 Ask | Corp vs CX (absolute delta, green if corp < CX)
+
+**Discount badges:** green ≥20%, amber 10–20%, red <10%, grey = no CX listing. Arrow prefix shows direction (↓ = corp cheaper).
+
+**Watchlist (MY LIST):**
+- Saved to `localStorage` as `prun_corp_watchlist` (JSON array of tickers)
+- MY LIST / ALL toggle — MY LIST is default when watchlist has entries
+- Chips with × to remove; text input + ADD button to add by ticker
+- In ALL view: `+` button per row adds that ticker to watchlist (greys out if already in list)
 
 ---
 
