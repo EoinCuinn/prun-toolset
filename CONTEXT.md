@@ -209,11 +209,11 @@ Shows all corp contract prices (from Google Sheet CSV) compared to live IC1 CX a
 ## Sell Finder (`prun_sell_finder.html`)
 - Ticker input with datalist autocomplete from `material_data.json`
 - Quantity input + origin system input
-- Parallel fetch from all 5 exchanges (IC1, NC1, NC2, CI1, CI2)
+- Parallel fetch from all 6 exchanges (IC1, NC1, NC2, CI1, CI2, AI1)
 - BFS pathfinding for jump distance from origin to each exchange
 - Fill simulation — shows how much of the order each exchange can fill
 - Exchange cards colour-coded by jump distance: green ≤3j, orange ≤6j, red >6j
-- Exchange system NaturalIds: IC1→VH-331, NC1→OT-580, NC2→UV-351, CI1→ZV-759, CI2→AM-783
+- Exchange system NaturalIds: IC1→VH-331, NC1→OT-580, NC2→UV-351, CI1→ZV-759, CI2→AM-783, AI1→ZV-307
 
 ---
 
