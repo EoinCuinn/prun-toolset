@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Planet Compare — PRUN Tools</title>
-<script src="/config.js"></script>
 <style>
 :root {
   --bg:#0f1117; --bg2:#1a1f2e; --bg3:#0d1018;
@@ -81,6 +80,12 @@ table.ct .sh2{background:#0d1018;color:var(--text3);font-size:9px;letter-spacing
   </div>
   <button class="btn" id="sb" onclick="doSearch()" disabled>SEARCH</button>
   <span id="rinfo" style="color:var(--text3);font-size:10px"></span>
+  <div class="ig" style="margin-left:auto">
+    <label>FIO KEY</label>
+    <input id="fioKey" type="password" placeholder="FIO API key" style="width:140px" oninput="saveKeys()" />
+    <label>PP KEY</label>
+    <input id="ppKey" type="password" placeholder="PrUn Planner key" style="width:160px" oninput="saveKeys()" />
+  </div>
 </div>
 
 <div id="sts" class="status loading">Loading game data…</div>
@@ -108,9 +113,19 @@ table.ct .sh2{background:#0d1018;color:var(--text3);font-size:9px;letter-spacing
 <script>
 const PP = 'https://api.prunplanner.org';
 const FIO = 'https://rest.fnar.net';
-const PPK = window.PRUNPLANNER_API_KEY || '';
-const FIOK = window.FIO_API_KEY || '';
 const HRT = 'VH-331';
+
+function getKeys() {
+  return {
+    ppk:  document.getElementById('ppKey')?.value?.trim()  || localStorage.getItem('prun_ppkey')  || '',
+    fiok: document.getElementById('fioKey')?.value?.trim() || localStorage.getItem('prun_apikey') || '',
+  };
+}
+function saveKeys() {
+  const { ppk, fiok } = getKeys();
+  if (ppk)  localStorage.setItem('prun_ppkey',  ppk);
+  if (fiok) localStorage.setItem('prun_apikey', fiok);
+}
 
 // Planet-extractable resource tickers
 const EXT = new Set([
@@ -149,7 +164,8 @@ let _cogcFilter=new Set(), _fertileFilter=false, _mode='produce';
 let _plotData={}; // naturalId → { count, cap }
 
 async function ppGet(path) {
-  const r = await fetch(PP+path, {headers:{'Authorization':`Api-Key ${PPK}`}});
+  const { ppk } = getKeys();
+  const r = await fetch(PP+path, {headers:{'Authorization':`Api-Key ${ppk}`}});
   if (!r.ok) throw new Error(`PP ${path} → ${r.status}`);
   return r.json();
 }
@@ -196,7 +212,8 @@ async function loadGraph() {
 }
 
 async function loadPrices() {
-  const r = await fetch(`${FIO}/exchange/full`, {headers:{'Authorization':FIOK}});
+  const { fiok } = getKeys();
+  const r = await fetch(`${FIO}/exchange/full`, {headers:{'Authorization':fiok}});
   if (!r.ok) throw new Error('FIO prices');
   const d = await r.json();
   d.forEach(x => {
@@ -278,9 +295,10 @@ async function doSearch() {
       must_have_localmarket:false,must_have_chamberofcommerce:false,
       must_have_warehouse:false,must_have_administrationcenter:false,must_have_shipyard:false,
     };
+    const { ppk } = getKeys();
     const r=await fetch(`${PP}/data/planets/search/`, {
       method:'POST',
-      headers:{'Authorization':`Api-Key ${PPK}`,'Content-Type':'application/json'},
+      headers:{'Authorization':`Api-Key ${ppk}`,'Content-Type':'application/json'},
       body:JSON.stringify(body),
     });
     if (!r.ok) throw new Error('Search '+r.status);
@@ -405,7 +423,7 @@ async function fetchPlotData(id) {
   try {
     const [planet, sites] = await Promise.all([
       fetch(`${FIO}/planet/${id}`).then(r=>r.json()),
-      fetch(`${FIO}/planet/sites/${id}`, {headers:{'Authorization':FIOK}}).then(r=>r.json()),
+      fetch(`${FIO}/planet/sites/${id}`, {headers:{'Authorization':getKeys().fiok}}).then(r=>r.json()),
     ]);
     const cap = Math.floor(208 + (planet.Radius||0) / 1000 / 36.1);
     const count = Array.isArray(sites) ? sites.length : 0;
@@ -611,6 +629,10 @@ function row(label,cells) {
   return `<tr><td class="rl">${label}</td>${cells.map(c=>`<td>${c}</td>`).join('')}</tr>`;
 }
 
+const _pcFioKey = localStorage.getItem('prun_apikey') || '';
+const _pcPpKey  = localStorage.getItem('prun_ppkey')  || '';
+if (_pcFioKey) document.getElementById('fioKey').value = _pcFioKey;
+if (_pcPpKey)  document.getElementById('ppKey').value  = _pcPpKey;
 init();
 </script>
 </body>

@@ -664,18 +664,19 @@
       <div class="panel-body" style="font-size:10px;color:var(--text-dim);line-height:2">
         <div>Player: <span style="color:var(--accent)">EoinCuinn</span></div>
         <div>Playstyle: <span style="color:var(--text-mid)">Casual · ~20 min/day</span></div>
-        <div>FIO: <span style="color:var(--green)">Connected</span></div>
-        <div id="api-status">API: <span style="color:var(--text-dim)">checking...</span></div>
+        <div id="api-status">FIO: <span style="color:var(--text-dim)">checking...</span></div>
+        <div style="margin-top:8px">
+          <input id="homeApiKey" type="password" placeholder="FIO API key" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:11px;padding:4px 8px;border-radius:3px;outline:none;width:100%" oninput="saveHomeKey()" />
+        </div>
       </div>
     </div>
 
   </div>
 </div>
 
-<script src="/config.js"></script>
 <script>
-const API_KEY = window.FIO_API_KEY;
 const USERNAME = 'EoinCuinn';
+function getApiKey() { return localStorage.getItem('prun_apikey') || ''; }
 const BASE = 'https://rest.fnar.net';
 
 // Known base info (manual overlay since FIO sites endpoint varies)
@@ -688,7 +689,7 @@ const BASE_META = {
 
 async function fio(path) {
   const r = await fetch(`${BASE}${path}`, {
-    headers: { 'Authorization': API_KEY }
+    headers: { 'Authorization': getApiKey() }
   });
   if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
   return r.json();
@@ -826,16 +827,24 @@ async function loadBalance() {
 // ── API STATUS ──
 async function checkApiStatus() {
   try {
+    if (!getApiKey()) throw new Error('no key — enter FIO API key below');
     await fio(`/sites/${USERNAME}`);
     document.getElementById('api-status').innerHTML =
-      'API: <span style="color:var(--green)">Connected ✓</span>';
+      'FIO: <span style="color:var(--green)">Connected ✓</span>';
   } catch(e) {
     document.getElementById('api-status').innerHTML =
-      'API: <span style="color:var(--red)">Error — ' + e.message + '</span>';
+      'FIO: <span style="color:var(--red)">' + e.message + '</span>';
   }
 }
 
+function saveHomeKey() {
+  const key = document.getElementById('homeApiKey')?.value?.trim();
+  if (key) localStorage.setItem('prun_apikey', key);
+}
+
 // ── INIT ──
+const _homeKey = localStorage.getItem('prun_apikey') || '';
+if (_homeKey) document.getElementById('homeApiKey').value = _homeKey;
 Promise.all([loadSites(), loadBalance(), checkApiStatus()]);
 </script>
 </body>

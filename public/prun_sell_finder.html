@@ -257,13 +257,13 @@
   <input id="qtyInput" type="number" placeholder="Qty e.g. 2900" min="1" />
   <input id="originInput" type="text" placeholder="Origin system e.g. Hortus" list="systemList" autocomplete="off" style="min-width:180px;" />
   <datalist id="systemList"></datalist>
+  <input id="fioKeyInput" type="password" placeholder="FIO API key" style="min-width:200px;font-family:var(--mono);font-size:12px" />
   <button class="primary" id="searchBtn">Find best price ↗</button>
 </div>
 <div class="status" id="status">Enter a material ticker and quantity to find the best sell opportunity.</div>
 
 <div id="results"></div>
 
-<script src="/config.js"></script>
 <script>
 const EXCHANGES = ['IC1', 'NC1', 'NC2', 'CI1', 'CI2'];
 
@@ -343,8 +343,10 @@ fetch('/material_data.json')
       });
   })
   .catch(() => {});
-const API_KEY = window.FIO_API_KEY;
 const BASE = 'https://rest.fnar.net';
+function getFioKey() {
+  return document.getElementById('fioKeyInput')?.value?.trim() || localStorage.getItem('prun_apikey') || '';
+}
 
 function fmtNum(n) {
   return n.toLocaleString();
@@ -355,8 +357,9 @@ function fmtPrice(p) {
 }
 
 async function fetchExchange(ticker, exchange) {
+  const key = getFioKey();
   const res = await fetch(`${BASE}/exchange/${ticker.toUpperCase()}.${exchange}`, {
-    headers: API_KEY ? { 'Authorization': API_KEY } : {}
+    headers: key ? { 'Authorization': key } : {}
   });
   if (!res.ok) return null;
   return res.json();
@@ -383,6 +386,8 @@ function simulateFill(buyOrders, qty) {
 }
 
 async function search() {
+  const key = getFioKey();
+  if (key) localStorage.setItem('prun_apikey', key);
   const ticker = document.getElementById('tickerInput').value.trim().toUpperCase();
   const qty = parseInt(document.getElementById('qtyInput').value.trim(), 10);
   const originRaw = document.getElementById('originInput').value.trim();
@@ -521,6 +526,9 @@ async function search() {
 document.getElementById('searchBtn').addEventListener('click', search);
 document.getElementById('tickerInput').addEventListener('keydown', e => { if (e.key === 'Enter') search(); });
 document.getElementById('qtyInput').addEventListener('keydown', e => { if (e.key === 'Enter') search(); });
+
+const _sfSavedKey = localStorage.getItem('prun_apikey') || '';
+if (_sfSavedKey) document.getElementById('fioKeyInput').value = _sfSavedKey;
 
 // Pre-fill from URL params if any
 const params = new URLSearchParams(window.location.search);
