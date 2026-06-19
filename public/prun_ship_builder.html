@@ -227,6 +227,15 @@
   .fp-ship-btn { background: transparent; border: 1px solid #2a3a5f; border-radius: 4px; color: var(--text3); font-family: var(--mono); font-size: 10px; padding: 3px 8px; cursor: pointer; letter-spacing: 0.05em; }
   .fp-ship-btn:hover { border-color: var(--accent); color: var(--accent); }
   .fp-ship-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(79,142,247,0.08); }
+  .td-fuel-btn { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text3); padding: 5px 12px; font-size: 11px; font-family: var(--mono); cursor: pointer; letter-spacing: 0.05em; transition: all 0.15s; }
+  .td-fuel-btn.active { background: #1e3a5f; border-color: var(--accent); color: var(--accent); }
+  .td-fuel-btn:hover:not(.active) { border-color: var(--text2); color: var(--text2); }
+  .td-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+  .td-table th { text-align: left; padding: 4px 10px; color: var(--text3); font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+  .td-table th.td-n { text-align: right; }
+  .td-table td { padding: 5px 10px; border-bottom: 1px solid rgba(42,48,69,0.4); font-family: var(--mono); color: var(--text2); }
+  .td-table td.td-n { text-align: right; }
+  .td-table .td-total td { border-top: 1px solid var(--border); border-bottom: none; padding-top: 8px; color: var(--text); font-weight: 700; }
 </style>
 </head>
 <body>
@@ -245,6 +254,23 @@
     <datalist id="fpSystemList"></datalist>
   </div>
   <div id="fpResult"></div>
+</div>
+
+<div class="flight-planner" id="tripDmgPanel">
+  <div class="fp-header" style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+    <span class="section-label">Trip Damage Estimator</span>
+    <span style="font-size:10px;color:var(--text3)">empirical — preset routes only</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+    <select id="tdRoute" class="fp-input" style="width:240px" onchange="renderTripDmg()">
+      <option value="">— select route —</option>
+    </select>
+    <span style="font-size:10px;color:var(--text3);font-family:monospace;letter-spacing:0.08em">FUEL</span>
+    <button class="td-fuel-btn active" id="tdMin"  onclick="setTdFuel('min')">MIN</button>
+    <button class="td-fuel-btn"        id="tdHalf" onclick="setTdFuel('half')">HALF</button>
+    <button class="td-fuel-btn"        id="tdMax"  onclick="setTdFuel('max')">MAX</button>
+  </div>
+  <div id="tdResult"></div>
 </div>
 
 <div class="top-controls">
@@ -314,6 +340,87 @@ const MODULE_STATS = {
   VCB: { ticker:'VCB', option:'CARGO_BAY_HIGH_VOLUME',      slotType:'CARGO_BAY',         bomWeight:200,  bomVolume:200,  modifiers:{ CARGO_CAPACITY_VOLUME:3000, CARGO_CAPACITY_WEIGHT:1000 } },
   VSC: { ticker:'VSC', option:'CARGO_BAY_VERY_SMALL',       slotType:'CARGO_BAY',         bomWeight:35,   bomVolume:35,   modifiers:{ CARGO_CAPACITY_VOLUME:250, CARGO_CAPACITY_WEIGHT:250 } },
   WCB: { ticker:'WCB', option:'CARGO_BAY_HIGH_LOAD',        slotType:'CARGO_BAY',         bomWeight:200,  bomVolume:200,  modifiers:{ CARGO_CAPACITY_VOLUME:1000, CARGO_CAPACITY_WEIGHT:3000 } },
+};
+
+// ── Route Damage Data (empirical, from PrUn community ship repair calculator) ──
+// Base damage is for BHP plates (no general shield), no drones, HCB ship, full cargo.
+// total = fraction of hull per trip. wear/meteor/heat/rad are fractions summing to ~1.
+const ROUTE_DATA = {
+  HRT_ANT:       { label:'Hrt → Ant',          min:{total:0.0950,wear:0.7233,meteor:0.0211,heat:0.0000,rad:0.2556}, half:{total:0.1740,wear:0.6544,meteor:0.0172,heat:0.0000,rad:0.2284}, max:{total:0.2120,wear:0.7433,meteor:0.0142,heat:0.0000,rad:0.2426} },
+  HRT_PROMITOR:  { label:'Hrt → Promitor',     min:{total:0.0370,wear:0.0965,meteor:0.0000,heat:0.8649,rad:0.0386}, half:{total:0.0390,wear:0.1795,meteor:0.0000,heat:0.8205,rad:0.0000}, max:{total:0.0360,wear:0.1944,meteor:0.0000,heat:0.8056,rad:0.0000} },
+  HRT_PHANTASM:  { label:'Hrt → Phantasm',     min:{total:0.1330,wear:0.2632,meteor:0.5489,heat:0.1880,rad:0.0000}, half:{total:0.0950,wear:0.3053,meteor:0.4211,heat:0.2737,rad:0.0000}, max:{total:0.1040,wear:0.3036,meteor:0.4135,heat:0.2692,rad:0.0137} },
+  HRT_CURIE:     { label:'Hrt → Curie',        min:{total:0.1170,wear:0.3639,meteor:0.5983,heat:0.0256,rad:0.0122}, half:{total:0.1130,wear:0.4475,meteor:0.5133,heat:0.0265,rad:0.0126}, max:{total:0.1230,wear:0.4925,meteor:0.4715,heat:0.0244,rad:0.0116} },
+  HRT_ADALINA:   { label:'Hrt → Adalina',      min:{total:0.0810,wear:0.5079,meteor:0.4568,heat:0.0000,rad:0.0353}, half:{total:0.1100,wear:0.5338,meteor:0.4273,heat:0.0000,rad:0.0390}, max:{total:0.1250,wear:0.6091,meteor:0.3680,heat:0.0000,rad:0.0229} },
+  HRT_BOUCHER:   { label:'Hrt → Boucher',      min:{total:0.1460,wear:0.3738,meteor:0.5411,heat:0.0753,rad:0.0098}, half:{total:0.2250,wear:0.3733,meteor:0.5822,heat:0.0444,rad:0.0000}, max:{total:0.2282,wear:0.4930,meteor:0.4800,heat:0.0260,rad:0.0000} },
+  HRT_CHU:       { label:'Hrt → Chu',          min:{total:0.3240,wear:0.1918,meteor:0.7870,heat:0.0123,rad:0.0088}, half:{total:0.2440,wear:0.3343,meteor:0.6434,heat:0.0164,rad:0.0059}, max:{total:0.2650,wear:0.4097,meteor:0.5736,heat:0.0113,rad:0.0054} },
+  ANT_ORIGO:     { label:'Ant → Origo',        min:{total:0.4180,wear:0.1282,meteor:0.6435,heat:0.0096,rad:0.2187}, half:{total:0.2540,wear:0.1760,meteor:0.4724,heat:0.0197,rad:0.3318}, max:{total:0.2620,wear:0.2165,meteor:0.4427,heat:0.0191,rad:0.3217} },
+  ANT_HARM:      { label:'Ant → Harm.',        min:{total:0.1410,wear:0.1915,meteor:0.3191,heat:0.2766,rad:0.2128}, half:{total:0.1590,wear:0.2884,meteor:0.2956,heat:0.2453,rad:0.1707}, max:{total:0.1710,wear:0.3241,meteor:0.2749,heat:0.2339,rad:0.1671} },
+  ANT_ICE_STATION:{label:'Ant → Ice Station',  min:{total:0.4330,wear:0.0554,meteor:0.3210,heat:0.4388,rad:0.1848}, half:{total:0.4050,wear:0.0653,meteor:0.2568,heat:0.4840,rad:0.1940}, max:{total:0.4180,wear:0.0913,meteor:0.2895,heat:0.4689,rad:0.1504} },
+  ANT_EOS:       { label:'Ant → Eos',          min:{total:0.1020,wear:0.1611,meteor:0.0588,heat:0.0098,rad:0.7703}, half:{total:0.1300,wear:0.1538,meteor:0.0692,heat:0.0077,rad:0.7692}, max:{total:0.1310,wear:0.0731,meteor:0.1450,heat:0.0076,rad:0.7743} },
+  ANT_HEPHAESTUS:{ label:'Ant → Hephaestus',   min:{total:0.2360,wear:0.2427,meteor:0.1144,heat:0.1102,rad:0.5327}, half:{total:0.2090,wear:0.2481,meteor:0.1196,heat:0.1196,rad:0.5126}, max:{total:0.2090,wear:0.2413,meteor:0.1148,heat:0.1244,rad:0.5195} },
+  ANT_DEIMOS:    { label:'Ant → Deimos',       min:{total:0.0810,wear:0.1764,meteor:0.1111,heat:0.3951,rad:0.3175}, half:{total:0.0910,wear:0.2873,meteor:0.1209,heat:0.3407,rad:0.2512}, max:{total:0.1000,wear:0.2586,meteor:0.1300,heat:0.3400,rad:0.2714} },
+  ANT_GRIFFONSTONE:{label:'Ant → Griffonstone', min:{total:0.1250,wear:0.2503,meteor:0.4160,heat:0.1280,rad:0.2057}, half:{total:0.1720,wear:0.3248,meteor:0.4244,heat:0.0930,rad:0.1578}, max:{total:0.1970,wear:0.4177,meteor:0.3756,heat:0.0761,rad:0.1305} },
+  ANT_BEN:       { label:'Ant → Ben',          min:{total:0.1060,wear:0.6765,meteor:0.0943,heat:0.0000,rad:0.2291}, half:{total:0.1470,wear:0.7872,meteor:0.0476,heat:0.0000,rad:0.1652}, max:{total:0.1980,wear:0.8420,meteor:0.0354,heat:0.0000,rad:0.1227} },
+  BEN_MOR:       { label:'Ben → Mor',          min:{total:0.0690,wear:0.8696,meteor:0.1304,heat:0.0000,rad:0.0000}, half:{total:0.0850,wear:0.8891,meteor:0.0941,heat:0.0000,rad:0.0168}, max:{total:0.1040,wear:0.9327,meteor:0.0673,heat:0.0000,rad:0.0000} },
+  BEN_GIBSON:    { label:'Ben → Gibson',       min:{total:0.0700,wear:0.4143,meteor:0.2286,heat:0.3571,rad:0.0000}, half:{total:0.0860,wear:0.3854,meteor:0.2442,heat:0.3372,rad:0.0332}, max:{total:0.0930,wear:0.4946,meteor:0.2151,heat:0.2903,rad:0.0000} },
+  BEN_KIRUNA:    { label:'Ben → Kiruna',       min:{total:0.1510,wear:0.3150,meteor:0.6093,heat:0.0662,rad:0.0095}, half:{total:0.1490,wear:0.3634,meteor:0.5436,heat:0.0738,rad:0.0192}, max:{total:0.1920,wear:0.5208,meteor:0.4271,heat:0.0521,rad:0.0000} },
+  BEN_BROKKRAF:  { label:'Ben → Brokkraf',     min:{total:0.3030,wear:0.1815,meteor:0.3630,heat:0.4554,rad:0.0000}, half:{total:0.2650,wear:0.1164,meteor:0.3094,heat:0.5472,rad:0.0270}, max:{total:0.2720,wear:0.2647,meteor:0.2390,heat:0.4963,rad:0.0000} },
+  BEN_GIEDI_PRIME:{label:'Ben → Giedi Prime',  min:{total:0.4430,wear:0.0519,meteor:0.0700,heat:0.8781,rad:0.0000}, half:{total:0.4710,wear:0.0767,meteor:0.0276,heat:0.8896,rad:0.0061}, max:{total:0.4880,wear:0.0000,meteor:0.1189,heat:0.8689,rad:0.0293} },
+  BEN_KATOA:     { label:'Ben → Katoa',        min:{total:0.1250,wear:0.3326,meteor:0.4160,heat:0.2400,rad:0.0114}, half:{total:0.1530,wear:0.3987,meteor:0.4118,heat:0.1895,rad:0.0000}, max:{total:0.1540,wear:0.3423,meteor:0.4351,heat:0.1948,rad:0.0278} },
+  BEN_YANNICK:   { label:'Ben → Yannick',      min:{total:0.4510,wear:0.4770,meteor:0.5166,heat:0.0000,rad:0.0063}, half:{total:0.6160,wear:0.4791,meteor:0.5162,heat:0.0000,rad:0.0046}, max:{total:0.6230,wear:0.4802,meteor:0.5152,heat:0.0000,rad:0.0046} },
+  BEN_BIOGENESIS: { label:'Ben → Biogenesis',  min:{total:0.5130,wear:0.4222,meteor:0.4444,heat:0.1306,rad:0.0028}, half:{total:0.4430,wear:0.4153,meteor:0.4334,heat:0.1512,rad:0.0000}, max:{total:0.4390,wear:0.4146,meteor:0.4374,heat:0.1481,rad:0.0000} },
+  BEN_ASBESTOS:  { label:'Ben → Asbestos',     min:{total:0.2990,wear:0.1409,meteor:0.2642,heat:0.5853,rad:0.0096}, half:{total:0.2770,wear:0.0712,meteor:0.2238,heat:0.6895,rad:0.0155}, max:{total:0.2850,wear:0.0000,meteor:0.2877,heat:0.6807,rad:0.0401} },
+  BEN_UPONOR:    { label:'Ben → Uponor',       min:{total:0.1170,wear:0.2821,meteor:0.3932,heat:0.3248,rad:0.0000}, half:{total:0.1460,wear:0.3327,meteor:0.3699,heat:0.2877,rad:0.0098}, max:{total:0.1580,wear:0.4024,meteor:0.3228,heat:0.2658,rad:0.0090} },
+  BEN_ETHERWIND: { label:'Ben → Etherwind',    min:{total:0.3730,wear:0.1612,meteor:0.7936,heat:0.0375,rad:0.0077}, half:{total:0.2320,wear:0.3042,meteor:0.6336,heat:0.0560,rad:0.0062}, max:{total:0.2470,wear:0.3644,meteor:0.5789,heat:0.0567,rad:0.0000} },
+  MOR_HRT:       { label:'Mor → Hrt',          min:{total:0.0580,wear:0.9828,meteor:0.0172,heat:0.0000,rad:0.0000}, half:{total:0.0650,wear:0.9473,meteor:0.0308,heat:0.0000,rad:0.0220}, max:{total:0.0710,wear:0.9859,meteor:0.0141,heat:0.0000,rad:0.0000} },
+  MOR_VERDANT:   { label:'Mor → Verdant',      min:{total:0.1460,wear:0.4110,meteor:0.3630,heat:0.2260,rad:0.0000}, half:{total:0.1900,wear:0.4195,meteor:0.3789,heat:0.1789,rad:0.0226}, max:{total:0.2130,wear:0.4708,meteor:0.3380,heat:0.1643,rad:0.0268} },
+  MOR_DANAKIL:   { label:'Mor → Danakil',      min:{total:0.1390,wear:0.1871,meteor:0.4532,heat:0.3597,rad:0.0000}, half:{total:0.1030,wear:0.1512,meteor:0.3301,heat:0.5049,rad:0.0139}, max:{total:0.1080,wear:0.1772,meteor:0.3241,heat:0.4722,rad:0.0265} },
+  MOR_CELEBDIL:  { label:'Mor → Celebdil',     min:{total:0.1540,wear:0.2866,meteor:0.6883,heat:0.0065,rad:0.0186}, half:{total:0.2040,wear:0.3242,meteor:0.6569,heat:0.0049,rad:0.0140}, max:{total:0.2300,wear:0.3901,meteor:0.5870,heat:0.0043,rad:0.0186} },
+  MOR_CIRCE:     { label:'Mor → Circe',        min:{total:0.1370,wear:0.3066,meteor:0.4818,heat:0.2117,rad:0.0000}, half:{total:0.1970,wear:0.3133,meteor:0.5178,heat:0.1472,rad:0.0218}, max:{total:0.2270,wear:0.3883,meteor:0.4758,heat:0.1233,rad:0.0126} },
+  MOR_PALLADA:   { label:'Mor → Pallada',      min:{total:0.8100,wear:0.1589,meteor:0.1247,heat:0.6617,rad:0.0547}, half:{total:0.7510,wear:0.0656,meteor:0.1398,heat:0.7204,rad:0.0742}, max:{total:0.6920,wear:0.1980,meteor:0.1026,heat:0.6994,rad:0.0000} },
+  MOR_ORM:       { label:'Mor → Orm',          min:{total:0.2540,wear:0.2244,meteor:0.4882,heat:0.2874,rad:0.0000}, half:{total:0.2380,wear:0.2461,meteor:0.4286,heat:0.3193,rad:0.0060}, max:{total:0.2560,wear:0.2796,meteor:0.4102,heat:0.3047,rad:0.0056} },
+  MOR_SABATON:   { label:'Mor → Sabaton',      min:null, half:null, max:{total:0.4620,wear:0.0677,meteor:0.1732,heat:0.7035,rad:0.0557} },
+  HARM_ZV896D:   { label:'Harm → ZV-896d',     min:{total:0.1730,wear:0.2981,meteor:0.6879,heat:0.0058,rad:0.0083}, half:{total:0.2020,wear:0.3762,meteor:0.6238,heat:0.0000,rad:0.0000}, max:{total:0.2260,wear:0.4425,meteor:0.5575,heat:0.0000,rad:0.0000} },
+  HARM_NASCENT:  { label:'Harm → Nascent',     min:{total:0.2480,wear:0.2379,meteor:0.7016,heat:0.0605,rad:0.0000}, half:{total:0.2540,wear:0.2953,meteor:0.6457,heat:0.0591,rad:0.0000}, max:{total:0.2740,wear:0.3504,meteor:0.5912,heat:0.0584,rad:0.0000} },
+  YI705B_YI705D: { label:'YI-705b → YI-705d',  min:{total:0.1960,wear:0.0190,meteor:0.6939,heat:0.2653,rad:0.0219}, half:{total:0.1770,wear:0.0904,meteor:0.6441,heat:0.2655,rad:0.0000}, max:{total:0.1760,wear:0.0795,meteor:0.6591,heat:0.2614,rad:0.0000} },
+};
+
+// ── Flight Planner Route Lookup (originSysId|destSysId → ROUTE_DATA key) ──
+// System IDs verified via prun_universe_data.json + in-game checks.
+// In-system routes (same sysId) not listed — planFlight() exits early for those.
+const FP_ROUTE_LOOKUP = {
+  // HRT origin (VH-331 system)
+  'f2f57766ebaca9d69efae41ccf4d8853|8ecf9670ba070d78cfb5537e8d9f1b6c': 'HRT_ANT',
+  'f2f57766ebaca9d69efae41ccf4d8853|5c9bfdb44e45c88af9d7b8b972ac98d0': 'HRT_BOUCHER',
+  'f2f57766ebaca9d69efae41ccf4d8853|b327eee7710ef5b77fb3656d1224ac52': 'HRT_PHANTASM',
+  'f2f57766ebaca9d69efae41ccf4d8853|9172f08e5e490173b289f27e4f417365': 'HRT_CURIE',
+  'f2f57766ebaca9d69efae41ccf4d8853|37759eb18de92f41748c2cc2ad1c4eab': 'HRT_ADALINA',
+  'f2f57766ebaca9d69efae41ccf4d8853|6feadf1ed49c61876f7cb61f7da3c107': 'HRT_CHU',
+  // ANT origin (ZV-307 system)
+  '8ecf9670ba070d78cfb5537e8d9f1b6c|92029ff27c1abe932bd2c61ee4c492c7': 'ANT_BEN',
+  '8ecf9670ba070d78cfb5537e8d9f1b6c|044858c347afe81e8a39c68116f4a22e': 'ANT_ORIGO',
+  '8ecf9670ba070d78cfb5537e8d9f1b6c|ad1291e7bd5bbab1edebd67500c22150': 'ANT_HARM',
+  '8ecf9670ba070d78cfb5537e8d9f1b6c|a4f8152ef31be5e5ec7036d049c0dd0f': 'ANT_ICE_STATION',
+  '8ecf9670ba070d78cfb5537e8d9f1b6c|f02f1292a7520f7bc96453010102f8c1': 'ANT_DEIMOS',
+  '8ecf9670ba070d78cfb5537e8d9f1b6c|95d4975f992a70a802bd2f19553c25d4': 'ANT_GRIFFONSTONE',
+  // BEN origin (UV-351 system)
+  '92029ff27c1abe932bd2c61ee4c492c7|49b6615d39ccba05752b3be77b2ebf36': 'BEN_MOR',
+  '92029ff27c1abe932bd2c61ee4c492c7|9e0f4a18381e14dcf7f525c027b62314': 'BEN_GIBSON',
+  '92029ff27c1abe932bd2c61ee4c492c7|84b30ff594e60c1a5ef064a7afa29126': 'BEN_KIRUNA',
+  '92029ff27c1abe932bd2c61ee4c492c7|4d098f6138f3a6b550bb81f129e658ae': 'BEN_BROKKRAF',
+  '92029ff27c1abe932bd2c61ee4c492c7|e2e004d158202f9fa4a1cd4f3434e8bd': 'BEN_GIEDI_PRIME',
+  '92029ff27c1abe932bd2c61ee4c492c7|582cd0502d397ca3fbabe9e88e60b804': 'BEN_ASBESTOS',
+  '92029ff27c1abe932bd2c61ee4c492c7|23c6a405b00216d423c9ec46e65f7e25': 'BEN_UPONOR',
+  '92029ff27c1abe932bd2c61ee4c492c7|239e36f2a61041e0952d9c9741c195c9': 'BEN_ETHERWIND',
+  // MOR origin (OT-580 system)
+  '49b6615d39ccba05752b3be77b2ebf36|f2f57766ebaca9d69efae41ccf4d8853': 'MOR_HRT',
+  '49b6615d39ccba05752b3be77b2ebf36|25fe0d0852ae79c5ce335dca9064446b': 'MOR_VERDANT',
+  '49b6615d39ccba05752b3be77b2ebf36|e7b81360554cfd1e10977d34a3e2b53a': 'MOR_DANAKIL',
+  '49b6615d39ccba05752b3be77b2ebf36|4c9f54c135411b664fd2af52326f80b4': 'MOR_CELEBDIL',
+  '49b6615d39ccba05752b3be77b2ebf36|18c4fa43503cca47e7d019e95833b138': 'MOR_CIRCE',
+  '49b6615d39ccba05752b3be77b2ebf36|965cf574ab5a6f84aacba848b246aeb0': 'MOR_SABATON',
+  // HARM origin (ZV-896 system)
+  'ad1291e7bd5bbab1edebd67500c22150|66570d92eaa25d9c67f6fc7ffa7dd9bf': 'HARM_NASCENT',
 };
 
 const MATERIAL_NAMES = {
@@ -669,6 +776,7 @@ const PERF_ROWS = [
 function render() {
   renderGrid();
   renderBOM();
+  renderTripDmg();
 }
 
 function renderGrid() {
@@ -797,6 +905,135 @@ function renderGrid() {
 }
 
 function renderBOM() {} // BOM now rendered inside renderGrid
+
+// ── Trip Damage Estimator ─────────────────────────────────────────────────
+
+let _tdFuel = 'min';
+
+function setTdFuel(mode) {
+  _tdFuel = mode;
+  ['min','half','max'].forEach(m => {
+    const btn = document.getElementById('td' + m.charAt(0).toUpperCase() + m.slice(1));
+    if (btn) btn.classList.toggle('active', m === mode);
+  });
+  renderTripDmg();
+  const o = document.getElementById('fpOrigin')?.value?.trim();
+  const d = document.getElementById('fpDest')?.value?.trim();
+  if (o && d) planFlight();
+}
+
+function initTripDamage() {
+  const sel = document.getElementById('tdRoute');
+  if (!sel) return;
+  const groups = { HRT:[], ANT:[], BEN:[], MOR:[], HARM:[], Other:[] };
+  for (const [key, route] of Object.entries(ROUTE_DATA)) {
+    const lbl = route.label;
+    if (lbl.startsWith('Hrt') || lbl.startsWith('HRT')) groups.HRT.push([key, route]);
+    else if (lbl.startsWith('Ant'))  groups.ANT.push([key, route]);
+    else if (lbl.startsWith('Ben'))  groups.BEN.push([key, route]);
+    else if (lbl.startsWith('Mor') || lbl.startsWith('MOR')) groups.MOR.push([key, route]);
+    else if (lbl.startsWith('Harm')) groups.HARM.push([key, route]);
+    else                             groups.Other.push([key, route]);
+  }
+  for (const [gName, routes] of Object.entries(groups)) {
+    if (!routes.length) continue;
+    const og = document.createElement('optgroup');
+    og.label = gName + ' routes';
+    routes.forEach(([key, route]) => {
+      const opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = route.label;
+      og.appendChild(opt);
+    });
+    sel.appendChild(og);
+  }
+}
+
+function renderTripDmg() {
+  const routeKey = (document.getElementById('tdRoute') || {}).value;
+  const result   = document.getElementById('tdResult');
+  if (!result) return;
+  if (!routeKey) { result.innerHTML = ''; return; }
+
+  const route = ROUTE_DATA[routeKey];
+  const data  = route[_tdFuel];
+  if (!data) {
+    result.innerHTML = `<div class="fp-note">No ${_tdFuel} fuel data for this route.</div>`;
+    return;
+  }
+
+  const activeShips = ships.slice(0, shipCount);
+
+  const shipDmg = activeShips.map(ship => {
+    const sel = ship.sel;
+    const plateMod = MODULE_STATS[sel.hullPlates]?.modifiers?.SHIELDING_GENERAL || 0;
+    const droneMod = MODULE_STATS[sel.selfRepairDrones]?.modifiers?.SHIELDING_GENERAL || 0;
+    const whipple  = MODULE_STATS[sel.whippleShielding]?.modifiers?.SHIELDING_WHIPPLE    || 0;
+    const heat     = MODULE_STATS[sel.heatShielding]?.modifiers?.SHIELDING_HEAT           || 0;
+    const rad      = MODULE_STATS[sel.radiationShielding]?.modifiers?.SHIELDING_RADIATION || 0;
+
+    const adj    = data.total * (1 - plateMod - droneMod);
+    const wear   = adj * Math.max(0, data.wear);
+    const meteor = adj * Math.max(0, data.meteor) * (1 - whipple);
+    const htDmg  = adj * Math.max(0, data.heat)   * (1 - heat);
+    const radDmg = adj * Math.max(0, data.rad)    * (1 - rad);
+    const total  = wear + meteor + htDmg + radDmg;
+    return { wear, meteor, heat: htDmg, rad: radDmg, total, trips: total > 0 ? Math.floor(20 / total) : 999 };
+  });
+
+  const dmgRows = [
+    { label:'Wear (hull)',  key:'wear',   color:'#8a9ab0' },
+    { label:'Meteoroid',    key:'meteor', color:'#a0a870' },
+    { label:'Heat',         key:'heat',   color:'#ff8060' },
+    { label:'Radiation',    key:'rad',    color:'#f0c030' },
+  ];
+
+  const totals = shipDmg.map(d => d.total);
+  const minT   = Math.min(...totals), maxT = Math.max(...totals);
+  const trips  = shipDmg.map(d => d.trips);
+  const maxTr  = Math.max(...trips),  minTr = Math.min(...trips);
+
+  const dmgFmt = v => {
+    if (v < 0.0001) return '<span style="color:var(--text3)">—</span>';
+    const col = v > 0.15 ? '#f74f4f' : v > 0.05 ? '#e09040' : v > 0.01 ? '#c0a840' : '#8aaa70';
+    return `<span style="color:${col}">${v.toFixed(3)}%</span>`;
+  };
+
+  let html = `<table class="td-table">
+    <thead><tr><th>Damage type</th>`;
+  activeShips.forEach(s => { html += `<th class="td-n">${s.name}</th>`; });
+  html += `</tr></thead><tbody>`;
+
+  dmgRows.forEach(row => {
+    const vals = shipDmg.map(d => d[row.key]);
+    if (vals.every(v => v < 0.0001)) return;
+    html += `<tr><td style="color:${row.color}">${row.label}</td>`;
+    vals.forEach(v => { html += `<td class="td-n">${dmgFmt(v)}</td>`; });
+    html += `</tr>`;
+  });
+
+  // Total row
+  html += `</tbody><tr class="td-total"><td>Total / trip</td>`;
+  totals.forEach((v, i) => {
+    const isBest  = shipCount > 1 && v === minT && minT !== maxT;
+    const isWorst = shipCount > 1 && v === maxT && minT !== maxT;
+    const bg = isBest ? 'rgba(74,222,128,0.06)' : isWorst ? 'rgba(247,95,79,0.04)' : '';
+    const col = v > 0.3 ? '#f74f4f' : v > 0.15 ? '#e09040' : v > 0.05 ? '#c0a840' : '#8aaa70';
+    html += `<td class="td-n" style="background:${bg}"><span style="color:${col};font-weight:700">${v.toFixed(3)}%</span></td>`;
+  });
+  html += `</tr><tr class="td-total"><td>Trips to 80%</td>`;
+  trips.forEach(v => {
+    const isBest  = shipCount > 1 && v === maxTr && maxTr !== minTr;
+    const isWorst = shipCount > 1 && v === minTr && maxTr !== minTr;
+    const bg = isBest ? 'rgba(74,222,128,0.06)' : isWorst ? 'rgba(247,95,79,0.04)' : '';
+    const col = isBest ? '#4ade80' : isWorst ? '#f87171' : 'var(--text)';
+    html += `<td class="td-n" style="background:${bg}"><span style="color:${col};font-weight:700">${v >= 999 ? '∞' : v}</span></td>`;
+  });
+  html += `</tr></table>`;
+  html += `<div class="fp-note" style="margin-top:6px">Base: ${data.total.toFixed(3)}% with BHP, no shields, full HCB load. Adjusts for your hull plates, drones, and specific shielding.</div>`;
+
+  result.innerHTML = html;
+}
 
 // ── Flight Planner ────────────────────────────────────────────────────────
 
@@ -1006,7 +1243,7 @@ function fpSysLabel(sys) {
 
 function fpGetShields() {
   const sel = ships?.[_fpShipIdx]?.sel;
-  if (!sel) return { general:0, whipple:0, heat:0, radiation:0, gravity:0 };
+  if (!sel) return { general:0, whipple:0, heat:0, radiation:0, gravity:0, drone:0 };
   const mod = k => MODULE_STATS[sel[k]]?.modifiers || {};
   return {
     general:   mod('hullPlates').SHIELDING_GENERAL          || 0,
@@ -1014,6 +1251,7 @@ function fpGetShields() {
     heat:      mod('heatShielding').SHIELDING_HEAT          || 0,
     radiation: mod('radiationShielding').SHIELDING_RADIATION|| 0,
     gravity:   mod('stabilitySystem').SHIELDING_GRAVITY     || 0,
+    drone:     mod('selfRepairDrones').SHIELDING_GENERAL    || 0,
   };
 }
 
@@ -1058,6 +1296,51 @@ function fpStlTimeFmt(min) {
 }
 
 function fpSelectShip(idx) { _fpShipIdx = idx; planFlight(); }
+
+function fpEmpiricalBlock(routeKey) {
+  const rd = ROUTE_DATA[routeKey];
+  if (!rd) return '';
+  const data = rd[_tdFuel];
+  if (!data) {
+    const available = ['min','half','max'].filter(m => rd[m]).map(m => m.toUpperCase()).join(', ');
+    return `<div style="margin-top:8px;padding:8px 10px;background:rgba(255,255,255,0.02);border-radius:4px;border:1px solid var(--border)">
+      <span style="font-size:10px;color:var(--text3)">No ${_tdFuel.toUpperCase()} fuel data for ${rd.label}. Available: ${available}</span>
+    </div>`;
+  }
+  const sh = fpGetShields();
+  const adj    = data.total * (1 - sh.general - sh.drone);
+  const wear   = adj * Math.max(0, data.wear);
+  const meteor = adj * Math.max(0, data.meteor) * (1 - sh.whipple);
+  const htDmg  = adj * Math.max(0, data.heat)   * (1 - sh.heat);
+  const radDmg = adj * Math.max(0, data.rad)    * (1 - sh.radiation);
+  const total  = wear + meteor + htDmg + radDmg;
+  const tripsTo80 = total > 0 ? Math.floor(20 / total) : 999;
+  const totalCol = total > 0.3 ? '#f74f4f' : total > 0.15 ? '#e09040' : total > 0.05 ? '#c0a840' : '#8aaa70';
+  const fmt = v => {
+    const col = v > 0.15 ? '#f74f4f' : v > 0.05 ? '#e09040' : v > 0.01 ? '#c0a840' : '#8aaa70';
+    return `<span style="color:${col}">${v.toFixed(3)}%</span>`;
+  };
+  const typeParts = [
+    wear   > 0.0001 ? `<span style="color:var(--text3);font-size:11px">Wear</span> ${fmt(wear)}`   : '',
+    meteor > 0.0001 ? `<span style="color:var(--text3);font-size:11px">Meteor</span> ${fmt(meteor)}` : '',
+    htDmg  > 0.0001 ? `<span style="color:var(--text3);font-size:11px">Heat</span> ${fmt(htDmg)}`  : '',
+    radDmg > 0.0001 ? `<span style="color:var(--text3);font-size:11px">Rad</span> ${fmt(radDmg)}`  : '',
+  ].filter(Boolean).join('<span style="color:var(--border)"> · </span>');
+  const fuelBtns = ['min','half','max']
+    .map(m => `<button class="td-fuel-btn${_tdFuel===m?' active':''}" onclick="setTdFuel('${m}')" style="padding:2px 7px;font-size:10px">${m.toUpperCase()}</button>`)
+    .join('');
+  return `<div style="margin-top:8px;padding:8px 10px;background:rgba(255,255,255,0.02);border-radius:4px;border:1px solid var(--border)">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
+      <span style="font-size:10px;color:var(--text3);font-family:var(--mono);letter-spacing:0.08em">EMPIRICAL — ${rd.label}</span>
+      <span style="font-size:10px;color:var(--text3)">FUEL</span>${fuelBtns}
+    </div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:baseline">
+      ${typeParts}
+      <span style="font-family:var(--mono);font-size:16px;font-weight:700;color:${totalCol}">${total.toFixed(3)}%</span>
+      <span style="font-size:11px;color:var(--text3)">hull / trip &nbsp;·&nbsp; ~${tripsTo80 >= 999 ? '∞' : tripsTo80} trips to 80%</span>
+    </div>
+  </div>`;
+}
 
 async function planFlight() {
   const result = document.getElementById('fpResult');
@@ -1113,8 +1396,16 @@ async function planFlight() {
   const hopRawRad = hops.map(h => fpFtlRadDmg(h.pc));
   const hopShdRad = hopRawRad.map(r => fpApplyShield(r, sh.radiation, sh.general));
 
-  const totalRawDmg = depRawMet + hopRawRad.reduce((a,b)=>a+b,0) + appRawMet;
-  const totalShdDmg = depShdMet + hopShdRad.reduce((a,b)=>a+b,0) + appShdMet;
+  const empiricalRouteKey = FP_ROUTE_LOOKUP[`${originId}|${destId}`] || null;
+
+  // Wear estimate from parsecs regression (R²=0.50, min-fuel baseline BHP)
+  const wearRawEst = totalParsecs > 0 ? Math.max(0, 0.030 + 0.00083 * totalParsecs) : 0;
+  const wearShdEst = wearRawEst * Math.max(0, 1 - sh.general - sh.drone);
+
+  const ftlStlRaw = depRawMet + hopRawRad.reduce((a,b)=>a+b,0) + appRawMet;
+  const ftlStlShd = depShdMet + hopShdRad.reduce((a,b)=>a+b,0) + appShdMet;
+  const totalRawDmg = ftlStlRaw;
+  const totalShdDmg = ftlStlShd;
   const hasShields  = Math.abs(totalRawDmg - totalShdDmg) > 0.0001;
 
   // ── Ship selector ─────────────────────────────────────────────────────
@@ -1184,11 +1475,26 @@ async function planFlight() {
       <td class="fp-n">${totalParsecs}pc</td>
       <td class="fp-n">${fpFmt(totalTime)} <span style="color:var(--text3);font-weight:400">+ STL</span></td>
       <td class="fp-n">${totalFuel}</td>
-      <td class="fp-n">${fpDmgFmt(totalRawDmg, totalShdDmg)}</td>
+      <td class="fp-n">${fpDmgFmt(ftlStlRaw, ftlStlShd)}</td>
     </tr>
   </table>
+  ${empiricalRouteKey
+    ? fpEmpiricalBlock(empiricalRouteKey)
+    : wearRawEst > 0 ? (() => {
+        const wearPct = (wearShdEst * 100).toFixed(1);
+        const wearRawPct = (wearRawEst * 100).toFixed(1);
+        const wearCol = wearShdEst > 0.3 ? '#f74f4f' : wearShdEst > 0.15 ? '#e09040' : wearShdEst > 0.05 ? '#c0a840' : '#8aaa70';
+        const shieldNote = Math.abs(wearRawEst - wearShdEst) > 0.005
+          ? ` <span style="color:var(--text3);font-size:11px">/ ${wearRawPct}% unshielded</span>` : '';
+        return `<div style="margin-top:8px;padding:8px 10px;background:rgba(255,255,255,0.02);border-radius:4px;border:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <span style="font-size:10px;color:var(--text3);font-family:var(--mono);letter-spacing:0.08em">WEAR (est.)</span>
+          <span style="font-family:var(--mono);font-size:16px;font-weight:700;color:${wearCol}">${wearPct}%</span>${shieldNote}
+          <span style="font-size:11px;color:var(--text3)">hull / trip &nbsp;·&nbsp; ~${Math.floor(0.20 / wearShdEst)} trips to 80%</span>
+          <span style="font-size:10px;color:var(--text3);font-style:italic">min fuel, ±50%</span>
+        </div>`;
+      })() : ''}
   ${fpShieldsRec(origin.planetNatId, dest.planetNatId, hops)}
-  <div class="fp-note">STL times and damage are estimates. Speed varies by ship; orbital position shifts STL distance. HEAT/GRAV damage not yet modelled. Parsec estimates ±10%.</div>`;
+  <div class="fp-note">STL times are estimates. ${empiricalRouteKey ? 'Empirical damage from community route data, adjusted for your ship config.' : 'Wear estimated from parsecs regression (R²=0.50, ±50%, min fuel baseline).'} HEAT/GRAV damage not yet modelled. Parsec estimates ±10%.</div>`;
 
   result.innerHTML = html;
 }
@@ -1199,6 +1505,7 @@ document.getElementById('fpDest').addEventListener('keydown', e => { if (e.key =
 // Initial render + eager-load universe data so datalist is populated before user types
 render();
 fpLoad();
+initTripDamage();
 </script>
 </body>
 </html>
