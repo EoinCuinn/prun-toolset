@@ -52,7 +52,6 @@
 
     .main { padding: 16px; max-width: 1400px; margin: 0 auto; }
 
-    /* Stats panel */
     .stats-panel {
       background: var(--bg2); border: 1px solid var(--border); border-radius: 4px;
       padding: 12px 16px; margin-bottom: 14px;
@@ -72,7 +71,6 @@
     .warn { color: var(--orange); }
     .dim { color: var(--text3); }
 
-    /* Tracking chips */
     .tracking-panel {
       background: var(--bg2); border: 1px solid var(--border); border-radius: 4px;
       padding: 10px 14px; margin-bottom: 14px;
@@ -85,7 +83,6 @@
     }
     .chip.flying { border-color: var(--accent); color: var(--accent); }
 
-    /* Log table */
     .section-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
     .section-head { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text2); }
     .entry-count { font-size: 11px; color: var(--text3); }
@@ -102,12 +99,10 @@
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: var(--bg2); }
     .col-reg { font-family: var(--mono); font-size: 11px; color: var(--accent); }
-    .col-name { font-size: 10px; color: var(--text3); font-family: var(--mono); }
+    .col-type { font-size: 10px; color: var(--text3); font-family: var(--mono); }
     .col-route { font-family: var(--mono); }
     .col-ts { font-size: 11px; color: var(--text2); white-space: nowrap; }
-    .col-ts-note { font-size: 10px; color: var(--text3); }
     .col-num { font-family: var(--mono); text-align: right; }
-
     .empty-state { padding: 32px 16px; text-align: center; color: var(--text3); }
   </style>
 </head>
@@ -116,13 +111,12 @@
 <div class="header">
   <a class="home-link" href="home.html">⌂ HOME</a>
   <div class="page-title">FLIGHT LOG</div>
-  <input id="usernameInput" type="text" placeholder="Username" style="width:110px">
-  <input id="apikeyInput" type="password" placeholder="FIO API key" style="width:180px">
+  <input id="tokenInput" type="password" placeholder="PUNoted token" style="width:220px">
   <button class="btn" onclick="doRefresh()">↺ REFRESH</button>
   <button class="btn-danger" onclick="clearLog()">CLEAR LOG</button>
 </div>
 
-<div class="status-bar" id="statusBar">Enter credentials and hit REFRESH to start logging flights.</div>
+<div class="status-bar" id="statusBar">Enter your PUNoted API token and hit REFRESH.</div>
 
 <div class="main">
 
@@ -132,21 +126,23 @@
       <div class="stat-val" id="statCount">0</div>
     </div>
     <div class="stat-block">
-      <div class="stat-label">Avg min / parsec &nbsp;<span style="color:var(--text3);font-size:10px">hardcoded: 28.5</span></div>
+      <div class="stat-label">FTL min / parsec &nbsp;<span style="color:var(--text3);font-size:10px">hardcoded: 28.5</span></div>
       <div class="stat-val" id="statMinPc">—</div>
       <div class="stat-sub" id="statMinPcSub"></div>
     </div>
     <div class="stat-block">
-      <div class="stat-label">Avg FTL fuel / parsec &nbsp;<span style="color:var(--text3);font-size:10px">hardcoded: 14.2</span></div>
+      <div class="stat-label">FTL fuel / parsec &nbsp;<span style="color:var(--text3);font-size:10px">hardcoded: 14.2</span></div>
       <div class="stat-val" id="statFuelPc">—</div>
       <div class="stat-sub" id="statFuelPcSub"></div>
     </div>
     <div class="stat-block">
+      <div class="stat-label">Total elapsed / parsec</div>
+      <div class="stat-val" id="statTotalPc">—</div>
+      <div class="stat-sub" id="statTotalPcSub"><span class="dim">includes STL transit time</span></div>
+    </div>
+    <div class="stat-block">
       <div class="stat-label">Note</div>
-      <div class="stat-note">
-        min/pc includes STL transit time — expect it to run higher than the FTL-only constant (28.5).
-        Departure time is when the in-flight state was <em>detected</em>, not actual departure — elapsed is approximate.
-      </div>
+      <div class="stat-note">Data via PUNoted — departure and arrival timestamps are exact. FTL min/pc uses only JUMP segment time for a clean comparison against the 28.5 constant.</div>
     </div>
   </div>
 
@@ -160,83 +156,44 @@
     <div class="entry-count" id="entryCount"></div>
   </div>
   <div class="table-wrap">
-    <div id="logTable"><div class="empty-state">No flights logged yet. Refresh periodically — completed flights are detected automatically by comparing ship state to the last snapshot.</div></div>
+    <div id="logTable"><div class="empty-state">No flights logged yet. Each REFRESH detects ships that have landed since the last snapshot.</div></div>
   </div>
 
 </div>
 
 <script>
-const BASE = 'https://rest.fnar.net';
-const FP_SCALE = 12.67;
-const HARD_MIN_PC  = 28.5;
-const HARD_FUEL_PC = 14.2;
-
-const LOG_KEY     = 'prun_flightlog';
-const SNAP_PREFIX = 'prun_flightsnap_';
-
-let _sysById = null;
+const PUNOTED_BASE  = 'https://api.punoted.net/v1';
+const HARD_MIN_PC   = 28.5;
+const HARD_FUEL_PC  = 14.2;
+const LOG_KEY       = 'prun_flightlog';
+const SNAP_PREFIX   = 'prun_flightsnap_';
+const TOKEN_KEY     = 'prun_punoted_token';
 
 // ── Persistence ───────────────────────────────────────────────────────────
 
-function loadLog()             { try { return JSON.parse(localStorage.getItem(LOG_KEY) || '[]'); } catch { return []; } }
-function saveLog(e)            { localStorage.setItem(LOG_KEY, JSON.stringify(e)); }
-function loadSnap(id)          { try { return JSON.parse(localStorage.getItem(SNAP_PREFIX + id)); } catch { return null; } }
-function saveSnap(id, snap)    { localStorage.setItem(SNAP_PREFIX + id, JSON.stringify(snap)); }
+function loadLog()          { try { return JSON.parse(localStorage.getItem(LOG_KEY) || '[]'); } catch { return []; } }
+function saveLog(e)         { localStorage.setItem(LOG_KEY, JSON.stringify(e)); }
+function loadSnap(id)       { try { return JSON.parse(localStorage.getItem(SNAP_PREFIX + id)); } catch { return null; } }
+function saveSnap(id, snap) { localStorage.setItem(SNAP_PREFIX + id, JSON.stringify(snap)); }
 
-// ── Universe / parsec calc ────────────────────────────────────────────────
+// ── Flight data helpers ───────────────────────────────────────────────────
 
-async function loadUniverse() {
-  if (_sysById) return _sysById;
-  const data = await fetch('/prun_universe_data.json').then(r => r.json());
-  _sysById = {};
-  data.forEach(s => { if (s.NaturalId) _sysById[s.NaturalId] = s; });
-  return _sysById;
+function lineLabel(lines) {
+  if (!lines?.length) return null;
+  const obj = lines[0].jsonb_build_object || lines[0];
+  return obj.LineName || obj.LineNaturalId || null;
 }
 
-function toSysId(lineId) {
-  // "VH-331a" → "VH-331";  "VH-331" stays unchanged
-  return (lineId || '').replace(/[a-z]$/, '');
-}
-
-function calcParsecs(segments, sysById) {
-  let total = 0;
-  for (const seg of segments) {
-    if (seg.Type !== 'FTL') continue;
-    const oId = toSysId(seg.OriginLines?.[0]?.LineNaturalId);
-    const dId = toSysId(seg.DestinationLines?.[0]?.LineNaturalId);
-    const o = sysById[oId], d = sysById[dId];
-    if (!o || !d) continue;
-    const dx = o.PositionX - d.PositionX, dy = o.PositionY - d.PositionY, dz = o.PositionZ - d.PositionZ;
-    total += Math.max(1, Math.round(Math.sqrt(dx*dx + dy*dy + dz*dz) / FP_SCALE));
-  }
-  return total > 0 ? total : null;
-}
-
-function segFuel(segments) {
-  let stl = 0, ftl = 0;
+function extractFuelFromSegments(segments) {
+  let stl = 0, ftl = 0, ftlTimeMs = 0;
   for (const seg of (segments || [])) {
     stl += seg.StlFuelConsumption || 0;
     ftl += seg.FtlFuelConsumption || 0;
+    if (seg.Type === 'JUMP' && seg.DepartureTimeEpochMs && seg.ArrivalTimeEpochMs) {
+      ftlTimeMs += seg.ArrivalTimeEpochMs - seg.DepartureTimeEpochMs;
+    }
   }
-  return { stl, ftl };
-}
-
-function routeLabels(segments) {
-  if (!segments?.length) return ['?', '?'];
-  const firstSeg = segments[0];
-  const lastSeg  = segments[segments.length - 1];
-  const origin = firstSeg.OriginLines?.[0]?.LineName
-              || firstSeg.OriginLines?.[0]?.LineNaturalId
-              || '?';
-  const dest   = lastSeg.DestinationLines?.[0]?.LineName
-              || lastSeg.DestinationLines?.[0]?.LineNaturalId
-              || '?';
-  return [origin, dest];
-}
-
-function destSysId(segments) {
-  if (!segments?.length) return null;
-  return toSysId(segments[segments.length - 1]?.DestinationLines?.[0]?.LineNaturalId);
+  return { stl, ftl, ftlTimeMs };
 }
 
 // ── Formatting ────────────────────────────────────────────────────────────
@@ -257,117 +214,90 @@ function setStatus(html, spinning = false) {
   document.getElementById('statusBar').innerHTML = (spinning ? '<span class="spinner"></span>' : '') + html;
 }
 
-// ── Core refresh logic ────────────────────────────────────────────────────
+// ── Refresh ───────────────────────────────────────────────────────────────
 
 async function doRefresh() {
-  const key  = document.getElementById('apikeyInput').value.trim();
-  const user = document.getElementById('usernameInput').value.trim();
-  if (!key || !user) { setStatus('Enter username and FIO API key first.'); return; }
-  localStorage.setItem('prun_apikey', key);
-  localStorage.setItem('prun_username', user);
+  const token = document.getElementById('tokenInput').value.trim();
+  if (!token) { setStatus('Enter your PUNoted API token first.'); return; }
+  localStorage.setItem(TOKEN_KEY, token);
 
-  setStatus('Fetching ship data from FIO…', true);
+  setStatus('Fetching from PUNoted…', true);
 
-  let ships, flights, fuelData;
+  let ships, flights;
   try {
-    const hdrs = { Authorization: key };
-    const [sr, fr, fur] = await Promise.all([
-      fetch(`${BASE}/ship/ships/${user}`,       { headers: hdrs }),
-      fetch(`${BASE}/ship/flights/${user}`,     { headers: hdrs }),
-      fetch(`${BASE}/ship/ships/fuel/${user}`,  { headers: hdrs }),
+    const hdrs = { 'X-Data-Token': token };
+    const [sr, fr] = await Promise.all([
+      fetch(`${PUNOTED_BASE}/ships/`,   { headers: hdrs }),
+      fetch(`${PUNOTED_BASE}/flights/`, { headers: hdrs }),
     ]);
-    if (!sr.ok) { setStatus(`FIO error ${sr.status} — check API key.`); return; }
-    ships    = await sr.json();
-    flights  = fr.ok  ? await fr.json()  : [];
-    fuelData = fur.ok ? await fur.json() : [];
+    if (!sr.ok) { setStatus(`PUNoted error ${sr.status} — check token.`); return; }
+    const shipData   = await sr.json();
+    const flightData = fr.ok ? await fr.json() : { Flights: [] };
+
+    // Response is a bare array: [{Ships:[...]}, ...] and [{Flights:[...]}, ...]
+    const rawShips   = Array.isArray(shipData)   ? shipData   : (shipData?.value   || []);
+    const rawFlights = Array.isArray(flightData) ? flightData : [flightData];
+    ships   = rawShips.flatMap(u => u.Ships   || []);
+    flights = rawFlights.flatMap(u => u.Flights || []);
   } catch (e) {
     setStatus('Fetch failed: ' + e.message);
     return;
   }
 
-  // Build lookup maps
-  const flightByShip = {};
-  flights.forEach(f => { if (f.ShipId && !f.IsAborted) flightByShip[f.ShipId] = f; });
+  // Build flight lookup by FlightId
+  const flightById = {};
+  flights.forEach(f => { if (f.FlightId && !f.IsAborted) flightById[f.FlightId] = f; });
 
-  const fuelMap = { stl: {}, ftl: {} };
-  fuelData.forEach(store => {
-    const amount = store.StorageItems?.[0]?.MaterialAmount || 0;
-    const cap    = store.WeightCapacity || 1;
-    if (store.Type === 'STL_FUEL_STORE')
-      fuelMap.stl[store.StorageId] = { amount, cap: Math.round(cap / 0.06) };
-    else if (store.Type === 'FTL_FUEL_STORE')
-      fuelMap.ftl[store.StorageId] = { amount, cap: Math.round(cap / 0.05) };
-  });
-
-  const sysById = await loadUniverse();
   const now = Date.now();
   const newEntries = [];
 
   for (const ship of ships) {
-    const { ShipId: id, Registration: reg, Name: name } = ship;
-    const flight  = flightByShip[id] || null;
-    const inFlight = !!flight;
-    const stlFuel = (fuelMap.stl[ship.StlFuelStoreId] || {}).amount || 0;
-    const ftlFuel = (fuelMap.ftl[ship.FtlFuelStoreId] || {}).amount || 0;
-    const snap = loadSnap(id);
+    const { ShipId: id, Registration: reg, Type: hullType, FlightId: flightId } = ship;
+    const inFlight = !!flightId;
+    const flight   = flightId ? flightById[flightId] : null;
+    const snap     = loadSnap(id);
 
-    if (inFlight) {
-      const curDest = destSysId(flight.Segments);
-
-      if (!snap || !snap.inFlight) {
-        // Newly in-flight — start snapshot
+    if (inFlight && flight) {
+      if (!snap?.inFlight || snap.flightId !== flightId) {
+        // New in-flight state — snapshot the full flight data now
+        const { stl, ftl, ftlTimeMs } = extractFuelFromSegments(flight.Segments);
         saveSnap(id, {
-          inFlight: true, reg, name,
-          arrivalEpochMs: flight.ArrivalTimeEpochMs,
-          segments: flight.Segments,
-          stlFuelAtDetect: stlFuel,
-          ftlFuelAtDetect: ftlFuel,
-          detectedAt: now,
-          destSysId: curDest,
-        });
-      } else if (curDest && snap.destSysId && curDest !== snap.destSysId) {
-        // Destination changed mid-track — likely a new flight or data anomaly; reset
-        saveSnap(id, {
-          inFlight: true, reg, name,
-          arrivalEpochMs: flight.ArrivalTimeEpochMs,
-          segments: flight.Segments,
-          stlFuelAtDetect: stlFuel,
-          ftlFuelAtDetect: ftlFuel,
-          detectedAt: now,
-          destSysId: curDest,
+          inFlight: true,
+          reg, hullType,
+          flightId,
+          origin:      flight.Origin      || lineLabel(flight.Segments?.[0]?.OriginLines) || '?',
+          destination: flight.Destination || lineLabel(flight.Segments?.[flight.Segments.length-1]?.DestinationLines) || '?',
+          departureEpochMs: flight.DepartureTimeEpochMs,
+          arrivalEpochMs:   flight.ArrivalTimeEpochMs,
+          parsecs:  flight.FtlDistance ? parseFloat(flight.FtlDistance.toFixed(2)) : null,
+          stlUsed:  stl,
+          ftlUsed:  ftl,
+          ftlTimeMs,
         });
       }
-      // else: still same flight, no update needed
+      // else: same flight still ongoing — no update needed
     } else {
       if (snap?.inFlight) {
-        // Flight just completed
-        const segments  = snap.segments || [];
-        const [originLabel, destLabel] = routeLabels(segments);
-        const { stl: stlUsed, ftl: ftlUsed } = segFuel(segments);
-        const parsecs   = calcParsecs(segments, sysById);
-
-        // Use FIO's ArrivalTimeEpochMs as accurate arrival; fall back to now
-        const arrivedAt = (snap.arrivalEpochMs && snap.arrivalEpochMs < now)
-          ? snap.arrivalEpochMs
-          : now;
-        const elapsedMs = arrivedAt - snap.detectedAt;
+        // Flight completed — create log entry from snapshot
+        const elapsedMs = snap.arrivalEpochMs - snap.departureEpochMs;
 
         if (elapsedMs > 0) {
           newEntries.push({
-            shipReg: reg || snap.reg,
-            shipName: name || snap.name || '',
-            originLabel, destLabel,
-            departedAt: snap.detectedAt,
-            arrivedAt,
+            shipReg:   reg  || snap.reg,
+            hullType:  hullType || snap.hullType || '',
+            origin:    snap.origin,
+            dest:      snap.destination,
+            departedAt: snap.departureEpochMs,
+            arrivedAt:  snap.arrivalEpochMs,
             elapsedMs,
-            stlUsed,
-            ftlUsed,
-            parsecs,
+            stlUsed:   snap.stlUsed,
+            ftlUsed:   snap.ftlUsed,
+            parsecs:   snap.parsecs,
+            ftlTimeMs: snap.ftlTimeMs,
           });
         }
       }
-      // Update to docked snapshot
-      saveSnap(id, { inFlight: false, reg, name, dockedAt: now });
+      saveSnap(id, { inFlight: false, reg, hullType, dockedAt: now });
     }
   }
 
@@ -377,14 +307,14 @@ async function doRefresh() {
     saveLog(log);
   }
 
-  const inFlightCount = ships.filter(s => flightByShip[s.ShipId]).length;
+  const inFlightCount = ships.filter(s => s.FlightId).length;
   setStatus(
     `${ships.length} ship${ships.length !== 1 ? 's' : ''} · ${inFlightCount} in flight · ` +
     `${newEntries.length} new flight${newEntries.length !== 1 ? 's' : ''} logged · ` +
     `updated ${new Date().toLocaleTimeString()}`
   );
 
-  renderTracking(ships, flightByShip);
+  renderTracking(ships);
   renderAll();
 }
 
@@ -399,39 +329,49 @@ function renderAll() {
 function renderStats(log) {
   document.getElementById('statCount').textContent = log.length;
 
-  const withPc  = log.filter(e => e.parsecs > 0 && e.elapsedMs > 0);
-  const withFtl = log.filter(e => e.parsecs > 0 && e.ftlUsed > 0);
-
-  if (withPc.length) {
-    const avg = withPc.reduce((s, e) => s + (e.elapsedMs / 60_000 / e.parsecs), 0) / withPc.length;
-    const delta = ((avg - HARD_MIN_PC) / HARD_MIN_PC * 100);
+  // FTL-only min/pc (pure JUMP segment time ÷ parsecs)
+  const withFtlTime = log.filter(e => e.parsecs > 0 && e.ftlTimeMs > 0);
+  if (withFtlTime.length) {
+    const avg   = withFtlTime.reduce((s, e) => s + (e.ftlTimeMs / 60_000 / e.parsecs), 0) / withFtlTime.length;
+    const delta = (avg - HARD_MIN_PC) / HARD_MIN_PC * 100;
     document.getElementById('statMinPc').textContent = avg.toFixed(1);
     document.getElementById('statMinPcSub').innerHTML =
-      `<span class="${Math.abs(delta) < 10 ? 'good' : 'warn'}">${delta > 0 ? '+' : ''}${delta.toFixed(1)}% vs hardcoded</span>` +
-      ` <span class="dim">(${withPc.length} route${withPc.length !== 1 ? 's' : ''})</span>`;
+      `<span class="${Math.abs(delta) < 10 ? 'good' : 'warn'}">${delta > 0 ? '+' : ''}${delta.toFixed(1)}%</span>` +
+      ` <span class="dim">(${withFtlTime.length} flights)</span>`;
   } else {
     document.getElementById('statMinPc').textContent = '—';
-    document.getElementById('statMinPcSub').textContent = 'No parsec data yet';
+    document.getElementById('statMinPcSub').textContent = 'No data yet';
   }
 
-  if (withFtl.length) {
-    const avg = withFtl.reduce((s, e) => s + (e.ftlUsed / e.parsecs), 0) / withFtl.length;
-    const delta = ((avg - HARD_FUEL_PC) / HARD_FUEL_PC * 100);
+  // FTL fuel/pc
+  const withFuel = log.filter(e => e.parsecs > 0 && e.ftlUsed > 0);
+  if (withFuel.length) {
+    const avg   = withFuel.reduce((s, e) => s + (e.ftlUsed / e.parsecs), 0) / withFuel.length;
+    const delta = (avg - HARD_FUEL_PC) / HARD_FUEL_PC * 100;
     document.getElementById('statFuelPc').textContent = avg.toFixed(1);
     document.getElementById('statFuelPcSub').innerHTML =
-      `<span class="${Math.abs(delta) < 10 ? 'good' : 'warn'}">${delta > 0 ? '+' : ''}${delta.toFixed(1)}% vs hardcoded</span>` +
-      ` <span class="dim">(${withFtl.length} route${withFtl.length !== 1 ? 's' : ''})</span>`;
+      `<span class="${Math.abs(delta) < 10 ? 'good' : 'warn'}">${delta > 0 ? '+' : ''}${delta.toFixed(1)}%</span>` +
+      ` <span class="dim">(${withFuel.length} flights)</span>`;
   } else {
     document.getElementById('statFuelPc').textContent = '—';
-    document.getElementById('statFuelPcSub').textContent = 'No FTL data yet';
+    document.getElementById('statFuelPcSub').textContent = 'No data yet';
+  }
+
+  // Total elapsed/pc (includes STL)
+  const withTotal = log.filter(e => e.parsecs > 0 && e.elapsedMs > 0);
+  if (withTotal.length) {
+    const avg = withTotal.reduce((s, e) => s + (e.elapsedMs / 60_000 / e.parsecs), 0) / withTotal.length;
+    document.getElementById('statTotalPc').textContent = avg.toFixed(1);
+  } else {
+    document.getElementById('statTotalPc').textContent = '—';
   }
 }
 
-function renderTracking(ships, flightByShip) {
+function renderTracking(ships) {
   if (!ships?.length) { document.getElementById('trackingShips').innerHTML = '<span class="dim">No ships.</span>'; return; }
   document.getElementById('trackingShips').innerHTML = ships.map(s => {
-    const inf = !!flightByShip[s.ShipId];
-    return `<span class="chip ${inf ? 'flying' : ''}">${s.Registration || s.ShipId}${inf ? ' ✈' : ' ◎'}</span>`;
+    const inf = !!s.FlightId;
+    return `<span class="chip ${inf ? 'flying' : ''}">${s.Registration} <span style="color:var(--text3)">${s.Type}</span>${inf ? ' ✈' : ' ◎'}</span>`;
   }).join('');
 }
 
@@ -439,35 +379,33 @@ function renderLog(log) {
   document.getElementById('entryCount').textContent = log.length ? `${log.length} entries` : '';
   if (!log.length) {
     document.getElementById('logTable').innerHTML =
-      '<div class="empty-state">No flights logged yet. Each REFRESH checks whether any in-flight ships have landed since the last snapshot.</div>';
+      '<div class="empty-state">No flights logged yet. Refresh while ships are flying, then again after they land.</div>';
     return;
   }
 
   const rows = log.map(e => {
-    const minPc  = (e.parsecs && e.elapsedMs) ? (e.elapsedMs / 60_000 / e.parsecs) : null;
-    const fuelPc = (e.parsecs && e.ftlUsed)   ? (e.ftlUsed / e.parsecs)             : null;
-    const minPcStr  = minPc  != null ? minPc.toFixed(1)  : '—';
-    const fuelPcStr = fuelPc != null ? fuelPc.toFixed(1) : '—';
-    const minCls  = minPc  != null ? (Math.abs(minPc  - HARD_MIN_PC)  / HARD_MIN_PC  < 0.10 ? 'good' : 'warn') : 'dim';
-    const fuelCls = fuelPc != null ? (Math.abs(fuelPc - HARD_FUEL_PC) / HARD_FUEL_PC < 0.10 ? 'good' : 'warn') : 'dim';
+    const ftlMinPc  = (e.parsecs && e.ftlTimeMs)  ? (e.ftlTimeMs  / 60_000 / e.parsecs) : null;
+    const fuelPc    = (e.parsecs && e.ftlUsed)     ? (e.ftlUsed    / e.parsecs)           : null;
+    const totalMinPc= (e.parsecs && e.elapsedMs)   ? (e.elapsedMs  / 60_000 / e.parsecs) : null;
+
+    const fmt1 = v => v != null ? v.toFixed(1) : '—';
+    const cls  = (v, ref) => v != null ? (Math.abs(v - ref) / ref < 0.10 ? 'good' : 'warn') : 'dim';
 
     return `<tr>
       <td>
         <div class="col-reg">${e.shipReg}</div>
-        ${e.shipName ? `<div class="col-name">${e.shipName}</div>` : ''}
+        <div class="col-type">${e.hullType || ''}</div>
       </td>
-      <td class="col-route">${e.originLabel} → ${e.destLabel}</td>
-      <td>
-        <div class="col-ts">${fmtTs(e.departedAt)}</div>
-        <div class="col-ts-note">≈ detected</div>
-      </td>
-      <td><div class="col-ts">${fmtTs(e.arrivedAt)}</div></td>
+      <td class="col-route">${e.origin} → ${e.dest}</td>
+      <td class="col-ts">${fmtTs(e.departedAt)}</td>
+      <td class="col-ts">${fmtTs(e.arrivedAt)}</td>
       <td class="col-num">${fmtDur(e.elapsedMs)}</td>
       <td class="col-num dim">${e.stlUsed || '—'}</td>
       <td class="col-num">${e.ftlUsed || '—'}</td>
-      <td class="col-num">${e.parsecs ?? '—'}</td>
-      <td class="col-num ${minCls}">${minPcStr}</td>
-      <td class="col-num ${fuelCls}">${fuelPcStr}</td>
+      <td class="col-num">${e.parsecs != null ? e.parsecs.toFixed(1) : '—'}</td>
+      <td class="col-num ${cls(ftlMinPc, HARD_MIN_PC)}">${fmt1(ftlMinPc)}</td>
+      <td class="col-num ${cls(fuelPc, HARD_FUEL_PC)}">${fmt1(fuelPc)}</td>
+      <td class="col-num dim">${fmt1(totalMinPc)}</td>
     </tr>`;
   }).join('');
 
@@ -482,8 +420,9 @@ function renderLog(log) {
         <th class="r">STL fuel</th>
         <th class="r">FTL fuel</th>
         <th class="r">Parsecs</th>
-        <th class="r">min/pc</th>
+        <th class="r">FTL min/pc</th>
         <th class="r">FTL/pc</th>
+        <th class="r">Total min/pc</th>
       </tr>
     </thead>
     <tbody>${rows}</tbody>
@@ -491,7 +430,7 @@ function renderLog(log) {
 }
 
 function clearLog() {
-  if (!confirm('Clear all logged flights? Snapshots are kept so in-progress tracking continues.')) return;
+  if (!confirm('Clear all logged flights? Snapshots are kept so tracking continues.')) return;
   saveLog([]);
   renderAll();
   setStatus('Flight log cleared.');
@@ -499,13 +438,11 @@ function clearLog() {
 
 // ── Init ──────────────────────────────────────────────────────────────────
 
-const _savedKey  = localStorage.getItem('prun_apikey')  || '';
-const _savedUser = localStorage.getItem('prun_username') || '';
-if (_savedKey)  document.getElementById('apikeyInput').value  = _savedKey;
-if (_savedUser) document.getElementById('usernameInput').value = _savedUser;
+const _savedToken = localStorage.getItem(TOKEN_KEY) || '';
+if (_savedToken) document.getElementById('tokenInput').value = _savedToken;
 
-renderAll(); // render any existing log immediately
-if (_savedKey && _savedUser) doRefresh();
+renderAll();
+if (_savedToken) doRefresh();
 </script>
 </body>
 </html>
