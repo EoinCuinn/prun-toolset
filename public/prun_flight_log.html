@@ -18,10 +18,8 @@
 
     .header {
       background: var(--bg2); border-bottom: 1px solid var(--border);
-      padding: 8px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding: 8px 16px; padding-right: 100px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
     }
-    .home-link { color: var(--accent); text-decoration: none; font-size: 13px; white-space: nowrap; }
-    .home-link:hover { color: #fff; }
     .page-title { font-size: 15px; font-weight: 700; letter-spacing: 1px; flex: 1; }
     .header input {
       background: var(--bg3); border: 1px solid var(--border); color: var(--text);
@@ -109,7 +107,6 @@
 <body>
 
 <div class="header">
-  <a class="home-link" href="home.html">⌂ HOME</a>
   <div class="page-title">FLIGHT LOG</div>
   <input id="tokenInput" type="password" placeholder="PUNoted token" style="width:220px">
   <button class="btn" onclick="doRefresh()">↺ REFRESH</button>
@@ -444,5 +441,6 @@ if (_savedToken) document.getElementById('tokenInput').value = _savedToken;
 renderAll();
 if (_savedToken) doRefresh();
 </script>
+<a href="/home.html" style="position:fixed;top:16px;right:16px;background:var(--bg2);color:var(--accent);border:1px solid var(--border);border-radius:4px;padding:6px 12px;font-size:12px;font-family:var(--mono);text-decoration:none;letter-spacing:0.05em;z-index:100;">⌂ HOME</a>
 </body>
 </html>
