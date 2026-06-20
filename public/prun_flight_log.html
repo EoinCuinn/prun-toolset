@@ -18,7 +18,7 @@
 
     .header {
       background: var(--bg2); border-bottom: 1px solid var(--border);
-      padding: 8px 16px; padding-right: 100px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding: 8px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
     }
     .page-title { font-size: 15px; font-weight: 700; letter-spacing: 1px; flex: 1; }
     .input-group { display: flex; align-items: center; gap: 4px; }
@@ -135,6 +135,7 @@
   </div>
   <button class="btn" onclick="doRefresh()">↺ REFRESH</button>
   <button class="btn-danger" onclick="clearLog()">CLEAR LOG</button>
+  <a href="/home.html" style="background:var(--bg2);color:var(--accent);border:1px solid var(--border);border-radius:4px;padding:5px 12px;font-size:12px;font-family:var(--mono);text-decoration:none;letter-spacing:0.05em;margin-left:auto;">⌂ HOME</a>
 </div>
 
 <div class="status-bar" id="statusBar">Enter your PUNoted token and hit REFRESH. Add FIO key for ship specs.</div>
@@ -542,6 +543,5 @@ if (_savedFioKey) document.getElementById('fioKeyInput').value = _savedFioKey;
 renderAll();
 if (_savedToken) doRefresh();
 </script>
-<a href="/home.html" style="position:fixed;top:16px;right:16px;background:var(--bg2);color:var(--accent);border:1px solid var(--border);border-radius:4px;padding:6px 12px;font-size:12px;font-family:var(--mono);text-decoration:none;letter-spacing:0.05em;z-index:100;">⌂ HOME</a>
 </body>
 </html>
