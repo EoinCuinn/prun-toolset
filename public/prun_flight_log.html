@@ -21,6 +21,8 @@
       padding: 8px 16px; padding-right: 100px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
     }
     .page-title { font-size: 15px; font-weight: 700; letter-spacing: 1px; flex: 1; }
+    .input-group { display: flex; align-items: center; gap: 4px; }
+    .input-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
     .header input {
       background: var(--bg3); border: 1px solid var(--border); color: var(--text);
       padding: 4px 8px; font-size: 12px; font-family: var(--mono); border-radius: 3px;
@@ -31,6 +33,12 @@
       font-size: 12px; font-weight: 700; font-family: var(--cond); cursor: pointer; border-radius: 3px;
     }
     .btn:hover { background: #81d4fa; }
+    .btn-sm {
+      background: transparent; color: var(--text2); border: 1px solid var(--border);
+      padding: 4px 10px; font-size: 11px; font-family: var(--cond); cursor: pointer; border-radius: 3px;
+    }
+    .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-sm.active { border-color: var(--accent); color: var(--accent); background: rgba(79,195,247,0.08); }
     .btn-danger {
       background: transparent; color: var(--text3); border: 1px solid var(--border);
       padding: 4px 10px; font-size: 11px; font-family: var(--cond); cursor: pointer; border-radius: 3px;
@@ -48,7 +56,7 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .main { padding: 16px; max-width: 1400px; margin: 0 auto; }
+    .main { padding: 16px; max-width: 1500px; margin: 0 auto; }
 
     .stats-panel {
       background: var(--bg2); border: 1px solid var(--border); border-radius: 4px;
@@ -64,7 +72,7 @@
     .stat-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
     .stat-val { font-size: 20px; font-family: var(--mono); color: var(--text); line-height: 1.2; }
     .stat-sub { font-size: 11px; color: var(--text2); font-family: var(--mono); }
-    .stat-note { font-size: 10px; color: var(--text3); max-width: 220px; line-height: 1.4; }
+    .stat-note { font-size: 10px; color: var(--text3); max-width: 240px; line-height: 1.4; }
     .good { color: var(--green); }
     .warn { color: var(--orange); }
     .dim { color: var(--text3); }
@@ -73,15 +81,19 @@
       background: var(--bg2); border: 1px solid var(--border); border-radius: 4px;
       padding: 10px 14px; margin-bottom: 14px;
     }
-    .tracking-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
-    .tracking-ships { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tracking-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .tracking-ships { display: flex; gap: 8px; flex-wrap: wrap; }
     .chip {
-      font-family: var(--mono); font-size: 11px; padding: 3px 9px;
+      font-family: var(--mono); font-size: 11px; padding: 5px 10px;
       border-radius: 3px; border: 1px solid var(--border); background: var(--bg3); color: var(--text3);
+      display: flex; flex-direction: column; gap: 2px;
     }
     .chip.flying { border-color: var(--accent); color: var(--accent); }
+    .chip-reg { font-weight: 700; }
+    .chip-stats { font-size: 10px; color: var(--text3); }
+    .chip.flying .chip-stats { color: rgba(79,195,247,0.6); }
 
-    .section-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+    .section-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
     .section-head { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text2); }
     .entry-count { font-size: 11px; color: var(--text3); }
 
@@ -93,12 +105,17 @@
       white-space: nowrap;
     }
     th.r { text-align: right; }
-    td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    td { padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: var(--bg2); }
+    .route-group-header td {
+      background: var(--bg3); color: var(--text3); font-size: 10px;
+      text-transform: uppercase; letter-spacing: 0.5px; padding: 4px 8px;
+      border-top: 1px solid var(--border2);
+    }
     .col-reg { font-family: var(--mono); font-size: 11px; color: var(--accent); }
-    .col-type { font-size: 10px; color: var(--text3); font-family: var(--mono); }
-    .col-route { font-family: var(--mono); }
+    .col-sub { font-size: 10px; color: var(--text3); font-family: var(--mono); }
+    .col-route { font-family: var(--mono); font-size: 11px; }
     .col-ts { font-size: 11px; color: var(--text2); white-space: nowrap; }
     .col-num { font-family: var(--mono); text-align: right; }
     .empty-state { padding: 32px 16px; text-align: center; color: var(--text3); }
@@ -108,12 +125,19 @@
 
 <div class="header">
   <div class="page-title">FLIGHT LOG</div>
-  <input id="tokenInput" type="password" placeholder="PUNoted token" style="width:220px">
+  <div class="input-group">
+    <span class="input-label">PUNoted</span>
+    <input id="tokenInput" type="password" placeholder="token" style="width:180px">
+  </div>
+  <div class="input-group">
+    <span class="input-label">FIO key</span>
+    <input id="fioKeyInput" type="password" placeholder="optional — ship stats" style="width:160px">
+  </div>
   <button class="btn" onclick="doRefresh()">↺ REFRESH</button>
   <button class="btn-danger" onclick="clearLog()">CLEAR LOG</button>
 </div>
 
-<div class="status-bar" id="statusBar">Enter your PUNoted API token and hit REFRESH.</div>
+<div class="status-bar" id="statusBar">Enter your PUNoted token and hit REFRESH. Add FIO key for ship specs.</div>
 
 <div class="main">
 
@@ -123,48 +147,58 @@
       <div class="stat-val" id="statCount">0</div>
     </div>
     <div class="stat-block">
-      <div class="stat-label">FTL min / parsec &nbsp;<span style="color:var(--text3);font-size:10px">hardcoded: 28.5</span></div>
+      <div class="stat-label">FTL min / parsec &nbsp;<span style="color:var(--text3);font-size:10px">ref: 28.5</span></div>
       <div class="stat-val" id="statMinPc">—</div>
       <div class="stat-sub" id="statMinPcSub"></div>
     </div>
     <div class="stat-block">
-      <div class="stat-label">FTL fuel / parsec &nbsp;<span style="color:var(--text3);font-size:10px">hardcoded: 14.2</span></div>
+      <div class="stat-label">FTL fuel / parsec &nbsp;<span style="color:var(--text3);font-size:10px">ref: 14.2</span></div>
       <div class="stat-val" id="statFuelPc">—</div>
       <div class="stat-sub" id="statFuelPcSub"></div>
     </div>
     <div class="stat-block">
-      <div class="stat-label">Total elapsed / parsec</div>
+      <div class="stat-label">Total min / parsec</div>
       <div class="stat-val" id="statTotalPc">—</div>
-      <div class="stat-sub" id="statTotalPcSub"><span class="dim">includes STL transit time</span></div>
+      <div class="stat-sub"><span class="dim">incl. STL transit</span></div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">Routes tested</div>
+      <div class="stat-val" id="statRoutes">—</div>
+      <div class="stat-sub" id="statRoutesSub"></div>
     </div>
     <div class="stat-block">
       <div class="stat-label">Note</div>
-      <div class="stat-note">Data via PUNoted — departure and arrival timestamps are exact. FTL min/pc uses only JUMP segment time for a clean comparison against the 28.5 constant.</div>
+      <div class="stat-note">PUNoted data — exact timestamps. FTL min/pc = JUMP segment time only. FIO key unlocks ship specs (Volume, Condition, Blueprint) per flight.</div>
     </div>
   </div>
 
   <div class="tracking-panel">
-    <div class="tracking-label">Tracked ships</div>
+    <div class="tracking-label">Fleet</div>
     <div class="tracking-ships" id="trackingShips"><span class="dim">Hit REFRESH to load ships.</span></div>
   </div>
 
   <div class="section-row">
     <div class="section-head">Flight Log</div>
     <div class="entry-count" id="entryCount"></div>
+    <button class="btn-sm" id="groupBtn" onclick="toggleGroup()">GROUP BY ROUTE</button>
   </div>
   <div class="table-wrap">
-    <div id="logTable"><div class="empty-state">No flights logged yet. Each REFRESH detects ships that have landed since the last snapshot.</div></div>
+    <div id="logTable"><div class="empty-state">No flights logged yet. Refresh while ships are flying, then again after they land.</div></div>
   </div>
 
 </div>
 
 <script>
-const PUNOTED_BASE  = 'https://api.punoted.net/v1';
-const HARD_MIN_PC   = 28.5;
-const HARD_FUEL_PC  = 14.2;
-const LOG_KEY       = 'prun_flightlog';
-const SNAP_PREFIX   = 'prun_flightsnap_';
-const TOKEN_KEY     = 'prun_punoted_token';
+const PUNOTED_BASE = 'https://api.punoted.net/v1';
+const FIO_BASE     = 'https://rest.fnar.net';
+const HARD_MIN_PC  = 28.5;
+const HARD_FUEL_PC = 14.2;
+const LOG_KEY      = 'prun_flightlog';
+const SNAP_PREFIX  = 'prun_flightsnap_';
+const TOKEN_KEY    = 'prun_punoted_token';
+const FIO_KEY      = 'prun_apikey';
+
+let groupByRoute = false;
 
 // ── Persistence ───────────────────────────────────────────────────────────
 
@@ -173,7 +207,7 @@ function saveLog(e)         { localStorage.setItem(LOG_KEY, JSON.stringify(e)); 
 function loadSnap(id)       { try { return JSON.parse(localStorage.getItem(SNAP_PREFIX + id)); } catch { return null; } }
 function saveSnap(id, snap) { localStorage.setItem(SNAP_PREFIX + id, JSON.stringify(snap)); }
 
-// ── Flight data helpers ───────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────
 
 function lineLabel(lines) {
   if (!lines?.length) return null;
@@ -186,14 +220,11 @@ function extractFuelFromSegments(segments) {
   for (const seg of (segments || [])) {
     stl += seg.StlFuelConsumption || 0;
     ftl += seg.FtlFuelConsumption || 0;
-    if (seg.Type === 'JUMP' && seg.DepartureTimeEpochMs && seg.ArrivalTimeEpochMs) {
+    if (seg.Type === 'JUMP' && seg.DepartureTimeEpochMs && seg.ArrivalTimeEpochMs)
       ftlTimeMs += seg.ArrivalTimeEpochMs - seg.DepartureTimeEpochMs;
-    }
   }
   return { stl, ftl, ftlTimeMs };
 }
-
-// ── Formatting ────────────────────────────────────────────────────────────
 
 function fmtDur(ms) {
   if (!ms || ms <= 0) return '—';
@@ -211,16 +242,25 @@ function setStatus(html, spinning = false) {
   document.getElementById('statusBar').innerHTML = (spinning ? '<span class="spinner"></span>' : '') + html;
 }
 
+function condColor(c) {
+  if (c == null) return 'var(--text3)';
+  const pct = c * 100;
+  return pct > 80 ? 'var(--green)' : pct > 50 ? 'var(--orange)' : 'var(--red)';
+}
+
 // ── Refresh ───────────────────────────────────────────────────────────────
 
 async function doRefresh() {
-  const token = document.getElementById('tokenInput').value.trim();
-  if (!token) { setStatus('Enter your PUNoted API token first.'); return; }
+  const token  = document.getElementById('tokenInput').value.trim();
+  const fioKey = document.getElementById('fioKeyInput').value.trim();
+  if (!token) { setStatus('Enter your PUNoted token first.'); return; }
   localStorage.setItem(TOKEN_KEY, token);
+  if (fioKey) localStorage.setItem(FIO_KEY, fioKey);
 
   setStatus('Fetching from PUNoted…', true);
 
-  let ships, flights;
+  // ── PUNoted ──
+  let ships, flights, username = '';
   try {
     const hdrs = { 'X-Data-Token': token };
     const [sr, fr] = await Promise.all([
@@ -229,19 +269,44 @@ async function doRefresh() {
     ]);
     if (!sr.ok) { setStatus(`PUNoted error ${sr.status} — check token.`); return; }
     const shipData   = await sr.json();
-    const flightData = fr.ok ? await fr.json() : { Flights: [] };
+    const flightData = fr.ok ? await fr.json() : [];
 
-    // Response is a bare array: [{Ships:[...]}, ...] and [{Flights:[...]}, ...]
     const rawShips   = Array.isArray(shipData)   ? shipData   : (shipData?.value   || []);
     const rawFlights = Array.isArray(flightData) ? flightData : [flightData];
-    ships   = rawShips.flatMap(u => u.Ships   || []);
-    flights = rawFlights.flatMap(u => u.Flights || []);
+    username = rawShips[0]?.Username || '';
+    ships    = rawShips.flatMap(u => u.Ships   || []);
+    flights  = rawFlights.flatMap(u => u.Flights || []);
   } catch (e) {
-    setStatus('Fetch failed: ' + e.message);
+    setStatus('PUNoted fetch failed: ' + e.message);
     return;
   }
 
-  // Build flight lookup by FlightId
+  // ── FIO ship specs (optional) ──
+  const fioShips = {};
+  const fioKeyVal = fioKey || localStorage.getItem(FIO_KEY) || '';
+  if (fioKeyVal && username) {
+    try {
+      const fr = await fetch(`${FIO_BASE}/ship/ships/${username}`, {
+        headers: { 'Authorization': fioKeyVal }
+      });
+      if (fr.ok) {
+        const data = await fr.json();
+        data.forEach(s => {
+          fioShips[s.Registration] = {
+            volume:       s.Volume,
+            condition:    s.Condition,
+            reactorPower: s.ReactorPower,
+            emitterPower: s.EmitterPower,
+            thrust:       s.Thrust,
+            blueprintId:  s.BlueprintNaturalId,
+            repairMats:   (s.RepairMaterials || []).map(m => m.MaterialTicker).join(' '),
+          };
+        });
+      }
+    } catch (_) {}
+  }
+
+  // ── Process flights ──
   const flightById = {};
   flights.forEach(f => { if (f.FlightId && !f.IsAborted) flightById[f.FlightId] = f; });
 
@@ -253,48 +318,42 @@ async function doRefresh() {
     const inFlight = !!flightId;
     const flight   = flightId ? flightById[flightId] : null;
     const snap     = loadSnap(id);
+    const fio      = fioShips[reg] || {};
 
     if (inFlight && flight) {
       if (!snap?.inFlight || snap.flightId !== flightId) {
-        // New in-flight state — snapshot the full flight data now
         const { stl, ftl, ftlTimeMs } = extractFuelFromSegments(flight.Segments);
         saveSnap(id, {
-          inFlight: true,
-          reg, hullType,
-          flightId,
+          inFlight: true, reg, hullType, flightId,
           origin:      flight.Origin      || lineLabel(flight.Segments?.[0]?.OriginLines) || '?',
           destination: flight.Destination || lineLabel(flight.Segments?.[flight.Segments.length-1]?.DestinationLines) || '?',
           departureEpochMs: flight.DepartureTimeEpochMs,
           arrivalEpochMs:   flight.ArrivalTimeEpochMs,
-          parsecs:  flight.FtlDistance ? parseFloat(flight.FtlDistance.toFixed(2)) : null,
-          stlUsed:  stl,
-          ftlUsed:  ftl,
-          ftlTimeMs,
+          parsecs:   flight.FtlDistance ? parseFloat(flight.FtlDistance.toFixed(2)) : null,
+          stlUsed: stl, ftlUsed: ftl, ftlTimeMs,
+          // FIO stats at time of departure
+          volume:      fio.volume      ?? null,
+          condition:   fio.condition   ?? null,
+          blueprintId: fio.blueprintId ?? null,
+          reactorPower:fio.reactorPower ?? null,
         });
       }
-      // else: same flight still ongoing — no update needed
     } else {
       if (snap?.inFlight) {
-        // Flight completed — create log entry from snapshot
         const elapsedMs = snap.arrivalEpochMs - snap.departureEpochMs;
-
         if (elapsedMs > 0) {
           newEntries.push({
-            shipReg:   reg  || snap.reg,
-            hullType:  hullType || snap.hullType || '',
-            origin:    snap.origin,
-            dest:      snap.destination,
-            departedAt: snap.departureEpochMs,
-            arrivedAt:  snap.arrivalEpochMs,
-            elapsedMs,
-            stlUsed:   snap.stlUsed,
-            ftlUsed:   snap.ftlUsed,
-            parsecs:   snap.parsecs,
-            ftlTimeMs: snap.ftlTimeMs,
+            shipReg: reg || snap.reg, hullType: hullType || snap.hullType || '',
+            origin: snap.origin, dest: snap.destination,
+            departedAt: snap.departureEpochMs, arrivedAt: snap.arrivalEpochMs,
+            elapsedMs, stlUsed: snap.stlUsed, ftlUsed: snap.ftlUsed,
+            parsecs: snap.parsecs, ftlTimeMs: snap.ftlTimeMs,
+            volume: snap.volume, condition: snap.condition,
+            blueprintId: snap.blueprintId, reactorPower: snap.reactorPower,
           });
         }
       }
-      saveSnap(id, { inFlight: false, reg, hullType, dockedAt: now });
+      saveSnap(id, { inFlight: false, reg, hullType, dockedAt: now, ...fio });
     }
   }
 
@@ -305,13 +364,14 @@ async function doRefresh() {
   }
 
   const inFlightCount = ships.filter(s => s.FlightId).length;
+  const fioNote = Object.keys(fioShips).length ? ` · FIO stats loaded` : (fioKeyVal ? ' · FIO key provided but no data' : '');
   setStatus(
     `${ships.length} ship${ships.length !== 1 ? 's' : ''} · ${inFlightCount} in flight · ` +
     `${newEntries.length} new flight${newEntries.length !== 1 ? 's' : ''} logged · ` +
-    `updated ${new Date().toLocaleTimeString()}`
+    `updated ${new Date().toLocaleTimeString()}${fioNote}`
   );
 
-  renderTracking(ships);
+  renderTracking(ships, fioShips);
   renderAll();
 }
 
@@ -326,7 +386,6 @@ function renderAll() {
 function renderStats(log) {
   document.getElementById('statCount').textContent = log.length;
 
-  // FTL-only min/pc (pure JUMP segment time ÷ parsecs)
   const withFtlTime = log.filter(e => e.parsecs > 0 && e.ftlTimeMs > 0);
   if (withFtlTime.length) {
     const avg   = withFtlTime.reduce((s, e) => s + (e.ftlTimeMs / 60_000 / e.parsecs), 0) / withFtlTime.length;
@@ -340,7 +399,6 @@ function renderStats(log) {
     document.getElementById('statMinPcSub').textContent = 'No data yet';
   }
 
-  // FTL fuel/pc
   const withFuel = log.filter(e => e.parsecs > 0 && e.ftlUsed > 0);
   if (withFuel.length) {
     const avg   = withFuel.reduce((s, e) => s + (e.ftlUsed / e.parsecs), 0) / withFuel.length;
@@ -354,7 +412,6 @@ function renderStats(log) {
     document.getElementById('statFuelPcSub').textContent = 'No data yet';
   }
 
-  // Total elapsed/pc (includes STL)
   const withTotal = log.filter(e => e.parsecs > 0 && e.elapsedMs > 0);
   if (withTotal.length) {
     const avg = withTotal.reduce((s, e) => s + (e.elapsedMs / 60_000 / e.parsecs), 0) / withTotal.length;
@@ -362,14 +419,33 @@ function renderStats(log) {
   } else {
     document.getElementById('statTotalPc').textContent = '—';
   }
+
+  const routes = new Set(log.map(e => `${e.origin}→${e.dest}`));
+  document.getElementById('statRoutes').textContent = routes.size || '—';
+  document.getElementById('statRoutesSub').textContent = routes.size ? `${log.length} total flights` : '';
 }
 
-function renderTracking(ships) {
+function renderTracking(ships, fioShips = {}) {
   if (!ships?.length) { document.getElementById('trackingShips').innerHTML = '<span class="dim">No ships.</span>'; return; }
   document.getElementById('trackingShips').innerHTML = ships.map(s => {
     const inf = !!s.FlightId;
-    return `<span class="chip ${inf ? 'flying' : ''}">${s.Registration} <span style="color:var(--text3)">${s.Type}</span>${inf ? ' ✈' : ' ◎'}</span>`;
+    const fio = fioShips[s.Registration] || {};
+    const condPct = fio.condition != null ? (fio.condition * 100).toFixed(1) + '%' : null;
+    const vol  = fio.volume != null ? fio.volume.toLocaleString() + 'm³' : null;
+    const bp   = fio.blueprintId || null;
+    const stats = [vol, condPct ? `<span style="color:${condColor(fio.condition)}">${condPct}</span>` : null, bp]
+      .filter(Boolean).join(' · ');
+    return `<span class="chip ${inf ? 'flying' : ''}">
+      <span class="chip-reg">${s.Registration} <span style="font-weight:400;color:${inf ? 'rgba(79,195,247,0.7)' : 'var(--text3)'}"> ${s.Type}</span>${inf ? ' ✈' : ' ◎'}</span>
+      ${stats ? `<span class="chip-stats">${stats}</span>` : ''}
+    </span>`;
   }).join('');
+}
+
+function toggleGroup() {
+  groupByRoute = !groupByRoute;
+  document.getElementById('groupBtn').classList.toggle('active', groupByRoute);
+  renderLog(loadLog());
 }
 
 function renderLog(log) {
@@ -380,20 +456,41 @@ function renderLog(log) {
     return;
   }
 
-  const rows = log.map(e => {
+  const hasFio = log.some(e => e.volume != null);
+
+  const sorted = groupByRoute
+    ? [...log].sort((a, b) => {
+        const ra = `${a.origin}→${a.dest}`, rb = `${b.origin}→${b.dest}`;
+        return ra.localeCompare(rb) || b.departedAt - a.departedAt;
+      })
+    : log;
+
+  let lastRoute = null;
+  const rows = sorted.map(e => {
     const ftlMinPc  = (e.parsecs && e.ftlTimeMs)  ? (e.ftlTimeMs  / 60_000 / e.parsecs) : null;
     const fuelPc    = (e.parsecs && e.ftlUsed)     ? (e.ftlUsed    / e.parsecs)           : null;
     const totalMinPc= (e.parsecs && e.elapsedMs)   ? (e.elapsedMs  / 60_000 / e.parsecs) : null;
-
     const fmt1 = v => v != null ? v.toFixed(1) : '—';
     const cls  = (v, ref) => v != null ? (Math.abs(v - ref) / ref < 0.10 ? 'good' : 'warn') : 'dim';
 
-    return `<tr>
+    const routeKey = `${e.origin}→${e.dest}`;
+    let groupRow = '';
+    if (groupByRoute && routeKey !== lastRoute) {
+      lastRoute = routeKey;
+      const colSpan = hasFio ? 13 : 11;
+      groupRow = `<tr class="route-group-header"><td colspan="${colSpan}">${e.origin} → ${e.dest}</td></tr>`;
+    }
+
+    const fioVol  = e.volume     != null ? e.volume.toLocaleString() + 'm³' : '—';
+    const fioCond = e.condition  != null ? `<span style="color:${condColor(e.condition)}">${(e.condition*100).toFixed(1)}%</span>` : '—';
+    const fioBp   = e.blueprintId || '—';
+
+    return groupRow + `<tr>
       <td>
         <div class="col-reg">${e.shipReg}</div>
-        <div class="col-type">${e.hullType || ''}</div>
+        <div class="col-sub">${e.hullType || ''}</div>
       </td>
-      <td class="col-route">${e.origin} → ${e.dest}</td>
+      ${groupByRoute ? '' : `<td class="col-route">${e.origin} → ${e.dest}</td>`}
       <td class="col-ts">${fmtTs(e.departedAt)}</td>
       <td class="col-ts">${fmtTs(e.arrivedAt)}</td>
       <td class="col-num">${fmtDur(e.elapsedMs)}</td>
@@ -403,23 +500,25 @@ function renderLog(log) {
       <td class="col-num ${cls(ftlMinPc, HARD_MIN_PC)}">${fmt1(ftlMinPc)}</td>
       <td class="col-num ${cls(fuelPc, HARD_FUEL_PC)}">${fmt1(fuelPc)}</td>
       <td class="col-num dim">${fmt1(totalMinPc)}</td>
+      ${hasFio ? `<td class="col-num dim">${fioVol}</td><td class="col-sub" style="text-align:right">${fioCond}</td><td class="col-sub dim" style="text-align:right;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${fioBp}</td>` : ''}
     </tr>`;
   }).join('');
+
+  const fioHeaders = hasFio
+    ? '<th class="r">Volume</th><th class="r">Cond</th><th class="r">Blueprint</th>'
+    : '';
 
   document.getElementById('logTable').innerHTML = `<table>
     <thead>
       <tr>
         <th>Ship</th>
-        <th>Route</th>
-        <th>Departed</th>
-        <th>Arrived</th>
-        <th>Elapsed</th>
-        <th class="r">STL fuel</th>
-        <th class="r">FTL fuel</th>
+        ${groupByRoute ? '' : '<th>Route</th>'}
+        <th>Departed</th><th>Arrived</th><th>Elapsed</th>
+        <th class="r">STL fuel</th><th class="r">FTL fuel</th>
         <th class="r">Parsecs</th>
-        <th class="r">FTL min/pc</th>
-        <th class="r">FTL/pc</th>
+        <th class="r">FTL min/pc</th><th class="r">FTL/pc</th>
         <th class="r">Total min/pc</th>
+        ${fioHeaders}
       </tr>
     </thead>
     <tbody>${rows}</tbody>
@@ -435,8 +534,10 @@ function clearLog() {
 
 // ── Init ──────────────────────────────────────────────────────────────────
 
-const _savedToken = localStorage.getItem(TOKEN_KEY) || '';
-if (_savedToken) document.getElementById('tokenInput').value = _savedToken;
+const _savedToken  = localStorage.getItem(TOKEN_KEY) || '';
+const _savedFioKey = localStorage.getItem(FIO_KEY)   || '';
+if (_savedToken)  document.getElementById('tokenInput').value  = _savedToken;
+if (_savedFioKey) document.getElementById('fioKeyInput').value = _savedFioKey;
 
 renderAll();
 if (_savedToken) doRefresh();
