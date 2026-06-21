@@ -162,6 +162,16 @@
       <div id="fuelTime" class="note" style="margin-top:6px"></div>
     </div>
 
+    <!-- FTL Reactor -->
+    <div class="card">
+      <div class="card-label">FTL Reactor (ρ)</div>
+      <div class="fuel-row">
+        <input id="rufSlider" class="fuel-slider" type="range" min="10" max="100" value="100" oninput="onRufChange()">
+        <span id="rufVal" class="fuel-val">100%</span>
+      </div>
+      <div id="rufInfo" class="note" style="margin-top:6px"></div>
+    </div>
+
     <!-- Calculate -->
     <button class="calc-btn" onclick="calculate()">Calculate Route</button>
   </div>
@@ -177,8 +187,23 @@
 // ── Constants ────────────────────────────────────────────────────────────────
 const FIO_BASE   = 'https://rest.fnar.net';
 const FIO_KEY    = 'prun_apikey';
-const FP_SCALE   = 12.67;    // coordinate units per parsec (calibrated VH-331→VH-778)
-const FP_MIN_PER_PARSEC = 28.5; // real-minutes per parsec (FTL travel, estimated)
+const FP_SCALE   = 12.0;     // coordinate units per parsec — paper §12.5: exactly 12
+
+// FTL reactor physics — paper §12.1–12.3 and §13.5
+// Jump time: t = A · e^(-β·ρ) · d_ftl  [seconds, per hop, d_ftl in parsecs]
+// Charge:    t = c · ρ                  [seconds, between consecutive lane jumps]
+// c = (3/8) · reactorPower / chargeFactor  (paper eq.24, exact)
+// β = κ · reactorPower  (κ ≈ 4.4e-4, paper §13.5)
+// A from emitter loadout — low-power reactors (≤2400): A≈2804; high-power (≥4800): A≈2362
+// These values are paper estimates (±5%); calibrate against APEX for exact ship constants.
+const FTL_REACTORS = {
+  2000: { c: 75,  A: 2804, beta: 4.4e-4 * 2000 },  // Quick-Charge (P=2000, f=10)
+  2400: { c: 450, A: 2804, beta: 4.4e-4 * 2400 },  // Standard     (P=2400, f=2)
+  4800: { c: 120, A: 2362, beta: 4.4e-4 * 4800 },  // High-Power   (P=4800, f=15)
+  7200: { c: 90,  A: 2362, beta: 4.4e-4 * 7200 },  // Hyper-Power  (P=7200, f=30)
+};
+// Gateway: t = d_ftl/3 hours + 1220s bracket (10+600+600+10) — paper §12.6 eq.19
+// Independent of ship and reactor; speed exactly 3 pc/hour = 1200 s/pc.
 
 // Orbital ephemeris — Josh Glass paper (June 2026), Section 10
 // M₀=0 for ALL planets at worldTime=0 (hardcoded in APEX client bundle.js keplerian() call)
@@ -353,6 +378,18 @@ function atmLeg(R_m, P, accel, which) {
     : 926 * Math.pow(R_m / 1e6, 0.96) * Math.pow(1 + p, -0.42);
   const M = Math.sqrt(d / (13.71 * accel_atm));
   return { dKm: d, M: Math.round(M) || 1, tReal: M * 8.855 };
+}
+
+// FTL physics for a ship — returns { c, A, beta } or null
+function ftlPhysics(ship) {
+  if (!ship?.reactorPower) return null;
+  const known = FTL_REACTORS[ship.reactorPower];
+  if (known) return { ...known };
+  // Unknown reactor power: estimate
+  const A    = ship.reactorPower <= 2400 ? 2804 : 2362;
+  const beta = 4.4e-4 * ship.reactorPower;
+  const c    = (ship.chargeFactor > 0) ? (3/8 * ship.reactorPower / ship.chargeFactor) : null;
+  return { c, A, beta, estimated: true };
 }
 
 // FTL parsec distance between two system objects
@@ -586,9 +623,11 @@ async function loadShips() {
       condition:    s.Condition ?? 1,
       thrust:       s.Thrust,
       reactorPower: s.ReactorPower,
+      chargeFactor: s.ChargeFactor,
       emitterPower: s.EmitterPower,
       stlFlowRate:  s.StlFuelFlowRate,
       stlCapacity:  s.StlFuelCapacity,
+      ftlCapacity:  s.FtlFuelCapacity,
       mass:         s.Mass,
     }));
     const sel = document.getElementById('shipSelect');
@@ -608,11 +647,26 @@ function onShipChange() {
   updateFuelSlider();
 }
 
+function onRufChange() {
+  const ruf = +document.getElementById('rufSlider').value / 100;
+  document.getElementById('rufVal').textContent = Math.round(ruf * 100) + '%';
+  const ftl = ftlPhysics(_currentShip);
+  const infoEl = document.getElementById('rufInfo');
+  if (!_currentShip) { infoEl.innerHTML = '— select ship'; return; }
+  if (!ftl) { infoEl.innerHTML = '— reactor stats unavailable'; return; }
+  const chargeParts = [];
+  if (ftl.c != null) chargeParts.push(`charge ${fmtRealTime(ftl.c * ruf)}/jump`);
+  const J = ftl.A * Math.exp(-ftl.beta * ruf);
+  chargeParts.push(`${(3600 / J).toFixed(2)} pc/hr jump speed`);
+  infoEl.innerHTML = chargeParts.join(' &nbsp;·&nbsp; ') + (ftl.estimated ? ' <span style="color:var(--yellow)">(est)</span>' : '');
+}
+
 function renderShipMeta() {
   const el = document.getElementById('shipMeta');
   if (!_currentShip) { el.innerHTML = ''; return; }
   const s = _currentShip;
   const phys = shipPhysics(s);
+  const ftl  = ftlPhysics(s);
   el.innerHTML = `
     <span>Hull:</span> ${s.blueprintId || '?'} &nbsp;
     <span>Cond:</span> ${Math.round((s.condition || 1) * 100)}%<br>
@@ -620,7 +674,9 @@ function renderShipMeta() {
     ${s.mass      ? `<span>Mass:</span> ${s.mass} &nbsp;` : ''}
     ${s.stlFlowRate ? `<span>STL flow:</span> ${s.stlFlowRate}` : ''}
     ${phys ? `<br><span>accel:</span> ${phys.accel.toFixed(1)} km/s²${phys.theoretical ? ' <span style="color:var(--yellow)">(uncal)</span>' : ''}` : ''}
+    ${ftl  ? `<br><span>reactor P:</span> ${s.reactorPower}${ftl.c != null ? ` &nbsp;<span>c:</span> ${ftl.c}s` : ''}${ftl.estimated ? ' <span style="color:var(--yellow)">(est)</span>' : ''}` : ''}
   `;
+  onRufChange();
 }
 
 function shipPhysics(ship) {
@@ -747,39 +803,82 @@ async function calculate() {
       return;
     }
 
-    let totalParsecs = 0;
-    let totalFtlMin = 0;
-    let totalRadDmg = 0;
-    const hopDescs = [];
+    const ruf   = +document.getElementById('rufSlider').value / 100;
+    const ftl   = ftlPhysics(_currentShip);
+    const J     = (ftl) ? ftl.A * Math.exp(-ftl.beta * ruf) : null; // s/parsec for lane jumps
+
+    let totalParsecs   = 0;
+    let totalJumpSec   = 0;   // lane jump travel time
+    let totalChargeSec = 0;   // charge time between lane jumps
+    let totalGwSec     = 0;   // gateway time (always computable)
+    let totalRadDmg    = 0;
+    let laneJumps      = 0;   // count of consecutive lane hops (for charges)
+    const hopDescs     = [];
 
     for (let i = 0; i < path.length - 1; i++) {
-      const fromSys = _systems[path[i]];
-      const toSys   = _systems[path[i + 1]];
+      const fromSys   = _systems[path[i]];
+      const toSys     = _systems[path[i + 1]];
       if (!fromSys || !toSys) continue;
-      const pc = parsecsBetween(fromSys, toSys);
+      const pc        = parsecsBetween(fromSys, toSys);
       const isGateway = _gatewayEdges.has(path[i] + '→' + path[i + 1]);
-      const legMin = isGateway ? pc * 60 : pc * FP_MIN_PER_PARSEC;
-      const rd = radDmgRaw(isGateway ? 0 : pc);
+      const rd        = radDmgRaw(isGateway ? 0 : pc);
       totalParsecs += pc;
-      totalFtlMin  += legMin;
       totalRadDmg  += rd;
-      const stats = _sysStats[path[i + 1]] || {};
+
+      let hopSec = null;
+      if (isGateway) {
+        // Paper §12.6 eq.19: 3 pc/hr + 1220s bracket (10+600+600+10)
+        hopSec = pc * 1200 + 1220;
+        totalGwSec += hopSec;
+      } else {
+        laneJumps++;
+        if (J != null) {
+          hopSec = J * pc;
+          totalJumpSec += hopSec;
+        }
+      }
+
+      const stats    = _sysStats[path[i + 1]] || {};
       const radBadge = stats.luminosity > 100 ? '<span class="hz-badge hz-rad" style="color:#f87171">RAD★</span>' :
                        stats.luminosity > 10  ? '<span class="hz-badge hz-rad">RAD</span>' : '';
-      hopDescs.push({ from: fromSys.NaturalId, to: toSys.NaturalId, pc: pc.toFixed(1), isGateway, radBadge });
+      hopDescs.push({ from: fromSys.NaturalId, to: toSys.NaturalId, pc: pc.toFixed(2), isGateway, radBadge,
+                      hopSec });
     }
 
-    totalRealMin += totalFtlMin;
+    // Charges between consecutive lane jumps — (m-1) charges, each c·ρ seconds (paper §12.3)
+    if (laneJumps > 1 && ftl?.c != null) {
+      totalChargeSec = (laneJumps - 1) * ftl.c * ruf;
+    }
+
+    const totalFtlSec = totalJumpSec + totalChargeSec + totalGwSec;
+    totalRealMin += totalFtlSec / 60;
     totalDmg += totalRadDmg;
 
-    const hopRows = hopDescs.map(h =>
-      `<div class="leg-stat"><span class="k">${h.from} → ${h.to}${h.isGateway ? ' (gate)' : ''}</span><span class="v">${h.pc} pc  ${h.radBadge}</span></div>`
-    ).join('');
+    // Build per-hop rows
+    const hopRows = hopDescs.map(h => {
+      const timeStr = h.hopSec != null ? ` → ${fmtRealTime(h.hopSec)}` : '';
+      return `<div class="leg-stat"><span class="k">${h.from} → ${h.to}${h.isGateway ? ' (gate)' : ''}</span><span class="v">${h.pc} pc${timeStr}  ${h.radBadge}</span></div>`;
+    }).join('');
 
-    html += legHtml('FTL', `${path.length - 1} jump${path.length > 2 ? 's' : ''} — ${totalParsecs.toFixed(1)} pc`, [
-      ['Time (real)', fmtMin(totalFtlMin)],
-      ['Radiation dmg', fmtDmg(totalRadDmg)],
-    ], hopRows, totalRadDmg, null);
+    const ftlRows = [];
+    if (laneJumps > 0) {
+      if (J != null) {
+        ftlRows.push(['Jump time', fmtRealTime(totalJumpSec)]);
+        if (laneJumps > 1 && ftl?.c != null)
+          ftlRows.push([`Charge (${laneJumps-1}×${Math.round(ftl.c * ruf)}s)`, fmtRealTime(totalChargeSec)]);
+        else if (laneJumps > 1)
+          ftlRows.push(['Charge', '— reactor stats missing']);
+      } else {
+        ftlRows.push(['Jump time', `<span style="color:var(--text3)">— select ship</span>`]);
+      }
+    }
+    if (totalGwSec > 0) ftlRows.push(['Gateway time', fmtRealTime(totalGwSec)]);
+    ftlRows.push(['Radiation dmg', fmtDmg(totalRadDmg)]);
+
+    const ftlNote = ftl?.estimated ? '⚠ Reactor constants from paper estimates — calibrate against APEX' : null;
+    const numJumps = path.length - 1;
+    html += legHtml('FTL', `${numJumps} jump${numJumps > 1 ? 's' : ''} — ${totalParsecs.toFixed(2)} pc`,
+      ftlRows, hopRows, totalRadDmg, ftlNote);
   }
 
   // ── STL leg (in dest system) ──
@@ -877,7 +976,7 @@ async function calculate() {
     <div class="total-row"><span class="k">Total Hull Damage</span><span class="v dmg${totalDmg > 0.05 ? ' high' : ''}">${fmtDmg(totalDmg)}</span></div>
     <div class="total-row"><span class="k">STL Fuel Used</span><span class="v">${totalFuelStl} units</span></div>
     ${shieldRec}
-    <div class="note" style="margin-top:0.75rem">STL distance: transfer ellipse arc via rendezvous solver (paper §8, GM from star mass, all 698 systems). TO/LDG from paper §12.4. Damage assumes no shielding.</div>
+    <div class="note" style="margin-top:0.75rem">STL: transfer ellipse arc rendezvous solver (paper §8). TO/LDG: paper §12.4. FTL: A·e^(−β·ρ)·d + charges (paper §12.1–12.3); gateway 3 pc/hr + 1220s (§12.6). Damage: no shielding.</div>
   `;
 
   resEl.innerHTML = html;
