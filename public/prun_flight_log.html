@@ -314,54 +314,59 @@ async function doRefresh() {
   const now = Date.now();
   const newEntries = [];
 
-  for (const ship of ships) {
-    const { ShipId: id, Registration: reg, Type: hullType, FlightId: flightId } = ship;
-    const inFlight = !!flightId;
-    const flight   = flightId ? flightById[flightId] : null;
-    const snap     = loadSnap(id);
-    const fio      = fioShips[reg] || {};
+  // Save complete flight data to localStorage the first time we see each flight.
+  // PUNoted removes flights once the ship lands, so we can't rely on the live API
+  // to detect completion — we use our saved copy instead.
+  const SAVED_FLIGHTS_KEY = 'prun_savedflights';
+  const savedFlights = JSON.parse(localStorage.getItem(SAVED_FLIGHTS_KEY) || '{}');
 
-    if (inFlight && flight) {
-      if (!snap?.inFlight || snap.flightId !== flightId) {
-        const { stl, ftl, ftlTimeMs } = extractFuelFromSegments(flight.Segments);
-        saveSnap(id, {
-          inFlight: true, reg, hullType, flightId,
-          origin:      flight.Origin      || lineLabel(flight.Segments?.[0]?.OriginLines) || '?',
-          destination: flight.Destination || lineLabel(flight.Segments?.[flight.Segments.length-1]?.DestinationLines) || '?',
-          departureEpochMs: flight.DepartureTimeEpochMs,
-          arrivalEpochMs:   flight.ArrivalTimeEpochMs,
-          parsecs:   flight.FtlDistance ? parseFloat(flight.FtlDistance.toFixed(2)) : null,
-          stlUsed: stl, ftlUsed: ftl, ftlTimeMs,
-          // FIO stats at time of departure
-          volume:      fio.volume      ?? null,
-          condition:   fio.condition   ?? null,
-          blueprintId: fio.blueprintId ?? null,
-          reactorPower:fio.reactorPower ?? null,
-        });
-      }
-    } else {
-      if (snap?.inFlight) {
-        const elapsedMs = snap.arrivalEpochMs - snap.departureEpochMs;
-        if (elapsedMs > 0) {
-          newEntries.push({
-            shipReg: reg || snap.reg, hullType: hullType || snap.hullType || '',
-            origin: snap.origin, dest: snap.destination,
-            departedAt: snap.departureEpochMs, arrivedAt: snap.arrivalEpochMs,
-            elapsedMs, stlUsed: snap.stlUsed, ftlUsed: snap.ftlUsed,
-            parsecs: snap.parsecs, ftlTimeMs: snap.ftlTimeMs,
-            volume: snap.volume, condition: snap.condition,
-            blueprintId: snap.blueprintId, reactorPower: snap.reactorPower,
-          });
-        }
-      }
-      saveSnap(id, { inFlight: false, reg, hullType, dockedAt: now, ...fio });
-    }
+  for (const ship of ships) {
+    const { Registration: reg, Type: hullType, FlightId: flightId } = ship;
+    const flight = flightId ? flightById[flightId] : null;
+    if (!flight) continue;
+    if (savedFlights[flightId]) continue; // already saved
+
+    const fio = fioShips[reg] || {};
+    const { stl, ftl, ftlTimeMs } = extractFuelFromSegments(flight.Segments);
+    savedFlights[flightId] = {
+      flightId,
+      shipReg:     reg,
+      hullType,
+      origin:      flight.Origin      || lineLabel(flight.Segments?.[0]?.OriginLines) || '?',
+      dest:        flight.Destination || lineLabel(flight.Segments?.[flight.Segments.length-1]?.DestinationLines) || '?',
+      departedAt:  flight.ArrivalTimeEpochMs,
+      arrivedAt:   flight.DepartureTimeEpochMs,
+      elapsedMs:   flight.DepartureTimeEpochMs - flight.ArrivalTimeEpochMs,
+      stlUsed: stl, ftlUsed: ftl,
+      parsecs:     flight.FtlDistance ? parseFloat(flight.FtlDistance.toFixed(2)) : null,
+      ftlTimeMs,
+      volume:      fio.volume       ?? null,
+      condition:   fio.condition    ?? null,
+      blueprintId: fio.blueprintId  ?? null,
+      reactorPower:fio.reactorPower ?? null,
+      savedAt: now,
+    };
+  }
+  // Prune entries older than 7 days
+  for (const [id, v] of Object.entries(savedFlights)) {
+    if (now - (v.savedAt || 0) > 7 * 86400_000) delete savedFlights[id];
+  }
+  localStorage.setItem(SAVED_FLIGHTS_KEY, JSON.stringify(savedFlights));
+
+  // Log any saved flight whose arrival time has passed and isn't already logged
+  const existingLog = loadLog();
+  const loggedIds = new Set(existingLog.map(e => e.flightId).filter(Boolean));
+
+  for (const entry of Object.values(savedFlights)) {
+    if (!entry.arrivedAt || entry.arrivedAt >= now) continue;
+    if (loggedIds.has(entry.flightId)) continue;
+    if (entry.elapsedMs <= 0) continue;
+    newEntries.push(entry);
   }
 
   if (newEntries.length) {
-    const log = loadLog();
-    log.unshift(...newEntries);
-    saveLog(log);
+    existingLog.unshift(...newEntries);
+    saveLog(existingLog);
   }
 
   const inFlightCount = ships.filter(s => s.FlightId).length;

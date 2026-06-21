@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PrUn Flight Planner</title>
+<style>
+  :root {
+    --bg: #0f1117; --bg2: #181c27; --bg3: #1e2333;
+    --border: #2a3045; --text: #e2e8f0; --text2: #8892a4; --text3: #555f72;
+    --accent: #4f8ef7; --green: #4ade80; --orange: #fb923c; --red: #f87171;
+    --yellow: #facc15; --mono: 'Courier New', monospace; --radius: 6px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 13px; padding: 1.5rem; min-height: 100vh; }
+  a { color: var(--accent); text-decoration: none; }
+
+  /* ── Header ── */
+  .header { display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+  .header h1 { font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text2); display: flex; align-items: center; gap: 8px; }
+  .header h1::before { content: ''; display: inline-block; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
+  .key-input { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text2); padding: 5px 10px; font-size: 12px; font-family: var(--mono); width: 260px; }
+  .key-input::placeholder { color: var(--text3); }
+  .btn-sm { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text2); padding: 5px 14px; font-size: 12px; cursor: pointer; transition: all 0.15s; }
+  .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); }
+  .status-dot.ok { background: var(--green); }
+  .status-dot.err { background: var(--red); }
+
+  /* ── Layout ── */
+  .planner { display: grid; grid-template-columns: 300px 1fr; gap: 1.25rem; align-items: start; }
+  @media (max-width: 760px) { .planner { grid-template-columns: 1fr; } }
+
+  /* ── Panels ── */
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; }
+  .card + .card { margin-top: 0.75rem; }
+  .card-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-bottom: 0.75rem; }
+
+  /* ── Searchable input ── */
+  .search-wrap { position: relative; }
+  .search-input { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); padding: 6px 10px; font-size: 12px; outline: none; transition: border-color 0.15s; }
+  .search-input:focus { border-color: var(--accent); }
+  .search-input.resolved { border-color: #2d5a2d; color: var(--green); }
+  .search-input.unresolved { border-color: #5a2d2d; color: var(--red); }
+  .search-drop { position: absolute; top: calc(100% + 3px); left: 0; right: 0; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); max-height: 220px; overflow-y: auto; z-index: 100; display: none; }
+  .drop-item { padding: 6px 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+  .drop-item:hover { background: var(--bg2); }
+  .drop-item .drop-code { color: var(--text3); font-family: var(--mono); font-size: 11px; }
+  .drop-item .drop-name { color: var(--text); }
+  .drop-item .drop-sys  { color: var(--text2); font-size: 11px; }
+
+  /* ── Route arrows ── */
+  .route-row { display: flex; align-items: center; gap: 8px; margin-bottom: 0.5rem; }
+  .route-label { font-size: 10px; color: var(--text3); font-family: var(--mono); letter-spacing: 0.08em; width: 32px; flex-shrink: 0; }
+  .route-arrow { color: var(--text3); font-size: 16px; text-align: center; padding: 4px 0; }
+
+  /* ── Fuel slider ── */
+  .fuel-row { display: flex; align-items: center; gap: 10px; }
+  .fuel-slider { flex: 1; accent-color: var(--accent); }
+  .fuel-val { font-family: var(--mono); font-size: 12px; color: var(--accent); min-width: 70px; text-align: right; }
+  input[type=range] { cursor: pointer; }
+
+  /* ── Ship select ── */
+  .ship-select { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); padding: 6px 10px; font-size: 12px; outline: none; }
+  .ship-meta { margin-top: 6px; font-size: 11px; color: var(--text3); line-height: 1.6; font-family: var(--mono); }
+  .ship-meta span { color: var(--text2); }
+
+  /* ── Calc button ── */
+  .calc-btn { width: 100%; background: #1e3a5f; border: 1px solid var(--accent); border-radius: var(--radius); color: var(--accent); padding: 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: all 0.15s; margin-top: 0.5rem; }
+  .calc-btn:hover { background: #26487a; }
+  .calc-btn:disabled { opacity: 0.4; cursor: default; }
+
+  /* ── Results ── */
+  .results-empty { color: var(--text3); font-size: 12px; text-align: center; padding: 2rem; }
+  .leg { margin-bottom: 0.75rem; }
+  .leg-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+  .leg-type { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 1px 6px; border-radius: 3px; font-family: var(--mono); }
+  .leg-type.to   { background: #1a2a1a; color: var(--green); }
+  .leg-type.ftl  { background: #1a1a3a; color: var(--accent); }
+  .leg-type.stl  { background: #2a1a1a; color: var(--orange); }
+  .leg-type.ldg  { background: #1a2a1a; color: var(--green); }
+  .leg-dest { color: var(--text2); font-size: 12px; }
+  .leg-body { border-left: 2px solid var(--border); padding-left: 10px; margin-left: 4px; }
+  .leg-stat { display: flex; justify-content: space-between; align-items: baseline; padding: 1px 0; }
+  .leg-stat .k { color: var(--text3); font-size: 11px; }
+  .leg-stat .v { color: var(--text); font-size: 12px; font-family: var(--mono); }
+  .leg-stat .v.approx { color: var(--yellow); }
+  .leg-dmg { color: var(--orange); }
+  .leg-dmg.high { color: var(--red); }
+
+  /* ── Divider / Total ── */
+  .results-divider { border: none; border-top: 1px solid var(--border); margin: 0.75rem 0; }
+  .total-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .total-row .k { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); }
+  .total-row .v { font-family: var(--mono); font-size: 14px; color: var(--text); }
+  .total-row .v.dmg { color: var(--orange); }
+  .total-row .v.dmg.high { color: var(--red); }
+
+  /* ── Hazard badges ── */
+  .hz { display: inline-flex; gap: 4px; align-items: center; flex-wrap: wrap; margin-top: 3px; }
+  .hz-badge { font-size: 9px; padding: 1px 5px; border-radius: 3px; font-weight: 700; letter-spacing: 0.08em; }
+  .hz-met   { background: #2a1f0d; color: var(--orange); }
+  .hz-rad   { background: #1a2a2a; color: #5eead4; }
+  .hz-heat  { background: #2a1515; color: var(--red); }
+  .hz-grav  { background: #1a1a2a; color: var(--accent); }
+
+  /* ── Warning note ── */
+  .note { font-size: 11px; color: var(--text3); margin-top: 0.5rem; line-height: 1.5; }
+  .note .hl { color: var(--yellow); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Flight Planner</h1>
+  <input id="fioKey" class="key-input" placeholder="FIO API key" autocomplete="off">
+  <input id="fioUser" class="key-input" style="width:140px" placeholder="FIO username" autocomplete="off">
+  <button class="btn-sm" onclick="loadShips()">Load Ships</button>
+  <div id="shipDot" class="status-dot"></div>
+</div>
+
+<div class="planner">
+
+  <!-- LEFT: inputs -->
+  <div>
+    <!-- Ship -->
+    <div class="card">
+      <div class="card-label">Ship</div>
+      <select id="shipSelect" class="ship-select" onchange="onShipChange()">
+        <option value="">— select ship —</option>
+      </select>
+      <div id="shipMeta" class="ship-meta"></div>
+    </div>
+
+    <!-- Route -->
+    <div class="card">
+      <div class="card-label">Route</div>
+      <div class="route-row">
+        <span class="route-label">FROM</span>
+        <div class="search-wrap" style="flex:1">
+          <input id="originInput" class="search-input" placeholder="Planet or system…" autocomplete="off" oninput="filterDrop('origin')" onfocus="filterDrop('origin')">
+          <div id="originDrop" class="search-drop"></div>
+        </div>
+      </div>
+      <div class="route-arrow">↓</div>
+      <div class="route-row">
+        <span class="route-label">TO</span>
+        <div class="search-wrap" style="flex:1">
+          <input id="destInput" class="search-input" placeholder="Planet or system…" autocomplete="off" oninput="filterDrop('dest')" onfocus="filterDrop('dest')">
+          <div id="destDrop" class="search-drop"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fuel -->
+    <div class="card" id="fuelCard">
+      <div class="card-label">STL Fuel for leg</div>
+      <div class="fuel-row">
+        <input id="fuelSlider" class="fuel-slider" type="range" min="1" max="200" value="60" oninput="onFuelChange()">
+        <span id="fuelVal" class="fuel-val">60 units</span>
+      </div>
+      <div id="fuelTime" class="note" style="margin-top:6px"></div>
+    </div>
+
+    <!-- Calculate -->
+    <button class="calc-btn" onclick="calculate()">Calculate Route</button>
+  </div>
+
+  <!-- RIGHT: results -->
+  <div class="card" id="results">
+    <div class="results-empty">Enter origin and destination to plan a route.</div>
+  </div>
+
+</div>
+
+<script>
+// ── Constants ────────────────────────────────────────────────────────────────
+const FIO_BASE   = 'https://rest.fnar.net';
+const FIO_KEY    = 'prun_apikey';
+const FP_SCALE   = 12.67;    // coordinate units per parsec (calibrated VH-331→VH-778)
+const FP_MIN_PER_PARSEC = 28.5; // real-minutes per parsec (FTL travel, estimated)
+
+// Orbital ephemeris — Josh Glass paper (June 2026), Section 10
+// M₀=0 for ALL planets at worldTime=0 (hardcoded in APEX client bundle.js keplerian() call)
+const REFERENCE_TIME_S = 1451690603; // 2016-01-01 23:23:23 UTC
+
+// GM is computed at load time from star masses in systemstars.json:
+// GM [m³/s²] = 6.6743e-11 × star_mass_kg   (real SI, no worldtime conversion needed)
+// worldTime() running 20× faster automatically gives 20× orbital speed.
+// Stored in _sysGM (SystemId → GM); populated in loadData().
+
+// Calibrated hull physics — paper formula: t[real-s] = d/(2·accel·M) + 2·M
+// accel in km/s² (real-s), M = stlFuelConsumption (integer speed-cap index = slider value)
+const HULL_PHYSICS = {
+  // 24-pt empirical calibration; accel derived from paper formula
+  'AVI-06CKD':    { accel: 2076,  mMin: 12, stlFuelMax: 112 },
+  // DP1=M130/664Mkm/10h35m (4% err), DP2=M2585/689Mkm/1h57m39s (exact)
+  'BP-HJQJ-2441': { accel: 70.55, mMin: 0,  stlFuelMax: 2585 },
+};
+
+// ── Orbital ephemeris ────────────────────────────────────────────────────────
+
+function worldTime(unixT) {
+  return REFERENCE_TIME_S + (unixT - REFERENCE_TIME_S) * 20;
+}
+
+function solveKepler(M_anom, ecc) {
+  let E = M_anom;
+  for (let i = 0; i < 50; i++) {
+    const dE = (M_anom - E + ecc * Math.sin(E)) / (1 - ecc * Math.cos(E));
+    E += dE;
+    if (Math.abs(dE) < 1e-12) break;
+  }
+  return E;
+}
+
+function planetXY(unixT, a_m, ecc, GM_wt) {
+  const wt  = worldTime(unixT);
+  const n   = Math.sqrt(GM_wt / (a_m * a_m * a_m));
+  const M_a = ((n * wt) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+  const E   = solveKepler(M_a, ecc);
+  return { x: a_m * (Math.cos(E) - ecc), y: a_m * Math.sqrt(1 - ecc * ecc) * Math.sin(E) };
+}
+
+// Transfer ellipse arc (km) between positions S and P in metres — paper Section 8
+// Star is at origin. a_t = (|S|+|P|)/2 (focal semi-major). Second focus via focal-radius swap.
+// Prograde O': on the opposite side of chord SP from the star (always correct for PrUn).
+function transferArcKm(Sx, Sy, Px, Py) {
+  const rS = Math.hypot(Sx, Sy), rP = Math.hypot(Px, Py);
+  if (!rS || !rP) return null;
+  const at = (rS + rP) / 2;
+  const Dx = Px - Sx, Dy = Py - Sy, D = Math.hypot(Dx, Dy);
+  if (D < 1) return 0;
+  const ux = Dx / D, uy = Dy / D;
+  const l = (rP * rP - rS * rS + D * D) / (2 * D);
+  const h = Math.sqrt(Math.max(0, rP * rP - l * l));
+  // starCross < 0 → star on right of chord → prograde O' on left (offset +perp)
+  // starCross > 0 → star on left of chord → prograde O' on right (offset −perp)
+  const starCross = -ux * Sy + uy * Sx;
+  const Opx = starCross <= 0 ? Sx + l * ux - h * uy : Sx + l * ux + h * uy;
+  const Opy = starCross <= 0 ? Sy + l * uy + h * ux : Sy + l * uy - h * ux;
+  const c2 = (Opx * Opx + Opy * Opy) / 4;
+  if (c2 >= at * at - 1) return null;
+  const bt = Math.sqrt(at * at - c2);
+  const Cx = Opx / 2, Cy = Opy / 2;
+  const ml = Math.hypot(Opx, Opy);
+  if (ml < 1) return null;
+  const mx = Opx / ml, my = Opy / ml;
+  const E1 = Math.atan2(((Sx-Cx)*(-my)+(Sy-Cy)*mx)/bt, ((Sx-Cx)*mx+(Sy-Cy)*my)/at);
+  const E2 = Math.atan2(((Px-Cx)*(-my)+(Py-Cy)*mx)/bt, ((Px-Cx)*mx+(Py-Cy)*my)/at);
+  let dE = ((E2 - E1) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+  if (dE > Math.PI) dE -= 2 * Math.PI;
+  const N = 200, step = dE / N;
+  let arc = 0;
+  for (let i = 0; i < N; i++) {
+    const E = E1 + (i + 0.5) * step;
+    arc += Math.sqrt(at * at * Math.sin(E) ** 2 + bt * bt * Math.cos(E) ** 2);
+  }
+  return Math.abs(arc * step) / 1000;
+}
+
+// Rendezvous solver: iterate to find the transfer ellipse arc and flight time for a given M.
+// Converges in ~5 iterations. Returns { arcKm, tReal } or null if no GM/accel.
+function stlRendezvous(pl1, pl2, GM, accel, M, nowUnix) {
+  if (!GM || !accel || M <= 0 || !pl1?.OrbitSemiMajorAxis || !pl2?.OrbitSemiMajorAxis) return null;
+  const S = planetXY(nowUnix, pl1.OrbitSemiMajorAxis, pl1.OrbitEccentricity || 0, GM);
+  let tFlight = 2 * M;
+  for (let i = 0; i < 25; i++) {
+    const P = planetXY(nowUnix + tFlight, pl2.OrbitSemiMajorAxis, pl2.OrbitEccentricity || 0, GM);
+    const arcKm = transferArcKm(S.x, S.y, P.x, P.y);
+    if (arcKm == null) return null;
+    const newT = stlTimeReal(arcKm, M, accel);
+    if (newT == null) return null;
+    if (Math.abs(newT - tFlight) < 0.5) return { arcKm, tReal: newT };
+    tFlight = newT;
+  }
+  return null;
+}
+
+function sysGM(sysId) {
+  return _sysGM[sysId] ?? null;
+}
+
+// ── Physics ──────────────────────────────────────────────────────────────────
+
+// Complete elliptic integral of second kind E(m), 8-point Gauss-Legendre
+function ellipticE(m) {
+  if (m <= 0) return Math.PI / 2;
+  if (m >= 1) return 1;
+  const x = [0.09501251,0.28160355,0.45801678,0.61787624,0.75540441,0.86563120,0.94457502,0.98940093];
+  const w = [0.18945061,0.18260342,0.16915652,0.14959599,0.12462897,0.09515851,0.06225352,0.02715246];
+  const h = Math.PI / 4;
+  let s = 0;
+  for (let i = 0; i < 8; i++) {
+    const t1 = h * (1 + x[i]), t2 = h * (1 - x[i]);
+    s += w[i] * (Math.sqrt(1 - m * Math.sin(t1) ** 2) + Math.sqrt(1 - m * Math.sin(t2) ** 2));
+  }
+  return h * s;
+}
+
+// Hohmann arc distance (km) from orbital radii (metres) — maximum STL distance (opposite-side)
+function hohmannArcKm(rO_m, rP_m) {
+  if (!rO_m || !rP_m || rO_m <= 0 || rP_m <= 0) return null;
+  const at = (rO_m + rP_m) / 2;
+  const et = Math.abs(rP_m - rO_m) / (rO_m + rP_m);
+  return 2 * at * ellipticE(et * et) / 1000; // metres → km
+}
+
+// Chord (same-side) distance (km) — minimum STL distance
+function chordKm(rO_m, rP_m) {
+  if (!rO_m || !rP_m || rO_m <= 0 || rP_m <= 0) return null;
+  return Math.abs(rP_m - rO_m) / 1000; // metres → km
+}
+
+// STL flight time [real-s] — Josh Glass paper formula (June 2026), Section 6
+// t = d/(2·accel·M) + 2·M   (always trapezoidal — game never uses triangular profile)
+function stlTimeReal(dKm, M, accel) {
+  if (!dKm || !M || !accel || M <= 0) return null;
+  return dKm / (2 * accel * M) + 2 * M;
+}
+
+// Real-seconds → human readable
+function fmtRealTime(realSec) {
+  const h = Math.floor(realSec / 3600);
+  const m = Math.floor((realSec % 3600) / 60);
+  const s = Math.floor(realSec % 60);
+  if (h >= 24) {
+    const d = Math.floor(h / 24), hr = h % 24;
+    return `${d}d ${hr}h ${m}m`;
+  }
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m ${s}s`;
+  return `${s}s`;
+}
+
+// Minutes → human readable
+function fmtMin(min) {
+  if (min < 60) return `${Math.round(min)}m`;
+  const h = Math.floor(min / 60), m = Math.round(min % 60);
+  return m ? `${h}h ${m}m` : `${h}h`;
+}
+
+// Atmospheric leg (TO or landing) — paper Section 12.4, corrected in Section 1.2
+// d_TO  = (R_m/1000) × (0.1482 + 0.4521·P^0.30)   frame km
+// d_LDG = 926 × (R_m/1e6)^0.96 × (1+P)^(-0.42)   frame km  (decreases with pressure)
+// M_atm = sqrt(d / (13.71 × accel_atm))            server-set speed tier (= stlFuelConsumption)
+// t     = M × (13.71/2 + 2) = M × 8.855            real-s
+function atmLeg(R_m, P, accel, which) {
+  const accel_atm = accel / 350.11;
+  const p = Math.max(0, P || 0);
+  const d = (which === 'to')
+    ? (R_m / 1000) * (0.1482 + 0.4521 * Math.pow(p, 0.30))
+    : 926 * Math.pow(R_m / 1e6, 0.96) * Math.pow(1 + p, -0.42);
+  const M = Math.sqrt(d / (13.71 * accel_atm));
+  return { dKm: d, M: Math.round(M) || 1, tReal: M * 8.855 };
+}
+
+// FTL parsec distance between two system objects
+function parsecsBetween(a, b) {
+  const dx = a.PositionX - b.PositionX;
+  const dy = a.PositionY - b.PositionY;
+  const dz = a.PositionZ - b.PositionZ;
+  return Math.sqrt(dx * dx + dy * dy + dz * dz) / FP_SCALE;
+}
+
+// Meteor damage fraction (unshielded)
+// Uses destination orbital radius as distance proxy, matching ship builder calibration
+function meteorDmgRaw(destOrbitalRadiusM, density) {
+  const distKm = destOrbitalRadiusM / 1000;
+  return 2.5e-9 * distKm * Math.pow(Math.max(0.001, density), 0.625);
+}
+
+// FTL radiation damage fraction (unshielded)
+function radDmgRaw(parsecs) {
+  return 0.000353 * parsecs;
+}
+
+function fmtDmg(frac) {
+  return (frac * 100).toFixed(3) + '%';
+}
+
+function fmtDist(km) {
+  if (km >= 1e9) return `${(km / 1e9).toFixed(2)} B km`;
+  if (km >= 1e6) return `${(km / 1e6).toFixed(0)} M km`;
+  if (km >= 1e3) return `${(km / 1e3).toFixed(0)} k km`;
+  return `${Math.round(km)} km`;
+}
+
+// ── Data ─────────────────────────────────────────────────────────────────────
+
+let _loaded = false;
+let _systems = {};       // SystemId → system object
+let _sysByKey = {};      // uppercase name/NatId → SystemId
+let _graph = {};         // SystemId → [SystemId]
+let _gatewayEdges = new Set();
+let _planets = {};       // PlanetNaturalId → planet object
+let _planetByKey = {};   // uppercase NatId/name → PlanetNaturalId
+let _sysStats = {};      // SystemId → { meteoroidDensity, luminosity }
+let _sysGM = {};         // SystemId → GM (m³/s²) = G × star_mass_kg
+let _searchItems = [];   // { label, code, value, sysId, type }
+
+let _ships = [];         // loaded from FIO
+let _currentShip = null;
+
+let _origin = null;      // { planetId, sysId }
+let _dest   = null;
+
+async function loadData() {
+  if (_loaded) return;
+  const [univRaw, planetRaw, starsRaw, gatewaysRaw] = await Promise.all([
+    fetch('/prun_universe_data.json').then(r => r.json()),
+    fetch('/planet_data.json').then(r => r.json()),
+    fetch('/systemstars.json').then(r => r.json()),
+    fetch('/gateways.json').then(r => r.json()),
+  ]);
+
+  // Systems
+  univRaw.forEach(s => {
+    _systems[s.SystemId] = s;
+    const key = s.NaturalId.toUpperCase();
+    _sysByKey[key] = s.SystemId;
+    if (s.Name && s.Name !== s.NaturalId) _sysByKey[s.Name.toUpperCase()] = s.SystemId;
+    _graph[s.SystemId] = (s.Connections || []).map(c => c.ConnectingId);
+  });
+
+  // Gateways
+  gatewaysRaw.forEach(g => {
+    const sk = g.source.slice(0, -1).toUpperCase();
+    const tk = g.target.slice(0, -1).toUpperCase();
+    const sId = _sysByKey[sk], tId = _sysByKey[tk];
+    if (sId && tId && !_graph[sId].includes(tId)) {
+      _graph[sId].push(tId);
+      _gatewayEdges.add(sId + '→' + tId);
+    }
+  });
+
+  // System hazard stats + GM from star mass (G × mass_kg, real SI)
+  const G_SI = 6.6743e-11;
+  starsRaw.forEach(s => {
+    _sysStats[s.SystemId] = { meteoroidDensity: s.MeteoroidDensity || 0, luminosity: s.Luminosity || 0 };
+    if (s.Mass) _sysGM[s.SystemId] = G_SI * s.Mass;
+  });
+
+  // Planets (surface only for TO/LDG)
+  planetRaw.forEach(p => {
+    _planets[p.PlanetNaturalId] = p;
+    const pk = p.PlanetNaturalId.toUpperCase();
+    _planetByKey[pk] = p.PlanetNaturalId;
+    if (p.PlanetName && p.PlanetName !== p.PlanetNaturalId) {
+      _planetByKey[p.PlanetName.toUpperCase()] = p.PlanetNaturalId;
+    }
+  });
+
+  // Build search index — one entry per entity, planets before systems.
+  // Each entry has a searchable `sub` field (NatId for named entities) so both
+  // name and NatId match in a single result, avoiding the duplicate-entry cutoff.
+
+  // Surface planets (one entry each)
+  planetRaw.filter(p => p.Surface).forEach(p => {
+    const sys = _systems[p.SystemId];
+    const sysName = sys ? (sys.Name !== sys.NaturalId ? sys.Name : sys.NaturalId) : '';
+    const hasName = p.PlanetName && p.PlanetName !== p.PlanetNaturalId;
+    _searchItems.push({
+      label:    hasName ? p.PlanetName : p.PlanetNaturalId,
+      sub:      hasName ? p.PlanetNaturalId : '',
+      code:     hasName ? p.PlanetNaturalId : sysName,
+      selLabel: hasName ? p.PlanetName : p.PlanetNaturalId,
+      value:    'pl:' + p.PlanetNaturalId,
+      sysId:    p.SystemId,
+      type:     'planet'
+    });
+  });
+
+  // Systems (one entry each)
+  univRaw.forEach(s => {
+    const hasName = s.Name && s.Name !== s.NaturalId;
+    _searchItems.push({
+      label:    hasName ? s.Name : s.NaturalId,
+      sub:      hasName ? s.NaturalId : '',
+      code:     hasName ? s.NaturalId : (s.Type + ' star'),
+      selLabel: (hasName ? s.Name : s.NaturalId) + ' (system)',
+      value:    'sys:' + s.SystemId,
+      sysId:    s.SystemId,
+      type:     'system'
+    });
+  });
+
+  _loaded = true;
+}
+
+// ── Search dropdowns ─────────────────────────────────────────────────────────
+
+function filterDrop(which) {
+  const inputEl = document.getElementById(which + 'Input');
+  const dropEl  = document.getElementById(which + 'Drop');
+  const q = inputEl.value.trim().toLowerCase();
+
+  if (!_loaded) {
+    loadData().then(() => filterDrop(which));
+    return;
+  }
+
+  const matches = q.length === 0 ? [] : _searchItems.filter(item =>
+    item.label.toLowerCase().includes(q) ||
+    (item.sub && item.sub.toLowerCase().includes(q)) ||
+    (item.type === 'system' && item.code.toLowerCase().includes(q))
+  ).slice(0, 14);
+
+  if (matches.length === 0) { dropEl.style.display = 'none'; return; }
+
+  dropEl.innerHTML = matches.map(item => `
+    <div class="drop-item" data-value="${escHtml(item.value)}" data-label="${escHtml(item.selLabel)}">
+      <span class="drop-name">${escHtml(item.label)}${item.sub ? ` <span class="drop-sys">${escHtml(item.sub)}</span>` : ''}</span>
+      <span class="drop-code">${escHtml(item.code)}</span>
+    </div>`).join('');
+  dropEl.style.display = 'block';
+
+  dropEl.querySelectorAll('.drop-item').forEach(el => {
+    el.addEventListener('mousedown', e => {
+      e.preventDefault();
+      selectDrop(which, el.dataset.value, el.dataset.label);
+    });
+  });
+}
+
+function selectDrop(which, value, label) {
+  const inputEl = document.getElementById(which + 'Input');
+  const dropEl  = document.getElementById(which + 'Drop');
+  inputEl.value = label;
+  dropEl.style.display = 'none';
+
+  const resolved = resolveValue(value);
+  if (which === 'origin') {
+    _origin = resolved;
+    inputEl.className = 'search-input ' + (resolved ? 'resolved' : 'unresolved');
+  } else {
+    _dest = resolved;
+    inputEl.className = 'search-input ' + (resolved ? 'resolved' : 'unresolved');
+  }
+  updateFuelSlider();
+}
+
+function resolveValue(value) {
+  if (!value) return null;
+  if (value.startsWith('pl:')) {
+    const pid = value.slice(3);
+    const p = _planets[pid];
+    return p ? { planetId: pid, sysId: p.SystemId } : null;
+  }
+  if (value.startsWith('sys:')) {
+    const sysId = value.slice(4);
+    return { planetId: null, sysId };
+  }
+  return null;
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-wrap')) {
+    document.querySelectorAll('.search-drop').forEach(d => d.style.display = 'none');
+  }
+});
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Ships ─────────────────────────────────────────────────────────────────────
+
+async function loadShips() {
+  const key  = document.getElementById('fioKey').value.trim() || localStorage.getItem(FIO_KEY) || '';
+  const user = document.getElementById('fioUser').value.trim();
+  const dot  = document.getElementById('shipDot');
+
+  if (key) localStorage.setItem(FIO_KEY, key);
+  if (!key || !user) { alert('Enter FIO key and username.'); return; }
+
+  dot.className = 'status-dot';
+  try {
+    const r = await fetch(`${FIO_BASE}/ship/ships/${user}`, { headers: { Authorization: key } });
+    if (!r.ok) throw new Error(r.status);
+    const data = await r.json();
+    _ships = data.map(s => ({
+      registration: s.Registration,
+      name:         s.Name || s.Registration,
+      blueprintId:  s.BlueprintNaturalId,
+      condition:    s.Condition ?? 1,
+      thrust:       s.Thrust,
+      reactorPower: s.ReactorPower,
+      emitterPower: s.EmitterPower,
+      stlFlowRate:  s.StlFuelFlowRate,
+      stlCapacity:  s.StlFuelCapacity,
+      mass:         s.Mass,
+    }));
+    const sel = document.getElementById('shipSelect');
+    sel.innerHTML = '<option value="">— select ship —</option>' +
+      _ships.map((s, i) => `<option value="${i}">${s.registration}${s.name !== s.registration ? ' – ' + s.name : ''} [${s.blueprintId || '?'}]</option>`).join('');
+    dot.className = 'status-dot ok';
+  } catch (err) {
+    dot.className = 'status-dot err';
+    alert('Failed to load ships: ' + err);
+  }
+}
+
+function onShipChange() {
+  const idx = document.getElementById('shipSelect').value;
+  _currentShip = idx !== '' ? _ships[+idx] : null;
+  renderShipMeta();
+  updateFuelSlider();
+}
+
+function renderShipMeta() {
+  const el = document.getElementById('shipMeta');
+  if (!_currentShip) { el.innerHTML = ''; return; }
+  const s = _currentShip;
+  const phys = shipPhysics(s);
+  el.innerHTML = `
+    <span>Hull:</span> ${s.blueprintId || '?'} &nbsp;
+    <span>Cond:</span> ${Math.round((s.condition || 1) * 100)}%<br>
+    ${s.thrust    ? `<span>Thrust:</span> ${s.thrust} &nbsp;` : ''}
+    ${s.mass      ? `<span>Mass:</span> ${s.mass} &nbsp;` : ''}
+    ${s.stlFlowRate ? `<span>STL flow:</span> ${s.stlFlowRate}` : ''}
+    ${phys ? `<br><span>accel:</span> ${phys.accel.toFixed(1)} km/s²${phys.theoretical ? ' <span style="color:var(--yellow)">(uncal)</span>' : ''}` : ''}
+  `;
+}
+
+function shipPhysics(ship) {
+  if (!ship) return null;
+  const cal = HULL_PHYSICS[ship.blueprintId];
+  if (cal) return cal;
+  // Theoretical: accel = thrust/mass (FIO units → km/s², seat cap unknown)
+  if (ship.thrust && ship.mass) {
+    return { accel: ship.thrust / ship.mass, stlFuelMax: ship.stlCapacity || 200, mMin: 1, theoretical: true };
+  }
+  return null;
+}
+
+// ── Fuel slider ───────────────────────────────────────────────────────────────
+
+function updateFuelSlider() {
+  const phys = shipPhysics(_currentShip);
+  const slider = document.getElementById('fuelSlider');
+  if (phys) {
+    slider.min  = phys.mMin || 1;
+    slider.max  = phys.stlFuelMax ?? 200;
+    slider.step = 1;
+  }
+  onFuelChange();
+}
+
+function onFuelChange() {
+  const M = +document.getElementById('fuelSlider').value;
+  document.getElementById('fuelVal').textContent = M + ' units';
+
+  // Live STL time preview if route is same-system
+  const timeEl = document.getElementById('fuelTime');
+  const phys = shipPhysics(_currentShip);
+  if (!_origin || !_dest || !phys || phys.theoretical || _origin.sysId !== _dest?.sysId) { timeEl.textContent = ''; return; }
+
+  const oPl = _planets[_origin.planetId];
+  const dPl = _planets[_dest.planetId];
+  const rO  = oPl?.OrbitSemiMajorAxis;
+  const rP  = dPl?.OrbitSemiMajorAxis;
+  if (!rO || !rP) { timeEl.textContent = ''; return; }
+
+  const dMax = hohmannArcKm(rO, rP);
+  const dMin = chordKm(rO, rP);
+  if (!dMax) { timeEl.textContent = ''; return; }
+
+  const GM = sysGM(_origin.sysId);
+  const rendez = (GM && oPl && dPl) ? stlRendezvous(oPl, dPl, GM, phys.accel, M, Date.now() / 1000) : null;
+
+  let distStr, T;
+  if (rendez) {
+    distStr = `<span class="hl">${fmtDist(rendez.arcKm)}</span>`;
+    T = rendez.tReal;
+  } else {
+    distStr = `<span class="approx">${fmtDist(dMin)} – ${fmtDist(dMax)}</span>`;
+    T = stlTimeReal(dMax, M, phys.accel);
+  }
+  if (T == null) { timeEl.textContent = ''; return; }
+  timeEl.innerHTML = `${distStr} → <span class="hl">${fmtRealTime(T)}</span>`;
+}
+
+// ── Route finding ─────────────────────────────────────────────────────────────
+
+function bfs(startId, endId) {
+  if (startId === endId) return [startId];
+  const visited = new Set([startId]);
+  const queue = [[startId, [startId]]];
+  while (queue.length) {
+    const [cur, path] = queue.shift();
+    for (const next of (_graph[cur] || [])) {
+      if (next === endId) return [...path, next];
+      if (!visited.has(next)) { visited.add(next); queue.push([next, [...path, next]]); }
+    }
+  }
+  return null;
+}
+
+// ── Main calculation ──────────────────────────────────────────────────────────
+
+async function calculate() {
+  await loadData();
+  const resEl = document.getElementById('results');
+
+  if (!_origin) { resEl.innerHTML = '<div class="results-empty">Set a valid origin planet or system.</div>'; return; }
+  if (!_dest)   { resEl.innerHTML = '<div class="results-empty">Set a valid destination planet or system.</div>'; return; }
+
+  const M = +document.getElementById('fuelSlider').value;
+  const phys = shipPhysics(_currentShip);
+  const sameSys = _origin.sysId === _dest.sysId;
+
+  const originSys = _systems[_origin.sysId];
+  const destSys   = _systems[_dest.sysId];
+  const originPl  = _planets[_origin.planetId];
+  const destPl    = _planets[_dest.planetId];
+
+  let html = '';
+  let totalRealMin = 0;
+  let totalDmg = 0;
+  let totalFuelStl = 0;
+  let totalFuelFtl = 0;
+
+  // ── TO leg ──
+  if (originPl) {
+    const toAtm = (phys?.accel && originPl.Radius)
+      ? atmLeg(originPl.Radius, originPl.Pressure ?? 0, phys.accel, 'to')
+      : null;
+    const toTimeRealS = toAtm ? toAtm.tReal : 886;
+    const toFuel      = toAtm ? toAtm.M     : 50;
+    const toKm        = toAtm ? toAtm.dKm   : 18514;
+    totalRealMin += toTimeRealS / 60;
+    totalFuelStl += toFuel;
+    const hazards = planetHazardBadges(originPl);
+    html += legHtml('TO', `${originPl.PlanetName || originPl.PlanetNaturalId} → orbit`, [
+      ['Distance', fmtDist(toKm)],
+      ['Time (real)', fmtRealTime(toTimeRealS)],
+      ['STL fuel', toFuel + ' units'],
+    ], hazards, 0, toAtm ? null : '(estimate — no ship selected)');
+  }
+
+  // ── FTL legs ──
+  if (!sameSys) {
+    const path = bfs(_origin.sysId, _dest.sysId);
+    if (!path) {
+      resEl.innerHTML = '<div class="results-empty">No route found between systems.</div>';
+      return;
+    }
+
+    let totalParsecs = 0;
+    let totalFtlMin = 0;
+    let totalRadDmg = 0;
+    const hopDescs = [];
+
+    for (let i = 0; i < path.length - 1; i++) {
+      const fromSys = _systems[path[i]];
+      const toSys   = _systems[path[i + 1]];
+      if (!fromSys || !toSys) continue;
+      const pc = parsecsBetween(fromSys, toSys);
+      const isGateway = _gatewayEdges.has(path[i] + '→' + path[i + 1]);
+      const legMin = isGateway ? pc * 60 : pc * FP_MIN_PER_PARSEC;
+      const rd = radDmgRaw(isGateway ? 0 : pc);
+      totalParsecs += pc;
+      totalFtlMin  += legMin;
+      totalRadDmg  += rd;
+      const stats = _sysStats[path[i + 1]] || {};
+      const radBadge = stats.luminosity > 100 ? '<span class="hz-badge hz-rad" style="color:#f87171">RAD★</span>' :
+                       stats.luminosity > 10  ? '<span class="hz-badge hz-rad">RAD</span>' : '';
+      hopDescs.push({ from: fromSys.NaturalId, to: toSys.NaturalId, pc: pc.toFixed(1), isGateway, radBadge });
+    }
+
+    totalRealMin += totalFtlMin;
+    totalDmg += totalRadDmg;
+
+    const hopRows = hopDescs.map(h =>
+      `<div class="leg-stat"><span class="k">${h.from} → ${h.to}${h.isGateway ? ' (gate)' : ''}</span><span class="v">${h.pc} pc  ${h.radBadge}</span></div>`
+    ).join('');
+
+    html += legHtml('FTL', `${path.length - 1} jump${path.length > 2 ? 's' : ''} — ${totalParsecs.toFixed(1)} pc`, [
+      ['Time (real)', fmtMin(totalFtlMin)],
+      ['Radiation dmg', fmtDmg(totalRadDmg)],
+    ], hopRows, totalRadDmg, null);
+  }
+
+  // ── STL leg (in dest system) ──
+  // If same-system and origin was selected as a system (not a planet), fall back
+  // to the innermost surface planet as a proxy for the departure orbit.
+  const stlOriginFallback = sameSys && !originPl ? primePlanetInSys(_origin.sysId) : null;
+  const stlOriginPl = sameSys ? (originPl || stlOriginFallback) : primePlanetInSys(_dest.sysId);
+  const stlRO = stlOriginPl?.OrbitSemiMajorAxis;
+  const stlRP = destPl?.OrbitSemiMajorAxis;
+  let stlDistKm = null, stlTimeMin = null, stlMet = 0;
+
+  if (stlRO && stlRP) {
+    stlDistKm = hohmannArcKm(stlRO, stlRP);
+    const stlDistMinKm = chordKm(stlRO, stlRP);
+    const density = (_sysStats[_dest.sysId] || {}).meteoroidDensity || 0;
+    stlMet = destPl ? meteorDmgRaw(destPl.OrbitSemiMajorAxis, density) : 0;
+    totalDmg += stlMet;
+
+    // Rendezvous solver: transfer ellipse arc for given M — paper Section 8
+    const stlGM = sysGM(_dest.sysId);
+    const rendez = (stlGM && stlOriginPl && destPl && phys?.accel && !phys.theoretical && M > 0)
+      ? stlRendezvous(stlOriginPl, destPl, stlGM, phys.accel, M, Date.now() / 1000)
+      : null;
+
+    const stlRows = [];
+    if (rendez) {
+      stlRows.push(['Distance', `${fmtDist(rendez.arcKm)} <small style="color:var(--text3)">(rendezvous arc)</small>`]);
+    } else if (stlDistKm) {
+      stlRows.push(['Distance', `<span class="approx">${fmtDist(stlDistMinKm)} – ${fmtDist(stlDistKm)}</span> <small style="color:var(--text3)">(best–worst phase)</small>`]);
+    }
+
+    if (rendez) {
+      stlTimeMin = rendez.tReal / 60;
+      totalRealMin += stlTimeMin;
+      totalFuelStl += M;
+      stlRows.push(['Time (real)', fmtRealTime(rendez.tReal)]);
+      stlRows.push(['STL fuel', M + ' units']);
+    } else if (!phys) {
+      stlRows.push(['Time (real)', '<span style="color:var(--text3)">— load a ship</span>']);
+    } else if (phys.theoretical) {
+      stlRows.push(['Time (real)', '<span style="color:var(--text3)">— hull not calibrated</span>']);
+      totalFuelStl += M;
+      stlRows.push(['STL fuel', M + ' units']);
+    } else if (stlDistKm && phys?.accel) {
+      const T = stlTimeReal(stlDistKm, M, phys.accel);
+      if (T != null) {
+        stlTimeMin = T / 60;
+        totalRealMin += stlTimeMin;
+        totalFuelStl += M;
+        stlRows.push(['Time (real)', `<span class="approx">${fmtRealTime(T)}</span>`]);
+        stlRows.push(['STL fuel', M + ' units']);
+      }
+    }
+
+    stlRows.push(['Meteor dmg', fmtDmg(stlMet)]);
+
+    const metBadge = density > 3.5 ? '<span class="hz-badge hz-met" style="color:#f87171">MET★</span>' :
+                     density > 2.0 ? '<span class="hz-badge hz-met">MET</span>' : '';
+
+    const stlNote = stlOriginFallback
+      ? `⚠ Origin is a system — using ${stlOriginFallback.PlanetName || stlOriginFallback.PlanetNaturalId} as departure orbit (select a specific planet for accuracy)`
+      : phys?.theoretical ? '⚠ Hull not calibrated — time is a rough estimate'
+      : !stlGM ? '⚠ System GM unknown — showing range not exact distance'
+      : null;
+    html += legHtml('STL', destPl ? `→ ${destPl.PlanetName || destPl.PlanetNaturalId}` : `within ${destSys?.NaturalId}`,
+      stlRows, metBadge, stlMet, stlNote);
+  }
+
+  // ── LDG leg ──
+  if (destPl) {
+    const ldgAtm = (phys?.accel && destPl.Radius)
+      ? atmLeg(destPl.Radius, destPl.Pressure ?? 0, phys.accel, 'ldg')
+      : null;
+    const ldgTime = ldgAtm ? ldgAtm.tReal : 886;
+    const ldgFuel = ldgAtm ? ldgAtm.M     : 50;
+    const ldgKm   = ldgAtm ? ldgAtm.dKm   : 18514;
+    totalRealMin += ldgTime / 60;
+    totalFuelStl += ldgFuel;
+    const hazards = planetHazardBadges(destPl);
+    html += legHtml('LDG', `Orbit → ${destPl.PlanetName || destPl.PlanetNaturalId}`, [
+      ['Distance', fmtDist(ldgKm)],
+      ['Time (real)', fmtRealTime(ldgTime)],
+      ['STL fuel', ldgFuel + ' units'],
+    ], hazards, 0, ldgAtm ? null : '(estimate — no ship selected)');
+  }
+
+  // ── Shield recommendation ──
+  const shieldRec = buildShieldRec(_origin, _dest, sameSys);
+
+  // ── Totals ──
+  const stlTimeKnown = phys != null;
+  const timeLabel = stlTimeKnown ? 'Total Time (real)' : 'Total Time (excl. STL)';
+  html += `<hr class="results-divider">
+    <div class="total-row"><span class="k">${timeLabel}</span><span class="v${stlTimeKnown ? '' : ' approx'}">${fmtMin(totalRealMin)}</span></div>
+    <div class="total-row"><span class="k">Total Hull Damage</span><span class="v dmg${totalDmg > 0.05 ? ' high' : ''}">${fmtDmg(totalDmg)}</span></div>
+    <div class="total-row"><span class="k">STL Fuel Used</span><span class="v">${totalFuelStl} units</span></div>
+    ${shieldRec}
+    <div class="note" style="margin-top:0.75rem">STL distance: transfer ellipse arc via rendezvous solver (paper §8, GM from star mass, all 698 systems). TO/LDG from paper §12.4. Damage assumes no shielding.</div>
+  `;
+
+  resEl.innerHTML = html;
+}
+
+function legHtml(type, dest, rows, extra, dmg, note) {
+  const dmgClass = dmg > 0.05 ? 'leg-dmg high' : 'leg-dmg';
+  const rowsHtml = rows.map(([k, v]) => `<div class="leg-stat"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('');
+  return `
+    <div class="leg">
+      <div class="leg-head">
+        <span class="leg-type ${type.toLowerCase()}">${type}</span>
+        <span class="leg-dest">${dest}</span>
+      </div>
+      <div class="leg-body">
+        ${rowsHtml}
+        ${extra ? `<div style="margin-top:3px">${extra}</div>` : ''}
+        ${note ? `<div class="note" style="margin-top:3px">${note}</div>` : ''}
+      </div>
+    </div>`;
+}
+
+function planetHazardBadges(p) {
+  let s = '<div class="hz">';
+  if (p.Pressure > 2) s += `<span class="hz-badge hz-heat" title="${p.Pressure.toFixed(1)} atm">HEAT</span>`;
+  if (p.Gravity > 2.0 || p.Gravity < 0.25) s += `<span class="hz-badge hz-grav" title="${p.Gravity.toFixed(2)}g">GRAV</span>`;
+  s += '</div>';
+  return s;
+}
+
+function buildShieldRec(origin, dest, sameSys) {
+  const planets = [origin?.planetId, dest?.planetId].filter(Boolean).map(id => _planets[id]).filter(Boolean);
+  const needHeat = planets.some(p => p.Pressure > 2);
+  const needGrav = planets.some(p => p.Gravity > 2.0 || p.Gravity < 0.25);
+  const sysIds = sameSys ? [dest.sysId] : (() => {
+    if (!origin?.sysId || !dest?.sysId) return [];
+    const path = bfs(origin.sysId, dest.sysId) || [];
+    return path.map(id => id);
+  })();
+  const maxLum = Math.max(0, ...sysIds.map(id => (_sysStats[id] || {}).luminosity || 0));
+  const maxDen = Math.max(0, ...sysIds.map(id => (_sysStats[id] || {}).meteoroidDensity || 0));
+  const recs = [];
+  if (needHeat) recs.push('<span class="hz-badge hz-heat">HEAT shield</span>');
+  if (needGrav) recs.push('<span class="hz-badge hz-grav">GRAV stabilizer</span>');
+  if (maxLum > 100) recs.push('<span class="hz-badge hz-rad" style="color:#f87171">RAD shield ★</span>');
+  else if (maxLum > 10) recs.push('<span class="hz-badge hz-rad">RAD shield</span>');
+  if (maxDen > 3.5) recs.push('<span class="hz-badge hz-met" style="color:#f87171">WHIPPLE ★</span>');
+  else if (maxDen > 2.0) recs.push('<span class="hz-badge hz-met">WHIPPLE shield</span>');
+  if (!recs.length) return '';
+  return `<div class="total-row" style="margin-top:4px"><span class="k">Shields Recommended</span><span class="v"><div class="hz">${recs.join(' ')}</div></span></div>`;
+}
+
+function primePlanetInSys(sysId) {
+  // Returns planet with lowest orbit index in system, as STL departure point
+  const candidates = Object.values(_planets).filter(p => p.SystemId === sysId && p.Surface);
+  if (!candidates.length) return null;
+  return candidates.reduce((a, b) => (a.OrbitIndex < b.OrbitIndex ? a : b));
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+
+(async () => {
+  const savedKey  = localStorage.getItem(FIO_KEY) || '';
+  if (savedKey) document.getElementById('fioKey').value = savedKey;
+  document.getElementById('fuelSlider').addEventListener('input', onFuelChange);
+  onFuelChange();
+  await loadData();
+})();
+</script>
+</body>
+</html>
