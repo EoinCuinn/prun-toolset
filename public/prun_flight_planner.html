@@ -219,8 +219,10 @@ const REFERENCE_TIME_S = 1451690603; // 2016-01-01 23:23:23 UTC
 const HULL_PHYSICS = {
   // AVI-06CKD: 24-pt empirical calibration (FIO thrust/mass gives wrong unit ratio for this hull)
   'AVI-06CKD': { accel: 2076, mMin: 12, stlFuelMax: 112 },
-  // BP-HJQJ-2441 removed 2026-06-22: old calibrated accel (70.55) compensated for the
-  // sign bug in the arc formula. Now that the sign is fixed, use FIO thrust/mass directly.
+  // BP-HJQJ-2441: calibrated from AVI-047P1 game export 2026-06-22 at ~97.65% condition.
+  // FIO Mass=2662 t but APEX flight mass=1852 t — FIO.Mass is not the game flight mass.
+  // Derived: 627402854 / (2×1257×3698) = 67.47 km/s². stlFuelMax from FIO stlCapacity.
+  'BP-HJQJ-2441': { accel: 67.47, mMin: 1 },
 };
 
 // ── Orbital ephemeris ────────────────────────────────────────────────────────
@@ -796,7 +798,7 @@ function renderShipMeta() {
 function shipPhysics(ship) {
   if (!ship) return null;
   const cal = HULL_PHYSICS[ship.blueprintId];
-  if (cal) return cal;
+  if (cal) return { stlFuelMax: ship.stlCapacity || 200, mMin: 1, ...cal };
   // Theoretical: accel = thrust/mass (FIO units → km/s², seat cap unknown)
   if (ship.thrust && ship.mass) {
     return { accel: ship.thrust / ship.mass, stlFuelMax: ship.stlCapacity || 200, mMin: 1, theoretical: true };
