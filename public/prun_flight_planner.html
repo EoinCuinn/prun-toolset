@@ -217,10 +217,10 @@ const REFERENCE_TIME_S = 1451690603; // 2016-01-01 23:23:23 UTC
 // Calibrated hull physics — paper formula: t[real-s] = d/(2·accel·M) + 2·M
 // accel in km/s² (real-s), M = stlFuelConsumption (integer speed-cap index = slider value)
 const HULL_PHYSICS = {
-  // 24-pt empirical calibration; accel derived from paper formula
-  'AVI-06CKD':    { accel: 2076,  mMin: 12, stlFuelMax: 112 },
-  // DP1=M130/664Mkm/10h35m (4% err), DP2=M2585/689Mkm/1h57m39s (exact)
-  'BP-HJQJ-2441': { accel: 70.55, mMin: 0,  stlFuelMax: 2585 },
+  // AVI-06CKD: 24-pt empirical calibration (FIO thrust/mass gives wrong unit ratio for this hull)
+  'AVI-06CKD': { accel: 2076, mMin: 12, stlFuelMax: 112 },
+  // BP-HJQJ-2441 removed 2026-06-22: old calibrated accel (70.55) compensated for the
+  // sign bug in the arc formula. Now that the sign is fixed, use FIO thrust/mass directly.
 };
 
 // ── Orbital ephemeris ────────────────────────────────────────────────────────
@@ -1013,7 +1013,7 @@ async function calculate() {
 
     // Rendezvous solver: transfer ellipse arc for given M — paper Section 8
     const stlGM = sysGM(_dest.sysId);
-    const rendez = (stlGM && stlOriginPl && destPl && phys?.accel && !phys.theoretical && M > 0)
+    const rendez = (stlGM && stlOriginPl && destPl && phys?.accel && M > 0)
       ? stlRendezvous(stlOriginPl, destPl, stlGM, phys.accel, M, Date.now() / 1000)
       : null;
 
