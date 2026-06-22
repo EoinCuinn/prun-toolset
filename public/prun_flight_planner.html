@@ -419,8 +419,7 @@ function fmtDmg(frac) {
 function fmtDist(km) {
   if (km >= 1e9) return `${(km / 1e9).toFixed(2)} B km`;
   if (km >= 1e6) return `${(km / 1e6).toFixed(0)} M km`;
-  if (km >= 1e3) return `${(km / 1e3).toFixed(0)} k km`;
-  return `${Math.round(km)} km`;
+  return `${Math.round(km).toLocaleString()} km`;
 }
 
 // ── Data ─────────────────────────────────────────────────────────────────────
@@ -438,18 +437,22 @@ let _searchItems = [];   // { label, code, value, sysId, type }
 
 let _ships = [];         // loaded from FIO
 let _currentShip = null;
+let _itemWeight = {};    // Ticker → Weight (t/unit) from material_data.json
 
 let _origin = null;      // { planetId, sysId }
 let _dest   = null;
 
 async function loadData() {
   if (_loaded) return;
-  const [univRaw, planetRaw, starsRaw, gatewaysRaw] = await Promise.all([
+  const [univRaw, planetRaw, starsRaw, gatewaysRaw, materialRaw] = await Promise.all([
     fetch('/prun_universe_data.json').then(r => r.json()),
     fetch('/planet_data.json').then(r => r.json()),
     fetch('/systemstars.json').then(r => r.json()),
     fetch('/gateways.json').then(r => r.json()),
+    fetch('/material_data.json').then(r => r.json()),
   ]);
+
+  materialRaw.forEach(m => { if (m.Ticker && m.Weight) _itemWeight[m.Ticker] = m.Weight; });
 
   // Systems
   univRaw.forEach(s => {
@@ -613,9 +616,22 @@ async function loadShips() {
 
   dot.className = 'status-dot';
   try {
-    const r = await fetch(`${FIO_BASE}/ship/ships/${user}`, { headers: { Authorization: key } });
-    if (!r.ok) throw new Error(r.status);
-    const data = await r.json();
+    const [shipsRes, fuelRes] = await Promise.all([
+      fetch(`${FIO_BASE}/ship/ships/${user}`,      { headers: { Authorization: key } }),
+      fetch(`${FIO_BASE}/ship/ships/fuel/${user}`, { headers: { Authorization: key } }),
+    ]);
+    if (!shipsRes.ok) throw new Error(shipsRes.status);
+    const data     = await shipsRes.json();
+    const fuelData = fuelRes.ok ? await fuelRes.json() : [];
+
+    const sfWeight = _itemWeight['SF'];
+    const stlCapMap = {};
+    for (const store of fuelData) {
+      if (store.Type === 'STL_FUEL_STORE' && store.WeightCapacity && sfWeight) {
+        stlCapMap[store.StorageId] = Math.round(store.WeightCapacity / sfWeight);
+      }
+    }
+
     _ships = data.map(s => ({
       registration: s.Registration,
       name:         s.Name || s.Registration,
@@ -626,7 +642,7 @@ async function loadShips() {
       chargeFactor: s.ChargeFactor,
       emitterPower: s.EmitterPower,
       stlFlowRate:  s.StlFuelFlowRate,
-      stlCapacity:  s.StlFuelCapacity,
+      stlCapacity:  stlCapMap[s.StlFuelStoreId] || s.StlFuelCapacity || 0,
       ftlCapacity:  s.FtlFuelCapacity,
       mass:         s.Mass,
     }));
