@@ -1054,7 +1054,7 @@ async function calculate() {
 
     const stlNote = stlOriginFallback
       ? `⚠ Origin is a system — using ${stlOriginFallback.PlanetName || stlOriginFallback.PlanetNaturalId} as departure orbit (select a specific planet for accuracy)`
-      : phys?.theoretical ? '⚠ Hull not calibrated — time is a rough estimate'
+      : (phys?.theoretical && !rendez) ? '⚠ Hull not calibrated — time is a rough estimate'
       : !stlGM ? '⚠ System GM unknown — showing range not exact distance'
       : null;
     html += legHtml('STL', destPl ? `→ ${destPl.PlanetName || destPl.PlanetNaturalId}` : `within ${destSys?.NaturalId}`,
