@@ -1086,7 +1086,9 @@ async function calculate() {
       ['Distance', fmtDist(ldgKm)],
       ['Time (real)', fmtRealTime(ldgTime)],
       ['STL fuel', ldgFuel + ' units'],
-    ], hazards, 0, ldgAtm ? null : '(estimate — no ship selected)');
+    ], hazards, 0, ldgAtm
+      ? '⚠ Planetary median ±15% — actual varies by approach geometry &amp; base tile position (paper §1.2)'
+      : '(estimate — no ship selected)');
   }
 
   // ── Shield recommendation ──
