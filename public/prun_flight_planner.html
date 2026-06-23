@@ -798,15 +798,18 @@ function renderShipMeta() {
   onRufChange();
 }
 
-function shipPhysics(ship) {
+function shipPhysics(ship, M = 0) {
   if (!ship) return null;
   const cal = HULL_PHYSICS[ship.blueprintId];
   if (cal) return { stlFuelMax: ship.stlCapacity || 200, mMin: 1, ...cal };
-  // FIO exposes Acceleration directly (max accel at empty mass, game km/s² units).
-  // Actual flight accel = acceleration × (operatingEmptyMass / currentMass) — slightly
-  // optimistic since fuel adds mass, but far better than thrust/Mass (which is thrust/volume).
+  // FIO Acceleration = thrust/operatingEmptyMass (empty-ship max).
+  // Correct for fuel mass: accel × (emptyMass / (emptyMass + M × sfWeight)).
   if (ship.acceleration) {
-    return { accel: ship.acceleration, stlFuelMax: ship.stlCapacity || 200, mMin: 1, theoretical: true };
+    const sfW = _itemWeight['SF'] || 0;
+    const accel = (M > 0 && ship.operatingEmptyMass && sfW)
+      ? ship.acceleration * (ship.operatingEmptyMass / (ship.operatingEmptyMass + M * sfW))
+      : ship.acceleration;
+    return { accel, stlFuelMax: ship.stlCapacity || 200, mMin: 1, theoretical: true };
   }
   return null;
 }
@@ -830,7 +833,7 @@ function onFuelChange() {
 
   // Live STL time preview if route is same-system
   const timeEl = document.getElementById('fuelTime');
-  const phys = shipPhysics(_currentShip);
+  const phys = shipPhysics(_currentShip, M);
   if (!_origin || !_dest || !phys || phys.theoretical || _origin.sysId !== _dest?.sysId) { timeEl.textContent = ''; return; }
 
   const oPl = _planets[_origin.planetId];
@@ -884,7 +887,7 @@ async function calculate() {
   if (!_dest)   { resEl.innerHTML = '<div class="results-empty">Set a valid destination planet or system.</div>'; return; }
 
   const M = +document.getElementById('fuelSlider').value;
-  const phys = shipPhysics(_currentShip);
+  const phys = shipPhysics(_currentShip, M);
   const sameSys = _origin.sysId === _dest.sysId;
 
   const originSys = _systems[_origin.sysId];
