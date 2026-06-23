@@ -216,6 +216,8 @@ const REFERENCE_TIME_S = 1451690603; // 2016-01-01 23:23:23 UTC
 
 // Calibrated hull physics — paper formula: t[real-s] = d/(2·accel·M) + 2·M
 // accel in km/s² (real-s), M = stlFuelConsumption (integer speed-cap index = slider value)
+// NOTE: FIO.Acceleration = thrust/operatingEmptyMass (max accel, empty ship).
+// FIO.Mass is the ship VOLUME in m³ — NOT mass. Do not use it for accel calculations.
 const HULL_PHYSICS = {
   // AVI-06CKD: 24-pt empirical calibration (FIO thrust/mass gives wrong unit ratio for this hull)
   'AVI-06CKD': { accel: 2076, mMin: 12, stlFuelMax: 112 },
@@ -733,18 +735,19 @@ async function loadShips() {
     }
 
     _ships = data.map(s => ({
-      registration: s.Registration,
-      name:         s.Name || s.Registration,
-      blueprintId:  s.BlueprintNaturalId,
-      condition:    s.Condition ?? 1,
-      thrust:       s.Thrust,
-      reactorPower: s.ReactorPower,
-      chargeFactor: s.ChargeFactor,
-      emitterPower: s.EmitterPower,
-      stlFlowRate:  s.StlFuelFlowRate,
-      stlCapacity:  stlCapMap[s.StlFuelStoreId] || s.StlFuelCapacity || 0,
-      ftlCapacity:  s.FtlFuelCapacity,
-      mass:         s.Mass,
+      registration:       s.Registration,
+      name:               s.Name || s.Registration,
+      blueprintId:        s.BlueprintNaturalId,
+      condition:          s.Condition ?? 1,
+      thrust:             s.Thrust,
+      acceleration:       s.Acceleration,       // max accel at empty mass (km/s²-equivalent, game units)
+      operatingEmptyMass: s.OperatingEmptyMass, // empty hull mass in tonnes (APEX "Empty mass")
+      reactorPower:       s.ReactorPower,
+      chargeFactor:       s.ChargeFactor,
+      emitterPower:       s.EmitterPower,
+      stlFlowRate:        s.StlFuelFlowRate,
+      stlCapacity:        stlCapMap[s.StlFuelStoreId] || s.StlFuelCapacity || 0,
+      ftlCapacity:        s.FtlFuelCapacity,
     }));
     const sel = document.getElementById('shipSelect');
     sel.innerHTML = '<option value="">— select ship —</option>' +
@@ -786,9 +789,9 @@ function renderShipMeta() {
   el.innerHTML = `
     <span>Hull:</span> ${s.blueprintId || '?'} &nbsp;
     <span>Cond:</span> ${Math.round((s.condition || 1) * 100)}%<br>
-    ${s.thrust    ? `<span>Thrust:</span> ${s.thrust} &nbsp;` : ''}
-    ${s.mass      ? `<span>Mass:</span> ${s.mass} &nbsp;` : ''}
-    ${s.stlFlowRate ? `<span>STL flow:</span> ${s.stlFlowRate}` : ''}
+    ${s.thrust             ? `<span>Thrust:</span> ${s.thrust} &nbsp;` : ''}
+    ${s.operatingEmptyMass ? `<span>Empty mass:</span> ${s.operatingEmptyMass.toFixed(0)}t &nbsp;` : ''}
+    ${s.stlFlowRate        ? `<span>STL flow:</span> ${s.stlFlowRate}` : ''}
     ${phys ? `<br><span>accel:</span> ${phys.accel.toFixed(1)} km/s²${phys.theoretical ? ' <span style="color:var(--yellow)">(uncal)</span>' : ''}` : ''}
     ${ftl  ? `<br><span>reactor P:</span> ${s.reactorPower}${ftl.c != null ? ` &nbsp;<span>c:</span> ${ftl.c}s` : ''}${ftl.estimated ? ' <span style="color:var(--yellow)">(est)</span>' : ''}` : ''}
   `;
@@ -799,9 +802,11 @@ function shipPhysics(ship) {
   if (!ship) return null;
   const cal = HULL_PHYSICS[ship.blueprintId];
   if (cal) return { stlFuelMax: ship.stlCapacity || 200, mMin: 1, ...cal };
-  // Theoretical: accel = thrust/mass (FIO units → km/s², seat cap unknown)
-  if (ship.thrust && ship.mass) {
-    return { accel: ship.thrust / ship.mass, stlFuelMax: ship.stlCapacity || 200, mMin: 1, theoretical: true };
+  // FIO exposes Acceleration directly (max accel at empty mass, game km/s² units).
+  // Actual flight accel = acceleration × (operatingEmptyMass / currentMass) — slightly
+  // optimistic since fuel adds mass, but far better than thrust/Mass (which is thrust/volume).
+  if (ship.acceleration) {
+    return { accel: ship.acceleration, stlFuelMax: ship.stlCapacity || 200, mMin: 1, theoretical: true };
   }
   return null;
 }
