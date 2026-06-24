@@ -1,36 +1,55 @@
-# Flight Planner — Session Context (updated 2026-06-22)
+# Flight Planner — Session Context (updated 2026-06-25)
 
-## Current state (commit 8f11f88)
+## Current state (2026-06-25)
 
-All core physics implemented and validated against real in-game export (AVI-047P1).
-Arc distance is within ~1.5% of game. Time error ~1 min on a 1h43m leg.
+All core physics implemented and validated against real in-game exports.
+Arc distance is within **0.03% of game** (was 1.5% before ephemeris fix).
+Ephemeris source: Marcus's fitted orbital parameters (`public/ephemeris.json`, 4199 planets).
 
 ---
 
 ## What's implemented
 
-### 1. Planet positions — Kepler ephemeris
+### 1. Planet positions — Marcus's fitted ephemeris (IMPLEMENTED 2026-06-25)
 
 ```javascript
-const REFERENCE_TIME_S = 1451690603; // 2016-01-01 23:23:23 UTC (APEX bundle.js)
-function worldTime(unixT) { return REFERENCE_TIME_S + (unixT - REFERENCE_TIME_S) * 20; }
-
-function planetXYZ(unixT, a_m, ecc, inc, GM_wt) {
-  const wt = worldTime(unixT);
-  const n = Math.sqrt(GM_wt / (a_m ** 3));
-  const Ma = ((n * wt) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
-  const E = solveKepler(Ma, ecc);
-  const x_orb = a_m * (Math.cos(E) - ecc);
-  const y_orb = a_m * Math.sqrt(1 - ecc * ecc) * Math.sin(E);
-  return { x: x_orb, y: y_orb * Math.cos(inc), z: y_orb * Math.sin(inc) };
+// ephemeris.json entry: [e, n, M0, peri_rad, p_km, ux, uy, uz, wx, wy, wz]
+// n = mean motion (rad/s, game-speed = 20× astronomical)
+// M0 = mean anomaly at Unix epoch (real seconds t=0)
+// p_km = semilatus rectum in km
+// u, w = orbital frame unit vectors (u = periapsis direction, w = prograde at periapsis)
+function planetXYZFromEph(naturalId, unixT_s) {
+  const [e, n, M0, peri, p_km, ux, uy, uz, wx, wy, wz] = _ephemeris[naturalId];
+  const E  = solveKepler(M0 + n * unixT_s, e);
+  const nu = 2 * Math.atan2(Math.sqrt(1+e)*Math.sin(E/2), Math.sqrt(1-e)*Math.cos(E/2));
+  const r  = p_km / (1 + e * Math.cos(nu));
+  const th = peri + nu;
+  const ct = r * Math.cos(th), st = r * Math.sin(th);
+  return { x:(ct*ux+st*wx)*1000, y:(ct*uy+st*wy)*1000, z:(ct*uz+st*wz)*1000 }; // metres
 }
 ```
 
-- FIO `OrbitSemiMajorAxis` is in METRES
-- GM from `systemstars.json` via `G_SI × star.Mass`
-- `worldTime()` applies the 20× game speed multiplier — no separate conversion needed
-- The z coordinate (from FIO inclination) is computed but the game ignores z for arc
-- For STL arcs, use only x,y from this function
+- Positions returned in **metres** (Marcus's native unit is km, ×1000 for our arc formula)
+- Source: `public/ephemeris.json` — 4199 planets, fitted by Marcus from game observations
+- Falls back to old `planetXYZ` (FIO elements, ~1.5% error) for planets not in ephemeris
+- `getPlanetPos(pl, unixT, GM)` wraps both: tries ephemeris first, then FIO fallback
+
+**Validation against AVI-047P1 exports:**
+
+| Export | Game arc (km) | Our arc (km) | Error |
+|---|---|---|---|
+| Jun 22 (627M km) | 627,402,854 | 627,614,000 | +0.034% |
+| Jun 23 1956 (563M km) | 563,971,100 | 564,146,307 | +0.031% |
+| Jun 23 2045 (561M km) | 561,745,068 | 561,902,000 | +0.028% |
+
+0.027% floor is the Carlson arc formula's own error (confirmed with exact positions).
+Previous FIO-only ephemeris gave ~1.5% arc error (50× worse).
+
+**Ephemeris internals (for reference/debugging):**
+- Orbital frame: u ≈ (0,−1,0) for most planets; w ≈ (−cos inc, 0, −sin inc)
+- peri_angle ≈ π (180°) for ~95% of planets; per-planet for the rest
+- n is already 20× the astronomical value — pass real Unix seconds directly, no worldTime()
+- Old worldTime()/planetXYZ() still present as fallback but no longer used for known planets
 
 ### 2. STL arc — Carlson elliptic integrals (SIGN FIX 2026-06-22)
 
@@ -125,15 +144,42 @@ Our formula vs game:
 - With FIO positions: -1.557% arc error, ~58 s time error ← current
 - With game's exact positions: +0.027% arc error ← formula is essentially correct
 
+**Additional exports (June 23, same route):**
+
+`AVI-047P1 Export 23-06-2026 1956.txt` — departure 1782208470882 ms:
+
+| Segment | Distance (km) | M | Notes |
+|---|---|---|---|
+| TAKE_OFF (Avalon) | 4,552.49 | 42 | identical to June 22 |
+| TRANSIT | 563,971,100 | 1258 | FIO positions give ~556M km (-1.4%) |
+| LANDING (Helion Prime) | 2,563.69 | 32 | approach altitude 696 km |
+
+`AVI-047P1 Export 23-06-2026 2045.txt` — departure 1782211512136 ms:
+
+| Segment | Distance (km) | M | Notes |
+|---|---|---|---|
+| TAKE_OFF (Avalon) | 4,552.49 | 42 | |
+| TRANSIT | 561,745,068 | 1257 | |
+| LANDING (Helion Prime) | 2,784.84 | 33 | approach altitude 756 km |
+
+LDG formula median for Helion Prime = 3,151 km. Actual across 3 flights: 2,954 / 2,564 / 2,785 km.
+All below median — consistent with fixed below-average base tile. ±15% note shown in tool.
+
 ---
 
 ## Key facts to remember
 
 - **FIO `OrbitSemiMajorAxis` is in METRES** (440,950,812,000 m for Avalon = 441 M km)
 - **Game uses 2D** for STL arc (`transferEllipse.center.z = 0` in export)
-- **System-level eccentricity**: game uses SAME ecc for all planets in a system.
-  FIO stores per-planet ecc (different values). This causes ~1.5% arc error.
-  AVI-047P1 export: VH-331 system ecc = 0.02290518156769219 for all planets.
+- **ORBIT blocks in flight exports are approach/parking orbit parameters** (low orbit around
+  the planet for TO/LDG), NOT heliocentric orbital elements. Proven by two June 23 exports
+  49 min apart: same planets show ecc=0.022575 vs ecc=0.035883. Heliocentric elements don't
+  change on that timescale. Do NOT use export ORBIT blocks to infer heliocentric eccentricity.
+- **Arc error source (~1.5%)**: Three confirmed errors in `planetXYZ` (2026-06-23):
+  orbit is CW, global Ω = -90°, and per-planet ω ≠ 0 (FIO doesn't store ω).
+  FIO ecc/SMA are correct. Current 1.5% arc error is accidental cancellation between
+  two badly-placed planets; not reliable across different pairs or times.
+  Fix requires all three corrections together — partial fixes are worse than current code.
 - **The prograde sign**: `starCross > 0 → sign = +1` (O' on LEFT of chord = prograde)
 - **HULL_PHYSICS calibrated accel** (70.55 for BP-HJQJ-2441) was wrong — it compensated
   for the old sign bug. Real accel ≈ 67.47 km/s² (thrust/mass × condition).
@@ -145,9 +191,10 @@ Our formula vs game:
 ### High priority
 1. **Ship accel**: Remove HULL_PHYSICS calibrated table. Use FIO thrust/mass × condition.
    For BP-HJQJ-2441: theoretical accel × 0.97 condition ≈ 68.43 km/s² (close to 67.47).
-2. **Eccentricity source**: FIO per-planet ecc causes 1.5% arc error. Could fix by
-   reading system-level ecc from game exports or a different FIO endpoint. Low priority
-   given small time impact (~1 min on 1h43m leg).
+2. **Ephemeris (IMPLEMENTED 2026-06-25)**: Replaced FIO-based `planetXYZ` with Marcus's
+   fitted ephemeris (`ephemeris.json`, 4199 planets). Arc error: 1.5% → 0.03%.
+   Marcus's u/w vectors encode the CW orbit + Ω=-90° + per-planet ω implicitly.
+   `ephemeris_check.js` in repo root documents the analysis that led here.
 
 ### Medium priority
 3. **Damage formula**: Current formula ~16× too high vs APEX (2.141% vs 0.130%).
@@ -166,7 +213,7 @@ Our formula vs game:
 
 | Data | Source | Notes |
 |---|---|---|
-| Planet orbits | `planet_data.json` (FIO) | SMA in metres, ecc slightly off from game |
+| Planet orbits | `ephemeris.json` (Marcus) | 4199 planets, 0.03% arc accuracy; fallback: `planet_data.json` (FIO, ~1.5%) |
 | Star masses | `systemstars.json` (FIO) | NaturalId field for lookup |
 | Gateways | `gateways.json` | FTL lane data |
 | Material weights | `material_data.json` | SF weight for fuel capacity |

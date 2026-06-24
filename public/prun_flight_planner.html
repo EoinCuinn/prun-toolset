@@ -263,6 +263,27 @@ function planetXYZ(unixT, a_m, ecc, inc, GM_wt) {
   return { x: x_orb, y: y_orb * Math.cos(inc), z: y_orb * Math.sin(inc) };
 }
 
+// Planet position from Marcus's fitted ephemeris — unixT in real seconds.
+// Returns {x,y,z} in metres, or null if planet not in ephemeris.
+// Ephemeris entry: [e, n, M0, peri, p_km, ux, uy, uz, wx, wy, wz]
+function planetXYZFromEph(naturalId, unixT) {
+  const b = _ephemeris[naturalId];
+  if (!b) return null;
+  const [e, n, M0, peri, p_km, ux, uy, uz, wx, wy, wz] = b;
+  const Ma = M0 + n * unixT;
+  const E  = solveKepler(Ma, e);
+  const nu = 2 * Math.atan2(Math.sqrt(1 + e) * Math.sin(E / 2), Math.sqrt(1 - e) * Math.cos(E / 2));
+  const r  = p_km / (1 + e * Math.cos(nu));
+  const th = peri + nu;
+  const ct = r * Math.cos(th), st = r * Math.sin(th);
+  const KM_TO_M = 1000;
+  return {
+    x: (ct * ux + st * wx) * KM_TO_M,
+    y: (ct * uy + st * wy) * KM_TO_M,
+    z: (ct * uz + st * wz) * KM_TO_M,
+  };
+}
+
 // ── Carlson symmetric elliptic integrals (machine precision) ──────────────────
 
 function carlsonRF(x, y, z) {
@@ -387,13 +408,24 @@ function calculateSltDistance3D(Ox, Oy, Oz, Px, Py, Pz) {
 
 // Rendezvous solver — 3D positions, charged distance, converges in ~5 iterations.
 // Returns { chargedKm, arcKm, tReal, isReduced } or null.
+function getPlanetPos(pl, unixT, GM) {
+  const id = pl?.PlanetNaturalId;
+  if (id) {
+    const pos = planetXYZFromEph(id, unixT);
+    if (pos) return pos;
+  }
+  if (!GM || !pl?.OrbitSemiMajorAxis) return null;
+  return planetXYZ(unixT, pl.OrbitSemiMajorAxis, pl.OrbitEccentricity || 0, pl.OrbitInclination || 0, GM);
+}
+
 function stlRendezvous(pl1, pl2, GM, accel, M, nowUnix) {
-  if (!GM || !accel || M <= 0 || !pl1?.OrbitSemiMajorAxis || !pl2?.OrbitSemiMajorAxis) return null;
-  const inc1 = pl1.OrbitInclination || 0, inc2 = pl2.OrbitInclination || 0;
-  const S = planetXYZ(nowUnix, pl1.OrbitSemiMajorAxis, pl1.OrbitEccentricity || 0, inc1, GM);
+  if (!accel || M <= 0) return null;
+  const S = getPlanetPos(pl1, nowUnix, GM);
+  if (!S) return null;
   let tFlight = 2 * M;
   for (let i = 0; i < 25; i++) {
-    const P = planetXYZ(nowUnix + tFlight, pl2.OrbitSemiMajorAxis, pl2.OrbitEccentricity || 0, inc2, GM);
+    const P = getPlanetPos(pl2, nowUnix + tFlight, GM);
+    if (!P) return null;
     const slt = calculateSltDistance3D(S.x, S.y, S.z, P.x, P.y, P.z);
     if (slt == null) return null;
     const newT = stlTimeReal(slt.chargedKm, M, accel);
@@ -535,6 +567,7 @@ let _planets = {};       // PlanetNaturalId → planet object
 let _planetByKey = {};   // uppercase NatId/name → PlanetNaturalId
 let _sysStats = {};      // SystemId → { meteoroidDensity, luminosity }
 let _sysGM = {};         // SystemId → GM (m³/s²) = G × star_mass_kg
+let _ephemeris = {};     // PlanetNaturalId → [e, n, M0, peri, p_km, ux, uy, uz, wx, wy, wz]
 let _searchItems = [];   // { label, code, value, sysId, type }
 
 let _ships = [];         // loaded from FIO
@@ -546,12 +579,13 @@ let _dest   = null;
 
 async function loadData() {
   if (_loaded) return;
-  const [univRaw, planetRaw, starsRaw, gatewaysRaw, materialRaw] = await Promise.all([
+  const [univRaw, planetRaw, starsRaw, gatewaysRaw, materialRaw, ephRaw] = await Promise.all([
     fetch('/prun_universe_data.json').then(r => r.json()),
     fetch('/planet_data.json').then(r => r.json()),
     fetch('/systemstars.json').then(r => r.json()),
     fetch('/gateways.json').then(r => r.json()),
     fetch('/material_data.json').then(r => r.json()),
+    fetch('/ephemeris.json').then(r => r.json()),
   ]);
 
   materialRaw.forEach(m => { if (m.Ticker && m.Weight) _itemWeight[m.Ticker] = m.Weight; });
@@ -582,6 +616,9 @@ async function loadData() {
     _sysStats[s.SystemId] = { meteoroidDensity: s.MeteoroidDensity || 0, luminosity: s.Luminosity || 0 };
     if (s.Mass) _sysGM[s.SystemId] = G_SI * s.Mass;
   });
+
+  // Ephemeris (Marcus's fitted orbital parameters, all 4199 planets)
+  _ephemeris = ephRaw;
 
   // Planets (surface only for TO/LDG)
   planetRaw.forEach(p => {
