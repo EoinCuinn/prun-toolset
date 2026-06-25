@@ -394,14 +394,25 @@ function calculateSltDistance3D(Ox, Oy, Oz, Px, Py, Pz) {
   const e_transfer = Math.sqrt(m);
 
   if (deltaE >= 0) {
-    console.log('SLT Math:', { e_transfer, psi, unreduced_l: l/1000, reduction_R: 0, final_dist: l/1000 });
     return { chargedKm: l/1000, arcKm: l/1000, isReduced: false };
   } else {
-    const sin2p = Math.sin(2 * psi);
-    const R = (1/3) * m * sin2p * sin2p;
-    const reduction = 2 * a * R;
-    const charged = Math.max(0, l - reduction);
-    console.log('SLT Math:', { e_transfer, psi, unreduced_l: l/1000, reduction_R: R, final_dist: charged/1000 });
+    let factor = 1.0;
+    if (_reductionSurface) {
+      const { NE, NA, grid } = _reductionSurface;
+      const fe = Math.max(0, Math.min(e_transfer, 1.0)) * (NE - 1);
+      const ie = Math.min(Math.floor(fe), NE - 2);
+      const te = fe - ie;
+      const fa = (E1 + Math.PI) / (2 * Math.PI) * (NA - 1);
+      const ia = Math.min(Math.max(Math.floor(fa), 0), NA - 2);
+      const ta = fa - ia;
+      factor = grid[ie][ia]*(1-te)*(1-ta) + grid[ie+1][ia]*te*(1-ta)
+             + grid[ie][ia+1]*(1-te)*ta + grid[ie+1][ia+1]*te*ta;
+    } else {
+      const sin2p = Math.sin(2 * psi);
+      const R = (1/3) * m * sin2p * sin2p;
+      factor = Math.max(0, 1 - 2 * R);
+    }
+    const charged = l * factor;
     return { chargedKm: charged/1000, arcKm: l/1000, isReduced: true };
   }
 }
@@ -422,15 +433,24 @@ function stlRendezvous(pl1, pl2, GM, accel, M, nowUnix) {
       };
   const S = getPos(pl1, nowUnix);
   if (!S) return null;
+  const vel1 = planetVelocityKmS(pl1, nowUnix, getPos);
   let tFlight = 2 * M;
   for (let i = 0; i < 25; i++) {
-    const P = getPos(pl2, nowUnix + tFlight);
+    const arriveT = nowUnix + tFlight;
+    const P = getPos(pl2, arriveT);
     if (!P) return null;
     const slt = calculateSltDistance3D(S.x, S.y, S.z, P.x, P.y, P.z);
     if (slt == null) return null;
-    const newT = stlTimeReal(slt.chargedKm, M, accel);
+    let d = slt.chargedKm;
+    if (vel1) d = Math.max(0, d - departureDeficit(d, M, accel, S, P, vel1));
+    const isTriangular = d <= 4 * accel * M * M;
+    if (isTriangular) {
+      const vel2 = planetVelocityKmS(pl2, arriveT, getPos);
+      if (vel2) d = Math.max(0, d - leverageDeficit(S, P, vel2, tFlight));
+    }
+    const newT = stlTimeReal(d, M, accel);
     if (newT == null) return null;
-    if (Math.abs(newT - tFlight) < 0.5) return { chargedKm: slt.chargedKm, arcKm: slt.arcKm, tReal: newT, isReduced: slt.isReduced, approx: !bothInEph };
+    if (Math.abs(newT - tFlight) < 0.5) return { chargedKm: d, arcKm: slt.arcKm, tReal: newT, isReduced: slt.isReduced, approx: !bothInEph };
     tFlight = newT;
   }
   return null;
@@ -438,6 +458,49 @@ function stlRendezvous(pl1, pl2, GM, accel, M, nowUnix) {
 
 function sysGM(sysId) {
   return _sysGM[sysId] ?? null;
+}
+
+// Planet velocity in km/s via finite difference of position (dt = 0.5s each side).
+// getPos: (pl, unixT) → {x,y,z} in metres (same closure used by stlRendezvous).
+function planetVelocityKmS(pl, t, getPos) {
+  const p1 = getPos(pl, t - 0.5);
+  const p2 = getPos(pl, t + 0.5);
+  if (!p1 || !p2) return null;
+  return { vx: (p2.x - p1.x) / 1000, vy: (p2.y - p1.y) / 1000 };
+}
+
+// Signed angular offset from body's prograde direction to gate, in radians.
+// Positive = gate is ahead of prograde, negative = behind.
+function progradeAngoff(gate, body, vbody) {
+  const prog = body.x * vbody.vy - body.y * vbody.vx;
+  let ang = Math.atan2(gate.y, gate.x) - Math.atan2(body.y, body.x);
+  ang = ((ang + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
+  return ang * (prog !== 0 ? Math.sign(prog) : 1);
+}
+
+// Leverage deficit (km) — destination planet's orbital motion reduces approach arc.
+// Only active in triangular flight regime. O/P in metres, vbody in km/s, T in real-s.
+function leverageDeficit(O, P, vbody, T) {
+  const rO = Math.hypot(O.x, O.y), rP = Math.hypot(P.x, P.y);
+  if (!rO || !rP) return 0;
+  const rho = Math.max(rO, rP) / Math.min(rO, rP);
+  const vbm = Math.hypot(vbody.vx, vbody.vy);
+  const th = progradeAngoff(O, P, vbody);
+  if (!(th > -Math.PI / 2 && th < 0)) return 0;
+  return vbm * (rho * rho - 1) * Math.cos(th) * T;
+}
+
+// Departure deficit (km) — origin planet's orbital motion reduces departure arc.
+// arc/accel in km, M in real-s. O/P in metres, vbody in km/s.
+function departureDeficit(arc, M, accel, O, P, vbody) {
+  const rO = Math.hypot(O.x, O.y), rP = Math.hypot(P.x, P.y);
+  if (!rO || !rP) return 0;
+  const rho = Math.max(rO, rP) / Math.min(rO, rP);
+  const vbm = Math.hypot(vbody.vx, vbody.vy);
+  const th = progradeAngoff(P, O, vbody);
+  if (!(th > 0 && th < Math.PI / 2)) return 0;
+  const w0 = vbm * (rho * rho - 1) * Math.cos(th);
+  return Math.min(2 * M * w0 - w0 * w0 / (2 * accel), 0.95 * arc);
 }
 
 // ── Physics ──────────────────────────────────────────────────────────────────
@@ -471,10 +534,10 @@ function chordKm(rO_m, rP_m) {
   return Math.abs(rP_m - rO_m) / 1000; // metres → km
 }
 
-// STL flight time [real-s] — Josh Glass paper formula (June 2026), Section 6
-// t = d/(2·accel·M) + 2·M   (always trapezoidal — game never uses triangular profile)
+// STL flight time [real-s] — triangular profile when d ≤ 4·accel·M², trapezoidal otherwise
 function stlTimeReal(dKm, M, accel) {
   if (!dKm || !M || !accel || M <= 0) return null;
+  if (dKm <= 4 * accel * M * M) return 2 * Math.sqrt(dKm / accel);
   return dKm / (2 * accel * M) + 2 * M;
 }
 
@@ -568,6 +631,7 @@ let _planetByKey = {};   // uppercase NatId/name → PlanetNaturalId
 let _sysStats = {};      // SystemId → { meteoroidDensity, luminosity }
 let _sysGM = {};         // SystemId → GM (m³/s²) = G × star_mass_kg
 let _ephemeris = {};     // PlanetNaturalId → [e, n, M0, peri, p_km, ux, uy, uz, wx, wy, wz]
+let _reductionSurface = null; // { NE, NA, grid } bilinear lookup for isReduced STL arc
 let _searchItems = [];   // { label, code, value, sysId, type }
 
 let _ships = [];         // loaded from FIO
@@ -579,14 +643,16 @@ let _dest   = null;
 
 async function loadData() {
   if (_loaded) return;
-  const [univRaw, planetRaw, starsRaw, gatewaysRaw, materialRaw, ephRaw] = await Promise.all([
+  const [univRaw, planetRaw, starsRaw, gatewaysRaw, materialRaw, ephRaw, redSurf] = await Promise.all([
     fetch('/prun_universe_data.json').then(r => r.json()),
     fetch('/planet_data.json').then(r => r.json()),
     fetch('/systemstars.json').then(r => r.json()),
     fetch('/gateways.json').then(r => r.json()),
     fetch('/material_data.json').then(r => r.json()),
     fetch('/ephemeris.json').then(r => r.json()),
+    fetch('/insystem_reduction_surface.json').then(r => r.json()),
   ]);
+  _reductionSurface = redSurf;
 
   materialRaw.forEach(m => { if (m.Ticker && m.Weight) _itemWeight[m.Ticker] = m.Weight; });
 
