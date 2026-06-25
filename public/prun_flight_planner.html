@@ -888,7 +888,7 @@ function onFuelChange() {
 
   let distStr, T;
   if (rendez) {
-    const approxNote = rendez.approx ? ` <small style="color:var(--text3)" title="One or both planets not in fitted ephemeris — using FIO fallback (~1.5% error)">~</small>` : '';
+    const approxNote = rendez.approx ? ` <small style="color:var(--text3)" title="One or both planets not in fitted ephemeris — using FIO orbital elements (accuracy not guaranteed)">~</small>` : '';
     distStr = `<span class="hl">${fmtDist(rendez.chargedKm)}</span>${approxNote}`;
     T = rendez.tReal;
   } else {
@@ -1068,7 +1068,7 @@ async function calculate() {
     const stlRows = [];
     if (rendez) {
       const stlLabel = rendez.approx
-        ? `${fmtDist(rendez.chargedKm)} <small style="color:var(--text3)" title="One or both planets not in fitted ephemeris — using FIO fallback (~1.5% error)">(${rendez.isReduced ? 'charged, reduced' : 'charged'}, ~1.5% accuracy)</small>`
+        ? `${fmtDist(rendez.chargedKm)} <small style="color:var(--text3)" title="One or both planets not in fitted ephemeris — using FIO orbital elements (accuracy not guaranteed)">(${rendez.isReduced ? 'charged, reduced' : 'charged'}, estimated)</small>`
         : `${fmtDist(rendez.chargedKm)} <small style="color:var(--text3)">(${rendez.isReduced ? 'charged, reduced' : 'charged'})</small>`;
       stlRows.push(['Distance', stlLabel]);
     } else if (stlDistKm) {
