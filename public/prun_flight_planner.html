@@ -205,6 +205,10 @@ const FTL_REACTORS = {
 // Gateway: t = d_ftl/3 hours + 1220s bracket (10+600+600+10) — paper §12.6 eq.19
 // Independent of ship and reactor; speed exactly 3 pc/hour = 1200 s/pc.
 
+// STL departure arc constants (Marcus's prun_flight_cold.py)
+const GATE_D_PLANET_M = 74798935 * 1000; // gate is 74,798,935 km from planet, in metres
+const K_DEPARTURE = 4.0;                 // departure M = sqrt(arc / (K_DEPARTURE × accel))
+
 // Orbital ephemeris — Josh Glass paper (June 2026), Section 10
 // M₀=0 for ALL planets at worldTime=0 (hardcoded in APEX client bundle.js keplerian() call)
 const REFERENCE_TIME_S = 1451690603; // 2016-01-01 23:23:23 UTC
@@ -501,6 +505,67 @@ function departureDeficit(arc, M, accel, O, P, vbody) {
   if (!(th > 0 && th < Math.PI / 2)) return 0;
   const w0 = vbm * (rho * rho - 1) * Math.cos(th);
   return Math.min(2 * M * w0 - w0 * w0 / (2 * accel), 0.95 * arc);
+}
+
+// Gate position in metres — GATE_D_PLANET_M from planet toward the neighboring system.
+function gatePositionM(base, originSysId, neighborSysId) {
+  const sysA = _systems[originSysId], sysB = _systems[neighborSysId];
+  if (!sysA || !sysB) return null;
+  const vx = sysB.PositionX - sysA.PositionX;
+  const vy = sysB.PositionY - sysA.PositionY;
+  const vz = sysB.PositionZ - sysA.PositionZ;
+  const n = Math.sqrt(vx*vx + vy*vy + vz*vz);
+  if (!n) return null;
+  return { x: base.x + GATE_D_PLANET_M*vx/n, y: base.y + GATE_D_PLANET_M*vy/n, z: base.z + GATE_D_PLANET_M*vz/n };
+}
+
+// Departure leg: planet → jump gate. M set to sqrt(arc/(K_DEP·a)) so ship is at triangular boundary.
+// Iterates 4× to apply departure deficit and recompute M. base/gate in metres, vel in km/s, accel in km/s².
+function departureLegCalc(base, gate, vel, accel) {
+  const slt = calculateSltDistance3D(base.x, base.y, base.z, gate.x, gate.y, gate.z);
+  if (!slt) return null;
+  const arc0 = slt.arcKm;
+  let arc = arc0, M = Math.sqrt(arc0 / (K_DEPARTURE * accel));
+  for (let i = 0; i < 4; i++) {
+    const def = vel ? Math.max(0, departureDeficit(arc0, M, accel, base, gate, vel)) : 0;
+    arc = Math.max(arc0 - def, 0.05 * arc0);
+    M = Math.sqrt(arc / (K_DEPARTURE * accel));
+  }
+  const tReal = stlTimeReal(arc, M, accel);
+  return { arcKm: arc0, chargedKm: arc, M: Math.max(1, Math.ceil(M)), tReal };
+}
+
+// Approach rendezvous from a fixed gate position (metres) to a moving planet.
+// Mirrors Marcus's rendezvous_approach; uses user's M for the approach leg.
+function stlRendezvousFromGate(gateM, pl2, GM, accel, M, startUnix) {
+  if (!accel || M <= 0) return null;
+  const id2 = pl2?.PlanetNaturalId;
+  const inEph = !!(id2 && _ephemeris[id2]);
+  const getPos = inEph
+    ? (pl, t) => planetXYZFromEph(pl.PlanetNaturalId, t)
+    : (pl, t) => {
+        if (!GM || !pl?.OrbitSemiMajorAxis) return null;
+        return planetXYZ(t, pl.OrbitSemiMajorAxis, pl.OrbitEccentricity||0, pl.OrbitInclination||0, GM);
+      };
+  let tFlight = 2 * M;
+  for (let i = 0; i < 25; i++) {
+    const arriveT = startUnix + tFlight;
+    const P = getPos(pl2, arriveT);
+    if (!P) return null;
+    const slt = calculateSltDistance3D(gateM.x, gateM.y, gateM.z, P.x, P.y, P.z);
+    if (!slt) return null;
+    let d = slt.chargedKm;
+    const isTriangular = d <= 4 * accel * M * M;
+    if (isTriangular) {
+      const vel2 = planetVelocityKmS(pl2, arriveT, getPos);
+      if (vel2) d = Math.max(0, d - leverageDeficit(gateM, P, vel2, tFlight));
+    }
+    const newT = stlTimeReal(d, M, accel);
+    if (newT == null) return null;
+    if (Math.abs(newT - tFlight) < 0.5) return { chargedKm: d, arcKm: slt.arcKm, tReal: newT, isReduced: slt.isReduced, approx: !inEph };
+    tFlight = newT;
+  }
+  return null;
 }
 
 // ── Physics ──────────────────────────────────────────────────────────────────
@@ -1005,12 +1070,39 @@ async function calculate() {
   let totalFuelStl = 0;
   let totalFuelFtl = 0;
 
+  const nowUnix = Date.now() / 1000;
+  let t = nowUnix; // Unix time threaded through legs for planet position lookups
+
+  // Route path (needed by DEP and approach gate; hoisted before TO)
+  const path = !sameSys ? bfs(_origin.sysId, _dest.sysId) : null;
+  if (!sameSys && !path) {
+    resEl.innerHTML = '<div class="results-empty">No route found between systems.</div>';
+    return;
+  }
+
+  // Planet position closures — ephemeris if available, FIO orbital elements otherwise
+  const originGM = sysGM(_origin.sysId);
+  const stlGM    = sysGM(_dest.sysId);
+  const originInEph = !!(originPl?.PlanetNaturalId && _ephemeris[originPl.PlanetNaturalId]);
+  const destInEph   = !!(destPl?.PlanetNaturalId   && _ephemeris[destPl.PlanetNaturalId]);
+  const getOriginPos = originInEph
+    ? (pl, tt) => planetXYZFromEph(pl.PlanetNaturalId, tt)
+    : (pl, tt) => (originGM && pl?.OrbitSemiMajorAxis)
+        ? planetXYZ(tt, pl.OrbitSemiMajorAxis, pl.OrbitEccentricity||0, pl.OrbitInclination||0, originGM)
+        : null;
+  const getDestPos = destInEph
+    ? (pl, tt) => planetXYZFromEph(pl.PlanetNaturalId, tt)
+    : (pl, tt) => (stlGM && pl?.OrbitSemiMajorAxis)
+        ? planetXYZ(tt, pl.OrbitSemiMajorAxis, pl.OrbitEccentricity||0, pl.OrbitInclination||0, stlGM)
+        : null;
+
   // ── TO leg ──
+  let toTimeRealS = 0;
   if (originPl) {
     const toAtm = (phys?.accel && originPl.Radius)
       ? atmLeg(originPl.Radius, originPl.Pressure ?? 0, phys.accel, 'to')
       : null;
-    const toTimeRealS = toAtm ? toAtm.tReal : 886;
+    toTimeRealS        = toAtm ? toAtm.tReal : 886;
     const toFuel      = toAtm ? toAtm.M     : 50;
     const toKm        = toAtm ? toAtm.dKm   : 18514;
     totalRealMin += toTimeRealS / 60;
@@ -1022,15 +1114,30 @@ async function calculate() {
       ['STL fuel', toFuel + ' units'],
     ], hazards, 0, toAtm ? null : '(estimate — no ship selected)');
   }
+  t += toTimeRealS;
+
+  // ── DEP leg (multi-system only) ──
+  if (!sameSys && originPl && phys?.accel) {
+    const base = getOriginPos(originPl, t);
+    const gate = base ? gatePositionM(base, _origin.sysId, path[1]) : null;
+    if (base && gate) {
+      const vel = planetVelocityKmS(originPl, t, getOriginPos);
+      const dep = departureLegCalc(base, gate, vel, phys.accel);
+      if (dep) {
+        totalRealMin += dep.tReal / 60;
+        totalFuelStl += dep.M;
+        t += dep.tReal;
+        html += legHtml('DEP', `${originPl.PlanetName || originPl.PlanetNaturalId} → jump gate`, [
+          ['Distance', fmtDist(dep.chargedKm)],
+          ['Time (real)', fmtRealTime(dep.tReal)],
+          ['STL fuel', dep.M + ' units'],
+        ], '', 0, !originInEph ? '⚠ Origin not in fitted ephemeris — gate position estimated' : null);
+      }
+    }
+  }
 
   // ── FTL legs ──
   if (!sameSys) {
-    const path = bfs(_origin.sysId, _dest.sysId);
-    if (!path) {
-      resEl.innerHTML = '<div class="results-empty">No route found between systems.</div>';
-      return;
-    }
-
     const ruf   = +document.getElementById('rufSlider').value / 100;
     const ftl   = ftlPhysics(_currentShip);
     const J     = (ftl) ? ftl.A * Math.exp(-ftl.beta * ruf) : null; // s/parsec for lane jumps
@@ -1081,6 +1188,7 @@ async function calculate() {
     const totalFtlSec = totalJumpSec + totalChargeSec + totalGwSec;
     totalRealMin += totalFtlSec / 60;
     totalDmg += totalRadDmg;
+    t += totalFtlSec;
 
     // Build per-hop rows
     const hopRows = hopDescs.map(h => {
@@ -1109,28 +1217,40 @@ async function calculate() {
       ftlRows, hopRows, totalRadDmg, ftlNote);
   }
 
-  // ── STL leg (in dest system) ──
-  // If same-system and origin was selected as a system (not a planet), fall back
-  // to the innermost surface planet as a proxy for the departure orbit.
-  const stlOriginFallback = sameSys && !originPl ? primePlanetInSys(_origin.sysId) : null;
-  const stlOriginPl = sameSys ? (originPl || stlOriginFallback) : primePlanetInSys(_dest.sysId);
-  const stlRO = stlOriginPl?.OrbitSemiMajorAxis;
-  const stlRP = destPl?.OrbitSemiMajorAxis;
-  let stlDistKm = null, stlTimeMin = null, stlMet = 0;
+  // ── STL / APPROACH leg ──
+  const density = (_sysStats[_dest.sysId] || {}).meteoroidDensity || 0;
+  const stlMet  = destPl ? meteorDmgRaw(destPl.OrbitSemiMajorAxis, density) : 0;
+  if (destPl) totalDmg += stlMet;
 
-  if (stlRO && stlRP) {
-    stlDistKm = hohmannArcKm(stlRO, stlRP);
-    const stlDistMinKm = chordKm(stlRO, stlRP);
-    const density = (_sysStats[_dest.sysId] || {}).meteoroidDensity || 0;
-    stlMet = destPl ? meteorDmgRaw(destPl.OrbitSemiMajorAxis, density) : 0;
-    totalDmg += stlMet;
+  let rendez = null;
+  let stlOriginFallback = null;
+  let stlDistKm = null, stlDistMinKm = null;
+  let stlLegLabel = '';
 
-    // Rendezvous solver: transfer ellipse arc for given M — paper Section 8
-    const stlGM = sysGM(_dest.sysId);
-    const rendez = (stlGM && stlOriginPl && destPl && phys?.accel && M > 0)
-      ? stlRendezvous(stlOriginPl, destPl, stlGM, phys.accel, M, Date.now() / 1000)
-      : null;
+  if (sameSys) {
+    // Direct transit within system
+    stlOriginFallback = !originPl ? primePlanetInSys(_origin.sysId) : null;
+    const stlOriginPl = originPl || stlOriginFallback;
+    const stlRO = stlOriginPl?.OrbitSemiMajorAxis;
+    const stlRP = destPl?.OrbitSemiMajorAxis;
+    if (stlRO && stlRP) {
+      stlDistKm    = hohmannArcKm(stlRO, stlRP);
+      stlDistMinKm = chordKm(stlRO, stlRP);
+      if (stlGM && stlOriginPl && destPl && phys?.accel && M > 0)
+        rendez = stlRendezvous(stlOriginPl, destPl, stlGM, phys.accel, M, t);
+    }
+    stlLegLabel = destPl ? `→ ${destPl.PlanetName || destPl.PlanetNaturalId}` : `within ${destSys?.NaturalId}`;
+  } else {
+    // Approach from jump gate in dest system → dest planet
+    if (destPl && phys?.accel && M > 0 && path) {
+      const destPosAtGate = getDestPos(destPl, t);
+      const gateApp = destPosAtGate ? gatePositionM(destPosAtGate, _dest.sysId, path[path.length - 2]) : null;
+      if (gateApp) rendez = stlRendezvousFromGate(gateApp, destPl, stlGM, phys.accel, M, t);
+    }
+    stlLegLabel = destPl ? `jump gate → ${destPl.PlanetName || destPl.PlanetNaturalId}` : `approach in ${destSys?.NaturalId}`;
+  }
 
+  if (sameSys ? !!(destPl || stlOriginFallback) : !!destPl) {
     const stlRows = [];
     if (rendez) {
       const stlLabel = rendez.approx
@@ -1142,8 +1262,7 @@ async function calculate() {
     }
 
     if (rendez) {
-      stlTimeMin = rendez.tReal / 60;
-      totalRealMin += stlTimeMin;
+      totalRealMin += rendez.tReal / 60;
       totalFuelStl += M;
       stlRows.push(['Time (real)', fmtRealTime(rendez.tReal)]);
       stlRows.push(['STL fuel', M + ' units']);
@@ -1156,8 +1275,7 @@ async function calculate() {
     } else if (stlDistKm && phys?.accel) {
       const T = stlTimeReal(stlDistKm, M, phys.accel);
       if (T != null) {
-        stlTimeMin = T / 60;
-        totalRealMin += stlTimeMin;
+        totalRealMin += T / 60;
         totalFuelStl += M;
         stlRows.push(['Time (real)', `<span class="approx">${fmtRealTime(T)}</span>`]);
         stlRows.push(['STL fuel', M + ' units']);
@@ -1172,10 +1290,9 @@ async function calculate() {
     const stlNote = stlOriginFallback
       ? `⚠ Origin is a system — using ${stlOriginFallback.PlanetName || stlOriginFallback.PlanetNaturalId} as departure orbit (select a specific planet for accuracy)`
       : (phys?.theoretical && !rendez) ? '⚠ Hull not calibrated — time is a rough estimate'
-      : !stlGM ? '⚠ System GM unknown — showing range not exact distance'
+      : (!stlGM && sameSys) ? '⚠ System GM unknown — showing range not exact distance'
       : null;
-    html += legHtml('STL', destPl ? `→ ${destPl.PlanetName || destPl.PlanetNaturalId}` : `within ${destSys?.NaturalId}`,
-      stlRows, metBadge, stlMet, stlNote);
+    html += legHtml('STL', stlLegLabel, stlRows, metBadge, stlMet, stlNote);
   }
 
   // ── LDG leg ──
