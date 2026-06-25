@@ -169,17 +169,19 @@ All below median — consistent with fixed below-average base tile. ±15% note s
 
 ## Key facts to remember
 
-- **FIO `OrbitSemiMajorAxis` is in METRES** (440,950,812,000 m for Avalon = 441 M km)
-- **Game uses 2D** for STL arc (`transferEllipse.center.z = 0` in export)
-- **ORBIT blocks in flight exports are approach/parking orbit parameters** (low orbit around
-  the planet for TO/LDG), NOT heliocentric orbital elements. Proven by two June 23 exports
-  49 min apart: same planets show ecc=0.022575 vs ecc=0.035883. Heliocentric elements don't
-  change on that timescale. Do NOT use export ORBIT blocks to infer heliocentric eccentricity.
-- **Arc error source (~1.5%)**: Three confirmed errors in `planetXYZ` (2026-06-23):
-  orbit is CW, global Ω = -90°, and per-planet ω ≠ 0 (FIO doesn't store ω).
-  FIO ecc/SMA are correct. Current 1.5% arc error is accidental cancellation between
-  two badly-placed planets; not reliable across different pairs or times.
-  Fix requires all three corrections together — partial fixes are worse than current code.
+- **Planet positions use Marcus's ephemeris** (`ephemeris.json`, 4199 planets, 0.03% arc error).
+  `planetXYZFromEph(naturalId, unixT_s)` returns metres; takes real Unix seconds directly.
+  Old `planetXYZ` / `worldTime` are retained as fallback for ~377 planets not in the ephemeris.
+- **Mixed-frame guard**: ephemeris and FIO use incompatible coordinate frames (different Ω, ω).
+  `stlRendezvous` detects when one planet is missing from the ephemeris and falls back to FIO
+  for BOTH planets, keeping a consistent frame. Result carries `approx: true` when this happens,
+  shown as `~` in the quick display and `(~1.5% accuracy)` in the route breakdown.
+- **14 systems have partial ephemeris coverage** (some planets in, some not). Known cases include
+  ZV-307c (Hephaestus), OT-189a (Mayer), UV-351a, KW-688c, XH-594b, LS-300c.
+- **Game uses 2D** for STL arc (`transferEllipse.center.z = 0` in export); our formula is 3D
+  and gives the same result to 0.03%.
+- **ORBIT blocks in flight exports are approach/parking orbit parameters** (per-flight low orbit),
+  NOT heliocentric elements. Do not use them to infer ecc/inc/ω.
 - **The prograde sign**: `starCross > 0 → sign = +1` (O' on LEFT of chord = prograde)
 - **HULL_PHYSICS calibrated accel** (70.55 for BP-HJQJ-2441) was wrong — it compensated
   for the old sign bug. Real accel ≈ 67.47 km/s² (thrust/mass × condition).

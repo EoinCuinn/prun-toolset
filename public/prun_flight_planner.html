@@ -408,29 +408,29 @@ function calculateSltDistance3D(Ox, Oy, Oz, Px, Py, Pz) {
 
 // Rendezvous solver — 3D positions, charged distance, converges in ~5 iterations.
 // Returns { chargedKm, arcKm, tReal, isReduced } or null.
-function getPlanetPos(pl, unixT, GM) {
-  const id = pl?.PlanetNaturalId;
-  if (id) {
-    const pos = planetXYZFromEph(id, unixT);
-    if (pos) return pos;
-  }
-  if (!GM || !pl?.OrbitSemiMajorAxis) return null;
-  return planetXYZ(unixT, pl.OrbitSemiMajorAxis, pl.OrbitEccentricity || 0, pl.OrbitInclination || 0, GM);
-}
-
 function stlRendezvous(pl1, pl2, GM, accel, M, nowUnix) {
   if (!accel || M <= 0) return null;
-  const S = getPlanetPos(pl1, nowUnix, GM);
+  // Ephemeris and FIO use incompatible coordinate frames — use ephemeris only when
+  // BOTH planets are covered; otherwise fall back to FIO for both.
+  const id1 = pl1?.PlanetNaturalId, id2 = pl2?.PlanetNaturalId;
+  const bothInEph = !!(id1 && id2 && _ephemeris[id1] && _ephemeris[id2]);
+  const getPos = bothInEph
+    ? (pl, t) => planetXYZFromEph(pl.PlanetNaturalId, t)
+    : (pl, t) => {
+        if (!GM || !pl?.OrbitSemiMajorAxis) return null;
+        return planetXYZ(t, pl.OrbitSemiMajorAxis, pl.OrbitEccentricity||0, pl.OrbitInclination||0, GM);
+      };
+  const S = getPos(pl1, nowUnix);
   if (!S) return null;
   let tFlight = 2 * M;
   for (let i = 0; i < 25; i++) {
-    const P = getPlanetPos(pl2, nowUnix + tFlight, GM);
+    const P = getPos(pl2, nowUnix + tFlight);
     if (!P) return null;
     const slt = calculateSltDistance3D(S.x, S.y, S.z, P.x, P.y, P.z);
     if (slt == null) return null;
     const newT = stlTimeReal(slt.chargedKm, M, accel);
     if (newT == null) return null;
-    if (Math.abs(newT - tFlight) < 0.5) return { chargedKm: slt.chargedKm, arcKm: slt.arcKm, tReal: newT, isReduced: slt.isReduced };
+    if (Math.abs(newT - tFlight) < 0.5) return { chargedKm: slt.chargedKm, arcKm: slt.arcKm, tReal: newT, isReduced: slt.isReduced, approx: !bothInEph };
     tFlight = newT;
   }
   return null;
@@ -888,7 +888,8 @@ function onFuelChange() {
 
   let distStr, T;
   if (rendez) {
-    distStr = `<span class="hl">${fmtDist(rendez.chargedKm)}</span>`;
+    const approxNote = rendez.approx ? ` <small style="color:var(--text3)" title="One or both planets not in fitted ephemeris — using FIO fallback (~1.5% error)">~</small>` : '';
+    distStr = `<span class="hl">${fmtDist(rendez.chargedKm)}</span>${approxNote}`;
     T = rendez.tReal;
   } else {
     distStr = `<span class="approx">${fmtDist(dMin)} – ${fmtDist(dMax)}</span>`;
@@ -1066,7 +1067,10 @@ async function calculate() {
 
     const stlRows = [];
     if (rendez) {
-      stlRows.push(['Distance', `${fmtDist(rendez.chargedKm)} <small style="color:var(--text3)">(${rendez.isReduced ? 'charged, reduced' : 'charged'})</small>`]);
+      const stlLabel = rendez.approx
+        ? `${fmtDist(rendez.chargedKm)} <small style="color:var(--text3)" title="One or both planets not in fitted ephemeris — using FIO fallback (~1.5% error)">(${rendez.isReduced ? 'charged, reduced' : 'charged'}, ~1.5% accuracy)</small>`
+        : `${fmtDist(rendez.chargedKm)} <small style="color:var(--text3)">(${rendez.isReduced ? 'charged, reduced' : 'charged'})</small>`;
+      stlRows.push(['Distance', stlLabel]);
     } else if (stlDistKm) {
       stlRows.push(['Distance', `<span class="approx">${fmtDist(stlDistMinKm)} – ${fmtDist(stlDistKm)}</span> <small style="color:var(--text3)">(best–worst phase)</small>`]);
     }
