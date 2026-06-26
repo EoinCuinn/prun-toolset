@@ -1,0 +1,21 @@
+{
+  "HRT": {
+    "naturalId": "HRT",
+    "sysId": "f2f57766ebaca9d69efae41ccf4d8853",
+    "name": "Hortus Station",
+    "r_km": 48193761,
+    "theta_ref_rad": -1.87420038,
+    "t_ref_s": 1782384761.619,
+    "omega_rad_s": -1.129367e-5,
+    "z_km": -80852.6,
+    "z_amplitude_km": 262469,
+    "z_phi0_rad": -0.306620,
+    "e": 0.0708,
+    "a_km": 45007248,
+    "n_rad_s": 1.2982e-5,
+    "t_peri_s": 1782142766,
+    "theta_peri_rad": 1.267392,
+    "z_theta_phase_rad": 1.567580,
+    "_note": "Keplerian model validated 2026-06-26 from 8 departure-position observations. omega_rad_s=-1.129367e-5 is near-apoapsis angular rate; n_rad_s=1.2982e-5 is mean motion (derived from angular momentum). e=0.0708 cuts +10.5h XY error from 315k km (circular) to 90k km (Keplerian). PROVISIONAL: e, a_km, n_rad_s, t_peri_s, theta_peri_rad derived from apoapsis-region data only — validate against flight exports captured ~3 days from t_ref_s=1782384761 to confirm periapsis parameters."
+  }
+}

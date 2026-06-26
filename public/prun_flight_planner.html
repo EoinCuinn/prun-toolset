@@ -423,25 +423,29 @@ function calculateSltDistance3D(Ox, Oy, Oz, Px, Py, Pz) {
 
 // Rendezvous solver — 3D positions, charged distance, converges in ~5 iterations.
 // Returns { chargedKm, arcKm, tReal, isReduced } or null.
-function stlRendezvous(pl1, pl2, GM, accel, M, nowUnix) {
+function stlRendezvous(pl1, pl2, GM, accel, M, nowUnix, getPos1Override, getPos2Override) {
   if (!accel || M <= 0) return null;
-  // Ephemeris and FIO use incompatible coordinate frames — use ephemeris only when
-  // BOTH planets are covered; otherwise fall back to FIO for both.
+  // Station positions come from game exports — same coordinate frame as ephemeris.
+  // FIO uses an incompatible frame; mixing FIO with station/eph positions gives wrong distances.
+  // Use ephemeris frame when BOTH endpoints are in it (station override counts as eph-frame).
   const id1 = pl1?.PlanetNaturalId, id2 = pl2?.PlanetNaturalId;
-  const bothInEph = !!(id1 && id2 && _ephemeris[id1] && _ephemeris[id2]);
-  const getPos = bothInEph
-    ? (pl, t) => planetXYZFromEph(pl.PlanetNaturalId, t)
-    : (pl, t) => {
-        if (!GM || !pl?.OrbitSemiMajorAxis) return null;
-        return planetXYZ(t, pl.OrbitSemiMajorAxis, pl.OrbitEccentricity||0, pl.OrbitInclination||0, GM);
-      };
-  const S = getPos(pl1, nowUnix);
+  const p1IsEphFrame = !!getPos1Override || !!(id1 && _ephemeris[id1]);
+  const p2IsEphFrame = !!getPos2Override || !!(id2 && _ephemeris[id2]);
+  const useEphFrame = p1IsEphFrame && p2IsEphFrame;
+  const fioGet = (pl, t) => {
+    if (!GM || !pl?.OrbitSemiMajorAxis) return null;
+    return planetXYZ(t, pl.OrbitSemiMajorAxis, pl.OrbitEccentricity||0, pl.OrbitInclination||0, GM);
+  };
+  const ephGet = (pl, t) => planetXYZFromEph(pl.PlanetNaturalId, t);
+  const getPos1 = getPos1Override || (useEphFrame ? ephGet : fioGet);
+  const getPos2 = getPos2Override || (useEphFrame ? ephGet : fioGet);
+  const S = getPos1(pl1, nowUnix);
   if (!S) return null;
-  const vel1 = planetVelocityKmS(pl1, nowUnix, getPos);
+  const vel1 = planetVelocityKmS(pl1, nowUnix, getPos1);
   let tFlight = 2 * M;
   for (let i = 0; i < 25; i++) {
     const arriveT = nowUnix + tFlight;
-    const P = getPos(pl2, arriveT);
+    const P = getPos2(pl2, arriveT);
     if (!P) return null;
     const slt = calculateSltDistance3D(S.x, S.y, S.z, P.x, P.y, P.z);
     if (slt == null) return null;
@@ -449,12 +453,12 @@ function stlRendezvous(pl1, pl2, GM, accel, M, nowUnix) {
     if (vel1) d = Math.max(0, d - departureDeficit(d, M, accel, S, P, vel1));
     const isTriangular = d <= 4 * accel * M * M;
     if (isTriangular) {
-      const vel2 = planetVelocityKmS(pl2, arriveT, getPos);
+      const vel2 = planetVelocityKmS(pl2, arriveT, getPos2);
       if (vel2) d = Math.max(0, d - leverageDeficit(S, P, vel2, tFlight));
     }
     const newT = stlTimeReal(d, M, accel);
     if (newT == null) return null;
-    if (Math.abs(newT - tFlight) < 0.5) return { chargedKm: d, arcKm: slt.arcKm, tReal: newT, isReduced: slt.isReduced, approx: !bothInEph };
+    if (Math.abs(newT - tFlight) < 0.5) return { chargedKm: d, arcKm: slt.arcKm, tReal: newT, isReduced: slt.isReduced, approx: !useEphFrame };
     tFlight = newT;
   }
   return null;
@@ -471,6 +475,49 @@ function planetVelocityKmS(pl, t, getPos) {
   const p2 = getPos(pl, t + 0.5);
   if (!p1 || !p2) return null;
   return { vx: (p2.x - p1.x) / 1000, vy: (p2.y - p1.y) / 1000 };
+}
+
+// Solve Kepler's equation M = E - e*sin(E) by Newton-Raphson (converges in <5 iters for e<0.1).
+function solveKepler(M, e) {
+  let E = M;
+  for (let i = 0; i < 15; i++) {
+    const dE = (M - E + e * Math.sin(E)) / (1 - e * Math.cos(E));
+    E += dE;
+    if (Math.abs(dE) < 1e-10) break;
+  }
+  return E;
+}
+
+// Station position in metres.
+// Uses Keplerian orbit when e/a_km/n_rad_s/t_peri_s/theta_peri_rad are present,
+// otherwise falls back to circular model. Z uses oscillation model when z_amplitude_km present.
+function stationXYZ(st, t) {
+  if (st.e != null && st.a_km && st.n_rad_s && st.t_peri_s != null) {
+    const TAU = 2 * Math.PI;
+    const M = ((st.n_rad_s * (t - st.t_peri_s)) % TAU + TAU) % TAU;
+    const E = solveKepler(M, st.e);
+    const sqep = Math.sqrt(1 + st.e), sqem = Math.sqrt(1 - st.e);
+    const f = 2 * Math.atan2(sqep * Math.sin(E / 2), sqem * Math.cos(E / 2));
+    const r = st.a_km * (1 - st.e * Math.cos(E));
+    const theta = st.theta_peri_rad - f;  // retrograde orbit
+    return {
+      x: r * Math.cos(theta) * 1000,
+      y: r * Math.sin(theta) * 1000,
+      z: (st.z_amplitude_km != null
+        ? st.z_amplitude_km * Math.sin(theta + st.z_theta_phase_rad)
+        : st.z_km) * 1000,
+    };
+  }
+  // Circular fallback (for stations without full Keplerian elements).
+  const dt = t - st.t_ref_s;
+  const theta = st.theta_ref_rad + st.omega_rad_s * dt;
+  return {
+    x: st.r_km * Math.cos(theta) * 1000,
+    y: st.r_km * Math.sin(theta) * 1000,
+    z: (st.z_amplitude_km != null
+      ? st.z_amplitude_km * Math.sin(st.omega_rad_s * dt + st.z_phi0_rad)
+      : st.z_km) * 1000,
+  };
 }
 
 // Signed angular offset from body's prograde direction to gate, in radians.
@@ -537,16 +584,16 @@ function departureLegCalc(base, gate, vel, accel) {
 
 // Approach rendezvous from a fixed gate position (metres) to a moving planet.
 // Mirrors Marcus's rendezvous_approach; uses user's M for the approach leg.
-function stlRendezvousFromGate(gateM, pl2, GM, accel, M, startUnix) {
+function stlRendezvousFromGate(gateM, pl2, GM, accel, M, startUnix, getPos2Override) {
   if (!accel || M <= 0) return null;
   const id2 = pl2?.PlanetNaturalId;
-  const inEph = !!(id2 && _ephemeris[id2]);
-  const getPos = inEph
+  const inEph = !getPos2Override && !!(id2 && _ephemeris[id2]);
+  const getPos = getPos2Override || (inEph
     ? (pl, t) => planetXYZFromEph(pl.PlanetNaturalId, t)
     : (pl, t) => {
         if (!GM || !pl?.OrbitSemiMajorAxis) return null;
         return planetXYZ(t, pl.OrbitSemiMajorAxis, pl.OrbitEccentricity||0, pl.OrbitInclination||0, GM);
-      };
+      });
   let tFlight = 2 * M;
   for (let i = 0; i < 25; i++) {
     const arriveT = startUnix + tFlight;
@@ -697,6 +744,8 @@ let _sysStats = {};      // SystemId → { meteoroidDensity, luminosity }
 let _sysGM = {};         // SystemId → GM (m³/s²) = G × star_mass_kg
 let _ephemeris = {};     // PlanetNaturalId → [e, n, M0, peri, p_km, ux, uy, uz, wx, wy, wz]
 let _reductionSurface = null; // { NE, NA, grid } bilinear lookup for isReduced STL arc
+let _stationData = {};       // naturalId → station orbital params
+let _stationsBySys = {};     // sysId → station entry
 let _searchItems = [];   // { label, code, value, sysId, type }
 
 let _ships = [];         // loaded from FIO
@@ -708,7 +757,7 @@ let _dest   = null;
 
 async function loadData() {
   if (_loaded) return;
-  const [univRaw, planetRaw, starsRaw, gatewaysRaw, materialRaw, ephRaw, redSurf] = await Promise.all([
+  const [univRaw, planetRaw, starsRaw, gatewaysRaw, materialRaw, ephRaw, redSurf, stationRaw] = await Promise.all([
     fetch('/prun_universe_data.json').then(r => r.json()),
     fetch('/planet_data.json').then(r => r.json()),
     fetch('/systemstars.json').then(r => r.json()),
@@ -716,6 +765,7 @@ async function loadData() {
     fetch('/material_data.json').then(r => r.json()),
     fetch('/ephemeris.json').then(r => r.json()),
     fetch('/insystem_reduction_surface.json').then(r => r.json()),
+    fetch('/station_data.json').then(r => r.json()),
   ]);
   _reductionSurface = redSurf;
 
@@ -750,6 +800,10 @@ async function loadData() {
 
   // Ephemeris (Marcus's fitted orbital parameters, all 4199 planets)
   _ephemeris = ephRaw;
+
+  // Station orbital data
+  _stationData = stationRaw;
+  Object.values(stationRaw).forEach(st => { _stationsBySys[st.sysId] = st; });
 
   // Planets (surface only for TO/LDG)
   planetRaw.forEach(p => {
@@ -1080,21 +1134,35 @@ async function calculate() {
     return;
   }
 
-  // Planet position closures — ephemeris if available, FIO orbital elements otherwise
+  // Planet position closures — station data first, then ephemeris, then FIO fallback
   const originGM = sysGM(_origin.sysId);
   const stlGM    = sysGM(_dest.sysId);
-  const originInEph = !!(originPl?.PlanetNaturalId && _ephemeris[originPl.PlanetNaturalId]);
-  const destInEph   = !!(destPl?.PlanetNaturalId   && _ephemeris[destPl.PlanetNaturalId]);
-  const getOriginPos = originInEph
-    ? (pl, tt) => planetXYZFromEph(pl.PlanetNaturalId, tt)
-    : (pl, tt) => (originGM && pl?.OrbitSemiMajorAxis)
-        ? planetXYZ(tt, pl.OrbitSemiMajorAxis, pl.OrbitEccentricity||0, pl.OrbitInclination||0, originGM)
-        : null;
-  const getDestPos = destInEph
-    ? (pl, tt) => planetXYZFromEph(pl.PlanetNaturalId, tt)
-    : (pl, tt) => (stlGM && pl?.OrbitSemiMajorAxis)
-        ? planetXYZ(tt, pl.OrbitSemiMajorAxis, pl.OrbitEccentricity||0, pl.OrbitInclination||0, stlGM)
-        : null;
+
+  // Station lookup — real orbital data when available
+  const originStation = !originPl ? (_stationsBySys[_origin.sysId] || null) : null;
+  const destStation   = !destPl   ? (_stationsBySys[_dest.sysId]   || null) : null;
+  // Planet proxy — only when no station data exists for the system
+  const stlOriginFallback = !originPl && !originStation ? primePlanetInSys(_origin.sysId) : null;
+  const stlDestFallback   = !destPl   && !destStation   ? primePlanetInSys(_dest.sysId)   : null;
+
+  const originRefPl = originPl || stlOriginFallback;
+  const destRefPl   = destPl   || stlDestFallback;
+  const originInEph = !!(originRefPl?.PlanetNaturalId && _ephemeris[originRefPl.PlanetNaturalId]);
+  const destInEph   = !!(destRefPl?.PlanetNaturalId   && _ephemeris[destRefPl.PlanetNaturalId]);
+  const getOriginPos = originStation
+    ? (_, tt) => stationXYZ(originStation, tt)
+    : originInEph
+      ? (pl, tt) => planetXYZFromEph(pl.PlanetNaturalId, tt)
+      : (pl, tt) => (originGM && pl?.OrbitSemiMajorAxis)
+          ? planetXYZ(tt, pl.OrbitSemiMajorAxis, pl.OrbitEccentricity||0, pl.OrbitInclination||0, originGM)
+          : null;
+  const getDestPos = destStation
+    ? (_, tt) => stationXYZ(destStation, tt)
+    : destInEph
+      ? (pl, tt) => planetXYZFromEph(pl.PlanetNaturalId, tt)
+      : (pl, tt) => (stlGM && pl?.OrbitSemiMajorAxis)
+          ? planetXYZ(tt, pl.OrbitSemiMajorAxis, pl.OrbitEccentricity||0, pl.OrbitInclination||0, stlGM)
+          : null;
 
   // ── TO leg ──
   let toTimeRealS = 0;
@@ -1117,21 +1185,25 @@ async function calculate() {
   t += toTimeRealS;
 
   // ── DEP leg (multi-system only) ──
-  if (!sameSys && originPl && phys?.accel) {
-    const base = getOriginPos(originPl, t);
+  const depOriginPl = originPl || stlOriginFallback; // null when origin is a known station
+  const hasDepOrigin = !!(originStation || depOriginPl);
+  if (!sameSys && hasDepOrigin && phys?.accel) {
+    const base = getOriginPos(depOriginPl, t); // station closure ignores first arg
     const gate = base ? gatePositionM(base, _origin.sysId, path[1]) : null;
     if (base && gate) {
-      const vel = planetVelocityKmS(originPl, t, getOriginPos);
+      const vel = planetVelocityKmS(depOriginPl, t, getOriginPos);
       const dep = departureLegCalc(base, gate, vel, phys.accel);
       if (dep) {
         totalRealMin += dep.tReal / 60;
         totalFuelStl += dep.M;
         t += dep.tReal;
-        html += legHtml('DEP', `${originPl.PlanetName || originPl.PlanetNaturalId} → jump gate`, [
+        const depLabel = originStation?.name ?? depOriginPl?.PlanetName ?? depOriginPl?.PlanetNaturalId;
+        const depNote = (!originStation && !originInEph) ? '⚠ Origin not in fitted ephemeris — gate position estimated' : null;
+        html += legHtml('DEP', `${depLabel} → jump gate`, [
           ['Distance', fmtDist(dep.chargedKm)],
           ['Time (real)', fmtRealTime(dep.tReal)],
           ['STL fuel', dep.M + ' units'],
-        ], '', 0, !originInEph ? '⚠ Origin not in fitted ephemeris — gate position estimated' : null);
+        ], '', 0, depNote);
       }
     }
   }
@@ -1218,39 +1290,51 @@ async function calculate() {
   }
 
   // ── STL / APPROACH leg ──
+  const stlDestPl  = destPl || stlDestFallback;   // null when dest is a known station
+  const stlDestSMA = destStation ? destStation.r_km * 1000 : stlDestPl?.OrbitSemiMajorAxis;
   const density = (_sysStats[_dest.sysId] || {}).meteoroidDensity || 0;
-  const stlMet  = destPl ? meteorDmgRaw(destPl.OrbitSemiMajorAxis, density) : 0;
-  if (destPl) totalDmg += stlMet;
+  const stlMet  = stlDestSMA ? meteorDmgRaw(stlDestSMA, density) : 0;
+  if (stlDestSMA) totalDmg += stlMet;
 
   let rendez = null;
-  let stlOriginFallback = null;
   let stlDistKm = null, stlDistMinKm = null;
   let stlLegLabel = '';
 
+  const stlDestLabel = destStation?.name ?? stlDestPl?.PlanetName ?? stlDestPl?.PlanetNaturalId;
+
   if (sameSys) {
     // Direct transit within system
-    stlOriginFallback = !originPl ? primePlanetInSys(_origin.sysId) : null;
-    const stlOriginPl = originPl || stlOriginFallback;
-    const stlRO = stlOriginPl?.OrbitSemiMajorAxis;
-    const stlRP = destPl?.OrbitSemiMajorAxis;
+    const stlOriginPl  = originPl || stlOriginFallback;
+    const stlOriginSMA = originStation ? originStation.r_km * 1000 : stlOriginPl?.OrbitSemiMajorAxis;
+    const stlRO = stlOriginSMA;
+    const stlRP = stlDestSMA;
     if (stlRO && stlRP) {
       stlDistKm    = hohmannArcKm(stlRO, stlRP);
       stlDistMinKm = chordKm(stlRO, stlRP);
-      if (stlGM && stlOriginPl && destPl && phys?.accel && M > 0)
-        rendez = stlRendezvous(stlOriginPl, destPl, stlGM, phys.accel, M, t);
+      if (stlGM && phys?.accel && M > 0)
+        rendez = stlRendezvous(
+          stlOriginPl, stlDestPl, stlGM, phys.accel, M, t,
+          originStation ? getOriginPos : null,
+          destStation   ? getDestPos   : null
+        );
     }
-    stlLegLabel = destPl ? `→ ${destPl.PlanetName || destPl.PlanetNaturalId}` : `within ${destSys?.NaturalId}`;
+    stlLegLabel = stlDestLabel ? `→ ${stlDestLabel}` : `within ${destSys?.NaturalId}`;
   } else {
-    // Approach from jump gate in dest system → dest planet
-    if (destPl && phys?.accel && M > 0 && path) {
-      const destPosAtGate = getDestPos(destPl, t);
+    // Approach from jump gate in dest system → dest planet or station
+    const hasApproachDest = !!(stlDestPl || destStation);
+    if (hasApproachDest && phys?.accel && M > 0 && path) {
+      const destPosAtGate = getDestPos(stlDestPl, t); // station closure ignores first arg
       const gateApp = destPosAtGate ? gatePositionM(destPosAtGate, _dest.sysId, path[path.length - 2]) : null;
-      if (gateApp) rendez = stlRendezvousFromGate(gateApp, destPl, stlGM, phys.accel, M, t);
+      if (gateApp) rendez = stlRendezvousFromGate(gateApp, stlDestPl, stlGM, phys.accel, M, t,
+                              destStation ? getDestPos : null);
     }
-    stlLegLabel = destPl ? `jump gate → ${destPl.PlanetName || destPl.PlanetNaturalId}` : `approach in ${destSys?.NaturalId}`;
+    stlLegLabel = stlDestLabel ? `jump gate → ${stlDestLabel}` : `approach in ${destSys?.NaturalId}`;
   }
 
-  if (sameSys ? !!(destPl || stlOriginFallback) : !!destPl) {
+  const hasStlContent = sameSys
+    ? !!(stlDestSMA || originStation || stlOriginFallback || originPl)
+    : !!(stlDestPl || destStation);
+  if (hasStlContent) {
     const stlRows = [];
     if (rendez) {
       const stlLabel = rendez.approx
@@ -1287,9 +1371,7 @@ async function calculate() {
     const metBadge = density > 3.5 ? '<span class="hz-badge hz-met" style="color:#f87171">MET★</span>' :
                      density > 2.0 ? '<span class="hz-badge hz-met">MET</span>' : '';
 
-    const stlNote = stlOriginFallback
-      ? `⚠ Origin is a system — using ${stlOriginFallback.PlanetName || stlOriginFallback.PlanetNaturalId} as departure orbit (select a specific planet for accuracy)`
-      : (phys?.theoretical && !rendez) ? '⚠ Hull not calibrated — time is a rough estimate'
+    const stlNote = (phys?.theoretical && !rendez) ? '⚠ Hull not calibrated — time is a rough estimate'
       : (!stlGM && sameSys) ? '⚠ System GM unknown — showing range not exact distance'
       : null;
     html += legHtml('STL', stlLegLabel, stlRows, metBadge, stlMet, stlNote);
@@ -1380,9 +1462,14 @@ function buildShieldRec(origin, dest, sameSys) {
 }
 
 function primePlanetInSys(sysId) {
-  // Returns planet with lowest orbit index in system, as STL departure point
   const candidates = Object.values(_planets).filter(p => p.SystemId === sysId && p.Surface);
   if (!candidates.length) return null;
+  // Prefer planet whose name matches the system name (station eponym: "Hortus" system → "Hortus" planet)
+  const sys = _systems[sysId];
+  if (sys?.Name && sys.Name !== sys.NaturalId) {
+    const match = candidates.find(p => p.PlanetName === sys.Name);
+    if (match) return match;
+  }
   return candidates.reduce((a, b) => (a.OrbitIndex < b.OrbitIndex ? a : b));
 }
 
