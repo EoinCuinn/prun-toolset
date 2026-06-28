@@ -422,10 +422,10 @@ async function fetchPlotData(id) {
   _plotData[id] = null; // loading sentinel
   try {
     const [planet, sites] = await Promise.all([
-      fetch(`${FIO}/planet/${id}`).then(r=>r.json()),
+      fetch(`https://api.fnar.net/planet/${id}`).then(r=>r.json()),
       fetch(`${FIO}/planet/sites/${id}`, {headers:{'Authorization':getKeys().fiok}}).then(r=>r.json()),
     ]);
-    const cap = Math.floor(208 + (planet.Radius||0) / 1000 / 36.1);
+    const cap = planet.Plots ?? Math.floor(208 + (planet.Radius||0) / 1000 / 36.1);
     const count = Array.isArray(sites) ? sites.length : 0;
     _plotData[id] = { count, cap };
   } catch(e) { console.error('plot data', e); _plotData[id] = null; }

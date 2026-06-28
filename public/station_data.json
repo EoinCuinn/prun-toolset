@@ -3,19 +3,22 @@
     "naturalId": "HRT",
     "sysId": "f2f57766ebaca9d69efae41ccf4d8853",
     "name": "Hortus Station",
-    "r_km": 48193761,
-    "theta_ref_rad": -1.87420038,
-    "t_ref_s": 1782384761.619,
-    "omega_rad_s": -1.129367e-5,
-    "z_km": -80852.6,
-    "z_amplitude_km": 262469,
-    "z_phi0_rad": -0.306620,
-    "e": 0.0708,
-    "a_km": 45007248,
-    "n_rad_s": 1.2982e-5,
-    "t_peri_s": 1782142766,
-    "theta_peri_rad": 1.267392,
-    "z_theta_phase_rad": 1.567580,
-    "_note": "Keplerian model validated 2026-06-26 from 8 departure-position observations. omega_rad_s=-1.129367e-5 is near-apoapsis angular rate; n_rad_s=1.2982e-5 is mean motion (derived from angular momentum). e=0.0708 cuts +10.5h XY error from 315k km (circular) to 90k km (Keplerian). PROVISIONAL: e, a_km, n_rad_s, t_peri_s, theta_peri_rad derived from apoapsis-region data only — validate against flight exports captured ~3 days from t_ref_s=1782384761 to confirm periapsis parameters."
+    "a_m": 46807737.5,
+    "e": 0.031190710459171492,
+    "n_rad_s": 1.1911120176e-5,
+    "t_peri_s": 1782093834.730,
+    "theta_peri_rad": 1.5719226899,
+    "_note": "Keplerian fit from 209 origin samples spanning full orbit including periapsis. FIO a and e confirmed by observed r_peri=45347.8km matching FIO prediction exactly. Mean error 1.38km, p95 2.28km, max 2.40km. Held-out validation (6 post-1782626000 samples) 2.2-2.4km. Previous provisional fit (8 apoapsis-only samples, e=0.071) retired. Fitted 2026-06-28 chat session."
+  },
+  "ANT": {
+    "naturalId": "ANT",
+    "sysId": "8ecf9670ba070d78cfb5537e8d9f1b6c",
+    "name": "Antares Station",
+    "a_m": 33603.4,
+    "e": 0.00144911481704531,
+    "n_rad_s": 4.4518987677e-5,
+    "t_peri_s": 1782318500.897,
+    "theta_peri_rad": 7.8775618859,
+    "_note": "Keplerian fit from 681 origin samples (631 SYSTEM_TRAFFIC_SHIP + 50 SHIP_FLIGHT_MISSION). FIO a and e confirmed exactly by observed r_peri=33554.7km and r_apo=33652.1km matching FIO predictions to 0.1km. Mean error 6.65km, p90 9.86km, max 13.50km. Nearly circular orbit (e=0.00145), periapsis angle irrelevant at this eccentricity. Fitted 2026-06-28 chat session."
   }
 }

@@ -489,23 +489,21 @@ function solveKepler(M, e) {
 }
 
 // Station position in metres.
-// Uses Keplerian orbit when e/a_km/n_rad_s/t_peri_s/theta_peri_rad are present,
+// Uses Keplerian orbit when e/a_m/n_rad_s/t_peri_s/theta_peri_rad are present,
 // otherwise falls back to circular model. Z uses oscillation model when z_amplitude_km present.
 function stationXYZ(st, t) {
-  if (st.e != null && st.a_km && st.n_rad_s && st.t_peri_s != null) {
+  if (st.e != null && st.a_m && st.n_rad_s && st.t_peri_s != null) {
     const TAU = 2 * Math.PI;
     const M = ((st.n_rad_s * (t - st.t_peri_s)) % TAU + TAU) % TAU;
     const E = solveKepler(M, st.e);
     const sqep = Math.sqrt(1 + st.e), sqem = Math.sqrt(1 - st.e);
     const f = 2 * Math.atan2(sqep * Math.sin(E / 2), sqem * Math.cos(E / 2));
-    const r = st.a_km * (1 - st.e * Math.cos(E));
+    const r = st.a_m * (1 - st.e * Math.cos(E));
     const theta = st.theta_peri_rad - f;  // retrograde orbit
     return {
       x: r * Math.cos(theta) * 1000,
       y: r * Math.sin(theta) * 1000,
-      z: (st.z_amplitude_km != null
-        ? st.z_amplitude_km * Math.sin(theta + st.z_theta_phase_rad)
-        : st.z_km) * 1000,
+      z: 0,
     };
   }
   // Circular fallback (for stations without full Keplerian elements).
@@ -609,7 +607,7 @@ function stlRendezvousFromGate(gateM, pl2, GM, accel, M, startUnix, getPos2Overr
     }
     const newT = stlTimeReal(d, M, accel);
     if (newT == null) return null;
-    if (Math.abs(newT - tFlight) < 0.5) return { chargedKm: d, arcKm: slt.arcKm, tReal: newT, isReduced: slt.isReduced, approx: !inEph };
+    if (Math.abs(newT - tFlight) < 0.5) return { chargedKm: d, arcKm: slt.arcKm, tReal: newT, isReduced: slt.isReduced, approx: !inEph && !getPos2Override };
     tFlight = newT;
   }
   return null;
@@ -1291,7 +1289,7 @@ async function calculate() {
 
   // ── STL / APPROACH leg ──
   const stlDestPl  = destPl || stlDestFallback;   // null when dest is a known station
-  const stlDestSMA = destStation ? destStation.r_km * 1000 : stlDestPl?.OrbitSemiMajorAxis;
+  const stlDestSMA = destStation ? destStation.a_m * 1000 : stlDestPl?.OrbitSemiMajorAxis;
   const density = (_sysStats[_dest.sysId] || {}).meteoroidDensity || 0;
   const stlMet  = stlDestSMA ? meteorDmgRaw(stlDestSMA, density) : 0;
   if (stlDestSMA) totalDmg += stlMet;
@@ -1305,7 +1303,7 @@ async function calculate() {
   if (sameSys) {
     // Direct transit within system
     const stlOriginPl  = originPl || stlOriginFallback;
-    const stlOriginSMA = originStation ? originStation.r_km * 1000 : stlOriginPl?.OrbitSemiMajorAxis;
+    const stlOriginSMA = originStation ? originStation.a_m * 1000 : stlOriginPl?.OrbitSemiMajorAxis;
     const stlRO = stlOriginSMA;
     const stlRP = stlDestSMA;
     if (stlRO && stlRP) {
