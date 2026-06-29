@@ -14,11 +14,22 @@
     "naturalId": "ANT",
     "sysId": "8ecf9670ba070d78cfb5537e8d9f1b6c",
     "name": "Antares Station",
-    "a_m": 33603.4,
+    "a_m": 33603417,
     "e": 0.00144911481704531,
-    "n_rad_s": 4.4518987677e-5,
-    "t_peri_s": 1782318500.897,
-    "theta_peri_rad": 7.8775618859,
-    "_note": "Keplerian fit from 681 origin samples (631 SYSTEM_TRAFFIC_SHIP + 50 SHIP_FLIGHT_MISSION). FIO a and e confirmed exactly by observed r_peri=33554.7km and r_apo=33652.1km matching FIO predictions to 0.1km. Mean error 6.65km, p90 9.86km, max 13.50km. Nearly circular orbit (e=0.00145), periapsis angle irrelevant at this eccentricity. Fitted 2026-06-28 chat session."
+    "n_rad_s": 4.4516509124e-5,
+    "t_peri_s": 1782588490.301,
+    "theta_peri_rad": -4.1425611488,
+    "_note": "Keplerian refit 2026-06-29. a_m=33603417km (FIO SemiMajorAxis/1000, in metres). 2022 samples, 98% coverage. Analytical linear fit of unwrapped angle vs time, then nonlinear refinement. Intrinsic data scatter ~39km (likely docking position spread). Mean 39.5km, p95 63.9km, max 78.6km. Previous entry had a_m=33603.4 (wrong: divided FIO by 1e6 not 1e3). Station orbits at 33.6M km from star."
+  },
+  "MOR": {
+    "naturalId": "MOR",
+    "sysId": "49b6615d39ccba05752b3be77b2ebf36",
+    "name": "Moria Station",
+    "a_m": 198222970,
+    "e": 0.01901245158584988,
+    "n_rad_s": 2.7284881150e-6,
+    "t_peri_s": 1782662531.851,
+    "theta_peri_rad": 2.7046587031,
+    "_note": "Keplerian fit 2026-06-29. a_m=198222970km (FIO/1000). 599 samples, 13% coverage (3.3 days of 26.7-day period). Position accurate near epoch 2026-06-29 but degrades for dates far from capture window. Mean 2.17M km, p95 3.3M km — limited by arc coverage. n from analytical angle regression near periapsis. More capture data needed for reliable predictions."
   }
 }
