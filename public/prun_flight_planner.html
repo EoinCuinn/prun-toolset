@@ -826,10 +826,9 @@ function fmtDmg(frac) {
   return (frac * 100).toFixed(3) + '%';
 }
 
+// Full km with thousands separators, matching the in-game readout (no M/B rounding).
 function fmtDist(km) {
-  if (km >= 1e9) return `${(km / 1e9).toFixed(2)} B km`;
-  if (km >= 1e6) return `${(km / 1e6).toFixed(0)} M km`;
-  return `${Math.round(km).toLocaleString()} km`;
+  return `${Math.round(km).toLocaleString('en-US')} km`;
 }
 
 // ── Data ─────────────────────────────────────────────────────────────────────
