@@ -65,6 +65,24 @@
   .ship-meta { margin-top: 6px; font-size: 11px; color: var(--text3); line-height: 1.6; font-family: var(--mono); }
   .ship-meta span { color: var(--text2); }
 
+  /* ── Mode toggle ── */
+  .mode-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .mode-btn { background: var(--bg3); border: none; color: var(--text2); padding: 5px 12px; font-size: 12px; cursor: pointer; transition: all 0.15s; }
+  .mode-btn.active { background: #1e3a5f; color: var(--accent); }
+  .mode-btn:not(.active):hover { color: var(--text); }
+
+  /* ── Component selector ── */
+  .comp-row { display: grid; grid-template-columns: 74px 1fr 46px; gap: 6px; align-items: center; margin-bottom: 5px; }
+  .comp-lbl { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; }
+  .comp-sel { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); padding: 4px 6px; font-size: 11px; outline: none; }
+  .comp-qty { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); padding: 4px 4px; font-size: 11px; text-align: center; outline: none; }
+  .comp-dmg { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 4px; }
+  .comp-dmg label { font-size: 10px; color: var(--text2); display: inline-flex; align-items: center; gap: 3px; cursor: pointer; }
+
+  /* ── Loadout rows ── */
+  .load-row { display: grid; grid-template-columns: 56px 1fr 68px; gap: 8px; align-items: center; margin-bottom: 5px; }
+  .load-lbl { font-size: 11px; color: var(--text3); }
+
   /* ── Calc button ── */
   .calc-btn { width: 100%; background: #1e3a5f; border: 1px solid var(--accent); border-radius: var(--radius); color: var(--accent); padding: 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: all 0.15s; margin-top: 0.5rem; }
   .calc-btn:hover { background: #26487a; }
@@ -113,9 +131,12 @@
 
 <div class="header">
   <h1>Flight Planner</h1>
-  <input id="fioKey" class="key-input" placeholder="FIO API key" autocomplete="off">
-  <input id="fioUser" class="key-input" style="width:140px" placeholder="FIO username" autocomplete="off">
-  <button class="btn-sm" onclick="loadShips()">Load Ships</button>
+  <div class="mode-toggle">
+    <button id="modeReal" class="mode-btn active" onclick="setMode('real')">Real Fleet</button>
+    <button id="modeHypo" class="mode-btn" onclick="setMode('hypo')">Hypothetical</button>
+  </div>
+  <input id="fioKey" class="key-input" placeholder="FIO API key (read-only)" autocomplete="off">
+  <button class="btn-sm" onclick="loadShips()">Load Fleet</button>
   <div id="shipDot" class="status-dot"></div>
 </div>
 
@@ -123,13 +144,41 @@
 
   <!-- LEFT: inputs -->
   <div>
-    <!-- Ship -->
-    <div class="card">
-      <div class="card-label">Ship</div>
+    <!-- Ship (Real Fleet) -->
+    <div class="card" id="realShipCard">
+      <div class="card-label">Ship — Real Fleet</div>
       <select id="shipSelect" class="ship-select" onchange="onShipChange()">
-        <option value="">— select ship —</option>
+        <option value="">— load fleet, then select —</option>
       </select>
       <div id="shipMeta" class="ship-meta"></div>
+    </div>
+
+    <!-- Ship (Hypothetical) -->
+    <div class="card" id="hypoShipCard" style="display:none">
+      <div class="card-label">Ship — Hypothetical Build</div>
+      <div id="componentSelectors"></div>
+      <div id="hypoMeta" class="ship-meta"></div>
+    </div>
+
+    <!-- Loadout / onboard mass -->
+    <div class="card" id="loadoutCard">
+      <div class="card-label">Loadout (fuel in units, cargo in t)</div>
+      <div class="load-row">
+        <span class="load-lbl">STL fuel</span>
+        <input id="stlMassSlider" class="fuel-slider" type="range" min="0" max="3500" step="1" value="500" oninput="onLoadoutChange()">
+        <span id="stlMassVal" class="fuel-val">500 u</span>
+      </div>
+      <div class="load-row">
+        <span class="load-lbl">FTL fuel</span>
+        <input id="ftlMassSlider" class="fuel-slider" type="range" min="0" max="2000" step="1" value="200" oninput="onLoadoutChange()">
+        <span id="ftlMassVal" class="fuel-val">200 u</span>
+      </div>
+      <div class="load-row">
+        <span class="load-lbl">Cargo</span>
+        <input id="cargoMassSlider" class="fuel-slider" type="range" min="0" max="5000" step="0.1" value="0" oninput="onLoadoutChange()">
+        <span id="cargoMassVal" class="fuel-val">0 t</span>
+      </div>
+      <div id="massReadout" class="note" style="margin-top:6px"></div>
     </div>
 
     <!-- Route -->
@@ -157,7 +206,7 @@
       <div class="card-label">STL Fuel for leg</div>
       <div class="fuel-row">
         <input id="fuelSlider" class="fuel-slider" type="range" min="1" max="200" value="60" oninput="onFuelChange()">
-        <span id="fuelVal" class="fuel-val">60 units</span>
+        <span id="fuelVal" class="fuel-val">60.0 units</span>
       </div>
       <div id="fuelTime" class="note" style="margin-top:6px"></div>
     </div>
@@ -185,8 +234,14 @@
 
 <script>
 // ── Constants ────────────────────────────────────────────────────────────────
-const FIO_BASE   = 'https://rest.fnar.net';
-const FIO_KEY    = 'prun_apikey';
+// Ship data comes from the Swagger API (api.fnar.net/ships), richer than REST and
+// confirmed working 2026-07-02. Header form is `FIOAPIKey <key>` (not the raw key).
+// Response shape: UserNameToData.<user>.Data[]. Key is read-only.
+const SWAGGER_SHIPS = 'https://api.fnar.net/ships';
+// Ship fuel stores — resolve StorageId → WeightLoad/WeightCapacity to prefill the loadout.
+const SWAGGER_STORAGE = 'https://api.fnar.net/storage?username=eoincuinn&include_ship_stl_stores=true&include_ship_ftl_stores=true&include_items=true';
+const SWAGGER_KEY   = 'REDACTED';
+const FIO_KEY       = 'prun_apikey';   // localStorage override key
 const FP_SCALE   = 12.0;     // coordinate units per parsec — paper §12.5: exactly 12
 
 // FTL reactor physics — paper §12.1–12.3 and §13.5
@@ -218,18 +273,64 @@ const REFERENCE_TIME_S = 1451690603; // 2016-01-01 23:23:23 UTC
 // worldTime() running 20× faster automatically gives 20× orbital speed.
 // Stored in _sysGM (SystemId → GM); populated in loadData().
 
-// Calibrated hull physics — paper formula: t[real-s] = d/(2·accel·M) + 2·M
-// accel in km/s² (real-s), M = stlFuelConsumption (integer speed-cap index = slider value)
-// NOTE: FIO.Acceleration = thrust/operatingEmptyMass (max accel, empty ship).
-// FIO.Mass is the ship VOLUME in m³ — NOT mass. Do not use it for accel calculations.
-const HULL_PHYSICS = {
-  // AVI-06CKD: 24-pt empirical calibration (FIO thrust/mass gives wrong unit ratio for this hull)
-  'AVI-06CKD': { accel: 2076, mMin: 12, stlFuelMax: 112 },
-  // BP-HJQJ-2441: calibrated from AVI-047P1 game export 2026-06-22 at ~97.65% condition.
-  // FIO Mass=2662 t but APEX flight mass=1852 t — FIO.Mass is not the game flight mass.
-  // Derived: 627402854 / (2×1257×3698) = 67.47 km/s². stlFuelMax from FIO stlCapacity.
-  'BP-HJQJ-2441': { accel: 67.47, mMin: 1 },
+// ── Component data (Phase 3 ground truth, 2026-07-02) ─────────────────────────
+// Masses are on the SAME numeric scale as the raw Swagger OperatingEmptyMass / Mass
+// values — used directly, with NO unit conversion anywhere in the mass path. Thrust in
+// Newtons. accel = min(thrust/totalMass, maxGFactor·9.80665), totalMass = empty + stl +
+// ftl + cargo. Verified: Thrust[N] / raw Mass == Swagger Acceleration fleet-wide
+// (100000 / 2153.5 = 46.44). The spec labels this scale "kg"; do not multiply/divide by 1000.
+const COMPONENT_DATA = {
+  hull: {   // atomic baseline — includes bridge, quarters, structural. maxGFactor sets G-cap.
+    LHP: { name: 'lightweightHullPlate', mass: 579.8, maxGFactor: 10 },
+    BHP: { name: 'basicHullPlate',       mass: 819.8, maxGFactor: 8  },
+    RHP: { name: 'reinforcedHullPlate',  mass: 867.8, maxGFactor: 11 },
+    HHP: { name: 'hardenedHullPlate',    mass: 867.8, maxGFactor: 13 },
+    AHP: { name: 'advancedHullPlate',    mass: 867.8, maxGFactor: 15 },
+  },
+  engine: { // mass additive on hull base; thrust additive across engines
+    GEN: { name: 'glassEngine',       mass: 5,  thrust: 50000  },
+    FSE: { name: 'fuelSavingEngine',  mass: 6,  thrust: 100000 },
+    ENG: { name: 'standardEngine',    mass: 8,  thrust: 125000 },
+    AEN: { name: 'advancedEngine',    mass: 14, thrust: 250000 },
+    HTE: { name: 'hyperthrustEngine', mass: 16, thrust: 450000 },
+  },
+  stlTank:  { SSL: { name: 'smallStlTank', mass: 20 }, MSL: { name: 'mediumStlTank', mass: 50 }, LSL: { name: 'largeStlTank', mass: 125 } },
+  ftlReactor: { RCT: { name: 'standardReactor', mass: 7 }, QCR: { name: 'quickChargeReactor', mass: 14 }, HPR: { name: 'highPowerReactor', mass: 16 }, HYR: { name: 'hyperPowerReactor', mass: 25 } },
+  ftlTank:  { SFL: { name: 'smallFtlTank', mass: 9 }, MFL: { name: 'mediumFtlTank', mass: 24 }, LFL: { name: 'largeFtlTank', mass: 60 } },
+  cargo: {  // real fitted mass (NOT bomWeight). capT = tonnes ceiling, capM3 = volume ceiling
+    TCB: { name: 'tinyCargoBay',      mass: 630,    capT: 100,  capM3: 100  },
+    VSC: { name: 'verySmallCargoBay', mass: 707.1,  capT: 250,  capM3: 250  },
+    SCB: { name: 'smallCargoBay',     mass: 827.8,  capT: 500,  capM3: 500  },
+    MCB: { name: 'mediumCargoBay',    mass: 1046.8, capT: 1000, capM3: 1000 },
+    LCB: { name: 'largeCargoBay',     mass: 1456.2, capT: 2000, capM3: 2000 },
+    HCB: { name: 'hugeCargoBay',      mass: 2517.4, capT: 5000, capM3: 5000 },
+    VCB: { name: 'highVolumeCargoBay',mass: 1747.6, capT: 1000, capM3: 3000 },
+    WCB: { name: 'highLoadCargoBay',  mass: 1146.8, capT: 3000, capM3: 1000 },
+  },
+  seat: {   // mass additive; maxGFactor bonus additive on hull maxGFactor
+    BGS: { name: 'basicHighgSeats',    mass: 20, gBonus: 5  },
+    AGS: { name: 'advancedHighgSeats', mass: 30, gBonus: 12 },
+  },
+  damage: { // tiny mass except repair drones; do not affect accel meaningfully
+    BPT: { name: 'basicHeatShield',           mass: 0.02 },
+    APT: { name: 'advancedHeatShield',        mass: 0.03 },
+    BWH: { name: 'basicWhippleShielding',     mass: 0.1  },
+    AWH: { name: 'advancedWhippleShielding',  mass: 0.12 },
+    STS: { name: 'stabilitySupportSystem',    mass: 0.1  },
+    BRP: { name: 'basicRadiationShielding',   mass: 0.03 },
+    ARP: { name: 'advancedRadiationShielding',mass: 0.04 },
+    SRP: { name: 'specializedRadiationShielding', mass: 0.1 },
+    RDS: { name: 'smallShipRepairDroneUnit',  mass: 50   },
+    RDL: { name: 'largeShipRepairDroneUnit',  mass: 150  },
+  },
 };
+// FTL reactor ticker → ReactorPower (keys of FTL_REACTORS). From spec §3 reactor comments.
+const REACTOR_POWER = { QCR: 2000, RCT: 2400, HPR: 4800, HYR: 7200 };
+const G0 = 9.80665;  // m/s² — G-cap factor
+// Fuel mass per unit (t/unit): STL fuel SF = 0.06, FTL fuel FF = 0.05. Loadout fuel
+// sliders display UNITS; internal mass math converts units → tonnes via these.
+const STL_UNIT_MASS = 0.06;
+const FTL_UNIT_MASS = 0.05;
 
 // ── Orbital ephemeris ────────────────────────────────────────────────────────
 
@@ -566,7 +667,9 @@ function gatePositionM(base, originSysId, neighborSysId) {
 
 // Departure leg: planet → jump gate. M set to sqrt(arc/(K_DEP·a)) so ship is at triangular boundary.
 // Iterates 4× to apply departure deficit and recompute M. base/gate in metres, vel in km/s, accel in km/s².
-function departureLegCalc(base, gate, vel, accel) {
+// maxM (optional) = STL-fuel budget for the departure (Fix 1). When the boundary M the
+// ship wants exceeds what the tank supports, cap M there → slower (trapezoidal) departure.
+function departureLegCalc(base, gate, vel, accel, maxM) {
   const slt = calculateSltDistance3D(base.x, base.y, base.z, gate.x, gate.y, gate.z);
   if (!slt) return null;
   const arc0 = slt.arcKm;
@@ -576,8 +679,11 @@ function departureLegCalc(base, gate, vel, accel) {
     arc = Math.max(arc0 - def, 0.05 * arc0);
     M = Math.sqrt(arc / (K_DEPARTURE * accel));
   }
-  const tReal = stlTimeReal(arc, M, accel);
-  return { arcKm: arc0, chargedKm: arc, M: Math.max(1, Math.ceil(M)), tReal };
+  let Mfinal = Math.max(1, Math.ceil(M));
+  let starved = false;
+  if (maxM != null && maxM > 0 && maxM < Mfinal) { Mfinal = maxM; starved = true; }
+  const tReal = stlTimeReal(arc, Mfinal, accel);
+  return { arcKm: arc0, chargedKm: arc, M: Mfinal, tReal, starved };
 }
 
 // Approach rendezvous from a fixed gate position (metres) to a moving planet.
@@ -651,25 +757,22 @@ function stlTimeReal(dKm, M, accel) {
   return dKm / (2 * accel * M) + 2 * M;
 }
 
-// Real-seconds → human readable
+// Real-seconds → human readable, in-game "Xh Ym Zs" format (seconds always shown).
 function fmtRealTime(realSec) {
-  const h = Math.floor(realSec / 3600);
-  const m = Math.floor((realSec % 3600) / 60);
-  const s = Math.floor(realSec % 60);
-  if (h >= 24) {
-    const d = Math.floor(h / 24), hr = h % 24;
-    return `${d}d ${hr}h ${m}m`;
-  }
-  if (h > 0) return `${h}h ${m}m`;
+  const t = Math.max(0, Math.round(realSec));
+  const d = Math.floor(t / 86400);
+  const h = Math.floor((t % 86400) / 3600);
+  const m = Math.floor((t % 3600) / 60);
+  const s = t % 60;
+  if (d > 0) return `${d}d ${h}h ${m}m ${s}s`;
+  if (h > 0) return `${h}h ${m}m ${s}s`;
   if (m > 0) return `${m}m ${s}s`;
   return `${s}s`;
 }
 
-// Minutes → human readable
+// Minutes → human readable (same Xh Ym Zs format).
 function fmtMin(min) {
-  if (min < 60) return `${Math.round(min)}m`;
-  const h = Math.floor(min / 60), m = Math.round(min % 60);
-  return m ? `${h}h ${m}m` : `${h}h`;
+  return fmtRealTime(min * 60);
 }
 
 // Atmospheric leg (TO or landing) — paper Section 12.4, corrected in Section 1.2
@@ -746,8 +849,9 @@ let _stationData = {};       // naturalId → station orbital params
 let _stationsBySys = {};     // sysId → station entry
 let _searchItems = [];   // { label, code, value, sysId, type }
 
-let _ships = [];         // loaded from FIO
-let _currentShip = null;
+let _ships = [];         // loaded from Swagger API
+let _currentShip = null; // active ship spec (real selection OR hypothetical build)
+let _mode = 'real';      // 'real' | 'hypo'
 let _itemWeight = {};    // Ticker → Weight (t/unit) from material_data.json
 
 let _origin = null;      // { planetId, sysId }
@@ -929,61 +1033,247 @@ function escHtml(s) {
 // ── Ships ─────────────────────────────────────────────────────────────────────
 
 async function loadShips() {
-  const key  = document.getElementById('fioKey').value.trim() || localStorage.getItem(FIO_KEY) || '';
-  const user = document.getElementById('fioUser').value.trim();
-  const dot  = document.getElementById('shipDot');
-
-  if (key) localStorage.setItem(FIO_KEY, key);
-  if (!key || !user) { alert('Enter FIO key and username.'); return; }
+  const key = document.getElementById('fioKey').value.trim() || localStorage.getItem(FIO_KEY) || SWAGGER_KEY;
+  const dot = document.getElementById('shipDot');
+  if (key && key !== SWAGGER_KEY) localStorage.setItem(FIO_KEY, key);
 
   dot.className = 'status-dot';
   try {
-    const [shipsRes, fuelRes] = await Promise.all([
-      fetch(`${FIO_BASE}/ship/ships/${user}`,      { headers: { Authorization: key } }),
-      fetch(`${FIO_BASE}/ship/ships/fuel/${user}`, { headers: { Authorization: key } }),
+    const hdr = { headers: { Authorization: `FIOAPIKey ${key}` } };
+    // /ships and /storage in parallel. Storage failure is non-fatal — ships still load.
+    const [shipsRes, storeRes] = await Promise.all([
+      fetch(SWAGGER_SHIPS, hdr),
+      fetch(SWAGGER_STORAGE, hdr).catch(() => null),
     ]);
-    if (!shipsRes.ok) throw new Error(shipsRes.status);
-    const data     = await shipsRes.json();
-    const fuelData = fuelRes.ok ? await fuelRes.json() : [];
+    if (!shipsRes.ok) throw new Error('HTTP ' + shipsRes.status);
+    const json = await shipsRes.json();
 
-    const sfWeight = _itemWeight['SF'];
-    const stlCapMap = {};
-    for (const store of fuelData) {
-      if (store.Type === 'STL_FUEL_STORE' && store.WeightCapacity && sfWeight) {
-        stlCapMap[store.StorageId] = Math.round(store.WeightCapacity / sfWeight);
+    // Build StorageId → { load, cap } from ship STL/FTL fuel stores (WeightLoad = fuel mass).
+    const storeMap = {};
+    if (storeRes && storeRes.ok) {
+      const sj = await storeRes.json();
+      const su = sj.UserNameToData || {};
+      for (const u of Object.keys(su)) {
+        for (const st of (su[u].Data || [])) {
+          storeMap[st.StorageId] = { load: st.WeightLoad, cap: st.WeightCapacity };
+        }
       }
     }
 
-    _ships = data.map(s => ({
-      registration:       s.Registration,
-      name:               s.Name || s.Registration,
-      blueprintId:        s.BlueprintNaturalId,
-      condition:          s.Condition ?? 1,
-      thrust:             s.Thrust,
-      acceleration:       s.Acceleration,       // max accel at empty mass (km/s²-equivalent, game units)
-      operatingEmptyMass: s.OperatingEmptyMass, // empty hull mass in tonnes (APEX "Empty mass")
-      reactorPower:       s.ReactorPower,
-      chargeFactor:       s.ChargeFactor,
-      emitterPower:       s.EmitterPower,
-      stlFlowRate:        s.StlFuelFlowRate,
-      stlCapacity:        stlCapMap[s.StlFuelStoreId] || s.StlFuelCapacity || 0,
-      ftlCapacity:        s.FtlFuelCapacity,
-    }));
+    // Response shape: UserNameToData.<user>.Data[]. Flatten all users (usually just the owner).
+    const users = json.UserNameToData || {};
+    const data = [];
+    for (const u of Object.keys(users)) {
+      for (const s of (users[u].Data || [])) data.push({ ...s, _user: u });
+    }
+    if (!data.length) throw new Error('no ships in response');
+
+    _ships = data.map(s => {
+      const stlStore = storeMap[s.STLFuelStoreId];  // match ship's STL store → fuel mass
+      const ftlStore = storeMap[s.FTLFuelStoreId];  // match ship's FTL store → fuel mass
+      return {
+        source:             'real',
+        registration:       s.Registration,
+        name:               s.Name || s.Registration,
+        blueprintId:        s.BlueprintNaturalId,
+        location:           s.CurrentLocationNaturalId || s.CurrentLocationName || '',
+        inFlight:           !!s.FlightId,
+        condition:          s.Condition ?? 1,
+        thrust:             s.Thrust,               // Newtons
+        acceleration:       s.Acceleration,         // Thrust[N] / Mass[t] snapshot (game units)
+        operatingEmptyMass: s.OperatingEmptyMass,   // empty mass, TONNES
+        loadedMass:         s.Mass,                 // current loaded mass, TONNES (empty + fuel + cargo)
+        volume:             s.Volume,               // m³
+        reactorPower:       s.ReactorPower,
+        chargeFactor:       s.ChargeFactor,         // often null in Swagger; FTL_REACTORS covers known reactors
+        emitterPower:       s.EmitterPower,
+        stlFlowRate:        s.STLFuelFlowRate,      // t of STL fuel per unit M (Fix 1)
+        maxGFactor:         null,                   // API has no component loadout → no G-cap known (no-op for this fleet)
+        stlFuelLoad:        stlStore ? stlStore.load : null,  // actual onboard STL fuel mass (WeightLoad)
+        stlFuelCap:         stlStore ? stlStore.cap  : null,  // STL tank WeightCapacity → slider max
+        ftlFuelLoad:        ftlStore ? ftlStore.load : null,  // actual onboard FTL fuel mass (WeightLoad)
+        ftlFuelCap:         ftlStore ? ftlStore.cap  : null,  // FTL tank WeightCapacity → slider max
+      };
+    });
     const sel = document.getElementById('shipSelect');
     sel.innerHTML = '<option value="">— select ship —</option>' +
-      _ships.map((s, i) => `<option value="${i}">${s.registration}${s.name !== s.registration ? ' – ' + s.name : ''} [${s.blueprintId || '?'}]</option>`).join('');
+      _ships.map((s, i) => `<option value="${i}">${s.registration}${s.name !== s.registration ? ' – ' + s.name : ''} [${s.blueprintId || '?'}]${s.inFlight ? ' ✈' : ''}</option>`).join('');
     dot.className = 'status-dot ok';
   } catch (err) {
     dot.className = 'status-dot err';
-    alert('Failed to load ships: ' + err);
+    alert('Failed to load fleet: ' + err);
   }
 }
 
 function onShipChange() {
   const idx = document.getElementById('shipSelect').value;
   _currentShip = idx !== '' ? _ships[+idx] : null;
+  const s = _currentShip;
+  if (s && s.loadedMass != null) {
+    const delta = Math.max(0, s.loadedMass - s.operatingEmptyMass);
+    let stlT, ftlT;  // fuel MASS (tonnes) for the cargo remainder computation
+    if (s.stlFuelLoad != null || s.ftlFuelLoad != null) {
+      // Real onboard fuel from /storage (WeightLoad, tonnes). Slider max = WeightCapacity.
+      stlT = s.stlFuelLoad ?? 0;
+      ftlT = s.ftlFuelLoad ?? 0;
+      setSliderMax('stlMassSlider', Math.max(1, Math.round((s.stlFuelCap ?? stlT) / STL_UNIT_MASS)));
+      setSliderMax('ftlMassSlider', Math.max(1, Math.round((s.ftlFuelCap ?? ftlT) / FTL_UNIT_MASS)));
+    } else {
+      // Fallback when storage data is unavailable — heuristic split.
+      stlT = Math.min(delta, 12);
+      ftlT = Math.min(Math.max(delta - stlT, 0), 3);
+    }
+    // Sliders display UNITS (mass / unit-mass); cargo remainder stays in tonnes.
+    setSlider('stlMassSlider', 'stlMassVal', Math.round(stlT / STL_UNIT_MASS), 'u', 0);
+    setSlider('ftlMassSlider', 'ftlMassVal', Math.round(ftlT / FTL_UNIT_MASS), 'u', 0);
+    // Cargo = Mass − OperatingEmptyMass − STL WeightLoad − FTL WeightLoad.
+    const cargo = Math.max(0, delta - stlT - ftlT);
+    setSliderMax('cargoMassSlider', Math.max(5000, Math.ceil(cargo * 1.5)));
+    setSlider('cargoMassSlider', 'cargoMassVal', cargo, 't', 0);
+  }
   renderShipMeta();
   updateFuelSlider();
+  onLoadoutChange();
+}
+
+// ── Mode toggle ────────────────────────────────────────────────────────────────
+
+function setMode(mode) {
+  _mode = mode;
+  document.getElementById('modeReal').classList.toggle('active', mode === 'real');
+  document.getElementById('modeHypo').classList.toggle('active', mode === 'hypo');
+  document.getElementById('realShipCard').style.display = mode === 'real' ? '' : 'none';
+  document.getElementById('hypoShipCard').style.display = mode === 'hypo' ? '' : 'none';
+  if (mode === 'hypo') {
+    if (!document.getElementById('componentSelectors').children.length) buildComponentSelectors();
+    rebuildHypo();
+  } else {
+    onShipChange();
+  }
+}
+
+// ── Hypothetical build ─────────────────────────────────────────────────────────
+
+function buildComponentSelectors() {
+  const wrap = document.getElementById('componentSelectors');
+  const opt = (tick, c) => `<option value="${tick}">${tick} · ${c.name}</option>`;
+  const row = (id, label, cat, noneOk, qty) => {
+    const opts = (noneOk ? '<option value="">— none —</option>' : '') +
+      Object.entries(COMPONENT_DATA[cat]).map(([t, c]) => opt(t, c)).join('');
+    const qtyHtml = qty ? `<input id="${id}Qty" class="comp-qty" type="number" min="0" value="1" oninput="rebuildHypo()">` : '<span></span>';
+    return `<div class="comp-row"><span class="comp-lbl">${label}</span>
+      <select id="${id}" class="comp-sel" onchange="rebuildHypo()">${opts}</select>${qtyHtml}</div>`;
+  };
+  const dmg = Object.entries(COMPONENT_DATA.damage)
+    .map(([t, c]) => `<label title="${c.name} · ${c.mass}t"><input type="checkbox" class="dmg-cb" value="${t}" onchange="rebuildHypo()">${t}</label>`).join('');
+  wrap.innerHTML =
+    row('hullSel',   'Hull',    'hull',      false, false) +
+    row('engSel',    'Engine',  'engine',    false, true ) +
+    row('stlTkSel',  'STL tank','stlTank',   true,  true ) +
+    row('reactorSel','Reactor', 'ftlReactor',true,  false) +
+    row('ftlTkSel',  'FTL tank','ftlTank',   true,  true ) +
+    row('cargoSel',  'Cargo',   'cargo',     true,  true ) +
+    row('seatSel',   'Seats',   'seat',      true,  false) +
+    `<div class="comp-lbl" style="margin-top:6px">Damage / repair</div><div class="comp-dmg">${dmg}</div>`;
+  // Sensible defaults: basic hull + standard engine
+  document.getElementById('hullSel').value = 'BHP';
+  document.getElementById('engSel').value  = 'ENG';
+}
+
+function rebuildHypo() {
+  const qty = id => { const el = document.getElementById(id); return el ? Math.max(0, +el.value || 0) : 0; };
+  const val = id => document.getElementById(id)?.value || '';
+  const C = COMPONENT_DATA;
+
+  const hull = C.hull[val('hullSel')];
+  const eng  = C.engine[val('engSel')];
+  const engQty = qty('engSelQty');
+  if (!hull || !eng) { _currentShip = null; document.getElementById('hypoMeta').innerHTML = 'Select at least a hull and engine.'; updateFuelSlider(); onLoadoutChange(); return; }
+
+  let mass = hull.mass;
+  mass += eng.mass * engQty;
+  const add = (cat, sel, q) => { const c = C[cat][val(sel)]; if (c) mass += c.mass * q; };
+  add('stlTank',   'stlTkSel',  qty('stlTkSelQty'));
+  add('ftlTank',   'ftlTkSel',  qty('ftlTkSelQty'));
+  add('cargo',     'cargoSel',  qty('cargoSelQty'));
+  const seat = C.seat[val('seatSel')];
+  if (seat) mass += seat.mass;
+  document.querySelectorAll('.dmg-cb:checked').forEach(cb => { mass += C.damage[cb.value].mass; });
+
+  const reactor = C.ftlReactor[val('reactorSel')];
+  const cargoC = C.cargo[val('cargoSel')];
+  const cargoCap = cargoC ? cargoC.capT * qty('cargoSelQty') : 0;
+
+  _currentShip = {
+    source: 'hypo',
+    label: `${val('hullSel')}+${engQty}×${val('engSel')}`,
+    blueprintId: 'HYPOTHETICAL',
+    condition: 1,
+    thrust: eng.thrust * engQty,
+    operatingEmptyMass: mass,
+    maxGFactor: hull.maxGFactor + (seat ? seat.gBonus : 0),
+    reactorPower: reactor ? REACTOR_POWER[val('reactorSel')] : null,
+    chargeFactor: null,
+    stlFlowRate: 0.0075,   // nominal; only used by Fix 1 fuel-starve guard
+    cargoCap,
+  };
+  // Bound the cargo slider by the selected bay capacity (tonnes ceiling).
+  setSliderMax('cargoMassSlider', Math.max(1, cargoCap || 5000));
+  const cur = +document.getElementById('cargoMassSlider').value;
+  if (cargoCap && cur > cargoCap) setSlider('cargoMassSlider', 'cargoMassVal', cargoCap, 't', 0);
+
+  renderHypoMeta();
+  updateFuelSlider();
+  onLoadoutChange();
+}
+
+function renderHypoMeta() {
+  const el = document.getElementById('hypoMeta');
+  const s = _currentShip;
+  if (!s || s.source !== 'hypo') { el.innerHTML = ''; return; }
+  el.innerHTML = `
+    <span>Empty mass:</span> ${s.operatingEmptyMass.toFixed(1)}t &nbsp;
+    <span>Thrust:</span> ${s.thrust.toLocaleString()}N<br>
+    <span>maxG:</span> ${s.maxGFactor} → cap ${(s.maxGFactor * G0).toFixed(1)} &nbsp;
+    ${s.reactorPower ? `<span>reactor P:</span> ${s.reactorPower}` : '<span style="color:var(--yellow)">no FTL reactor</span>'}
+    ${s.cargoCap ? `<br><span>cargo cap:</span> ${s.cargoCap}t` : ''}`;
+}
+
+// ── Loadout (onboard mass) ──────────────────────────────────────────────────────
+
+function setSlider(sliderId, valId, v, unit, decimals) {
+  const el = document.getElementById(sliderId);
+  if (el) el.value = v;
+  const lbl = document.getElementById(valId);
+  if (lbl) lbl.textContent = (+v).toFixed(decimals) + ' ' + unit;
+}
+function setSliderMax(sliderId, max) {
+  const el = document.getElementById(sliderId);
+  if (el) el.max = max;
+}
+
+// Onboard masses in TONNES. STL/FTL sliders hold UNITS → convert; cargo slider is tonnes.
+function onboardMassT() {
+  return {
+    stl:   (+document.getElementById('stlMassSlider').value || 0) * STL_UNIT_MASS,
+    ftl:   (+document.getElementById('ftlMassSlider').value || 0) * FTL_UNIT_MASS,
+    cargo: +document.getElementById('cargoMassSlider').value || 0,
+  };
+}
+
+function onLoadoutChange() {
+  const o = onboardMassT();
+  document.getElementById('stlMassVal').textContent   = (+document.getElementById('stlMassSlider').value || 0).toFixed(1) + ' u';
+  document.getElementById('ftlMassVal').textContent   = (+document.getElementById('ftlMassSlider').value || 0).toFixed(1) + ' u';
+  document.getElementById('cargoMassVal').textContent = o.cargo.toFixed(0) + ' t';
+
+  const el = document.getElementById('massReadout');
+  const phys = shipPhysics(_currentShip);
+  if (!_currentShip || !phys) { el.textContent = ''; onFuelChange(); return; }
+  const capNote = phys.gLimited ? ` <span style="color:var(--yellow)">(G-cap)</span>` : '';
+  el.innerHTML = `<span class="hl">total ${phys.totalMass.toFixed(1)} t</span> · accel ${phys.accel.toFixed(2)}${capNote}`
+    + (_currentShip.loadedMass != null ? ` <small style="color:var(--text3)">· API mass ${_currentShip.loadedMass.toFixed(1)} t</small>` : '');
+  onFuelChange();
 }
 
 function onRufChange() {
@@ -1002,37 +1292,41 @@ function onRufChange() {
 
 function renderShipMeta() {
   const el = document.getElementById('shipMeta');
-  if (!_currentShip) { el.innerHTML = ''; return; }
+  if (!_currentShip || _currentShip.source !== 'real') { el.innerHTML = ''; return; }
   const s = _currentShip;
-  const phys = shipPhysics(s);
-  const ftl  = ftlPhysics(s);
+  const ftl = ftlPhysics(s);
   el.innerHTML = `
     <span>Hull:</span> ${s.blueprintId || '?'} &nbsp;
-    <span>Cond:</span> ${Math.round((s.condition || 1) * 100)}%<br>
-    ${s.thrust             ? `<span>Thrust:</span> ${s.thrust} &nbsp;` : ''}
-    ${s.operatingEmptyMass ? `<span>Empty mass:</span> ${s.operatingEmptyMass.toFixed(0)}t &nbsp;` : ''}
-    ${s.stlFlowRate        ? `<span>STL flow:</span> ${s.stlFlowRate}` : ''}
-    ${phys ? `<br><span>accel:</span> ${phys.accel.toFixed(1)} km/s²${phys.theoretical ? ' <span style="color:var(--yellow)">(uncal)</span>' : ''}` : ''}
-    ${ftl  ? `<br><span>reactor P:</span> ${s.reactorPower}${ftl.c != null ? ` &nbsp;<span>c:</span> ${ftl.c}s` : ''}${ftl.estimated ? ' <span style="color:var(--yellow)">(est)</span>' : ''}` : ''}
+    <span>Cond:</span> ${Math.round((s.condition || 1) * 100)}%
+    ${s.location ? `&nbsp; <span>at:</span> ${s.location}${s.inFlight ? ' <span style="color:var(--yellow)">(in flight)</span>' : ''}` : ''}<br>
+    <span>Thrust:</span> ${s.thrust.toLocaleString()}N &nbsp;
+    <span>Empty:</span> ${s.operatingEmptyMass.toFixed(1)}t &nbsp;
+    <span>STL flow:</span> ${s.stlFlowRate}
+    ${ftl ? `<br><span>reactor P:</span> ${s.reactorPower}${ftl.c != null ? ` &nbsp;<span>c:</span> ${ftl.c}s` : ''}${ftl.estimated ? ' <span style="color:var(--yellow)">(est)</span>' : ''}` : ''}
   `;
   onRufChange();
 }
 
-function shipPhysics(ship, M = 0) {
-  if (!ship) return null;
-  const cal = HULL_PHYSICS[ship.blueprintId];
-  if (cal) return { stlFuelMax: ship.stlCapacity || 200, mMin: 1, ...cal };
-  // FIO Acceleration = thrust/operatingEmptyMass (empty-ship max).
-  // Correct for fuel mass: accel × (emptyMass / (emptyMass + M × sfWeight)).
-  if (ship.acceleration) {
-    const sfW = _itemWeight['SF'] || 0;
-    const accel = (M > 0 && ship.operatingEmptyMass && sfW)
-      ? ship.acceleration * (ship.operatingEmptyMass / (ship.operatingEmptyMass + M * sfW))
-      : ship.acceleration;
-    return { accel, stlFuelMax: ship.stlCapacity || 200, mMin: 1, theoretical: true };
-  }
-  return null;
+// accel = min(thrust / totalMass, maxGFactor·G0); totalMass = empty + onboard, on the raw
+// Swagger Mass scale (no conversion). Verified 2026-07-02: thrust / raw-Mass == Swagger
+// Acceleration, the game-unit scale stlTimeReal expects. maxGFactor is null in Real Fleet (no loadout → no cap; a no-op
+// for this fleet) and hull+seat-derived in Hypothetical mode.
+function shipPhysics(ship) {
+  if (!ship || !ship.thrust || !ship.operatingEmptyMass) return null;
+  const o = onboardMassT();
+  const totalMass = ship.operatingEmptyMass + o.stl + o.ftl + o.cargo;
+  if (totalMass <= 0) return null;
+  let accel = ship.thrust / totalMass;
+  const cap = ship.maxGFactor ? ship.maxGFactor * G0 : Infinity;
+  const gLimited = accel > cap;
+  if (gLimited) accel = cap;
+  // "STL fuel for leg" (M) slider max = ship's actual STL fuel onboard, in UNITS.
+  const stlFuelMax = ship.stlFuelLoad != null ? Math.round(ship.stlFuelLoad / STL_UNIT_MASS) : 200;
+  return { accel, totalMass, gLimited, stlFuelMax, mMin: 1 };
 }
+
+// Fix 1 (fuel-starved departure) is applied only in departureLegCalc via depBudgetM —
+// DEP leg only. NOT applied to same-system transits until validated against captured data.
 
 // ── Fuel slider ───────────────────────────────────────────────────────────────
 
@@ -1049,12 +1343,12 @@ function updateFuelSlider() {
 
 function onFuelChange() {
   const M = +document.getElementById('fuelSlider').value;
-  document.getElementById('fuelVal').textContent = M + ' units';
+  document.getElementById('fuelVal').textContent = M.toFixed(1) + ' units';
 
   // Live STL time preview if route is same-system
   const timeEl = document.getElementById('fuelTime');
-  const phys = shipPhysics(_currentShip, M);
-  if (!_origin || !_dest || !phys || phys.theoretical || _origin.sysId !== _dest?.sysId) { timeEl.textContent = ''; return; }
+  const phys = shipPhysics(_currentShip);
+  if (!_origin || !_dest || !phys || _origin.sysId !== _dest?.sysId) { timeEl.textContent = ''; return; }
 
   const oPl = _planets[_origin.planetId];
   const dPl = _planets[_dest.planetId];
@@ -1108,7 +1402,7 @@ async function calculate() {
   if (!_dest)   { resEl.innerHTML = '<div class="results-empty">Set a valid destination planet or system.</div>'; return; }
 
   const M = +document.getElementById('fuelSlider').value;
-  const phys = shipPhysics(_currentShip, M);
+  const phys = shipPhysics(_currentShip);
   const sameSys = _origin.sysId === _dest.sysId;
 
   const originSys = _systems[_origin.sysId];
@@ -1177,7 +1471,7 @@ async function calculate() {
     html += legHtml('TO', `${originPl.PlanetName || originPl.PlanetNaturalId} → orbit`, [
       ['Distance', fmtDist(toKm)],
       ['Time (real)', fmtRealTime(toTimeRealS)],
-      ['STL fuel', toFuel + ' units'],
+      ['STL fuel', toFuel.toFixed(1) + ' units'],
     ], hazards, 0, toAtm ? null : '(estimate — no ship selected)');
   }
   t += toTimeRealS;
@@ -1190,17 +1484,22 @@ async function calculate() {
     const gate = base ? gatePositionM(base, _origin.sysId, path[1]) : null;
     if (base && gate) {
       const vel = planetVelocityKmS(depOriginPl, t, getOriginPos);
-      const dep = departureLegCalc(base, gate, vel, phys.accel);
+      // Fix 1 — departure fuel budget (first segment): floor(STL fuel onboard / flow rate).
+      const depBudgetM = (_currentShip?.stlFlowRate && onboardMassT().stl > 0)
+        ? Math.floor(onboardMassT().stl / _currentShip.stlFlowRate) : null;
+      const dep = departureLegCalc(base, gate, vel, phys.accel, depBudgetM);
       if (dep) {
         totalRealMin += dep.tReal / 60;
         totalFuelStl += dep.M;
         t += dep.tReal;
         const depLabel = originStation?.name ?? depOriginPl?.PlanetName ?? depOriginPl?.PlanetNaturalId;
-        const depNote = (!originStation && !originInEph) ? '⚠ Origin not in fitted ephemeris — gate position estimated' : null;
+        const depNote = dep.starved
+          ? `⚠ Fuel-starved departure — M capped at ${dep.M.toFixed(1)} by STL fuel budget (${onboardMassT().stl.toFixed(1)} t)`
+          : (!originStation && !originInEph) ? '⚠ Origin not in fitted ephemeris — gate position estimated' : null;
         html += legHtml('DEP', `${depLabel} → jump gate`, [
           ['Distance', fmtDist(dep.chargedKm)],
           ['Time (real)', fmtRealTime(dep.tReal)],
-          ['STL fuel', dep.M + ' units'],
+          ['STL fuel', dep.M.toFixed(1) + ' units'],
         ], '', 0, depNote);
       }
     }
@@ -1347,20 +1646,16 @@ async function calculate() {
       totalRealMin += rendez.tReal / 60;
       totalFuelStl += M;
       stlRows.push(['Time (real)', fmtRealTime(rendez.tReal)]);
-      stlRows.push(['STL fuel', M + ' units']);
+      stlRows.push(['STL fuel', M.toFixed(1) + ' units']);
     } else if (!phys) {
-      stlRows.push(['Time (real)', '<span style="color:var(--text3)">— load a ship</span>']);
-    } else if (phys.theoretical) {
-      stlRows.push(['Time (real)', '<span style="color:var(--text3)">— hull not calibrated</span>']);
-      totalFuelStl += M;
-      stlRows.push(['STL fuel', M + ' units']);
+      stlRows.push(['Time (real)', '<span style="color:var(--text3)">— select a ship / build</span>']);
     } else if (stlDistKm && phys?.accel) {
       const T = stlTimeReal(stlDistKm, M, phys.accel);
       if (T != null) {
         totalRealMin += T / 60;
         totalFuelStl += M;
         stlRows.push(['Time (real)', `<span class="approx">${fmtRealTime(T)}</span>`]);
-        stlRows.push(['STL fuel', M + ' units']);
+        stlRows.push(['STL fuel', M.toFixed(1) + ' units']);
       }
     }
 
@@ -1369,8 +1664,7 @@ async function calculate() {
     const metBadge = density > 3.5 ? '<span class="hz-badge hz-met" style="color:#f87171">MET★</span>' :
                      density > 2.0 ? '<span class="hz-badge hz-met">MET</span>' : '';
 
-    const stlNote = (phys?.theoretical && !rendez) ? '⚠ Hull not calibrated — time is a rough estimate'
-      : (!stlGM && sameSys) ? '⚠ System GM unknown — showing range not exact distance'
+    const stlNote = (!stlGM && sameSys) ? '⚠ System GM unknown — showing range not exact distance'
       : null;
     html += legHtml('STL', stlLegLabel, stlRows, metBadge, stlMet, stlNote);
   }
@@ -1389,7 +1683,7 @@ async function calculate() {
     html += legHtml('LDG', `Orbit → ${destPl.PlanetName || destPl.PlanetNaturalId}`, [
       ['Distance', fmtDist(ldgKm)],
       ['Time (real)', fmtRealTime(ldgTime)],
-      ['STL fuel', ldgFuel + ' units'],
+      ['STL fuel', ldgFuel.toFixed(1) + ' units'],
     ], hazards, 0, ldgAtm
       ? '⚠ Planetary median ±15% — actual varies by approach geometry &amp; base tile position (paper §1.2)'
       : '(estimate — no ship selected)');
@@ -1404,7 +1698,7 @@ async function calculate() {
   html += `<hr class="results-divider">
     <div class="total-row"><span class="k">${timeLabel}</span><span class="v${stlTimeKnown ? '' : ' approx'}">${fmtMin(totalRealMin)}</span></div>
     <div class="total-row"><span class="k">Total Hull Damage</span><span class="v dmg${totalDmg > 0.05 ? ' high' : ''}">${fmtDmg(totalDmg)}</span></div>
-    <div class="total-row"><span class="k">STL Fuel Used</span><span class="v">${totalFuelStl} units</span></div>
+    <div class="total-row"><span class="k">STL Fuel Used</span><span class="v">${totalFuelStl.toFixed(1)} units</span></div>
     ${shieldRec}
     <div class="note" style="margin-top:0.75rem">STL: transfer ellipse arc rendezvous solver (paper §8). TO/LDG: paper §12.4. FTL: A·e^(−β·ρ)·d + charges (paper §12.1–12.3); gateway 3 pc/hr + 1220s (§12.6). Damage: no shielding.</div>
   `;
@@ -1474,11 +1768,11 @@ function primePlanetInSys(sysId) {
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 (async () => {
-  const savedKey  = localStorage.getItem(FIO_KEY) || '';
-  if (savedKey) document.getElementById('fioKey').value = savedKey;
+  document.getElementById('fioKey').value = localStorage.getItem(FIO_KEY) || SWAGGER_KEY;
   document.getElementById('fuelSlider').addEventListener('input', onFuelChange);
   onFuelChange();
   await loadData();
+  await loadShips();        // auto-load the fleet (read-only key)
 })();
 </script>
 </body>
