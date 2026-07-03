@@ -82,7 +82,7 @@
 
 <header>
   <h1>PrUn Flight Planner — Master Roadmap</h1>
-  <div class="subtitle">Consolidated 2026-07-03 · Updated 2026-07-03 (Phase 5 closed) · Supersedes all previous Gantt charts</div>
+  <div class="subtitle">Consolidated 2026-07-03 · Updated 2026-07-04 (radiation damage added, release section added, Aem dataset credited) · Supersedes all previous Gantt charts</div>
   <div class="goal"><strong>End goal:</strong> Enter origin, destination, and ship → get exact flight time, exact fuel cost, accurate damage projection, and condition alert. Works for any route in the galaxy. Real fleet or hypothetical build.</div>
 </header>
 
@@ -283,7 +283,11 @@
     </div></div>
     <div class="task"><div class="task-bar" style="background:var(--p8)"></div><div class="task-content">
       <div class="task-name">LANDING damage formula <span class="task-tag tag-chat">Next arc</span></div>
-      <div class="task-note">Placeholder ~2e-3. Three independent sources confirm drivers: Taiyi (radius + pressure + STL accel), Raylu pruncalc (pressure/radius), game taxonomy (high pressure = heat damage, gravity = structural). All data available: planet_data.json has Pressure/Radius, Swagger /ships has STL accel. Note: atmosphere (pressure + radius) also suspected to drive TO/LDG fuel discrepancy — this arc likely closes both landing damage formula AND TO/LDG fuel in one investigation.</div>
+      <div class="task-note">Placeholder ~2e-3. Three independent sources confirm drivers: Taiyi (radius + pressure + STL accel), Raylu pruncalc (pressure/radius), game taxonomy (high pressure = heat damage, gravity = structural). Taiyi's distance formulas confirmed: takeoff_distance = radius_km × (0.15 + 0.45 × pressure^0.301), landing_distance = radius_km × (0.15 + 0.45 × max(pressure,0.1)^-0.301). LND varies across tests — suspected random tile selection, treat as proxy. All data available: planet_data.json has Pressure/Radius, Swagger /ships has STL accel. Calibration dataset: [OOG] Aem | SR Planet Damage sheet — ~60 real flight observations (planet, radius, atm thickness, pressure, temperature, observed damage %). Formula not yet solved by Aem — their data is the validation set for our coefficient fit. KI-439 flight log (Aem, 70 flights b↔d, per-segment TO/TRA/LND fuel split) also available for LDG fuel calibration. Note: atmosphere (pressure + radius) also suspected to drive TO/LDG fuel discrepancy — this arc likely closes both landing damage formula AND TO/LDG fuel in one investigation.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p4)"></div><div class="task-content">
+      <div class="task-name">RADIATION damage formula <span class="task-tag tag-chat">Next arc</span></div>
+      <div class="task-note">Formula confirmed by [OOG] Aem | SR via KQ-451 BTF runs (O-type system). With advanced anti-rad shielding: %/Mkm = 0.0224 × AU⁻². Without shielding: %/Mkm = 0.0734 × AU⁻². Unavoidable floor ~0.0002%/Mkm independent of distance. Reduction factor ~70% for advanced anti-rad. Relevant for O/B star systems and inner-planet routes. Not yet implemented in planner. Source: Damage_plotting.xlsx, KQ-451 sheet.</div>
     </div></div>
     <div class="task"><div class="task-bar" style="background:var(--p8)"></div><div class="task-content">
       <div class="task-name">DEPARTURE thrust term <span class="task-tag tag-parked">Parked</span></div>
@@ -426,6 +430,40 @@
   </div>
 </div>
 
+<!-- ═══════════════════ PART 4 — RELEASE & COLLABORATION ═══════════════════ -->
+<div class="section-divider">Part 4 — Release &amp; Collaboration</div>
+
+<div class="phase-block">
+  <div class="phase-header">
+    <span class="phase-number">Release</span>
+    <span class="phase-title">Public Release &amp; Collaboration</span>
+    <span class="phase-where where-chat">Chat</span>
+    <span class="phase-status status-inprog">In Progress — repo consolidation underway</span>
+  </div>
+  <div class="task-list">
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Repo inventory confirmed <span class="task-tag tag-done">Done — 2026-07-04</span></div>
+      <div class="task-note">Three repos on GitHub: EoinCuinn/prun-command (main toolset + flight planner), EoinCuinn/prun-flight-capture (browser extension), EoinCuinn/prun-accelerationwork (acceleration + damage research). All currently private.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p4)"></div><div class="task-content">
+      <div class="task-name">Consolidate damage work into prun-accelerationwork <span class="task-tag tag-chat">Next — Code</span></div>
+      <div class="task-note">Damage calibration files live in C:\prun-tools\Prun-accelerationwork\ locally. Daniel moving remaining damage files manually, then Code session to check git status, sort .gitignore, and push. Boundary between acceleration and damage work was always fuzzy — consolidating into one research repo.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">Attribution review</div>
+      <div class="task-note">Credit required in any public release: Marcus Licinius Crassus (flight dynamics papers, ephemeris — no damage work), Taiyi Bureau (TO/LND distance formulas, galaxy map), Raylu (Refined PrUn, pruncalc), [OOG] Aem | SR (radiation damage formula, landing damage dataset, KI-439 flight log). Review calibration constants and capture data for sensitivity before making any repo public.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">Make repos public / shareable</div>
+      <div class="task-note">Target: share with community collaborators for further input. prun-command is closest to shareable state. prun-accelerationwork contains raw research — decide what to expose. prun-flight-capture likely fine to share.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">Community release gate <span class="task-tag tag-gate">Gate</span></div>
+      <div class="task-note">Gate: attribution complete, sensitive data reviewed, at least one collaborator has successfully run the tools from the repo. Daniel confirms.</div>
+    </div></div>
+  </div>
+</div>
+
 <!-- ═══════════════════ SUMMARY ═══════════════════ -->
 <div class="section-divider">Summary</div>
 
@@ -504,13 +542,27 @@
       <td style="color:var(--text-dim)">—</td>
       <td>All active trade route systems covered</td>
     </tr>
+    <tr>
+      <td><span class="phase-pill" style="background:rgba(255,166,87,0.15);color:var(--p4)">Radiation</span></td>
+      <td>Radiation damage formula — O/B stars, inner-planet routes</td>
+      <td style="color:var(--p4)">Formula known, not implemented</td>
+      <td style="color:var(--text-dim)">—</td>
+      <td>Planner output matches observed radiation damage within 10%</td>
+    </tr>
+    <tr>
+      <td><span class="phase-pill" style="background:rgba(255,166,87,0.15);color:var(--p4)">Release</span></td>
+      <td>Repo consolidation, attribution, public sharing</td>
+      <td style="color:var(--p4)">In progress — damage repo consolidation underway</td>
+      <td style="color:var(--text-dim)">—</td>
+      <td>Attribution complete, at least one collaborator runs tools from repo</td>
+    </tr>
   </tbody>
 </table>
 
 <div class="retire-note">
   <strong>Retired charts (superseded by this document — 2026-07-03):</strong><br>
   prun-acceleration-damage-gantt.html &nbsp;·&nbsp; prun-flight-planner-roadmap.html (old) &nbsp;·&nbsp; prun-capture-extension_gantt.html<br><br>
-  <strong>Community references:</strong> Marcus Licinius Crassus (flight dynamics papers, ephemeris — no damage work) &nbsp;·&nbsp; Taiyi Bureau (LANDING: radius+pressure+STL accel confirmed) &nbsp;·&nbsp; Raylu (git.raylu.net/raylu/pruncalc — handles TO/LND pressure/radius). Credit all three in any public release.<br><br>
+  <strong>Community references:</strong> Marcus Licinius Crassus (flight dynamics papers, ephemeris — no damage work) &nbsp;·&nbsp; Taiyi Bureau (TO/LND distance formulas confirmed, galaxy map) &nbsp;·&nbsp; Raylu (git.raylu.net/raylu/pruncalc — handles TO/LND pressure/radius) &nbsp;·&nbsp; [OOG] Aem | SR (radiation damage formula via KQ-451 BTF runs, ~60-point landing damage dataset, KI-439 70-flight fuel log). Credit all four in any public release.<br><br>
   <strong>Gate rule:</strong> A phase does not close until at least one real observed value from the game matches the planner output within tolerance. Not "code runs," not "ratios are right." A number from the game equals a number from the planner. Daniel confirms in Chat.<br><br>
   <strong>Handover doc:</strong> PrUn_Handover_2026-07-03.md — full context for next Chat session.
 </div>

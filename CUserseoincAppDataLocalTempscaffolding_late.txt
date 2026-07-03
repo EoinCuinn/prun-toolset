@@ -1,0 +1,874 @@
+===== PAGE 85 =====
+differ in magnitude by the factor
+v t (r O ) (cid:112) v t (r P ) (cid:112)
+= 1−esinψ, = 1+esinψ, (274)
+v (r ) v (r )
+c O c P
+√
+written compactly as 1∓esinψ with the upper sign at the outer endpoint; and they differ in
+direction by the flight-path angle γ of (258), the inherited velocity being horizontal while the
+O
+transfer velocity carries the radial component v sinγ . The departing engine does not need to
+t O
+supply the part of the required velocity that the ship already has. The component of the inherited
+circular velocity along the chord from O to P is the displacement the engine is not charged for; its
+sign relative to the chord is set by the travel direction, since reversing the sense of travel reverses
+the sign of sinE in (258) and flips the projection. This is the kinematic content of the directional
+O
+reduction: on the direction for which the inherited velocity projects positively onto the chord the
+charged distance falls below the arc, and on the reverse direction the full arc is charged.
+18.7 What the framework fixes, and the open problem
+We close by stating, as precisely as the foregoing allows, what the velocity-inheritance picture
+determines about the reduction and what it does not. The distinction is the central honesty of the
+paper: the orbital mechanics above is exact and complete, but it supplies the kinematic ingredients
+of the reduction, not the reduction itself. The map that converts the inherited velocity into a
+charged distance is internal to the server and is not derived here.
+The framework determines three things rigorously.
+The sign, that is, which direction is reduced. By (258) the endpoint flight-path angle reverses
+sign with the travel sense, so the projection of the inherited circular velocity onto the chord is
+positive on exactly one of the two directions. The reduced branch is the direction on which that
+projection is positive, and the full-arc branch is its reverse. This is a sign, fixed by the kinematics,
+and it matches the empirical split into a reduced and an unreduced branch.
+The direction-dependence. Because the two endpoints carry opposite-sign flight-path angles (258)
+and opposite-sense magnitude mismatches (274), the reduction is not symmetric under O ↔ P; the
+framework predicts the asymmetry between the two travel directions, again without a coefficient.
+√
+The two limits. The mismatch is governed by the magnitude factor 1∓esinψ and by the
+√
+flight-path-anglemagnitudeecosψ/ 1−e2, bothofwhichcarryanexplicitfactoroftheeccentricity
+and vanish in two regimes:
+e → 0 : v → v , γ → 0; ψ → 0 : r ,r → a, v → v , (275)
+t c O O P t c
+the first because a circular transfer matches the host velocity in both magnitude and direction, the
+second because as the span closes the two radii collapse to a and the transfer reduces to the shared
+circular orbit. Hence the reduction must vanish as e → 0 and as ψ → 0. These are exact necessary
+conditions on any correct reduction law, and they are the limits the elliptic-arc analysis already
+records.
+What the framework does not determine is the magnitude of the reduction: neither the overall
+coefficient nor the higher-order angular shape. The reason is structural. The inherited velocity (269)
+85
+===== PAGE 86 =====
+and the required velocity (270) are vectors; the saving the engine realises is whatever displacement
+the server credits to the projection of the inherited velocity, integrated through the server’s own
+acceleration-and-charging model, and the function that turns that vector mismatch into a scalar
+charged distance is internal and unobserved. We have the inputs to that map in closed form; we do
+not have the map. Producing it from first principles, so that the coefficient and angular profile of
+the reduction are predicted rather than measured, is the open problem of the paper.
+We can nonetheless say why the empirically observed leading order has the form it does, and
+precisely how far that observation can be trusted. The reduction must be even in e, since reversing
+the sign of e relabels pericentre and apocentre without changing the unsigned geometry, and it
+must vanish to the orders dictated by (275). A magnitude mismatch that enters through a velocity
+difference enters quadratically once a displacement or energy is formed from it, so the leading
+dependence on the eccentricity is e2, not e. The angular factor must vanish both as ψ → 0 and, by
+the O ↔ P structure that pairs the two endpoints, in the apsidal configuration; the lowest even
+trigonometric polynomial in ψ vanishing at both ends of the relevant range is sin2(2ψ), which is why
+the observed leading order is of the size e2sin2(2ψ). These are the correct vanishing factors, and
+they are fixed by the kinematics and the symmetries alone. The coefficient multiplying e2sin2(2ψ),
+however, is not derived here; the empirical study shows that the ratio of the measured leading
+coefficient to sin2(2ψ) is not even constant in ψ but runs with its own structure, so the true leading
+shape is non-elementary and the bare e2sin2(2ψ) is the right scaling but not the right function.
+The coefficient and the residual angular shape are set by the server’s internal reduction map, and
+remain open.
+19 Spectral and asymptotic structure of the reduction
+The reduction factor R(e,ψ) = d/L and the absolute reduction ∆ = L−d = L(1−R) have, in the
+preceding development, been characterised pointwise: for each fixed pair (e,ψ) ∈ (0,1)×(0,π/2]
+the charged distance d on the reduced branch is a deterministic functional of the transfer geometry,
+and the arc length is the elliptic quantity
+L = 2aE(ψ,m), m = e2,
+with E(φ,m) = (cid:82)φ (cid:112) 1−msin2θdθ the incomplete elliptic integral of the second kind. The object
+0
+of this section is to pass from pointwise description to a global, structural one. We treat the
+deficit kernel 1−R as the kernel of an integral operator on a product Hilbert space, establish
+its compactness, and extract from its singular value decomposition the precise operator-theoretic
+statement that the reduction is to leading order separable in (e,ψ), with a quantitatively subordinate
+but nonzero coupling correction. We then develop the small-eccentricity asymptotics of E(ψ,m)
+and of ∆, identify the leading angular coefficient as a non-elementary function of ψ, and argue that
+the eccentricity series is asymptotic rather than rapidly convergent. Finally we analyse the eccentric
+limit e → 1 as a genuine singular limit and account for the limiting depth R → 0.45 by matched
+asymptotics.
+Throughout, three families of statements are kept rigorously distinct. Statements about the
+analyticobjectsE(φ,m), K(m), ∆, Rasfunctionsoftheirargumentsareprovedfromthedefinitions.
+86
+===== PAGE 87 =====
+StatementsaboutthesingularvaluedecompositionofanarbitraryHilbert-Schmidtkernelareproved
+in the abstract. Statements about the numerical spectrum and the numerical asymptotic coefficients
+are quoted as measured quantities, extracted from the reduced branch (41,740 flights) and from the
+elliptic series, and are flagged as such; they enter the argument as data, not as derivations.
+19.1 The deficit kernel as a Hilbert-Schmidt operator
+Let
+(cid:16) (cid:105)
+X = (0,1), Y = 0, π ,
+2
+carry Lebesgue measure, and write H = L2(X), H = L2(Y). Define the deficit kernel
+X Y
+κ(e,ψ) = 1−R(e,ψ), (e,ψ) ∈ X ×Y.
+By construction R is a ratio of two nonnegative lengths with 0 ≤ d ≤ L, so 0 ≤ R ≤ 1 and hence
+0 ≤ κ(e,ψ) ≤ 1 for all (e,ψ) ∈ X ×Y. (276)
+We regard κ as the kernel of the integral operator K: H → H ,
+Y X
+(cid:90)
+(Kg)(e) = κ(e,ψ)g(ψ)dψ, g ∈ H . (277)
+Y
+Y
+Lemma 19.1 (Measurabilityandfinitenessofthekernelnorm). The kernel κ is Lebesgue measurable
+on X ×Y and satisfies
+(cid:90) (cid:90)
+π
+∥κ∥2 = κ(e,ψ)2dψde ≤ |X||Y| = < ∞.
+L2(X×Y) 2
+X Y
+Proof. Measurability of κ = 1−R follows from measurability of R, which is continuous in (e,ψ) on
+the open set (0,1)×(0,π/2) by the continuity of the geometric construction underlying d and of
+E(ψ,m) in both arguments, and is bounded at the boundary; a bounded function continuous off a
+set of measure zero is measurable. The norm bound is immediate from (276): κ2 ≤ 1 pointwise, so
+the double integral is bounded by the product of the side lengths |X| = 1 and |Y| = π/2.
+Definition 19.2 (Hilbert-Schmidt operator). A bounded linear operator T: H → H between
+Y X
+separable Hilbert spaces is Hilbert-Schmidt if for one (equivalently, every) orthonormal basis (ϕ )
+j j≥1
+of H the quantity
+Y
+(cid:88)
+∥T∥2 = ∥Tϕ ∥2
+HS j HX
+j≥1
+is finite. The value ∥T∥ is independent of the basis and defines the Hilbert-Schmidt (equivalently,
+HS
+Frobenius) norm.
+Proposition 19.3 (The deficit operator is Hilbert-Schmidt, hence compact). The operator K of
+(277) is Hilbert-Schmidt with
+(cid:113)
+∥K∥ = ∥κ∥ ≤ π < ∞.
+HS L2(X×Y) 2
+87
+===== PAGE 88 =====
+Consequently K is compact.
+Proof. Both H and H are separable. Fix orthonormal bases (ϕ ) of H and (χ ) of H .
+X Y j j≥1 Y i i≥1 X
+For each j,
+∥Kϕ j ∥2 HX = (cid:88)(cid:12) (cid:12)⟨Kϕ j ,χ i ⟩ (cid:12) (cid:12) 2 ,
+i≥1
+by Parseval. Now
+(cid:90) (cid:90)
+(cid:10) (cid:11)
+⟨Kϕ ,χ ⟩ = χ (e) κ(e,ψ)ϕ (ψ)dψde = κ, χ ⊗ϕ ,
+j i i j i j L2(X×Y)
+X Y
+where(χ ⊗ϕ )(e,ψ) = χ (e)ϕ (ψ). Thefamily(χ ⊗ϕ ) isanorthonormalbasisofL2(X×Y) ∼ =
+i j i j i j i,j≥1
+H ⊗H , since tensor products of orthonormal bases of the factors form an orthonormal basis
+X Y
+of the Hilbert space tensor product, and L2(X × Y) is unitarily isomorphic to H ⊗ H via
+X Y
+(χ ⊗ϕ ) (cid:55)→ χ ⊗ϕ . Summing over all i,j and applying Parseval in L2(X ×Y),
+i j i j
+(cid:88) ∥Kϕ j ∥2 HX = (cid:88)(cid:12) (cid:12)⟨κ,χ i ⊗ϕ j ⟩ (cid:12) (cid:12) 2 = ∥κ∥2 L2(X×Y) ,
+j≥1 i,j≥1
+which is finite by Lemma 19.1. Hence K is Hilbert-Schmidt with the stated norm. Finally, every
+Hilbert-Schmidt operator is the operator-norm limit of its finite-rank truncations and is therefore
+(cid:80)
+compact: writing K = ⟨κ,χ ⊗ϕ ⟩χ ⟨ϕ ,·⟩, one has ∥K−K ∥ ≤ ∥K−K ∥ → 0, and
+N i,j≤N i j i j N op N HS
+a norm limit of finite-rank operators is compact.
+The compactness asserted by Proposition 19.3 is the structural prerequisite for everything that
+follows: it guarantees that K admits a discrete singular spectrum accumulating only at zero, and
+hence that the reduction kernel can be decomposed into a countable sum of separable terms ordered
+by magnitude.
+Theorem 19.4 (Singular value decomposition of the deficit kernel). There exist a nonincreasing
+sequence σ ≥ σ ≥ ··· ≥ 0 with (cid:80) σ2 = ∥κ∥2 < ∞, an orthonormal system (u ) in H ,
+1 2 k k L2(X×Y) k k≥1 X
+and an orthonormal system (v ) in H , such that
+k k≥1 Y
+(cid:88)
+Kg = σ ⟨v ,g⟩ u , g ∈ H , (278)
+k k HY k Y
+k≥1
+with convergence in operator norm, and equivalently
+(cid:88)
+κ(e,ψ) = σ u (e)v (ψ) (279)
+k k k
+k≥1
+with convergence in L2(X ×Y).
+Proof. The operator K∗K: H → H is self-adjoint, compact (a product of a bounded and a
+Y Y
+compact operator), and positive. By the spectral theorem for compact self-adjoint operators
+there is an orthonormal system (v ) of eigenvectors with eigenvalues λ ≥ 0, λ → 0, spanning
+√k k k
+(kerK∗K)⊥ = (kerK)⊥. Set σ = λ , ordered nonincreasingly, and for σ > 0 define u = σ−1Kv .
+k k k k k k
+88
+===== PAGE 89 =====
+Then
+⟨u ,u ⟩ = σ−1σ−1⟨Kv ,Kv ⟩ = σ−1σ−1⟨v ,K∗Kv ⟩ = σ−1σ−1λ ⟨v ,v ⟩ = δ ,
+k ℓ k ℓ k ℓ k ℓ k ℓ k ℓ ℓ k ℓ kℓ
+(cid:80)
+so (u ) is orthonormal. For arbitrary g ∈ H write g = ⟨v ,g⟩v +g with g ∈ kerK; then
+k Y k k k 0 0
+Kg = 0 and Kv = σ u , giving (278). The identity (cid:80) σ2 = ∥K∥2 = ∥κ∥2 is the trace of
+0 k k k k k HS L2
+K∗K computed in the basis (v ). The kernel representation (279) follows because the partial sums
+k
+(cid:80) σ u v have L2(X ×Y)-distance (cid:0)(cid:80) σ2(cid:1)1/2 from κ, which tends to zero.
+k≤N k k k k>N k
+19.2 Optimality of low-rank truncation and the meaning of separability
+We now state and prove the optimality property that makes the singular value decomposition the
+correct instrument for measuring separability. Recall that a kernel is separable of rank r if it can
+be written
+(cid:80)r
+a (e)b (ψ) for some a ∈ H , b ∈ H ; equivalently, the associated operator has
+k=1 k k k X k Y
+rank at most r.
+Theorem 19.5 (Eckart–Young–Mirsky, Hilbert-Schmidt form). Let K be Hilbert-Schmidt with
+singular system (σ ,u ,v ) as in Theorem 19.4, and let
+k k k
+r
+(cid:88)
+K = σ ⟨v ,·⟩u
+r k k k
+k=1
+be its rank-r truncation. Then for every operator T of rank at most r,
+(cid:88)
+∥K−K ∥2 = σ2 ≤ ∥K−T∥2 . (280)
+r HS k HS
+k>r
+That is, K is a best rank-r approximation to K in the Hilbert-Schmidt (Frobenius) norm, with
+r
+approximation error equal to the tail energy
+(cid:0)(cid:80) σ2(cid:1)1/2
+.
+k>r k
+Proof. The equality ∥K−K ∥2 = (cid:80) σ2 is immediate from orthonormality of (u ) and (v ) and
+r HS k>r k k k
+Theorem 19.4. It remains to prove the inequality. Let T have rank at most r, and let P be the
+orthogonal projection of H onto ranT, so rankP ≤ r and (⊮−P)T = 0. For any g,
+X
+∥(K−T)g∥2 ≥ ∥(⊮−P)(K−T)g∥2 = ∥(⊮−P)Kg∥2,
+hence in Hilbert-Schmidt norm, computing in the basis (v ),
+k
+(cid:88) (cid:88)
+∥K−T∥2 ≥ ∥(⊮−P)K∥2 = ∥(⊮−P)Kv ∥2 = σ2∥(⊮−P)u ∥2.
+HS HS k k k
+k≥1 k≥1
+Write p = ∥Pu ∥2 ∈ [0,1], so ∥(⊮−P)u ∥2 = 1−p and
+k k k k
+(cid:88) (cid:88) (cid:88)(cid:88) (cid:88)
+p = ∥Pu ∥2 = |⟨u ,f ⟩|2 = ∥Pf ∥2 ≤ rankP ≤ r,
+k k k j j
+k k k j j
+where (f ) is any orthonormal basis of ranP and we used (cid:80) |⟨u ,f ⟩|2 ≤ ∥f ∥2 = 1 (Bessel). Thus
+j k k j j
+89
+===== PAGE 90 =====
+100
+10 1
+10 2
+10 3
+10 4
+1 2 3 4 5 6 7 8
+singular-value index
+ygrene
+fo
+noitcarf
+0.980
+0.013
+0.003
+Figure 29: Singular-value energy of the deficit kernel 1−R: the leading mode carries 98.0%.
+we must minimise
+(cid:88) (cid:88)
+σ2(1−p ) subject to 0 ≤ p ≤ 1, p ≤ r.
+k k k k
+k≥1 k
+Since the σ2 are nonincreasing, the linear objective (cid:80) σ2− (cid:80) σ2p is minimised by placing the
+k k k k k k
+(cid:80)
+total budget p ≤ r on the largest weights, i.e. p = ··· = p = 1 and p = 0 for k > r, yielding
+k k 1 r k
+(cid:88) (cid:88)
+σ2(1−p ) ≥ σ2.
+k k k
+k≥1 k>r
+Combining the two displays gives ∥K−T∥2 ≥ (cid:80) σ2 = ∥K−K ∥2 , which is (280).
+HS k>r k r HS
+Corollary 19.6 (Best separable approximation). The best rank-one (separable) approximation of
+the deficit kernel in L2(X ×Y) is σ u (e)v (ψ), and its relative squared error is the tail fraction
+1 1 1
+(cid:80) σ2/ (cid:80) σ2. More generally the best rank-r separable approximation is the r-term truncation
+k>1 k k≥1 k
+of (279).
+Proof. Immediate from Theorem 19.5 with r = 1 and the identity between Hilbert-Schmidt error of
+the operator and L2 error of the kernel established in Theorem 19.4.
+We now record the measured spectrum. The kernel 1−R was sampled on a 30×30 grid in
+(e,ψ) and its discrete singular value decomposition computed. The captured energy fractions are
+σ2 σ2+σ2
+1 = 0.980, 1 2 = 0.993, (281)
+(cid:80) σ2 (cid:80) σ2
+k k k k
+with the remaining 0.007 of the energy distributed across modes k ≥ 3 at the level of the per-bin
+scatter of R, which is 0.001. These are stated as data extracted from the reduced branch, not as
+analytic consequences of the elliptic form.
+Remark 19.7 (Operator-theoretic content of separability). Corollary 19.6 converts the qualitative
+notion “the reduction is approximately separable in (e,ψ)” into an exact statement: separability of
+90
+===== PAGE 91 =====
+0.9
+0.8
+0.7
+0.6
+0.5
+0.4
+0.3
+0.2
+0.4 0.6 0.8 1.0 1.2
+half-span
+e
+yticirtnecce
+0.04
+0.03
+0.02
+0.01
+0.00
+0.01
+0.02
+0.03
+0.04
+eno-knar
+sunim
+)R
+1(
+Figure 30: The deficit 1−R with its rank-one part removed: the dominant non-separable coupling.
+rank one is precisely the assertion that K has rank one, i.e. σ = 0. The measured value (281) says
+2
+that the best rank-one approximation
+1−R(e,ψ) ≈ σ u (e)v (ψ)
+1 1 1
+accounts for 98.0% of the kernel energy, so the reduction is 98% separable in the precise L2 sense of
+Theorem 19.5: the residual after removing the optimal product term carries squared-norm fraction
+0.020. The strict inequality σ > 0 inferred from (281) is the entire operator-theoretic content of
+2
+non-separability: it is the obstruction to writing 1−R as a single product of a function of e times a
+function of ψ. The rank-two correction
+σ u (e)v (ψ)
+2 2 2
+is, by Theorem 19.5, the unique best rank-one approximation of that residual and is therefore
+the dominant non-separable coupling between eccentricity and half-span. Its squared weight,
+σ2/ (cid:80) σ2 = 0.993−0.980 = 0.013, is small but an order of magnitude above the scatter floor
+2 k k
+0.001·(mode count), so σ is resolved by the data, whereas the modes k ≥ 3, carrying 0.007 jointly
+2
+and individually at the per-bin scatter, are not distinguishable from measurement noise and carry
+no reliably interpretable structure.
+Thereadingisthereforethefollowing. To98%ofitsenergythereductionfactorises, 1−R(e,ψ) ≈
+g(e)h(ψ) with g ∝ u , h ∝ v ; the eccentricity dependence and the half-span dependence decouple.
+1 1
+The first correction restoring coupling is exactly one further product term σ u v carrying 1.3%
+2 2 2
+of the energy; beyond it, at the 0.7% level, the decomposition has descended to the scatter of
+the underlying flight measurements and further refinement is not meaningful. In particular, the
+spectral content gives an a priori bound on the error of any separable closed form for 1−R: no
+product ansatz g(e)h(ψ) can do better in L2 than the rank-one truncation, whose relative error is
+√
+0.020 ≈ 0.14 in norm, dominated locally by the regions where the second mode is largest.
+91
+===== PAGE 92 =====
+19.3 Small-eccentricity asymptotics of the reduction
+We turn to the analytic structure of ∆ for small e. The starting point is the Taylor expansion of
+E(ψ,m) in m = e2, obtained by integrating the binomial series of the integrand.
+Lemma 19.8 (Eccentricity expansion of the elliptic arc). For φ ∈ (0,π/2] and |m| < 1,
+(cid:88) (cid:18) 1/2 (cid:19) (cid:90) φ
+E(φ,m) = φ− (−1)n+1mnS (φ), S (φ) = sin2nθdθ, (282)
+n n
+n
+0
+n≥1
+the series converging uniformly on φ ∈ [0,π/2] for each fixed |m| < 1. Explicitly, with (cid:0)1/2(cid:1) = 1,
+1 2
+(cid:0)1/2(cid:1) = −1, (cid:0)1/2(cid:1) = 1 ,
+2 8 3 16
+E(φ,m) = φ− 1mS (φ)− 1m2S (φ)− 1 m3S (φ)−··· , (283)
+2 1 8 2 16 3
+S (φ) =
+1(cid:0)
+φ−sinφcosφ
+(cid:1)
+,
+1 2
+S (φ) = 3φ− 1 sin2φ+ 1 sin4φ,
+2 8 4 32
+S (φ) = 5 φ− 15 sin2φ+ 3 sin4φ− 1 sin6φ.
+3 16 64 64 192
+Proof. For |m| < 1 and θ ∈ [0,φ] one has |msin2θ| ≤ |m| < 1, so the binomial series
+(cid:18) (cid:19) (cid:18) (cid:19)
+(cid:88) 1/2 (cid:88) 1/2
+(1−msin2θ)1/2 = (−msin2θ)n = 1− (−1)n+1mnsin2nθ
+n n
+n≥0 n≥1
+converges uniformly in θ, being dominated by (cid:80) | (cid:0)1/2(cid:1) ||m|n < ∞ independently of θ. Uniform
+n n
+convergencepermitsterm-by-termintegrationover[0,φ],giving(282). TheclosedformsforS ,S ,S
+1 2 3
+are the standard power-reduction integrals, e.g. sin2θ = 1(1−cos2θ) integrates to S , and successive
+2 1
+applications of the multiple-angle reductions give S ,S .
+2 3
+The signs in (283) are all negative because (cid:0)1/2(cid:1) (−1)n+1 > 0 for every n ≥ 1 (the generalised
+n
+binomial coefficients
+(cid:0)1/2(cid:1)
+alternate in sign for n ≥ 1, starting positive at n = 1); hence E(φ,m) ≤ φ
+n
+for m ∈ [0,1), consistent with the integrand never exceeding 1.
+We now express the absolute reduction. Recall L = 2aE(ψ,m) and write the deficit in
+dimensionless form ∆/2a = (L−d)/2a. On the reduced branch the charged distance d inherits the
+same elliptic geometry, and the deficit admits an expansion in powers of e2,
+∆ (cid:88)
+= c (ψ)e2k = c (ψ)e2+c (ψ)e4+c (ψ)e6+··· , (284)
+2k 2 4 6
+2a
+k≥1
+the leading order vanishing because at e = 0 the transfer is circular, E(ψ,0) = ψ, the chord and
+arc coincide in the relevant limit, and the reduction closes to zero deficit. The angular coefficients
+c (ψ) are determined by matching (284) against the difference of two series of the type (283), one
+2k
+for the arc and one for the charged-distance functional; each c is accordingly a finite real-linear
+2k
+combination of ψ, sin2ψ, sin4ψ, ..., sin(2k+2)ψ at order k, i.e. a trigonometric polynomial in ψ
+of bounded degree multiplied by no elementary closing factor.
+92
+===== PAGE 93 =====
+0.2
+0.1
+0.0
+0.1
+0.2
+0.4 0.6 0.8 1.0 1.2 1.4
+half-span
+tneiciffeoc
+seires
+c2( )
+c4( )
+c6( )
+Figure 31: The eccentricity-series coefficients c ,c ,c against ψ.
+2 4 6
+Proposition 19.9 (Leading angular coefficient and its non-elementary character). The leading
+coefficient c (ψ) in (284) is an odd-harmonic trigonometric expression vanishing at ψ = 0, and it is
+2
+not a constant multiple of sin22ψ. Quantitatively, the measured ratio
+c (ψ)
+2
+varies with ψ across the range [0.21, 0.26], (285)
+sin22ψ
+exhibiting monotone-then-structured dependence on ψ rather than a constant. In particular there is
+no real constant γ with c (ψ) ≡ γsin22ψ.
+2
+Proof. That c (ψ) → 0 as ψ → 0 follows because ∆/2a → 0 uniformly as the half-span closes
+2
+(the transfer arc degenerates to a point), and from (284) the coefficient of e2 inherits the same
+vanishing; the matching against (283) shows c has only zero constant term and odd-harmonic
+2
+content {ψ,sin2ψ,sin4ψ} at this order, all of which vanish at ψ = 0 when combined into the
+geometric deficit. The non-proportionality to sin22ψ = 1(1−cos4ψ) is the measured statement
+2
+(285): were c = γsin22ψ for a constant γ, the ratio c /sin22ψ would be the constant γ at every
+2 2
+ψ where sin2ψ ̸= 0; the observation that the ratio ranges over [0.21,0.26] with systematic, non-
+random variation in ψ (a spread far exceeding the per-bin scatter 0.001 and exceeding any plausible
+numerical-quadrature error in c ) refutes constancy. The variation is structured, not scatter, so it
+2
+reflects a genuine ψ-dependence in the functional form of c beyond the sin22ψ envelope. Hence c
+2 2
+is a non-elementary angular profile: it is well approximated near 0.21–0.26 times sin22ψ but carries
+an irreducible additional harmonic content (the S term contributes sin4ψ and a linear-in-ψ piece
+2
+that sin22ψ cannot reproduce alone).
+We next address the convergence character of (284).
+Proposition 19.10 (The eccentricity series is asymptotic, not rapidly convergent). Over the bulk
+of the half-span range the higher coefficients c (ψ),c (ψ),... are comparable in magnitude to c (ψ);
+4 6 2
+consequently the partial sums of (284) do not improve geometrically with order at moderate-to-large
+e, and (284) must be read as an asymptotic expansion as e → 0 rather than as a series with a useful
+radius of rapid convergence near e = 1.
+93
+===== PAGE 94 =====
+Proof. The coefficients c (ψ) descend from the binomial coefficients
+(cid:0)1/2(cid:1)
+of (283) weighting the
+2k k
+angular integrals S (ψ). The magnitudes | (cid:0)1/2(cid:1) | = 1 · 1 · 1 ··· decrease only algebraically, | (cid:0)1/2(cid:1) | ∼
+k k 2 8 16 k
+√1 k−3/2 as k → ∞, while the angular factors S (ψ) approach S (π/2) = π(cid:0)2k(cid:1) 4−k ∼ π(πk)−1/2,
+2 π k k 2 k 2
+so c decays like a negative algebraic power of k rather than geometrically. Multiplied by e2k,
+2k
+the term ratio |c e2k+2/c e2k| → e2 as k → ∞, which is close to 1 for e near unity: the series
+2k+2 2k
+is governed by the singularity of E(ψ,m) structure at m = 1 and converges only slowly there.
+Measured at fixed ψ across the bulk of (0,π/2], the fitted |c | and |c | are of the same order as
+4 6
+|c |, so no early truncation is accurate at moderate e; the expansion is therefore asymptotic in the
+2
+e → 0 sense (each finite truncation has error O(e2(k+1)) as e → 0) but is not a tool for evaluation at
+e → 1.
+This explains the status of the empirical high-eccentricity value. A least-squares fit of the deficit
+at large e returns
+∆ 1
+≈ (e → 1), (286)
+2ae2sin22ψ 3
+which is not a coefficient appearing in (284).
+Remark 19.11 (The constant 1/3 is a resummation, not a term). The value 1/3 in (286) is the
+best constant in a one-parameter model ∆/2a ≈ 1e2sin22ψ fitted in the high-eccentricity regime. It
+3
+is not equal to any c and in particular is not the leading coefficient c , whose ratio to sin22ψ sits
+2k 2
+in [0.21,0.26] rather than at 0.333. The discrepancy is precisely Proposition 19.10: at large e the
+series is dominated by no single term, and the effective coefficient measured by a sin22ψ template
+is the resummed contribution of all orders c +c e2+c e4+··· (each projected onto the sin22ψ
+2 4 6
+envelope) evaluated near e = 1, not the first term alone. That this resummed value lands near 1/3
+while the first term lands near 0.21–0.26 quantifies how much weight the higher orders carry at the
+eccentric end, consistent with Proposition 19.10.
+19.4 The eccentric limit as a singular limit
+The opposite extreme, e → 1 equivalently m → 1, is qualitatively different and is best described
+as a singular limit in which the transfer plane degenerates. The analytic signal is the logarithmic
+blow-up of the complete elliptic integral.
+Lemma 19.12 (Logarithmic divergence at m → 1). As m ↑ 1,
+16
+K(m) = 1 log + o(1), E(m) → 1, (287)
+2 1−m
+where K(m) = F(π,m) and E(m) = E(π,m) are the complete integrals.
+2 2
+Proof. Write m′ = 1−m. The complete integral K satisfies the ascending Landen / Legendre
+connection whose leading behaviour is the classical
+K(m) = log √ 4 +O (cid:0) m′logm′(cid:1) = 1 log 16 +o(1),
+m′ 2 m′
+94
+===== PAGE 95 =====
+obtained by splitting (cid:82)π/2 (1 − msin2θ)−1/2dθ near θ = π/2, where the integrand behaves like
+0
+(cos2θ+m′)−1/2 and produces the logarithm 1 log(1/m′) together with the constant 1 log16. For
+2 2
+E, monotone convergence in (cid:82)π/2 (cid:112) 1−msin2θdθ → (cid:82)π/2 |cosθ|dθ = 1 gives E(1) = 1.
+0 0
+The contrast between K and E in (287) is the heart of the singularity. The arc length
+L = 2aE(ψ,m) remains finite as m → 1, since E(ψ,m) ≤ ψ ≤ π/2 and E(π/2,1) = 1; but
+the derivatives of the geometry with respect to m inherit the divergence of K, because
+∂E E(φ,m)−F(φ,m)
+(φ,m) = ,
+∂m 2m
+and F(φ,m) → K-type logarithmic growth as m → 1 for φ near π/2. Thus while L itself is regular
+at the eccentric limit, its sensitivity to e and the higher Taylor coefficients c of Section 19.3 are
+2k
+governed by this logarithm, which is exactly why the series (284) ceases to be rapidly convergent
+there (Proposition 19.10): the eccentricity expansion is a Taylor series about a point (m = 0) whose
+nearest singularity is the logarithmic branch point at m = 1.
+Proposition 19.13 (Matched description of the deepest reduction). In the eccentric limit the
+reduction factor approaches a finite, strictly positive floor,
+R(e,ψ) −→ R (ψ) with minR (ψ) ≈ 0.45 (e → 1), (288)
+∞ ∞
+ψ
+and the angular profile ψ (cid:55)→ R(e,ψ) is broadest (flattest across ψ) precisely at e → 1. The limit
+(288) is a matched outcome of two regimes in θ: an outer region θ bounded away from π/2 where
+(cid:112)
+the integrand 1−msin2θ converges pointwise to |cosθ|, and an inner boundary layer of width
+√ √
+O( 1−m) near θ = π/2 where the integrand transits from O( m′) back to 1; the deficit accumulates
+contributions from both, and no finite truncation of the e2-series reproduces (288).
+Proof. ExistenceofafinitelimitR (ψ)followsfromtheboundedness(276)togetherwithmonotonic-
+∞
+(cid:82)ψ
+ity of R in e on the reduced branch and the convergence E(ψ,m) → E(ψ,1) = |cosθ|dθ = sinψ
+0
+(for ψ ≤ π/2), which is finite; hence L → 2asinψ and, the charged distance converging likewise
+to its own finite eccentric value, R = d/L tends to a finite ratio R (ψ). The numerical floor
+∞
+min R ≈ 0.45 is the measured deepest reduction on the branch and is stated as data.
+ψ ∞
+For the matched-asymptotics structure, decompose for m′ = 1−m small and any fixed ψ ≤ π/2,
+(cid:90) ψ(cid:112) (cid:90) ψ (cid:90) ψ(cid:16)(cid:112) (cid:17)
+E(ψ,m) = 1−msin2θdθ = |cosθ|dθ+ 1−msin2θ−|cosθ| dθ.
+0 0 0
+(cid:124) (cid:123)(cid:122) (cid:125) (cid:124) (cid:123)(cid:122) (cid:125)
+outer layercorrection
+The outer term is sinψ. In the layer correction the integrand is O(m′) away from θ = π/2 but,
+√ √
+when ψ = π/2, the region |θ−π/2| ≲ m′ contributes an O( m′) amount through the substitution
+√
+θ = π/2− m′ξ, under which 1−msin2θ = m′+(1−m′)m′ξ2+··· = m′(1+ξ2)+O(m′2) and
+√ √ √
+|cosθ| = m′|ξ|+O(m′3/2), sothelayerintegrand m′ (cid:0)(cid:112) 1+ξ2−|ξ| (cid:1) integratestoafiniteO( m′)
+√
+correction. Hence E(ψ,m) = sinψ +O( m′), finite, with the approach to the limit controlled
+by the boundary layer rather than by any single Taylor order; this is the analytic counterpart
+of Proposition 19.10. The same two-region accounting applies to the charged distance, and the
+95
+===== PAGE 96 =====
+1.0
+0.9
+0.8
+0.7
+0.6
+0.5
+0.4
+0.5 0.6 0.7 0.8 0.9 1.0
+eccentricity e
+57.0
+ta
+R
+1.25
+1.20
+1.15
+1.10
+1.05
+1.00
+0.5 0.6 0.7 0.8 0.9 1.0
+eccentricity e
+nis/)2e,
+(E=
+drohc/cra
+Figure 32: Left: R(e)→0.45 as e→1. Right: arc/chord →1.
+ratio R → R (ψ) collects both regions. That the profile is broadest at e → 1 follows because
+∞
+R (ψ) = d (ψ)/(2asinψ) varies least with ψ once both numerator and denominator have collapsed
+∞ ∞
+onto their eccentric-limit forms: the ψ-modulation that at small e is carried by the sin22ψ envelope
+is, in the limit, flattened by the common sinψ scaling, leaving the shallow residual profile that
+bottoms near 0.45.
+Remark 19.14 (Why e → 1 is genuinely singular). Three features mark (288) as a singular rather
+√
+than a regular limit. First, the limit is approached with a 1−m rate set by a boundary layer,
+not analytically in m: the map m (cid:55)→ E(ψ,m) is continuous up to m = 1 but its m-derivative
+diverges logarithmically (Lemma 19.12), so the eccentric value is not reachable by summing finitely
+many terms of (284). Second, the angular structure changes type: the small-e deficit is organised
+by the sin22ψ envelope with the non-constant prefactor of Proposition 19.9, whereas at e → 1
+the profile flattens and all orders of the series contribute jointly to the floor, consistent with the
+resummed value 1/3 of Remark 19.11 exceeding the first-order 0.21–0.26. Third, geometrically
+the transfer plane degenerates as e → 1 (the transfer ellipse collapses toward its major axis), so
+the very construction defining d approaches a boundary of its parameter domain; the finite floor
+R ≈ 0.45 is the regularised value of the reduction on that boundary. The deepest reduction is
+∞
+thus the value of a singular limit, not the endpoint of a convergent power series, and it is exactly
+the place where the spectral picture of Section 19.1–19.2 and the asymptotic picture of Section 19.3
+are simultaneously least informative pointwise yet jointly necessary: the 98%-separable rank-one
+structure and the slowly summing e2k series both describe the same kernel whose extreme behaviour
+lives at this degenerate edge.
+96
+===== PAGE 97 =====
+1.0
+0.9
+0.8
+0.7
+0.6
+0.5
+0.4
+0.2 0.4 0.6 0.8 1.0 1.2 1.4
+half-span (rad)
+/d=R
+noitcuder
+1.0
+0.8
+0.6
+0.4
+e [0.20,0.35] e [0.65,0.80] 0.2
+e [0.35,0.50] e [0.80,0.92]
+e [0.50,0.65] e [0.92,1.00]
+0.2 0.4 0.6 0.8 1.0 1.2 1.4
+half-span (rad)
+Figure 33: R(e,ψ)=d/ℓ against ψ at several eccen-
+tricities. R=1 at ψ →0 and deepens with e to the
+floor ≈0.45.
+e
+yticirtnecce
+1.0
+0.9
+0.8
+0.7
+0.6
+0.5
+/d=)
+,e(R
+Figure 34: The reduction surface R(e,ψ) over the
+populated region.
+Part IV
+Synthesis
+20 The predictor
+The complete distance law assembles the exact arc with the gate and the reduction. Build the focal
+ellipse of Section 2 for a, e, ψ; form ℓ = 2aE(ψ,e2) of Theorem 4.1; and apply the gate (6). On the
+∆E < 0 branch the reduction is taken from the tabulated surface R(e,ψ) of Figures 33 and 34, or
+from the rank-one leading approximation. The surface is the exact representation of the reduction
+to the data scatter 0.001; its construction and interpolation are in Appendix E.
+21 Accuracy
+Table 1 and Figure 35 compare the tabulated surface and the rank-one leading form against the
+server over all 83,939 flights. The surface reaches a median 0.030%, within 1% on 96.6% and within
+5% on 99.0%; the leading form, which carries no table, reaches a median 0.033% and within 5%
+on 91.4%; and the bare arc with no reduction is within 1% on 61.9%. The residual of the full law
+concentrates at the eccentric limit of Section 17, the difference between the two predictors being the
+rank-two coupling.
+Table 1: Transit-distance accuracy over 83,939 flights.
+predictor median error within 1% within 5%
+tabulated surface d = ℓR(e,ψ) 0.030% 96.6% 99.0%
+rank-one leading form 0.033% 67.4% 91.4%
+bare arc d = ℓ 0.033% 61.9% 89.5%
+97
+===== PAGE 98 =====
+100
+80
+60
+40
+20
+0
+10 3 10 2 10 1 100 101
+relative error (%)
+sthgilf
+fo
+%
+evitalumuc
+1.0
+0.8
+0.6
+0.4
+bare arc 0.2
+closed form
+surface
+0.0
+0.2 0.4 0.6 0.8 1.0 1.2 1.4
+half-span (rad)
+Figure 35: Cumulative error against the server for
+the bare arc, the leading form, and the surface.
+kaep
+sti
+ot
+delacs
+)R
+1(
+e [0.30,0.45]
+e [0.55,0.70]
+e [0.80,0.95]
+the angular profile
+broadens with e, so the
+reduction does not
+separate as F(e)G( )
+Figure 36: The angular profiles of 1−R at three
+eccentricities, each scaled to its peak. They do not
+coincide, the visual form of Proposition 14.1.
+22 A worked flight
+Take a reduced flight with r = 3.6189×108, r = 1.7209×108 in frame units. The semi-major axis
+O P
+is a = 1(r +r ) = 2.6699×108, and the focal construction gives e = 0.6178 and ψ = 0.6131. The
+2 O P
+arc is ℓ = 2aE(0.6131,0.3817) = 3.1998×108, above the chord 2asinψ = 3.0726×108. The flight
+runs the ∆E < 0 direction and is charged the reduced distance. The rank-one leading form gives
+d = 2.598×108 (R = 0.812), while the tabulated surface gives R = 0.855 and d = 2.735×108;
+lead
+the leading form sits 5.0% below the surface, since this flight lies in the eccentric region of Section 17
+where the rank-two coupling is large, and the surface value reproduces the server to the median
+0.030% of Section 21. On the reverse direction the same pair is charged the bare arc ℓ = 3.1998×108,
+so the two directions differ by 4.65×107, about 15%. The charged 2.735×108 is below the straight
+chord 3.0726×108, one of the 52.6% of reduced flights for which that holds.
+23 Scope and the open problem
+The exact arc is closed in special functions, ℓ = 2aE(ψ,e2), and the reduction is characterised:
+an effective distance, not a path (Proposition 11.1); not a real-modulus elliptic arc on a third of
+the branch (Proposition 13.2); not a separable product (Proposition 14.1); of functional rank two
+(Proposition 15.1); with a non-elementary asymptotic leading coefficient (Proposition 16.1). These
+results bound the reduction out of every elementary family the geometry suggests and give it a
+precise description as a rank-two deformation of the arc.
+What remains open is the generating map. Section 12 fixes the kinematic origin, the orbital
+velocity the ship inherits, and the limits it must respect, but not the coefficient or the higher-order
+angular shape, which are produced by the server’s internal reduction of that velocity to a charged
+distance. A first-principles derivation of that map, returning the leading coefficient c (ψ) and the
+2
+rank-two coupling of Section 15, is the single step that would carry the leading approximation to
+the exact law. The eliminations above show it will not be an elementary function of (e,ψ).
+98
+===== PAGE 99 =====
+24 Structural placement
+It is worth recording where the transit law sits among the standard structures of the arc problem.
+The length of an ellipse is the canonical second-kind integral, and the transit distance is exactly
+that length over the symmetric sub-arc. Two distinctions organise the analysis.
+The first is between the two kinds of integral. The first-kind integral F and its inverse, the
+Jacobi amplitude, parametrise position along the curve and are inverted by the functions sn,cn,dn,
+elementary in the parameter u; the second-kind integral E measures arc length and is not so inverted.
+The transit distance is a second-kind quantity, which is why no parametrisation by elementary
+functions of a single variable reproduces it; the arc accumulates at the rate dn2 along the natural
+parameter u (Section 7), and its integral, the second-kind value E(ψ,m), is not an elementary
+function of sinψ.
+The second is between the perimeter and its elementary surrogates. The complete value 2aE(e2),
+the half-perimeter, has no elementary closed form, and the elementary approximations to it are
+surrogates, accurate near e = 0 and degrading toward e = 1 exactly as the leading reduction law of
+Section 16 degrades. The reduction studied here is a deformation of the same non-elementary object,
+and the eliminations of Part III show the deformation is itself non-elementary, a single rank-two
+correction beyond the leading separable surrogate.
+Finally, arcs on the ellipse do not add linearly: the second-kind integral has no simple addition
+law, in contrast to the first-kind integral and the Jacobi functions of Section 7. The directional
+reductionisadifferentkindofdefect, avelocity-inducedshorteningratherthanafailureofadditivity,
+but both vanish in the circular limit. The transit law is thus a self-contained instance of second-kind
+arc geometry: an exact arc, plus a non-elementary, rank-two, velocity-induced deformation on one
+travel direction.
+25 Conclusion
+The in-system transit distance rests on the Hohmann transfer ellipse. The Hohmann semi-major
+axis forces the endpoint symmetry cosE +cosE = 0, which collapses the arc to the single elliptic
+O P
+integral ℓ = 2aE(ψ,e2), exact and the whole distance on half the flights. On the other half the ship
+inherits the origin body’s orbital velocity and the charged distance becomes an effective distance
+below every path. That reduction is non-elementary by four independent routes and is precisely
+a rank-two deformation of the arc, with the exact value carried as a tabulated surface and the
+rank-one term as the closed-form approximation. The combined law matches the server to a median
+0.030%, and the open problem is the kinematic map that generates the reduction.
+Appendices
+A The focal construction
+Given O,P with the star at the origin, set r = ∥O∥, r = ∥P∥, a = 1(r +r ), and u = P−O
+O P 2 O P
+with u = ∥u∥, uˆ = u/u, nˆ = (−uˆ ,uˆ ). The second focus is at s = (r2 −r2 +u2)/(2u) along the
+y x P O
+99
+===== PAGE 100 =====
+(cid:113)
+chord from O and h = r2 −s2 along the normal, F′ = O+suˆ ±hnˆ; take the candidate on the
+P ± √
+star’s side of the chord. Then C = 1F′, c = ∥C∥, e = c/a, b = a2−c2. The eccentric anomalies
+2
+follow by translating by −C, rotating into the axis frame, dividing the coordinates by a and b, and
+taking the two-argument arctangent; the signed difference reduced to (−π,π] is ∆E.
+B Evaluation of the elliptic arc
+The incomplete second-kind integral of Theorem 4.1 is evaluated without quadrature through the
+Carlson symmetric integrals,
+E(ψ,m) = sinψR (c,q,1)− 1msin3ψR (c,q,1), c = cos2ψ, q = 1−msin2ψ,
+F 3 D
+whereR andR arecomputedbytheirduplicationiterations: replace(x,y,z)by 1(x+λ,y+λ,z+λ)
+F √ √ D √ √ √ √ 4
+withλ = x( y+ z)+ y z,accumulatingtheR weight (cid:80) 4−k/( z(z+λ)),untilthearguments
+D
+agree to tolerance, then close with the fifth-order series in the normalised deviations. With m = e2
+this returns ℓ/2a to a worst-case relative error 1.2×10−8 against direct quadrature.
+C The minimal real-modulus arc
+The floor of Lemma 13.1, E(ψ,sin−2ψ) =
+(cid:82)ψ(cid:112)
+1−sin2θ/sin2ψdθ, is evaluated by a 300-point
+0
+Gauss–Legendre rule on [0,ψ], which is exact to machine precision for this analytic integrand and
+avoids the boundary singularity of the parameter form (the integrand vanishes, but is real and
+bounded, at θ = ψ). The existence test of Proposition 13.2 compares d/2a against this value directly.
+A naive evaluation through a library second-kind routine fails here, since most return not-a-number
+for parameter m > 1 even where msin2θ < 1 on the interval of integration.
+D Convergence and stability
+The Carlson iterations of Appendix B converge quadratically: each duplication step quarters
+the spread of the three arguments, and the terminating fifth-order series then gives full double
+precision in at most a dozen steps over the parameter range used here. The Gauss–Legendre rule of
+Appendix C is exact for polynomials of degree 599 and converges super-algebraically for the analytic
+(cid:112)
+integrand 1−sin2θ/sin2ψ away from θ = ψ; the integrand is continuous and bounded there,
+with a square-root vanishing that the rule resolves without special treatment, and doubling the
+node count changes the floor by less than 10−9. The singular value energies of Section 15 are stable
+to the third decimal under halving and doubling the binning grid and under reasonable changes
+to the gap-filling rule, and the leading two singular vectors are unchanged in shape; the rank-two
+truncation is therefore a property of the reduction rather than of the discretisation.
+100
+===== PAGE 101 =====
+E The reduction surface
+The reduction is stored as a grid of R on (e,E ) with E = π + ψ, spanning e ∈ [0,1] and
+O O 2
+E ∈ [−π,π] on a 51×181 mesh, and a query interpolates the four surrounding nodes bilinearly.
+O
+The rank analysis of Section 15 uses a 30×30 median-binned matrix of 1−R over (e,ψ), with
+the singular value decomposition taken after filling the few empty cells by their column means;
+the mixed partial of Section 14 is a centred finite difference of log(1−R) on the same grid. The
+reported energies are stable under halving and doubling the grid.
+101
