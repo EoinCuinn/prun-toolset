@@ -822,6 +822,47 @@ function radDmgRaw(parsecs) {
   return 0.000353 * parsecs;
 }
 
+// ── Damage model (Phase 5 — PHASE4_DAMAGE_SPEC.md §2) ─────────────────────────
+// CHARGE damage: fixed constant per reactor type, keyed by ReactorPower (spec §2c).
+const CHARGE_DMG = { 2000: 6.875e-6, 2400: 7.133e-5 };  // QCR / RCT; unknown → QCR default
+const GATEWAY_DMG = 5.247e-5;   // fixed per gateway hop (spec §2e)
+const LANDING_DMG_EST = 2e-3;   // placeholder per landing — formula not yet derived (spec §2d)
+
+// Per-blueprint shielding factors for the 4 known real blueprints (spec §3c). Unknown
+// blueprints default to BHP baseline (general 0, everything else 0).
+const BLUEPRINT_SHIELDING = {
+  'BP-IXZI-0433': { general: -0.10, heat: 0, whipple: 0, radiation: 0, gravity: 0 },
+  'BP-HJQJ-2441': { general: 0.15,  heat: 0, whipple: 0, radiation: 0, gravity: 1.0 },
+  'BP-NVGM-1171': { general: -0.10, heat: 0, whipple: 0, radiation: 0, gravity: 0 },
+  'BP-JRAJ-3531': { general: -0.10, heat: 0, whipple: 0, radiation: 0, gravity: 0 },
+};
+// Per-component shielding factors (spec §3a). General is additive (hull plate + drones).
+// Hull plates are picked in the hull selector; drones/other shields in the damage checkboxes.
+const SHIELDING_FACTORS = {
+  LHP: { general: -0.10 }, BHP: { general: 0.00 }, RHP: { general: 0.10 },
+  HHP: { general: 0.15 },  AHP: { general: 0.30 },
+  RDS: { general: 0.05 },  RDL: { general: 0.10 },
+  BPT: { heat: 0.50 },     APT: { heat: 1.00 },
+  BWH: { whipple: 0.50 },  AWH: { whipple: 1.00 },
+  STS: { gravity: 1.00 },
+  BRP: { radiation: 0.15 }, ARP: { radiation: 0.35 }, SRP: { radiation: 0.70 },
+};
+const ZERO_SHIELD = { general: 0, heat: 0, whipple: 0, radiation: 0, gravity: 0 };
+
+// Resolve the {general,heat,whipple,radiation,gravity} shielding factors for a ship.
+// Hypothetical ships carry a precomputed .shielding (from the component selector);
+// real ships map BlueprintNaturalId → BLUEPRINT_SHIELDING.
+function shieldingFor(ship) {
+  if (!ship) return ZERO_SHIELD;
+  if (ship.source === 'hypo') return ship.shielding || ZERO_SHIELD;
+  return BLUEPRINT_SHIELDING[ship.blueprintId] || ZERO_SHIELD;
+}
+
+// Reduce a base damage fraction by a shielding factor: damage × (1 − factor) (spec §3).
+function applyShield(base, factor) {
+  return base * (1 - (factor || 0));
+}
+
 function fmtDmg(frac) {
   return (frac * 100).toFixed(3) + '%';
 }
@@ -1203,6 +1244,14 @@ function rebuildHypo() {
   const cargoC = C.cargo[val('cargoSel')];
   const cargoCap = cargoC ? cargoC.capT * qty('cargoSelQty') : 0;
 
+  // Shielding: general = hull plate + drones (additive); heat/whipple/radiation/gravity
+  // from the checked damage components (spec §3a).
+  const sh = { general: SHIELDING_FACTORS[val('hullSel')]?.general || 0, heat: 0, whipple: 0, radiation: 0, gravity: 0 };
+  document.querySelectorAll('.dmg-cb:checked').forEach(cb => {
+    const f = SHIELDING_FACTORS[cb.value] || {};
+    for (const k of ['general', 'heat', 'whipple', 'radiation', 'gravity']) if (f[k]) sh[k] += f[k];
+  });
+
   _currentShip = {
     source: 'hypo',
     label: `${val('hullSel')}+${engQty}×${val('engSel')}`,
@@ -1215,6 +1264,7 @@ function rebuildHypo() {
     chargeFactor: null,
     stlFlowRate: 0.0075,   // nominal; only used by Fix 1 fuel-starve guard
     cargoCap,
+    shielding: sh,
   };
   // Bound the cargo slider by the selected bay capacity (tonnes ceiling).
   setSliderMax('cargoMassSlider', Math.max(1, cargoCap || 5000));
@@ -1402,6 +1452,7 @@ async function calculate() {
 
   const M = +document.getElementById('fuelSlider').value;
   const phys = shipPhysics(_currentShip);
+  const sh = shieldingFor(_currentShip);   // {general,heat,whipple,radiation,gravity}
   const sameSys = _origin.sysId === _dest.sysId;
 
   const originSys = _systems[_origin.sysId];
@@ -1491,15 +1542,23 @@ async function calculate() {
         totalRealMin += dep.tReal / 60;
         totalFuelStl += dep.M;
         t += dep.tReal;
+        // DEPARTURE meteoroid ablation — origin system density, general shielding.
+        // Origin orbital radius (SMA) as the distance proxy, mirroring the APPROACH leg.
+        const depDensity = (_sysStats[_origin.sysId] || {}).meteoroidDensity || 0;
+        const depOriginSMA = originStation ? originStation.a_m * 1000 : depOriginPl?.OrbitSemiMajorAxis;
+        const depMet = depOriginSMA ? applyShield(meteorDmgRaw(depOriginSMA, depDensity), sh.general) : 0;
+        totalDmg += depMet;
         const depLabel = originStation?.name ?? depOriginPl?.PlanetName ?? depOriginPl?.PlanetNaturalId;
         const depNote = dep.starved
           ? `⚠ Fuel-starved departure — M capped at ${dep.M.toFixed(1)} by STL fuel budget (${onboardMassT().stl.toFixed(1)} t)`
-          : (!originStation && !originInEph) ? '⚠ Origin not in fitted ephemeris — gate position estimated' : null;
+          : (!originStation && !originInEph) ? '⚠ Origin not in fitted ephemeris — gate position estimated'
+          : '⚠ Departure thrust term not yet isolated — modelled as ablation only';
         html += legHtml('DEP', `${depLabel} → jump gate`, [
           ['Distance', fmtDist(dep.chargedKm)],
           ['Time (real)', fmtRealTime(dep.tReal)],
           ['STL fuel', dep.M.toFixed(1) + ' units'],
-        ], '', 0, depNote);
+          ['Meteor dmg', fmtDmg(depMet)],
+        ], '', depMet, depNote);
       }
     }
   }
@@ -1514,7 +1573,8 @@ async function calculate() {
     let totalJumpSec   = 0;   // lane jump travel time
     let totalChargeSec = 0;   // charge time between lane jumps
     let totalGwSec     = 0;   // gateway time (always computable)
-    let totalRadDmg    = 0;
+    let totalRadDmg    = 0;   // lane-jump FTL radiation (radiation shielding)
+    let totalGwDmg     = 0;   // gateway wear (general shielding)
     let laneJumps      = 0;   // count of consecutive lane hops (for charges)
     const hopDescs     = [];
 
@@ -1524,17 +1584,17 @@ async function calculate() {
       if (!fromSys || !toSys) continue;
       const pc        = parsecsBetween(fromSys, toSys);
       const isGateway = _gatewayEdges.has(path[i] + '→' + path[i + 1]);
-      const rd        = radDmgRaw(isGateway ? 0 : pc);
       totalParsecs += pc;
-      totalRadDmg  += rd;
 
       let hopSec = null;
       if (isGateway) {
         // Paper §12.6 eq.19: 3 pc/hr + 1220s bracket (10+600+600+10)
         hopSec = pc * 1200 + 1220;
         totalGwSec += hopSec;
+        totalGwDmg += applyShield(GATEWAY_DMG, sh.general);  // fixed per hop, general shield
       } else {
         laneJumps++;
+        totalRadDmg += applyShield(radDmgRaw(pc), sh.radiation);  // FTL radiation, rad shield
         if (J != null) {
           hopSec = J * pc;
           totalJumpSec += hopSec;
@@ -1553,9 +1613,15 @@ async function calculate() {
       totalChargeSec = (laneJumps - 1) * ftl.c * ruf;
     }
 
+    // CHARGE damage — one reactor charge per lane jump, fixed per reactor type (spec §2c).
+    // Location/environment independent → no shielding.
+    const chargeUnit  = CHARGE_DMG[_currentShip?.reactorPower] ?? CHARGE_DMG[2000];
+    const totalChargeDmg = laneJumps * chargeUnit;
+    const totalFtlDmg = totalRadDmg + totalGwDmg + totalChargeDmg;
+
     const totalFtlSec = totalJumpSec + totalChargeSec + totalGwSec;
     totalRealMin += totalFtlSec / 60;
-    totalDmg += totalRadDmg;
+    totalDmg += totalFtlDmg;
     t += totalFtlSec;
 
     // Build per-hop rows
@@ -1577,19 +1643,22 @@ async function calculate() {
       }
     }
     if (totalGwSec > 0) ftlRows.push(['Gateway time', fmtRealTime(totalGwSec)]);
-    ftlRows.push(['Radiation dmg', fmtDmg(totalRadDmg)]);
+    if (totalRadDmg > 0) ftlRows.push(['Radiation dmg', fmtDmg(totalRadDmg)]);
+    if (totalGwDmg > 0)  ftlRows.push(['Gateway dmg', fmtDmg(totalGwDmg)]);
+    ftlRows.push(['Charge dmg', fmtDmg(totalChargeDmg)]);
 
     const ftlNote = ftl?.estimated ? '⚠ Reactor constants from paper estimates — calibrate against APEX' : null;
     const numJumps = path.length - 1;
     html += legHtml('FTL', `${numJumps} jump${numJumps > 1 ? 's' : ''} — ${totalParsecs.toFixed(2)} pc`,
-      ftlRows, hopRows, totalRadDmg, ftlNote);
+      ftlRows, hopRows, totalFtlDmg, ftlNote);
   }
 
   // ── STL / APPROACH leg ──
   const stlDestPl  = destPl || stlDestFallback;   // null when dest is a known station
   const stlDestSMA = destStation ? destStation.a_m * 1000 : stlDestPl?.OrbitSemiMajorAxis;
   const density = (_sysStats[_dest.sysId] || {}).meteoroidDensity || 0;
-  const stlMet  = stlDestSMA ? meteorDmgRaw(stlDestSMA, density) : 0;
+  // APPROACH/TRANSIT meteoroid ablation — destination density, general shielding (spec §3b).
+  const stlMet  = stlDestSMA ? applyShield(meteorDmgRaw(stlDestSMA, density), sh.general) : 0;
   if (stlDestSMA) totalDmg += stlMet;
 
   let rendez = null;
@@ -1678,13 +1747,17 @@ async function calculate() {
     const ldgKm   = ldgAtm ? ldgAtm.dKm   : 18514;
     totalRealMin += ldgTime / 60;
     totalFuelStl += ldgFuel;
+    // LANDING damage — placeholder constant, heat shielding (spec §2d/§3b). Estimated.
+    const ldgDmg = applyShield(LANDING_DMG_EST, sh.heat);
+    totalDmg += ldgDmg;
     const hazards = planetHazardBadges(destPl);
     html += legHtml('LDG', `Orbit → ${destPl.PlanetName || destPl.PlanetNaturalId}`, [
       ['Distance', fmtDist(ldgKm)],
       ['Time (real)', fmtRealTime(ldgTime)],
       ['STL fuel', ldgFuel.toFixed(1) + ' units'],
-    ], hazards, 0, ldgAtm
-      ? '⚠ Planetary median ±15% — actual varies by approach geometry &amp; base tile position (paper §1.2)'
+      ['Landing dmg', fmtDmg(ldgDmg) + ' <small style="color:var(--text3)">(est)</small>'],
+    ], hazards, ldgDmg, ldgAtm
+      ? '⚠ Planetary median ±15% — actual varies by approach geometry &amp; base tile position (paper §1.2). Landing damage estimated.'
       : '(estimate — no ship selected)');
   }
 
@@ -1694,12 +1767,33 @@ async function calculate() {
   // ── Totals ──
   const stlTimeKnown = phys != null;
   const timeLabel = stlTimeKnown ? 'Total Time (real)' : 'Total Time (excl. STL)';
+
+  // Condition feedback — trip damage is the sum of all segment damage (spec §4).
+  // Real fleet: project current condition forward. Threshold alerts (spec §5): amber <80%, red <50%.
+  let condRows = '';
+  let alertBanner = '';
+  const isReal = _currentShip?.source === 'real';
+  if (isReal && _currentShip?.condition != null) {
+    const cur = _currentShip.condition;
+    const proj = cur - totalDmg;
+    const projClass = proj < 0.50 ? ' high' : '';
+    condRows =
+      `<div class="total-row"><span class="k">Current Condition</span><span class="v">${(cur * 100).toFixed(1)}%</span></div>` +
+      `<div class="total-row"><span class="k">Projected Condition</span><span class="v dmg${projClass}">${(proj * 100).toFixed(1)}%</span></div>`;
+    if (proj < 0.50)
+      alertBanner = `<div class="note" style="margin-top:0.5rem;color:#f87171;font-weight:600">🔴 Ship condition critical after this route (${(proj*100).toFixed(1)}%) — repair before flying</div>`;
+    else if (proj < 0.80)
+      alertBanner = `<div class="note" style="margin-top:0.5rem;color:#fbbf24;font-weight:600">⚠ Ship condition will drop below 80% (${(proj*100).toFixed(1)}%) — speed penalty applies</div>`;
+  }
+
   html += `<hr class="results-divider">
     <div class="total-row"><span class="k">${timeLabel}</span><span class="v${stlTimeKnown ? '' : ' approx'}">${fmtMin(totalRealMin)}</span></div>
-    <div class="total-row"><span class="k">Total Hull Damage</span><span class="v dmg${totalDmg > 0.05 ? ' high' : ''}">${fmtDmg(totalDmg)}</span></div>
+    <div class="total-row"><span class="k">Trip Hull Damage</span><span class="v dmg${totalDmg > 0.05 ? ' high' : ''}">${fmtDmg(totalDmg)}</span></div>
+    ${condRows}
+    ${alertBanner}
     <div class="total-row"><span class="k">STL Fuel Used</span><span class="v">${totalFuelStl.toFixed(1)} units</span></div>
     ${shieldRec}
-    <div class="note" style="margin-top:0.75rem">STL: transfer ellipse arc rendezvous solver (paper §8). TO/LDG: paper §12.4. FTL: A·e^(−β·ρ)·d + charges (paper §12.1–12.3); gateway 3 pc/hr + 1220s (§12.6). Damage: no shielding.</div>
+    <div class="note" style="margin-top:0.75rem">STL: transfer ellipse arc rendezvous solver (paper §8). TO/LDG: paper §12.4. FTL: A·e^(−β·ρ)·d + charges (paper §12.1–12.3); gateway 3 pc/hr + 1220s (§12.6). Damage: shielding applied per component (general/radiation/heat); landing &amp; departure-thrust terms estimated.</div>
   `;
 
   resEl.innerHTML = html;

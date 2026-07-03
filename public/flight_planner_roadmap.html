@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PrUn Command — Path to a Trusted Flight Planner</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --border: #2a2e38;
+    --text: #e8e9ed;
+    --muted: #8b8f99;
+    --done: #3ba55d;
+    --done-bg: rgba(59,165,93,0.12);
+    --unverified: #d9a73c;
+    --unverified-bg: rgba(217,167,60,0.12);
+    --inprogress: #4a90d9;
+    --inprogress-bg: rgba(74,144,217,0.12);
+    --blocked: #d96c6c;
+    --blocked-bg: rgba(217,108,108,0.12);
+    --notstarted: #5a5f6b;
+    --notstarted-bg: rgba(90,95,107,0.10);
+    --milestone: #b88af0;
+    --parked: #6b7280;
+    --parked-bg: rgba(107,114,128,0.10);
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    padding: 28px;
+    line-height: 1.4;
+  }
+  h1 { font-size: 19px; font-weight: 600; margin: 0 0 4px 0; }
+  .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 22px; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; font-size: 12px; color: var(--muted); }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .section { margin-bottom: 22px; }
+  .section-title {
+    font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--muted); margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border);
+  }
+  .row {
+    display: grid; grid-template-columns: 230px 1fr 110px; gap: 12px; align-items: center;
+    padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+  .row:last-child { border-bottom: none; }
+  .task-name { font-size: 13.5px; font-weight: 500; }
+  .task-detail { font-size: 12px; color: var(--muted); }
+  .bar-track { background: rgba(255,255,255,0.04); border-radius: 4px; height: 22px; position: relative; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 8px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .status-pill { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 10px; text-align: center; white-space: nowrap; }
+  .done { background: var(--done-bg); color: var(--done); }
+  .done-bar { background: var(--done); color: #0f1115; }
+  .unverified { background: var(--unverified-bg); color: var(--unverified); }
+  .unverified-bar { background: var(--unverified); color: #0f1115; }
+  .inprogress { background: var(--inprogress-bg); color: var(--inprogress); }
+  .inprogress-bar { background: var(--inprogress); color: #0f1115; }
+  .blocked { background: var(--blocked-bg); color: var(--blocked); }
+  .blocked-bar { background: var(--blocked); color: #0f1115; }
+  .notstarted { background: var(--notstarted-bg); color: var(--notstarted); }
+  .notstarted-bar { background: rgba(255,255,255,0.06); color: var(--muted); }
+  .parked { background: var(--parked-bg); color: var(--parked); }
+  .parked-bar { background: rgba(255,255,255,0.05); color: var(--parked); }
+
+  .milestone-section {
+    margin-top: 28px; padding: 18px; border: 1px solid var(--milestone); border-radius: 8px;
+    background: rgba(184,138,240,0.06);
+  }
+  .milestone-title { color: var(--milestone); font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+  .milestone-deps { font-size: 12.5px; color: var(--muted); }
+
+  .resolved-box {
+    margin-top: 10px; margin-bottom: 22px; padding: 14px 16px; border-radius: 8px;
+    border: 1px solid var(--done); background: rgba(59,165,93,0.07); font-size: 12.5px; color: var(--text);
+  }
+  .resolved-title { color: var(--done); font-weight: 700; font-size: 12.5px; margin-bottom: 4px; }
+
+  .note { font-size: 11.5px; color: var(--muted); margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<h1>PrUn Command — Path to a Trusted Flight Planner</h1>
+<div class="subtitle">Status &amp; dependency map, not a calendar schedule — bar length reflects relative progress within each task, not elapsed real time. Revised June 27, 2026. Latest update: capture extension live and accumulating data — ANT and BEN now have samples, LDG fuel now collecting passively, 377-planet coverage gap pipeline now running.</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="dot" style="background:var(--done)"></span>Done &amp; verified</div>
+  <div class="legend-item"><span class="dot" style="background:var(--unverified)"></span>Done but unverified / provisional</div>
+  <div class="legend-item"><span class="dot" style="background:var(--inprogress)"></span>In progress</div>
+  <div class="legend-item"><span class="dot" style="background:var(--blocked)"></span>Open / blocked</div>
+  <div class="legend-item"><span class="dot" style="background:var(--notstarted)"></span>Not started</div>
+  <div class="legend-item"><span class="dot" style="background:var(--parked)"></span>Deferred / parked</div>
+</div>
+
+<div class="resolved-box">
+  <div class="resolved-title">✓ Resolved since last revision: the "540 km/s defies physics" puzzle</div>
+  This morning's finding that HRT's orbit implied ~107× a sun-like star's mass was a units error, not a real anomaly. The game's orbital clock runs <strong>20× faster than real elapsed seconds</strong> (confirmed in project_flight_dynamics.md: <code>worldTime = ref + (unixT−ref)×20</code>). Correcting for that brings the implied GM within 2.6% of VH-331's actual star-mass-derived GM. HRT orbits an ordinary, slightly-sub-solar-mass star — nothing exotic.
+</div>
+
+<div class="section">
+  <div class="section-title">1 — Planet Position &amp; Flight-Path Foundation</div>
+
+  <div class="row">
+    <div><div class="task-name">Duration formula (paper §6)</div><div class="task-detail">t = d/(2·accel·M) + 2M — implemented &amp; committed 2026-06-22</div></div>
+    <div class="bar-track"><div class="bar-fill done-bar" style="width:100%">100%</div></div>
+    <div class="status-pill done">Verified</div>
+  </div>
+
+  <div class="row">
+    <div><div class="task-name">Carlson elliptic arc + sign fix</div><div class="task-detail">Transfer-ellipse arc, prograde-focus sign corrected — validated to 0.027% error against AVI-047P1 when fed exact game positions</div></div>
+    <div class="bar-track"><div class="bar-fill done-bar" style="width:100%">100%</div></div>
+    <div class="status-pill done">Verified</div>
+  </div>
+
+  <div class="row">
+    <div><div class="task-name">GM / worldTime ephemeris model</div><div class="task-detail">GM = 6.6743e-11 × star.Mass, loaded from systemstars.json for all 698 systems; 20× worldTime scaling confirmed</div></div>
+    <div class="bar-track"><div class="bar-fill done-bar" style="width:100%">100%</div></div>
+    <div class="status-pill done">Verified</div>
+  </div>
+
+  <div class="row">
+    <div><div class="task-name">Rendezvous iteration solver</div><div class="task-detail">Converges in 3-5 iterations — implemented</div></div>
+    <div class="bar-track"><div class="bar-fill done-bar" style="width:100%">100%</div></div>
+    <div class="status-pill done">Verified</div>
+  </div>
+
+  <div class="row">
+    <div><div class="task-name">FTL jump model (paper §12.1-12.3)</div><div class="task-detail">t_jump, t_charge, FP_SCALE=12.0 — implemented</div></div>
+    <div class="bar-track"><div class="bar-fill done-bar" style="width:100%">100%</div></div>
+    <div class="status-pill done">Verified</div>
+  </div>
+
+  <div class="row">
+    <div><div class="task-name">Per-planet orbit correction (CW + Ω=-90° + ω)</div><div class="task-detail">Model proven on 4 planets / 3 systems (VH-331, ZV-307, IA-158) to 0.001-0.15% accuracy. Requires per-planet ω fitted from real flight data — same bottleneck as the coverage-gap row below. Partial application (without ω) gives ~200% error — worse than nothing.</div></div>
+    <div class="bar-track"><div class="bar-fill done-bar" style="width:100%">model proven</div></div>
+    <div class="status-pill done">Verified</div>
+  </div>
+
+  <div class="row">
+    <div><div class="task-name">Periapsis unretrievable</div><div class="task-detail">Confirmed at server-record level, not just FIO</div></div>
+    <div class="bar-track"><div class="bar-fill done-bar" style="width:100%">100%</div></div>
+    <div class="status-pill done">Verified</div>
+  </div>
+
+  <div class="row">
+    <div><div class="task-name">Passive capture pipeline (extension)</div><div class="task-detail">Chrome MV3 extension live as of June 27, 2026. Intercepts SHIP_FLIGHT_FLIGHTS, SHIP_FLIGHT_MISSION, SYSTEM_TRAFFIC_SHIP via WebSocket.prototype Proxy. 66+ captures in first ~10 min of play. Runs automatically — no manual steps. Phase 5 extraction script (extract.js) in progress.</div></div>
+    <div class="bar-track"><div class="bar-fill done-bar" style="width:90%">extension live, extraction in progress</div></div>
+    <div class="status-pill done">Live</div>
+  </div>
+
+  <div class="row">
+    <div><div class="task-name">Coverage gap identified</div><div class="task-detail">377 planets / 67 systems lack a fitted ω — missing_planets.csv delivered</div></div>
+    <div class="bar-track"><div class="bar-fill done-bar" style="width:100%">100% identified</div></div>
+    <div class="status-pill done">Mapped</div>
+  </div>
+
+  <div class="row">
+    <div><div class="task-name">OZ-189a refit claim</div><div class="task-detail">"6× improvement / phase drift" — pushed live, never checked vs held-out data</div></div>
+    <div class="bar-track"><div class="bar-fill blocked-bar" style="width:35%">unverified</div></div>
+    <div class="status-pill blocked">Open</div>
+  </div>
+
+  <div class="row">
+    <div><div class="task-name">Extend ω coverage (377 planets)</div><div class="task-detail">Pipeline now live — capture extension accumulates position data passively during normal play. Phase 5 extraction script converts captures to (naturalId, timestamp, x, y, z) rows ready for peri-solving. No planets solved yet but data is flowing automatically.</div></div>
+    <div class="bar-track"><div class="bar-fill inprogress-bar" style="width:12%">pipeline live, solving not yet started</div></div>
+    <div class="status-pill inprogress">In progress</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">2 — Station Position Foundation (HRT + 5 others)</div>
+
+  <div class="row">
+    <div><div class="task-name">Stations move (not fixed)</div><div class="task-detail">HRT measured moving 625km in 19 min — real, confirmed</div></div>
+    <div class="bar-track"><div class="bar-fill done-bar" style="width:100%">100%</div></div>
+    <div class="status-pill done">Verified</div>
+  </div>
+
+  <div class="row">
+    <div><div class="task-name">HRT: planarity + omega + Z-model</div><div class="task-detail">9 samples, near-exact plane fit, ω confirmed 6× independently (-1.129367e-5 rad/s), Z fits to &lt;20km</div></div>
+    <div class="bar-track"><div class="bar-fill done-bar" style="width:100%">100%</div></div>
+    <div class="status-pill done">Verified</div>
+  </div>
+
+  <div class="row">
+    <div><div class="task-name">HRT: eccentricity / periapsis</div><div class="task-detail">Keplerian model (solveKepler + stationXYZ branch) implemented &amp; committed. e≈0.071, a=45M km, r_peri 41.8M km still provisional pending ~67h validation sample. GM cross-checked against star mass (see resolved box above) — model's physics is sound, only the periapsis-region shape is unconfirmed.</div></div>
+    <div class="bar-track"><div class="bar-fill inprogress-bar" style="width:80%">implemented, periapsis provisional</div></div>
+    <div class="status-pill inprogress">In progress</div>
+  </div>
+
+  <div class="row">
+    <div><div class="task-name">HRT: held-out validation sample</div><div class="task-detail">Target: game timestamp ≳1782626000 (~Sunday June 28, ~15:53 Sydney) — near predicted periapsis. IMMINENT — grab a real HRT flight export at or after that timestamp and bring to chat.</div></div>
+    <div class="bar-track"><div class="bar-fill inprogress-bar" style="width:10%">imminent — tomorrow</div></div>
+    <div class="status-pill inprogress">Imminent</div>
+  </div>
+
+  <div class="row">
+    <div><div class="task-name">Remaining 5 stations</div><div class="task-detail">ANT: 10+ captures from blueprint tester planning (June 27). BEN: first position captured at t=1782587455159, x=239892453, y=-503032224 (June 27). MOR, Arclight, Hubur still at zero samples. Codes for Arclight and Hubur still unknown.</div></div>
+    <div class="bar-track"><div class="bar-fill inprogress-bar" style="width:15%">2 / 5 have samples — not yet fitted</div></div>
+    <div class="status-pill inprogress">In progress</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">3 — Planner Code Fixes</div>
+
+  <div class="row">
+    <div><div class="task-name">station_data.json plumbing</div><div class="task-detail">_stationsBySys map, replaces planet-proxy fallback — built</div></div>
+    <div class="bar-track"><div class="bar-fill done-bar" style="width:100%">100% built</div></div>
+    <div class="status-pill done">Built</div>
+  </div>
+
+  <div class="row">
+    <div><div class="task-name">Coordinate-frame mix-up fix</div><div class="task-detail">168M vs 117M km bug — p1IsEphFrame/p2IsEphFrame logic implemented &amp; committed, but not yet confirmed by reloading the live planner</div></div>
+    <div class="bar-track"><div class="bar-fill blocked-bar" style="width:90%">implemented, pending live check</div></div>
+    <div class="status-pill blocked">Unverified</div>
+  </div>
+
+  <div class="row">
+    <div><div class="task-name">TO formula discrepancy</div><div class="task-detail">REVISED FRAMING: current formula IS paper §12.4 (Glass/Carbon), claims median 2.9% accuracy. Marcus's independently-derived formula disagrees 3× at low fuel-slider P. Two well-sourced formulas in genuine conflict — needs testing against real low-P flight data, not a simple "swap to Marcus's" anymore.</div></div>
+    <div class="bar-track"><div class="bar-fill blocked-bar" style="width:30%">needs real-data test</div></div>
+    <div class="status-pill blocked">Open</div>
+  </div>
+
+  <div class="row">
+    <div><div class="task-name">Ship condition speed penalty</div><div class="task-detail">No penalty above 80% (confirmed). Below 80% it applies — shape unknown. Capturing blueprint-tester exports at ≥80% baseline + several points below 80% to map the curve, then implement. Currently condition is read from FIO but not applied to accel anywhere in the code. Also ties to a separate cleanup: remove the old calibrated HULL_PHYSICS accel table in favor of FIO thrust/mass × condition.</div></div>
+    <div class="bar-track"><div class="bar-fill inprogress-bar" style="width:25%">capturing test data</div></div>
+    <div class="status-pill inprogress">In progress</div>
+  </div>
+
+  <div class="row">
+    <div><div class="task-name">Departure STL leg</div><div class="task-detail">Origin planet → jump gate — implemented in commit 4315ac4, not yet tested on a real multi-system route</div></div>
+    <div class="bar-track"><div class="bar-fill blocked-bar" style="width:85%">implemented, pending live check</div></div>
+    <div class="status-pill blocked">Unverified</div>
+  </div>
+
+  <div class="row">
+    <div><div class="task-name">LDG fuel / hull calibration</div><div class="task-detail">Blocker resolved — capture extension collects LANDING stlFuelConsumption values automatically from every flight passing through captures.jsonl. Real M_landing values now accumulating passively. Phase 5 extraction script surfaces these in the CSV. Fix can be implemented once extraction is confirmed working.</div></div>
+    <div class="bar-track"><div class="bar-fill inprogress-bar" style="width:15%">data now collecting passively</div></div>
+    <div class="status-pill inprogress">In progress</div>
+  </div>
+
+  <div class="row">
+    <div><div class="task-name">Damage formula</div><div class="task-detail">NEW: ~17× too high vs game (2.141% planner vs 0.116% actual). No paper formula exists. Ground truth now available from AVI-047P1: TRANSIT=0.001027, LDG=0.000136. Explicitly deprioritized by Daniel, but now has real numbers to fit against whenever it's picked back up.</div></div>
+    <div class="bar-track"><div class="bar-fill notstarted-bar" style="width:10%">ground truth captured</div></div>
+    <div class="status-pill notstarted">Not started</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">4 — Deferred / Parked (do not action without explicit request)</div>
+
+  <div class="row">
+    <div><div class="task-name">Approach-orbit fixed-point solver</div><div class="task-detail">Helion Prime altitude varies 696-802km between flights (§11). Not worth implementing until ±15% variance causes real planning problems.</div></div>
+    <div class="bar-track"><div class="bar-fill parked-bar" style="width:100%">parked</div></div>
+    <div class="status-pill parked">Deferred</div>
+  </div>
+
+  <div class="row">
+    <div><div class="task-name">Base tile correction field</div><div class="task-detail">Deferred pending evidence of actual user need</div></div>
+    <div class="bar-track"><div class="bar-fill parked-bar" style="width:100%">parked</div></div>
+    <div class="status-pill parked">Deferred</div>
+  </div>
+
+  <div class="row">
+    <div><div class="task-name">2D vs 3D focal construction retest</div><div class="task-detail">Already tried overriding inclination to 0 — made it worse (-1.55% → -2.74%). Do NOT retry without genuinely new data.</div></div>
+    <div class="bar-track"><div class="bar-fill parked-bar" style="width:100%">do not repeat</div></div>
+    <div class="status-pill parked">Failed before</div>
+  </div>
+</div>
+
+<div class="milestone-section">
+  <div class="milestone-title">🎯 Milestone: Trusted Flight Planner</div>
+  <div class="milestone-deps">
+    Depends on: ω coverage extended to the remaining 377 planets (or at least no silent fallback for gaps) · all 6 stations fitted &amp; validated · coordinate-frame fix actually confirmed live · TO formula resolved against real low-P flight data · ship condition, departure leg, and LDG calibration all implemented <em>and</em> checked against real exports — not just claimed.
+    <br><br>
+    <strong>Where you actually are right now:</strong> the core physics engine (duration formula, Carlson arc, GM/worldTime ephemeris, FTL model, the 3-part orbit correction) is genuinely solid and was proven out over several earlier sessions, not just tonight. What's outstanding is narrower than it might feel: extending ω coverage, finishing the 5 remaining stations, and confirming a small number of already-written fixes actually work live. The TO formula question got more interesting, not less — it's now two credible formulas in conflict, not "validated vs guess."
+  </div>
+</div>
+
+<div class="note">Revised to incorporate Claude Code's MEMORY.md and project_flight_dynamics.md (uploaded this session). Items are only flipped to "Done &amp; verified" once confirmed against a real reload or flight export — not on self-report alone, from either side of the chat/Code split.</div>
+
+</body>
+</html>

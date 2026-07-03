@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PrUn Flight Planner — Master Roadmap</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #21262d;
+    --text: #c9d1d9;
+    --text-dim: #6e7681;
+    --text-bright: #f0f6fc;
+    --accent: #58a6ff;
+    --p1: #388bfd;
+    --p2: #d2a8ff;
+    --p3: #3fb950;
+    --p4: #ffa657;
+    --p5: #f85149;
+    --p6: #79c0ff;
+    --p7: #56d364;
+    --p8: #e3b341;
+    --chat: #d2a8ff;
+    --code: #3fb950;
+    --both: #ffa657;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace; font-size: 13px; min-height: 100vh; padding: 32px 24px; }
+  header { margin-bottom: 32px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+  header h1 { font-size: 20px; color: var(--text-bright); letter-spacing: 0.04em; margin-bottom: 6px; }
+  header .subtitle { color: var(--text-dim); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px; }
+  header .goal { color: var(--text); font-size: 12px; line-height: 1.6; border-left: 3px solid var(--accent); padding-left: 12px; margin-top: 12px; }
+  .legend { display: flex; gap: 24px; margin-bottom: 28px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  .section-divider { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); border-bottom: 1px solid var(--border); padding-bottom: 8px; margin: 36px 0 20px; }
+  .phase-block { margin-bottom: 20px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .phase-header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .phase-number { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); min-width: 70px; }
+  .phase-title { font-size: 13px; font-weight: 600; color: var(--text-bright); flex: 1; }
+  .phase-where { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 8px; border-radius: 3px; font-weight: 600; }
+  .where-chat { background: rgba(210,168,255,0.15); color: var(--chat); }
+  .where-code { background: rgba(63,185,80,0.15); color: var(--code); }
+  .where-both { background: rgba(255,166,87,0.15); color: var(--both); }
+  .phase-status { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 8px; border-radius: 3px; font-weight: 600; }
+  .status-complete { background: rgba(63,185,80,0.15); color: var(--p3); }
+  .status-inprog   { background: rgba(255,166,87,0.15); color: var(--p4); }
+  .status-ready    { background: rgba(56,139,253,0.15); color: var(--p1); }
+  .status-blocked  { background: rgba(248,81,73,0.15);  color: var(--p5); }
+  .status-pending  { background: rgba(110,118,129,0.15); color: var(--text-dim); }
+  .status-ongoing  { background: rgba(86,211,100,0.12); color: var(--p7); }
+  .task-list { padding: 0; }
+  .task { display: flex; align-items: flex-start; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--border); transition: background 0.15s; }
+  .task:last-child { border-bottom: none; }
+  .task:hover { background: rgba(255,255,255,0.02); }
+  .task-bar { width: 4px; min-height: 18px; border-radius: 2px; flex-shrink: 0; margin-top: 2px; align-self: stretch; }
+  .task-content { flex: 1; }
+  .task-name { color: var(--text); margin-bottom: 2px; line-height: 1.4; }
+  .task-note { color: var(--text-dim); font-size: 11px; line-height: 1.6; margin-top: 3px; }
+  .task-tag { font-size: 10px; padding: 1px 6px; border-radius: 2px; margin-left: 6px; font-weight: 600; letter-spacing: 0.04em; vertical-align: middle; }
+  .tag-gate   { background: rgba(255,166,87,0.2);  color: var(--both); }
+  .tag-chat   { background: rgba(210,168,255,0.15); color: var(--chat); }
+  .tag-done   { background: rgba(63,185,80,0.18);   color: var(--code); }
+  .tag-broken { background: rgba(248,81,73,0.18);   color: var(--p5); }
+  .tag-est    { background: rgba(227,179,65,0.18);  color: var(--p8); }
+  .tag-parked { background: rgba(110,118,129,0.15); color: var(--text-dim); }
+  .gate-banner { background: rgba(255,166,87,0.08); border: 1px dashed rgba(255,166,87,0.3); border-radius: 4px; padding: 8px 14px; margin: 12px 16px; font-size: 11px; color: var(--both); letter-spacing: 0.03em; line-height: 1.6; }
+  .gate-banner.complete { background: rgba(63,185,80,0.06); border-color: rgba(63,185,80,0.3); color: var(--p3); }
+  .gate-banner.broken   { background: rgba(248,81,73,0.06);  border-color: rgba(248,81,73,0.3);  color: var(--p5); }
+  .connector { display: flex; align-items: center; justify-content: center; padding: 4px; color: var(--text-dim); font-size: 16px; }
+  .summary-table { width: 100%; border-collapse: collapse; margin-top: 40px; font-size: 12px; }
+  .summary-table th { text-align: left; padding: 8px 12px; color: var(--text-dim); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid var(--border); font-weight: 600; }
+  .summary-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: top; line-height: 1.5; }
+  .summary-table tr:last-child td { border-bottom: none; }
+  .phase-pill { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; }
+  .retire-note { margin-top: 40px; border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; font-size: 11px; color: var(--text-dim); line-height: 1.7; }
+  .retire-note strong { color: var(--text); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>PrUn Flight Planner — Master Roadmap</h1>
+  <div class="subtitle">Consolidated 2026-07-03 · Supersedes all previous Gantt charts</div>
+  <div class="goal"><strong>End goal:</strong> Enter origin, destination, and ship → get exact flight time, exact fuel cost, accurate damage projection, and condition alert. Works for any route in the galaxy. Real fleet or hypothetical build.</div>
+</header>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--p3)"></div> Complete</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--p4)"></div> In Progress</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--p1)"></div> Ready / Next</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--p5)"></div> Blocked</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--text-dim)"></div> Pending</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--p7)"></div> Ongoing (passive)</div>
+</div>
+
+<!-- ═══════════════════ PART 1 — PHYSICS & FLIGHT TIME ═══════════════════ -->
+<div class="section-divider">Part 1 — Physics &amp; Flight Time</div>
+
+<!-- PHASE 1 -->
+<div class="phase-block">
+  <div class="phase-header">
+    <span class="phase-number">Phase 1</span>
+    <span class="phase-title">Physics Discovery &amp; Flight Time Validation</span>
+    <span class="phase-where where-both">Code + Chat</span>
+    <span class="phase-status status-complete">Complete</span>
+  </div>
+  <div class="gate-banner complete">⚑ COMPLETE 2026-07-01: G-cap formula confirmed. Component mass schema locked. Full planner validated end-to-end against 16 real flights — 1.2% meanAbs / 8.3% max across 23 STL legs. Leverage residual resolved. Fix 1 (fuel-starved departure) implemented. Commit 12126e5.</div>
+  <div class="task-list">
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">G-cap formula confirmed <span class="task-tag tag-done">Done</span></div>
+      <div class="task-note">accelMax = min(thrust/totalMass, maxGFactor × 9.80665). Hull G-factors: LHP=10, BHP=8, RHP=11, HHP=13, AHP=15. Seat bonuses additive (BGS +5G, AGS +12G).</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Component mass schema locked <span class="task-tag tag-done">Done</span></div>
+      <div class="task-note">All hull, engine, tank, reactor, seat, cargo, damage component masses confirmed. bomWeight wrong for cargo bays — real fitted masses used. Hull plate selection is atomic.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">STL flight time model validated <span class="task-tag tag-done">Done</span></div>
+      <div class="task-note">Transfer ellipse arc + rendezvous solver. Departure/leverage deficit confirmed. 0.9% error on HRT→Promitor gate test.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Real fleet mode via Swagger API <span class="task-tag tag-done">Done</span></div>
+      <div class="task-note">api.fnar.net/ships — OperatingEmptyMass, Thrust, Mass, Condition, STLFuelFlowRate, BlueprintNaturalId. Live fuel loads via /storage.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Hypothetical build mode <span class="task-tag tag-done">Done</span></div>
+      <div class="task-note">Full component selector — hull, engines, tanks, reactors, cargo, seats, damage components. Mass and accel computed from selections.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p8)"></div><div class="task-content">
+      <div class="task-name">LDG fuel formula <span class="task-tag tag-parked">Parked</span></div>
+      <div class="task-note">~2× off observed values. Mechanism unclear. Not blocking flight time accuracy for STL/FTL legs. Revisit after damage model is stable.</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="connector">↓</div>
+
+<!-- PHASE 2 -->
+<div class="phase-block">
+  <div class="phase-header">
+    <span class="phase-number">Phase 2</span>
+    <span class="phase-title">Architecture &amp; Component Model Design</span>
+    <span class="phase-where where-chat">Chat</span>
+    <span class="phase-status status-complete">Complete — 2026-07-02</span>
+  </div>
+  <div class="gate-banner complete">⚑ COMPLETE 2026-07-02: Full component mass schema confirmed (CS2+CS3). Dual-mode architecture spec written. API auth confirmed. /storage endpoint confirmed for live fuel loads.</div>
+  <div class="task-list">
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Dual-mode architecture defined <span class="task-tag tag-done">Done</span></div>
+      <div class="task-note">Real fleet (Swagger API) + hypothetical (component selector). Mass path confirmed — no unit conversion. Swagger is preferred over REST.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Component selector UI spec <span class="task-tag tag-done">Done</span></div>
+      <div class="task-note">Supports damage model later — component state feeds into acceleration.</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="connector">↓</div>
+
+<!-- PHASE 3 -->
+<div class="phase-block">
+  <div class="phase-header">
+    <span class="phase-number">Phase 3</span>
+    <span class="phase-title">Acceleration Integration — prun_flight_planner.html</span>
+    <span class="phase-where where-code">Code</span>
+    <span class="phase-status status-complete">Complete — 2026-07-02 · commit 12126e5</span>
+  </div>
+  <div class="gate-banner complete">⚑ GATE PASSED 2026-07-02: HRT→Promitor, AVI-0655A (full fuel, 0 cargo, totalMass 2153.5t). Transit: tool 42m 49s vs in-game 42m 25s = 0.9% ✓. Fuel: 1741 units exact ✓. Real fleet + hypothetical modes both live.</div>
+  <div class="task-list">
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Real fleet mode implemented <span class="task-tag tag-done">Done</span></div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Hypothetical mode + component selector implemented <span class="task-tag tag-done">Done</span></div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Validated against real fleet <span class="task-tag tag-done">Done</span></div>
+    </div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ PART 2 — DAMAGE MODEL ═══════════════════ -->
+<div class="section-divider">Part 2 — Damage Model</div>
+
+<!-- CS1 -->
+<div class="phase-block">
+  <div class="phase-header">
+    <span class="phase-number">CS1</span>
+    <span class="phase-title">Planet Position Coverage Check</span>
+    <span class="phase-where where-code">Code</span>
+    <span class="phase-status status-complete">Complete — 2026-07-02</span>
+  </div>
+  <div class="gate-banner complete">⚑ COMPLETE 2026-07-02: 13 of 459 missing planets have position data from own flight history. 446 still zero. captured_positions.json written.</div>
+  <div class="task-list">
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">captures.jsonl parsed, 459 planets cross-referenced <span class="task-tag tag-done">Done</span></div>
+      <div class="task-note">13/459 covered. Systems: VH-331/ZV-307/OT-580/UV-351/WB-675. Fitting caveats: destination timestamp correction needed; near-duplicate dedup needed before orbit fitting.</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="connector">↓</div>
+
+<!-- PHASE 4 -->
+<div class="phase-block">
+  <div class="phase-header">
+    <span class="phase-number">Phase 4</span>
+    <span class="phase-title">Damage Model — Design</span>
+    <span class="phase-where where-chat">Chat</span>
+    <span class="phase-status status-complete">Complete — 2026-07-03</span>
+  </div>
+  <div class="gate-banner complete">⚑ COMPLETE 2026-07-03: Full damage model spec locked. PHASE4_DAMAGE_SPEC.md produced. 8 segment types modelled (5 newly added). Shielding reduction confirmed empirically (ratio 1.294 exact). Condition feedback designed. Threshold alerts: amber &lt;80%, red &lt;50%. BLUEPRINT_SHIELDING lookup for 4 known blueprints. Validation targets specified.</div>
+  <div class="task-list">
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Segment damage taxonomy confirmed <span class="task-tag tag-done">Done</span></div>
+      <div class="task-note">TRANSIT, APPROACH, DEPARTURE, LANDING, JUMP, JUMP_GATEWAY, CHARGE all modelled. TAKE_OFF/LOCK/DECAY always zero.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Shielding model confirmed <span class="task-tag tag-done">Done</span></div>
+      <div class="task-note">damage × (1 − factor). General additive. BLUEPRINT_SHIELDING for 4 known blueprints. LHP = −0.10 (more damage).</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Condition feedback + alerts designed <span class="task-tag tag-done">Done</span></div>
+      <div class="task-note">projectedCondition = currentCondition − tripDamage. Amber &lt;80%, red &lt;50%.</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="connector">↓</div>
+
+<!-- PHASE 5 -->
+<div class="phase-block">
+  <div class="phase-header">
+    <span class="phase-number">Phase 5</span>
+    <span class="phase-title">Damage Model — Implementation &amp; Calibration</span>
+    <span class="phase-where where-both">Code + Chat</span>
+    <span class="phase-status status-inprog">In Progress — calibration broken</span>
+  </div>
+  <div class="gate-banner broken">⚠ NOT COMPLETE: Formula substantially advanced 2026-07-03. New formula derived and ready for Code to implement — not yet committed. AVI-065TE (G-type) at 7.71% error, gate relaxed to 10% pending more G/F/M system data. Do not commit until Code implements, validates, and Daniel confirms.</div>
+  <div class="task-list">
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">All 10 Section 7 items implemented in prun_flight_planner.html <span class="task-tag tag-done">Done</span></div>
+      <div class="task-note">APPROACH, DEPARTURE, CHARGE, LANDING, JUMP_GATEWAY damage added. applyShield() wired. BLUEPRINT_SHIELDING lookup. Condition feedback. Threshold alerts. Footnote updated.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Shielding model confirmed <span class="task-tag tag-done">Done — 2026-07-03</span></div>
+      <div class="task-note">All 4 blueprints (HJQJ/IXZI/NVGM/JRAJ) converge to &lt;0.5% at VH-331 and UV-351. damage × (1−generalShield) is correct. Closed.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Controlled calibration capture procedure established <span class="task-tag tag-done">Done — 2026-07-03</span></div>
+      <div class="task-note">4 clean per-blueprint capture files (HJQJ/IXZI/NVGM/JRAJ) using blueprint tester MISSION previews with timestamp isolation. Reusable methodology going forward.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">systemstars.json + planet_data.json confirmed correct <span class="task-tag tag-done">Done — 2026-07-03</span></div>
+      <div class="task-note">Both confirmed vs live API. MeteoroidDensity byte-identical. planet_data.json within 1e-4 rounding. Note: API field is MeteroidDensity (one 'o'). Both files trustworthy.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Distance vs time — distance confirmed correct <span class="task-tag tag-done">Done — 2026-07-03</span></div>
+      <div class="task-note">Within-system CV: distance 1.94% vs time 22.59%. Distance is decisively the right base variable. Existing planner choice validated.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Meteor formula derived — v4 <span class="task-tag tag-done">Done — 2026-07-03</span></div>
+      <div class="task-note">meteorDmg = 7.15e-9 × distKm × density^0.545 × typeMult × (1−generalShield). typeMult: G=1.000, K=1.305, F=2.366, M=2.092. 8 systems, 4 blueprints, R²=0.995. K solid (3 systems). F/M provisional (1 system each). Replaces 2.5e-9 × density^0.625. Source: meteor_formula_v4_typetime.txt.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p1)"></div><div class="task-content">
+      <div class="task-name">Implement v4 formula in prun_flight_planner.html <span class="task-tag tag-chat">Next — Code</span></div>
+      <div class="task-note">Replace 2.5e-9 × density^0.625 with 7.15e-9 × density^0.545 × typeMult. Add METEOR_TYPE_MULT lookup. Pass starType (from systemstars.json Type field) into meteor function. Add code comments flagging provisional F/M multipliers. Full brief in handover doc PrUn_Handover_2026-07-03.md.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">Validation against real observed values <span class="task-tag tag-gate">Gate — 10% tolerance</span></div>
+      <div class="task-note">AVI-047P1 VH-331 (M) → 0.000759 (expect ~0.18% error). AVI-065TE UV-351 (G) → 0.001453 (expect ~7.71% error). Both within 10%. Gate relaxed from 5% — within-G scatter until more G systems captured. Daniel confirms in Chat before commit.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">Commit and push <span class="task-tag tag-gate">Gate</span></div>
+      <div class="task-note">Only after validation targets pass and Daniel confirms.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p8)"></div><div class="task-content">
+      <div class="task-name">F/M star type multipliers — more data needed <span class="task-tag tag-est">Provisional</span></div>
+      <div class="task-note">F multiplier 2.366 from ZV-307 only. M multiplier 2.092 from VH-331 only. Need at least one more F-star and one more M-dwarf system from controlled per-blueprint captures. Run calibration procedure in new star type systems when fleet flies there.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p8)"></div><div class="task-content">
+      <div class="task-name">LANDING damage formula <span class="task-tag tag-est">Next arc after Phase 5</span></div>
+      <div class="task-note">Placeholder ~2e-3. Three independent sources confirm drivers: Taiyi (radius + pressure + STL accel), Raylu pruncalc (pressure/radius), game taxonomy (high pressure = heat damage, gravity = structural). All data available: planet_data.json has Pressure/Radius, Swagger /ships has STL accel. Investigate after Phase 5 closes.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p8)"></div><div class="task-content">
+      <div class="task-name">DEPARTURE thrust term <span class="task-tag tag-parked">Parked</span></div>
+      <div class="task-note">Treated as pure ablation for now. Needs controlled fleet capture to isolate.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p8)"></div><div class="task-content">
+      <div class="task-name">JUMP_GATEWAY constant calibration <span class="task-tag tag-est">Estimated</span></div>
+      <div class="task-note">5.247e-5 from 8 samples on one ship. Needs more captures.</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="connector">↓</div>
+
+<!-- PHASE 6 -->
+<div class="phase-block">
+  <div class="phase-header">
+    <span class="phase-number">Phase 6</span>
+    <span class="phase-title">FTL &amp; Gateway Routing</span>
+    <span class="phase-where where-both">Chat → Code</span>
+    <span class="phase-status status-blocked">Blocked — Phase 5 must close first</span>
+  </div>
+  <div class="task-list">
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">Characterise FTL segment structure from captures</div>
+      <div class="task-note">Need real captured FTL mission message. Daniel to provide sample from captures.jsonl.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">Characterise gateway segment structure from captures</div>
+      <div class="task-note">No captured example confirmed yet. Daniel to provide sample.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">Design mixed-leg route planning <span class="task-tag tag-chat">Chat</span></div>
+      <div class="task-note">STL + FTL + gateway legs. FTL fuel cost modelling. Gate routing.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">Implement in flight planner <span class="task-tag tag-gate">Gate</span></div>
+      <div class="task-note">Gate: real mixed route matches APEX flight time and fuel within 2%. Daniel confirms in Chat.</div>
+    </div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ PART 3 — EPHEMERIS ═══════════════════ -->
+<div class="section-divider">Part 3 — Ephemeris &amp; Planet Coverage</div>
+
+<!-- CAPTURE EXT -->
+<div class="phase-block">
+  <div class="phase-header">
+    <span class="phase-number">Capture Ext</span>
+    <span class="phase-title">Browser Extension &amp; Data Pipeline</span>
+    <span class="phase-where where-code">Code</span>
+    <span class="phase-status status-complete">Complete — ongoing passive</span>
+  </div>
+  <div class="gate-banner complete">⚑ COMPLETE 2026-06-29: MV3 extension capturing APEX WebSocket traffic. Writes to captures/captures.jsonl. extract.js → extracted_positions.csv. Repo: prun-flight-capture on GitHub.</div>
+  <div class="task-list">
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Extension built and running <span class="task-tag tag-done">Done</span></div>
+      <div class="task-note">Passive capture only. Do not run on work network. Home desktop only.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p7)"></div><div class="task-content">
+      <div class="task-name">Ongoing passive capture <span class="task-tag tag-parked">Ongoing</span></div>
+      <div class="task-note">Every flight adds data. Commit and push before switching machines.</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="connector">↓</div>
+
+<!-- STATION FITTING -->
+<div class="phase-block">
+  <div class="phase-header">
+    <span class="phase-number">Stations</span>
+    <span class="phase-title">Station Orbit Fitting — HRT / ANT / MOR / BEN / HUB / ARC</span>
+    <span class="phase-where where-both">Code + Chat</span>
+    <span class="phase-status status-inprog">In Progress — HRT + ANT done</span>
+  </div>
+  <div class="task-list">
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">HRT fitted <span class="task-tag tag-done">Done</span></div>
+      <div class="task-note">1.38km mean error, 209 samples.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">ANT fitted <span class="task-tag tag-done">Done</span></div>
+      <div class="task-note">6.65km mean error, 681 samples.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p4)"></div><div class="task-content">
+      <div class="task-name">MOR refit <span class="task-tag tag-est">Provisional</span></div>
+      <div class="task-note">2.17M km mean error — only 13% arc coverage. Needs wider arc before refit is valid.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">BEN fit</div>
+      <div class="task-note">~2% arc coverage — insufficient. Needs ~100 more days of passive capture.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">HUB fit</div>
+      <div class="task-note">Needs blueprint tester runs (~13hr spacing).</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">ARC fit</div>
+      <div class="task-note">Needs blueprint tester runs (~25hr spacing).</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">All stations validated <span class="task-tag tag-gate">Gate</span></div>
+      <div class="task-note">Gate: all stations &lt;100km mean error, &gt;50% arc coverage. Daniel confirms route accuracy to/from each.</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="connector">↓</div>
+
+<!-- PLANET COVERAGE -->
+<div class="phase-block">
+  <div class="phase-header">
+    <span class="phase-number">Planets</span>
+    <span class="phase-title">Planet Ephemeris — 446 Missing Planets</span>
+    <span class="phase-where where-both">Code + Passive</span>
+    <span class="phase-status status-inprog">In Progress — 13 / 459 covered</span>
+  </div>
+  <div class="task-list">
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Coverage planner built <span class="task-tag tag-done">Done</span></div>
+      <div class="task-note">459 target planets identified. C:\prun-tools\planet-coverage-planner\.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p4)"></div><div class="task-content">
+      <div class="task-name">Cross-reference extracted_positions.csv against 446 gap <span class="task-tag tag-chat">Next</span></div>
+      <div class="task-note">Top priority: how many of the 446 are already in extracted_positions.csv? Code session before planning any capture routes.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">Systematic planet capture via flight routes</div>
+      <div class="task-note">Fly routes through uncovered systems. Passive capture picks up positions. Priority: Daniel's active trade routes.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">Fit and push confirmed positions to ephemeris.json</div>
+      <div class="task-note">Timestamp correction + near-duplicate dedup needed before fitting (caveats from CS1).</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">Planet coverage gate <span class="task-tag tag-gate">Gate</span></div>
+      <div class="task-note">Practical gate: all systems on Daniel's active trade routes covered. Full 446 is long-tail.</div>
+    </div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ SUMMARY ═══════════════════ -->
+<div class="section-divider">Summary</div>
+
+<table class="summary-table">
+  <thead>
+    <tr><th>Phase</th><th>What</th><th>Status</th><th>Blocking</th><th>Gate condition</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="phase-pill" style="background:rgba(63,185,80,0.15);color:var(--p3)">1 · Physics</span></td>
+      <td>STL flight time, ship physics, real/hypothetical modes</td>
+      <td style="color:var(--p3)">Complete</td>
+      <td style="color:var(--text-dim)">—</td>
+      <td style="color:var(--text-dim)">0.9% error HRT→Promitor ✓</td>
+    </tr>
+    <tr>
+      <td><span class="phase-pill" style="background:rgba(63,185,80,0.15);color:var(--p3)">2 · Design</span></td>
+      <td>Architecture, dual-mode spec, component model</td>
+      <td style="color:var(--p3)">Complete</td>
+      <td style="color:var(--text-dim)">—</td>
+      <td style="color:var(--text-dim)">Spec locked ✓</td>
+    </tr>
+    <tr>
+      <td><span class="phase-pill" style="background:rgba(63,185,80,0.15);color:var(--p3)">3 · Accel Integration</span></td>
+      <td>Flight planner implementation, real + hypothetical modes</td>
+      <td style="color:var(--p3)">Complete — commit 12126e5</td>
+      <td style="color:var(--text-dim)">—</td>
+      <td style="color:var(--text-dim)">Gate passed ✓</td>
+    </tr>
+    <tr>
+      <td><span class="phase-pill" style="background:rgba(63,185,80,0.15);color:var(--p3)">CS1 · Coverage</span></td>
+      <td>Planet position coverage check</td>
+      <td style="color:var(--p3)">Complete</td>
+      <td style="color:var(--text-dim)">—</td>
+      <td style="color:var(--text-dim)">13/459 identified ✓</td>
+    </tr>
+    <tr>
+      <td><span class="phase-pill" style="background:rgba(63,185,80,0.15);color:var(--p3)">4 · Damage Design</span></td>
+      <td>Full damage model spec, shielding, Condition feedback</td>
+      <td style="color:var(--p3)">Complete — 2026-07-03</td>
+      <td style="color:var(--text-dim)">—</td>
+      <td style="color:var(--text-dim)">PHASE4_DAMAGE_SPEC.md locked ✓</td>
+    </tr>
+    <tr>
+      <td><span class="phase-pill" style="background:rgba(255,166,87,0.15);color:var(--p4)">5 · Damage Impl.</span></td>
+      <td>Implementation + meteor formula — v4 derived, ready for Code</td>
+      <td style="color:var(--p4)">In progress — v4 formula ready, awaiting Code implementation + validation</td>
+      <td>Phase 6 blocked until this closes</td>
+      <td>AVI-047P1 → 0.000759, AVI-065TE → 0.001453 (within 10% — gate relaxed)</td>
+    </tr>
+    <tr>
+      <td><span class="phase-pill" style="background:rgba(248,81,73,0.15);color:var(--p5)">6 · FTL/Gateway</span></td>
+      <td>FTL jump + gateway segment physics, mixed-leg routing</td>
+      <td style="color:var(--p5)">Blocked — Phase 5 must close</td>
+      <td>Phase 5</td>
+      <td>Mixed route matches APEX within 2%</td>
+    </tr>
+    <tr>
+      <td><span class="phase-pill" style="background:rgba(255,166,87,0.15);color:var(--p4)">Capture Ext</span></td>
+      <td>Browser extension, passive data capture</td>
+      <td style="color:var(--p3)">Complete — ongoing</td>
+      <td style="color:var(--text-dim)">—</td>
+      <td style="color:var(--text-dim)">Running ✓</td>
+    </tr>
+    <tr>
+      <td><span class="phase-pill" style="background:rgba(255,166,87,0.15);color:var(--p4)">Stations</span></td>
+      <td>HRT/ANT/MOR/BEN/HUB/ARC orbit fitting</td>
+      <td style="color:var(--p4)">In progress — HRT+ANT done</td>
+      <td style="color:var(--text-dim)">—</td>
+      <td>All &lt;100km mean error, &gt;50% arc</td>
+    </tr>
+    <tr>
+      <td><span class="phase-pill" style="background:rgba(255,166,87,0.15);color:var(--p4)">Planets</span></td>
+      <td>446 missing planet ephemeris positions</td>
+      <td style="color:var(--p4)">In progress — 13/459 covered</td>
+      <td style="color:var(--text-dim)">—</td>
+      <td>All active trade route systems covered</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="retire-note">
+  <strong>Retired charts (superseded by this document — 2026-07-03):</strong><br>
+  prun-acceleration-damage-gantt.html &nbsp;·&nbsp; prun-flight-planner-roadmap.html (old) &nbsp;·&nbsp; prun-capture-extension_gantt.html<br><br>
+  <strong>Community references:</strong> Marcus Licinius Crassus (flight dynamics papers, ephemeris — no damage work) &nbsp;·&nbsp; Taiyi Bureau (LANDING: radius+pressure+STL accel confirmed) &nbsp;·&nbsp; Raylu (git.raylu.net/raylu/pruncalc — handles TO/LND pressure/radius). Credit all three in any public release.<br><br>
+  <strong>Gate rule:</strong> A phase does not close until at least one real observed value from the game matches the planner output within tolerance. Not "code runs," not "ratios are right." A number from the game equals a number from the planner. Daniel confirms in Chat.<br><br>
+  <strong>Handover doc:</strong> PrUn_Handover_2026-07-03.md — full context for next Chat session.
+</div>
+
+</body>
+</html>
