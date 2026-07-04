@@ -82,7 +82,7 @@
 
 <header>
   <h1>PrUn Flight Planner — Master Roadmap</h1>
-  <div class="subtitle">Consolidated 2026-07-03 · Updated 2026-07-04 (radiation damage added, release section added, Aem dataset credited) · Supersedes all previous Gantt charts</div>
+  <div class="subtitle">Consolidated 2026-07-03 · Updated 2026-07-04 (radiation damage, release section expanded, repo release roadmap merged, documentation section added) · Supersedes all previous Gantt charts</div>
   <div class="goal"><strong>End goal:</strong> Enter origin, destination, and ship → get exact flight time, exact fuel cost, accurate damage projection, and condition alert. Works for any route in the galaxy. Real fleet or hypothetical build.</div>
 </header>
 
@@ -433,33 +433,206 @@
 <!-- ═══════════════════ PART 4 — RELEASE & COLLABORATION ═══════════════════ -->
 <div class="section-divider">Part 4 — Release &amp; Collaboration</div>
 
+<!-- REPO A -->
+<div class="phase-block">
+  <div class="phase-header">
+    <span class="phase-number">Repo A</span>
+    <span class="phase-title">prun-toolset — Main Toolset &amp; Flight Planner</span>
+    <span class="phase-where where-code">Code</span>
+    <span class="phase-status status-inprog">In Progress — cleanup for release</span>
+  </div>
+  <div class="gate-banner complete">⚑ 2026-07-04: Renamed from prun-command → prun-toolset (commit 564cddb). Closest to shareable state. Candidate for Render hosting. User-supplied API key architecture confirmed — no hardcoded keys.</div>
+  <div class="task-list">
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Repo renamed prun-command → prun-toolset <span class="task-tag tag-done">Done — 2026-07-04</span></div>
+      <div class="task-note">Commit 564cddb. Remote and local folder aligned. Working dir: C:\prun-tools\prun-map.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">User-supplied API key architecture <span class="task-tag tag-done">Done</span></div>
+      <div class="task-note">All tools read keys from localStorage (prun_apikey / prun_ppkey). No hardcoded keys. envConfigPlugin removed. Safe to publish.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p4)"></div><div class="task-content">
+      <div class="task-name">Sweep public/ tools for release readiness <span class="task-tag tag-chat">Next — Code</span></div>
+      <div class="task-note">Confirm every tool loads with no key baked in. Remove any personal company code (GYFG), private route data, or personal fleet ship IDs left in defaults. Read existing tools first before touching.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">README / getting-started for collaborators</div>
+      <div class="task-note">How to clone, supply your own FIO / PrUn Planner key, and run locally. Prerequisite for the release gate.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">Render deployment <span class="task-tag tag-est">Candidate</span></div>
+      <div class="task-note">Static-host the public/ tools on Render. Confirm build/serve config before going public. Gives collaborators a running instance without cloning.</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="connector">↓</div>
+
+<!-- REPO B -->
+<div class="phase-block">
+  <div class="phase-header">
+    <span class="phase-number">Repo B</span>
+    <span class="phase-title">prun-flight-capture — Browser Extension &amp; Data Pipeline</span>
+    <span class="phase-where where-code">Code</span>
+    <span class="phase-status status-ready">Ready — data review pending</span>
+  </div>
+  <div class="gate-banner complete">⚑ MV3 extension capturing APEX WebSocket traffic. Writes captures/captures.jsonl. extract.js → extracted_positions.csv. Passive, ongoing. Data scripts are Node-only. Home desktop only — do not run on work network.</div>
+  <div class="task-list">
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Extension built and running <span class="task-tag tag-done">Done</span></div>
+      <div class="task-note">Passive capture ongoing. Commit and push before switching machines.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p4)"></div><div class="task-content">
+      <div class="task-name">Review captured data before publishing <span class="task-tag tag-chat">Next</span></div>
+      <div class="task-note">captures.jsonl / extracted_positions.csv contain personal flight history. Decide whether raw captures ship with the repo or are excluded via .gitignore. Likely: exclude raw captures, ship extension + scripts only.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">Install / usage notes for the extension</div>
+      <div class="task-note">How to load unpacked in Chrome, where captures land, how to run extract.js.</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="connector">↓</div>
+
+<!-- REPO C -->
+<div class="phase-block">
+  <div class="phase-header">
+    <span class="phase-number">Repo C</span>
+    <span class="phase-title">prun-dam_acc — Acceleration &amp; Damage Research</span>
+    <span class="phase-where where-both">Code + Chat</span>
+    <span class="phase-status status-inprog">In Progress — consolidation underway</span>
+  </div>
+  <div class="gate-banner">⚑ Formerly prun-accelerationwork, renamed prun-dam_acc 2026-07-04. Raw research repo — acceleration physics + damage calibration. Boundary between the two was always fuzzy; all damage work consolidated here. Contains calibration constants and capture data — needs sensitivity pass before going public. Local path: C:\prun-tools\Prun-dam_acc\</div>
+  <div class="task-list">
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Repo renamed prun-accelerationwork → prun-dam_acc <span class="task-tag tag-done">Done — 2026-07-04</span></div>
+      <div class="task-note">Renamed on GitHub and remote URL updated locally. Damage files being consolidated manually by Daniel.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p4)"></div><div class="task-content">
+      <div class="task-name">.gitignore + git status pass <span class="task-tag tag-chat">Next — Code</span></div>
+      <div class="task-note">After manual file moves: confirm what's tracked, ignore scratch/large capture files, push a clean tree. Folder is currently a mess — subfolder structure needed eventually.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">Decide what raw research to expose <span class="task-tag tag-gate">Decision</span></div>
+      <div class="task-note">Formulas + methodology are shareable. Decide whether raw per-blueprint captures and third-party datasets (Aem sheets, KI-439 log) ship or stay private. Aem data used with permission — confirm redistribution is OK before re-hosting.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">Subfolder structure cleanup <span class="task-tag tag-parked">Parked — low priority</span></div>
+      <div class="task-note">Folder is currently flat and messy from consolidation. Organise into logical subfolders (acceleration/, damage/, calibration/, captures/) when time permits.</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="connector">↓</div>
+
+<!-- SENSITIVITY & ATTRIBUTION -->
+<div class="phase-block">
+  <div class="phase-header">
+    <span class="phase-number">Review 1</span>
+    <span class="phase-title">Sensitive Data &amp; Secrets Sweep</span>
+    <span class="phase-where where-code">Code</span>
+    <span class="phase-status status-pending">Pending — before any repo goes public</span>
+  </div>
+  <div class="task-list">
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">No hardcoded keys anywhere <span class="task-tag tag-gate">Gate</span></div>
+      <div class="task-note">Confirmed for prun-toolset (localStorage architecture). Re-verify across all three repos and their git history — no FIO or PrUn Planner keys committed at any point.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">Strip personal identifiers from defaults</div>
+      <div class="task-note">Company code GYFG, personal fleet ship IDs, home base coords, private trade routes — remove from committed defaults/examples in prun-toolset.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">Third-party dataset permission check</div>
+      <div class="task-note">Aem's landing damage sheet, KI-439 flight log, radiation dataset — confirm redistribution is OK before including raw data, or credit and link instead of re-hosting.</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="connector">↓</div>
+
+<div class="phase-block">
+  <div class="phase-header">
+    <span class="phase-number">Review 2</span>
+    <span class="phase-title">Community Attribution</span>
+    <span class="phase-where where-chat">Chat</span>
+    <span class="phase-status status-pending">Pending — CREDITS block in each public repo</span>
+  </div>
+  <div class="gate-banner">⚑ Credit all four in any public release. Contributions below are load-bearing to the models — attribution is non-negotiable for going public.</div>
+  <div class="task-list">
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">Marcus Licinius Crassus</div>
+      <div class="task-note">Flight dynamics papers (duration law, speed-cap, rendezvous-floor, FTL-jump laws), ephemeris. No damage model work.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">Taiyi Bureau</div>
+      <div class="task-note">TO/LND distance formulas confirmed as accurately representing flown distance. Galaxy map reference. Independent flight planner.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">Raylu</div>
+      <div class="task-note">Refined PrUn tools, pruncalc (git.raylu.net/raylu/pruncalc) — TO/LND pressure/radius handling. PR #164 pending for CONTD import.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">[OOG] Aem | SR</div>
+      <div class="task-note">Radiation damage formula (KQ-451 BTF runs, O-type system). ~60-point landing damage dataset. KI-439 70-flight fuel log (per-segment TO/TRA/LND split). Data shared directly on request.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">Write CREDITS / attribution block <span class="task-tag tag-gate">Gate</span></div>
+      <div class="task-note">Single source of truth — README section or CREDITS file in each public repo. Must be present before any repo goes public.</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="connector">↓</div>
+
+<!-- PUBLIC RELEASE -->
 <div class="phase-block">
   <div class="phase-header">
     <span class="phase-number">Release</span>
-    <span class="phase-title">Public Release &amp; Collaboration</span>
+    <span class="phase-title">Go Public &amp; Onboard a Collaborator</span>
     <span class="phase-where where-chat">Chat</span>
-    <span class="phase-status status-inprog">In Progress — repo consolidation underway</span>
+    <span class="phase-status status-blocked">Blocked — on Reviews 1 &amp; 2</span>
   </div>
   <div class="task-list">
-    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
-      <div class="task-name">Repo inventory confirmed <span class="task-tag tag-done">Done — 2026-07-04</span></div>
-      <div class="task-note">Three repos on GitHub: EoinCuinn/prun-command (main toolset + flight planner), EoinCuinn/prun-flight-capture (browser extension), EoinCuinn/prun-accelerationwork (acceleration + damage research). All currently private.</div>
-    </div></div>
-    <div class="task"><div class="task-bar" style="background:var(--p4)"></div><div class="task-content">
-      <div class="task-name">Consolidate damage work into prun-accelerationwork <span class="task-tag tag-chat">Next — Code</span></div>
-      <div class="task-note">Damage calibration files live in C:\prun-tools\Prun-accelerationwork\ locally. Daniel moving remaining damage files manually, then Code session to check git status, sort .gitignore, and push. Boundary between acceleration and damage work was always fuzzy — consolidating into one research repo.</div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">Flip repos private → public</div>
+      <div class="task-note">prun-toolset first (closest to ready), then prun-flight-capture, then prun-dam_acc once research exposure is decided.</div>
     </div></div>
     <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
-      <div class="task-name">Attribution review</div>
-      <div class="task-note">Credit required in any public release: Marcus Licinius Crassus (flight dynamics papers, ephemeris — no damage work), Taiyi Bureau (TO/LND distance formulas, galaxy map), Raylu (Refined PrUn, pruncalc), [OOG] Aem | SR (radiation damage formula, landing damage dataset, KI-439 flight log). Review calibration constants and capture data for sensitivity before making any repo public.</div>
-    </div></div>
-    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
-      <div class="task-name">Make repos public / shareable</div>
-      <div class="task-note">Target: share with community collaborators for further input. prun-command is closest to shareable state. prun-accelerationwork contains raw research — decide what to expose. prun-flight-capture likely fine to share.</div>
+      <div class="task-name">Deploy main toolset to Render</div>
+      <div class="task-note">Public, runnable instance so collaborators can try the tools before cloning. Static-host public/ directory.</div>
     </div></div>
     <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
       <div class="task-name">Community release gate <span class="task-tag tag-gate">Gate</span></div>
-      <div class="task-note">Gate: attribution complete, sensitive data reviewed, at least one collaborator has successfully run the tools from the repo. Daniel confirms.</div>
+      <div class="task-note">Gate: secrets swept, attribution complete, and at least one external collaborator successfully clones and runs the tools from the repo. Daniel confirms in Chat.</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="connector">↓</div>
+
+<!-- DOCUMENTATION -->
+<div class="phase-block">
+  <div class="phase-header">
+    <span class="phase-number">Docs</span>
+    <span class="phase-title">Technical Write-ups &amp; Community Papers</span>
+    <span class="phase-where where-chat">Chat</span>
+    <span class="phase-status status-pending">Pending — sequenced below</span>
+  </div>
+  <div class="gate-banner">⚑ Three documents planned. Each uses a layered structure: Layer 1 (summary, anyone can read), Layer 2 (method, readable technical), Layer 3 (appendix, reproduce/challenge the work). Format: outcome stated first, then method, then key decisions and dead ends, then credit.</div>
+  <div class="task-list">
+    <div class="task"><div class="task-bar" style="background:var(--p4)"></div><div class="task-content">
+      <div class="task-name">Overall toolset build document <span class="task-tag tag-chat">Can start now</span></div>
+      <div class="task-note">What PrUn Command is, what tools exist, how to use them. Does not depend on damage model being final. Audience: community players + technical collaborators.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p4)"></div><div class="task-content">
+      <div class="task-name">Flight planner build document <span class="task-tag tag-chat">Can start now</span></div>
+      <div class="task-note">Phases 1–4 complete and stable — can be written now. Phase 5 damage model and Phase 6 FTL get an "in progress" section. Key dead ends to document: SMA proxy bug, collapsed multiplier model failure, ZV-307 outlier.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">Acceleration &amp; damage research document <span class="task-tag tag-parked">Wait — v5 formula not committed</span></div>
+      <div class="task-note">Do not write until v5 formula is committed and gate-passed. Covers: acceleration model, meteor calibration methodology, star-type multiplier investigation, ZV-307 outlier, convex density curve finding, radiation damage. Credit Marcus (flight dynamics), Aem (calibration datasets).</div>
     </div></div>
   </div>
 </div>
@@ -550,18 +723,60 @@
       <td>Planner output matches observed radiation damage within 10%</td>
     </tr>
     <tr>
-      <td><span class="phase-pill" style="background:rgba(255,166,87,0.15);color:var(--p4)">Release</span></td>
-      <td>Repo consolidation, attribution, public sharing</td>
-      <td style="color:var(--p4)">In progress — damage repo consolidation underway</td>
+      <td><span class="phase-pill" style="background:rgba(255,166,87,0.15);color:var(--p4)">Repo A</span></td>
+      <td>prun-toolset — main tools + flight planner; Render candidate</td>
+      <td style="color:var(--p4)">In progress — cleanup for release</td>
       <td style="color:var(--text-dim)">—</td>
-      <td>Attribution complete, at least one collaborator runs tools from repo</td>
+      <td>Loads with user keys only, README present, no personal data</td>
+    </tr>
+    <tr>
+      <td><span class="phase-pill" style="background:rgba(56,139,253,0.15);color:var(--p1)">Repo B</span></td>
+      <td>prun-flight-capture — MV3 extension + extract pipeline</td>
+      <td style="color:var(--p1)">Ready — personal capture data review pending</td>
+      <td style="color:var(--text-dim)">—</td>
+      <td>Raw personal captures excluded via .gitignore</td>
+    </tr>
+    <tr>
+      <td><span class="phase-pill" style="background:rgba(255,166,87,0.15);color:var(--p4)">Repo C</span></td>
+      <td>prun-dam_acc — acceleration + damage research</td>
+      <td style="color:var(--p4)">In progress — consolidation + .gitignore pass needed</td>
+      <td style="color:var(--text-dim)">—</td>
+      <td>Clean git tree, exposure decision made</td>
+    </tr>
+    <tr>
+      <td><span class="phase-pill" style="background:rgba(110,118,129,0.15);color:var(--text-dim)">Secrets</span></td>
+      <td>No keys / personal data in any repo or history</td>
+      <td style="color:var(--text-dim)">Pending</td>
+      <td style="color:var(--text-dim)">—</td>
+      <td>Sweep clean across all three repos</td>
+    </tr>
+    <tr>
+      <td><span class="phase-pill" style="background:rgba(110,118,129,0.15);color:var(--text-dim)">Attribution</span></td>
+      <td>Credit Crassus, Taiyi, Raylu, Aem in all public repos</td>
+      <td style="color:var(--text-dim)">Pending</td>
+      <td style="color:var(--text-dim)">—</td>
+      <td>CREDITS block present in each public repo</td>
+    </tr>
+    <tr>
+      <td><span class="phase-pill" style="background:rgba(248,81,73,0.15);color:var(--p5)">Release</span></td>
+      <td>Go public, deploy to Render, onboard collaborator</td>
+      <td style="color:var(--p5)">Blocked — on secrets + attribution</td>
+      <td style="color:var(--p5)">Secrets + Attribution</td>
+      <td>One external collaborator clones and runs the tools</td>
+    </tr>
+    <tr>
+      <td><span class="phase-pill" style="background:rgba(110,118,129,0.15);color:var(--text-dim)">Docs</span></td>
+      <td>Three technical write-ups — toolset, flight planner, acc/dam</td>
+      <td style="color:var(--text-dim)">Pending — toolset + planner docs can start now</td>
+      <td style="color:var(--text-dim)">Acc/dam doc waits for v5 formula</td>
+      <td>Layered structure: summary / method / appendix. Community + technical audience.</td>
     </tr>
   </tbody>
 </table>
 
 <div class="retire-note">
-  <strong>Retired charts (superseded by this document — 2026-07-03):</strong><br>
-  prun-acceleration-damage-gantt.html &nbsp;·&nbsp; prun-flight-planner-roadmap.html (old) &nbsp;·&nbsp; prun-capture-extension_gantt.html<br><br>
+  <strong>Retired charts (superseded by this document):</strong><br>
+  prun-acceleration-damage-gantt.html &nbsp;·&nbsp; prun-flight-planner-roadmap.html (old) &nbsp;·&nbsp; prun-capture-extension_gantt.html &nbsp;·&nbsp; prun-repo-release-roadmap.html (merged into Part 4 — 2026-07-04)<br><br>
   <strong>Community references:</strong> Marcus Licinius Crassus (flight dynamics papers, ephemeris — no damage work) &nbsp;·&nbsp; Taiyi Bureau (TO/LND distance formulas confirmed, galaxy map) &nbsp;·&nbsp; Raylu (git.raylu.net/raylu/pruncalc — handles TO/LND pressure/radius) &nbsp;·&nbsp; [OOG] Aem | SR (radiation damage formula via KQ-451 BTF runs, ~60-point landing damage dataset, KI-439 70-flight fuel log). Credit all four in any public release.<br><br>
   <strong>Gate rule:</strong> A phase does not close until at least one real observed value from the game matches the planner output within tolerance. Not "code runs," not "ratios are right." A number from the game equals a number from the planner. Daniel confirms in Chat.<br><br>
   <strong>Handover doc:</strong> PrUn_Handover_2026-07-03.md — full context for next Chat session.
