@@ -811,20 +811,14 @@ function parsecsBetween(a, b) {
 }
 
 // Meteor damage fraction (unshielded)
-// Meteor damage v4.1 — refit 2026-07-03. base = k · transitDistKm · density^0.545 · typeMult.
-// transitDistKm is the game "charged" STL distance (metres in the capture JSON) divided by 1e6 at
-// the CALL SITE — k was refit by least squares (60 blueprint TRANSIT records) against that same
-// distance/1e6 scale, so k absorbs the divisor. Verify: AVI-047P1 +0.5%, AVI-065TE +8.0%, UV-351c→b +8.7%.
-// k=7.1742e-6, exponent=0.545 consistent across all systems
-// K mult 1.305 — 3 K-type systems — solid
-// G mult 1.000 (baseline) — 3 G-type systems — solid
-// F mult 2.366 — ONE system only (ZV-307) — PROVISIONAL, do not treat as law
-// M mult 2.092 — ONE system only (VH-331) — PROVISIONAL, do not treat as law
-// Gate tolerance relaxed to 10% pending more F/M system data
-const METEOR_TYPE_MULT = { 'F': 2.366, 'G': 1.000, 'K': 1.305, 'M': 2.092 };
-function meteorDmgRaw(transitDistKm, density, starType) {
-  const typeMult = METEOR_TYPE_MULT[starType] || 1.000;
-  return 7.1742e-6 * transitDistKm * Math.pow(Math.max(0.001, density), 0.545) * typeMult;
+// Meteor formula v5 — fitted 2026-07-04
+// k=7.1692e-6, p(ρ)=0.683+0.223·log₁₀(ρ), no star-type multipliers
+// 19 systems, 2 parameters, R²=0.9989, worst residual 7.1%
+// Star-type signal confirmed absent — F/G/K/M all = 1.000
+// transitDistKm is the game "charged" STL distance ÷ 1e6 (applied at the CALL SITE); k is fit to that scale.
+function meteorDmgRaw(transitDistKm, density) {
+  const rhoExp = 0.683 + 0.223 * Math.log10(Math.max(density, 0.001));
+  return 7.1692e-6 * transitDistKm * Math.pow(Math.max(0.001, density), rhoExp);
 }
 
 // FTL radiation damage fraction (unshielded)
@@ -1555,8 +1549,7 @@ async function calculate() {
         // DEPARTURE meteoroid ablation — origin system density, general shielding.
         // Real departure transit distance (dep.chargedKm) ÷ 1e6 to match the refit k's distance scale.
         const depDensity = (_sysStats[_origin.sysId] || {}).meteoroidDensity || 0;
-        const depType = (_sysStats[_origin.sysId] || {}).type || '';
-        const depMet = dep.chargedKm ? applyShield(meteorDmgRaw(dep.chargedKm / 1e6, depDensity, depType), sh.general) : 0;
+        const depMet = dep.chargedKm ? applyShield(meteorDmgRaw(dep.chargedKm / 1e6, depDensity), sh.general) : 0;
         totalDmg += depMet;
         const depLabel = originStation?.name ?? depOriginPl?.PlanetName ?? depOriginPl?.PlanetNaturalId;
         const depNote = dep.starved
@@ -1667,7 +1660,6 @@ async function calculate() {
   const stlDestPl  = destPl || stlDestFallback;   // null when dest is a known station
   const stlDestSMA = destStation ? destStation.a_m * 1000 : stlDestPl?.OrbitSemiMajorAxis;
   const density = (_sysStats[_dest.sysId] || {}).meteoroidDensity || 0;
-  const destType = (_sysStats[_dest.sysId] || {}).type || '';
   // APPROACH/TRANSIT meteoroid ablation — general shielding (spec §3b). Computed below,
   // once the real transit distance (rendez.chargedKm / stlDistKm) has been solved.
   let stlMet = 0;
@@ -1711,7 +1703,7 @@ async function calculate() {
   // same-system Hohmann arc. ÷ 1e6 to match the refit k's distance scale. No distance → 0.
   const stlTransitDistKm = rendez ? rendez.chargedKm : stlDistKm;
   if (stlTransitDistKm) {
-    stlMet = applyShield(meteorDmgRaw(stlTransitDistKm / 1e6, density, destType), sh.general);
+    stlMet = applyShield(meteorDmgRaw(stlTransitDistKm / 1e6, density), sh.general);
     totalDmg += stlMet;
   }
 
