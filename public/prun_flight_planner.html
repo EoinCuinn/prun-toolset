@@ -169,6 +169,11 @@
         <span id="stlMassVal" class="fuel-val">500 u</span>
       </div>
       <div class="load-row">
+        <span class="load-lbl" title="Scales DEP &amp; APPROACH fuel burn (game fuel usage setting)">Fuel use</span>
+        <input id="fufInput" type="number" min="0.10" max="1.00" step="0.05" value="0.50" style="width:100%;background:var(--bg2,#111);color:var(--text2);border:1px solid var(--border);border-radius:4px;padding:3px 6px;font-size:11px" oninput="calculate()">
+        <span class="fuel-val">×</span>
+      </div>
+      <div class="load-row">
         <span class="load-lbl">FTL fuel</span>
         <input id="ftlMassSlider" class="fuel-slider" type="range" min="0" max="2000" step="1" value="200" oninput="onLoadoutChange()">
         <span id="ftlMassVal" class="fuel-val">200 u</span>
@@ -201,15 +206,8 @@
       </div>
     </div>
 
-    <!-- Fuel -->
-    <div class="card" id="fuelCard">
-      <div class="card-label">STL Fuel for leg</div>
-      <div class="fuel-row">
-        <input id="fuelSlider" class="fuel-slider" type="range" min="1" max="200" value="60" oninput="onFuelChange()">
-        <span id="fuelVal" class="fuel-val">60.0 units</span>
-      </div>
-      <div id="fuelTime" class="note" style="margin-top:6px"></div>
-    </div>
+    <!-- STL fuel for leg is no longer a user input — it is fully derived from the fuel usage
+         factor (in the Loadout card) applied to each segment's physics-computed max. -->
 
     <!-- FTL Reactor -->
     <div class="card">
@@ -717,6 +715,25 @@ function stlRendezvousFromGate(gateM, pl2, GM, accel, M, startUnix, getPos2Overr
     tFlight = newT;
   }
   return null;
+}
+
+// computedMax fuel (units) for a gate→moving-planet APPROACH: the triangular-boundary M where
+// d = 4·accel·M² — the max useful STL fuel for the leg, mirroring DEP's dep.M. Self-consistent
+// (d depends on M through the moving-target rendezvous), so iterate M ↔ d to convergence.
+// Returns { M, rendez } (rendez re-solved at the final integer M) or null.
+function approachComputedMax(gateM, pl2, GM, accel, startUnix, getPos2Override) {
+  if (!accel) return null;
+  let M = 1000;
+  for (let i = 0; i < 30; i++) {
+    const rz = stlRendezvousFromGate(gateM, pl2, GM, accel, Math.max(1, Math.ceil(M)), startUnix, getPos2Override);
+    if (!rz) return null;
+    const bM = Math.sqrt(rz.chargedKm / (4 * accel));
+    if (Math.abs(bM - M) < 0.3) { M = bM; break; }
+    M = bM;
+  }
+  const Mfinal = Math.max(1, Math.ceil(M));
+  const rendez = stlRendezvousFromGate(gateM, pl2, GM, accel, Mfinal, startUnix, getPos2Override);
+  return rendez ? { M: Mfinal, rendez } : null;
 }
 
 // ── Physics ──────────────────────────────────────────────────────────────────
@@ -1381,53 +1398,12 @@ function shipPhysics(ship) {
 // Fix 1 (fuel-starved departure) is applied only in departureLegCalc via depBudgetM —
 // DEP leg only. NOT applied to same-system transits until validated against captured data.
 
-// ── Fuel slider ───────────────────────────────────────────────────────────────
-
-function updateFuelSlider() {
-  const phys = shipPhysics(_currentShip);
-  const slider = document.getElementById('fuelSlider');
-  if (phys) {
-    slider.min  = phys.mMin || 1;
-    slider.max  = phys.stlFuelMax ?? 200;
-    slider.step = 1;
-  }
-  onFuelChange();
-}
-
-function onFuelChange() {
-  const M = +document.getElementById('fuelSlider').value;
-  document.getElementById('fuelVal').textContent = M.toFixed(1) + ' units';
-
-  // Live STL time preview if route is same-system
-  const timeEl = document.getElementById('fuelTime');
-  const phys = shipPhysics(_currentShip);
-  if (!_origin || !_dest || !phys || _origin.sysId !== _dest?.sysId) { timeEl.textContent = ''; return; }
-
-  const oPl = _planets[_origin.planetId];
-  const dPl = _planets[_dest.planetId];
-  const rO  = oPl?.OrbitSemiMajorAxis;
-  const rP  = dPl?.OrbitSemiMajorAxis;
-  if (!rO || !rP) { timeEl.textContent = ''; return; }
-
-  const dMax = hohmannArcKm(rO, rP);
-  const dMin = chordKm(rO, rP);
-  if (!dMax) { timeEl.textContent = ''; return; }
-
-  const GM = sysGM(_origin.sysId);
-  const rendez = (GM && oPl && dPl) ? stlRendezvous(oPl, dPl, GM, phys.accel, M, Date.now() / 1000) : null;
-
-  let distStr, T;
-  if (rendez) {
-    const approxNote = rendez.approx ? ` <small style="color:var(--text3)" title="One or both planets not in fitted ephemeris — using FIO orbital elements (accuracy not guaranteed)">~</small>` : '';
-    distStr = `<span class="hl">${fmtDist(rendez.chargedKm)}</span>${approxNote}`;
-    T = rendez.tReal;
-  } else {
-    distStr = `<span class="approx">${fmtDist(dMin)} – ${fmtDist(dMax)}</span>`;
-    T = stlTimeReal(dMax, M, phys.accel);
-  }
-  if (T == null) { timeEl.textContent = ''; return; }
-  timeEl.innerHTML = `${distStr} → <span class="hl">${fmtRealTime(T)}</span>`;
-}
+// ── Fuel (derived) ────────────────────────────────────────────────────────────
+// The "STL fuel for leg" slider was removed — per-leg STL fuel is fully derived from the
+// fuel usage factor in calculate(). These two functions are retained as no-ops so the many
+// existing call sites (onShipChange, rebuildHypo, etc.) keep working without change.
+function updateFuelSlider() { /* no-op: STL fuel is derived, not user-set */ }
+function onFuelChange()      { /* no-op: STL fuel is derived, not user-set */ }
 
 // ── Route finding ─────────────────────────────────────────────────────────────
 
@@ -1454,7 +1430,11 @@ async function calculate() {
   if (!_origin) { resEl.innerHTML = '<div class="results-empty">Set a valid origin planet or system.</div>'; return; }
   if (!_dest)   { resEl.innerHTML = '<div class="results-empty">Set a valid destination planet or system.</div>'; return; }
 
-  const M = +document.getElementById('fuelSlider').value;
+  // Fuel usage factor — game "fuel usage" setting. All STL segment fuel is derived: each
+  // segment's physics-computed max × fuf. TO/LND fixed (no factor); DEP capped at its max;
+  // APPROACH & same-system transit scale linearly; JUMP/FTL untouched. There is no user-set
+  // per-leg STL fuel any more (the "STL fuel for leg" slider was removed).
+  const fuf = Math.min(1, Math.max(0.1, +document.getElementById('fufInput').value || 0.5));
   const phys = shipPhysics(_currentShip);
   const sh = shieldingFor(_currentShip);   // {general,heat,whipple,radiation,gravity}
   const sameSys = _origin.sysId === _dest.sysId;
@@ -1543,8 +1523,10 @@ async function calculate() {
         ? Math.floor(onboardMassT().stl / _currentShip.stlFlowRate) : null;
       const dep = departureLegCalc(base, gate, vel, phys.accel, depBudgetM);
       if (dep) {
+        // Fuel usage factor scales DEP fuel, capped at the physics-computed max (dep.M).
+        const depFuel = Math.min(dep.M, dep.M * fuf);
         totalRealMin += dep.tReal / 60;
-        totalFuelStl += dep.M;
+        totalFuelStl += depFuel;
         t += dep.tReal;
         // DEPARTURE meteoroid ablation — origin system density, general shielding.
         // Real departure transit distance (dep.chargedKm) ÷ 1e6 to match the refit k's distance scale.
@@ -1559,7 +1541,7 @@ async function calculate() {
         html += legHtml('DEP', `${depLabel} → jump gate`, [
           ['Distance', fmtDist(dep.chargedKm)],
           ['Time (real)', fmtRealTime(dep.tReal)],
-          ['STL fuel', dep.M.toFixed(1) + ' units'],
+          ['STL fuel', depFuel.toFixed(1) + ' units'],
           ['Meteor dmg', fmtDmg(depMet)],
         ], '', depMet, depNote);
       }
@@ -1667,6 +1649,7 @@ async function calculate() {
   let rendez = null;
   let stlDistKm = null, stlDistMinKm = null;
   let stlLegLabel = '';
+  let stlComputedMax = null; // physics-computed max STL fuel (units) for this leg; fuel = × fuf
 
   const stlDestLabel = destStation?.name ?? stlDestPl?.PlanetName ?? stlDestPl?.PlanetNaturalId;
 
@@ -1679,22 +1662,33 @@ async function calculate() {
     if (stlRO && stlRP) {
       stlDistKm    = hohmannArcKm(stlRO, stlRP);
       stlDistMinKm = chordKm(stlRO, stlRP);
-      if (stlGM && phys?.accel && M > 0)
-        rendez = stlRendezvous(
-          stlOriginPl, stlDestPl, stlGM, phys.accel, M, t,
-          originStation ? getOriginPos : null,
-          destStation   ? getDestPos   : null
-        );
+      if (phys?.accel && stlDistKm) {
+        // computedMax = triangular-boundary M for the worst-case (Hohmann) transit distance.
+        stlComputedMax = Math.max(1, Math.ceil(Math.sqrt(stlDistKm / (4 * phys.accel))));
+        if (stlGM)
+          rendez = stlRendezvous(
+            stlOriginPl, stlDestPl, stlGM, phys.accel, stlComputedMax, t,
+            originStation ? getOriginPos : null,
+            destStation   ? getDestPos   : null
+          );
+      }
     }
     stlLegLabel = stlDestLabel ? `→ ${stlDestLabel}` : `within ${destSys?.NaturalId}`;
   } else {
     // Approach from jump gate in dest system → dest planet or station
     const hasApproachDest = !!(stlDestPl || destStation);
-    if (hasApproachDest && phys?.accel && M > 0 && path) {
+    if (hasApproachDest && phys?.accel && path) {
       const destPosAtGate = getDestPos(stlDestPl, t); // station closure ignores first arg
       const gateApp = destPosAtGate ? gatePositionM(destPosAtGate, _dest.sysId, path[path.length - 2]) : null;
-      if (gateApp) rendez = stlRendezvousFromGate(gateApp, stlDestPl, stlGM, phys.accel, M, t,
-                              destStation ? getDestPos : null);
+      if (gateApp) {
+        // NOTE: APPROACH *fuel* is no longer taken from approachComputedMax — it is now the
+        // tank-capacity formula (see display block below). We still call it purely to obtain the
+        // rendezvous (rendez), which drives the leg's DISTANCE, meteoroid DAMAGE, and flight TIME
+        // — all of which must stay unchanged. stlComputedMax is intentionally left null here.
+        const appMax = approachComputedMax(gateApp, stlDestPl, stlGM, phys.accel, t,
+                          destStation ? getDestPos : null);
+        if (appMax) rendez = appMax.rendez;
+      }
     }
     stlLegLabel = stlDestLabel ? `jump gate → ${stlDestLabel}` : `approach in ${destSys?.NaturalId}`;
   }
@@ -1721,20 +1715,31 @@ async function calculate() {
       stlRows.push(['Distance', `<span class="approx">${fmtDist(stlDistMinKm)} – ${fmtDist(stlDistKm)}</span> <small style="color:var(--text3)">(best–worst phase)</small>`]);
     }
 
+    // APPROACH fuel (multi-system) = STL tank capacity × 0.491 × fuel usage factor. Empirically
+    // confirmed across 3 ships / 3 tank sizes / multiple routes — independent of distance, accel,
+    // and orbital geometry. Tank capacity (units) = stlFuelCap[t] / STL_UNIT_MASS, falling back to
+    // the loadout slider max for hypothetical builds that carry no capacity field.
+    // Same-system direct transit keeps the physics boundary-M × fuf derivation.
+    const stlTankCapacity = _currentShip?.stlFuelCap != null
+      ? _currentShip.stlFuelCap / STL_UNIT_MASS
+      : (+document.getElementById('stlMassSlider').max || 0);
+    const stlFuel = !sameSys
+      ? stlTankCapacity * 0.491 * fuf
+      : (stlComputedMax != null ? stlComputedMax * fuf : null);
     if (rendez) {
       totalRealMin += rendez.tReal / 60;
-      totalFuelStl += M;
+      if (stlFuel != null) totalFuelStl += stlFuel;
       stlRows.push(['Time (real)', fmtRealTime(rendez.tReal)]);
-      stlRows.push(['STL fuel', M.toFixed(1) + ' units']);
+      if (stlFuel != null) stlRows.push(['STL fuel', stlFuel.toFixed(1) + ' units']);
     } else if (!phys) {
       stlRows.push(['Time (real)', '<span style="color:var(--text3)">— select a ship / build</span>']);
-    } else if (stlDistKm && phys?.accel) {
-      const T = stlTimeReal(stlDistKm, M, phys.accel);
+    } else if (stlDistKm && phys?.accel && stlComputedMax != null) {
+      const T = stlTimeReal(stlDistKm, stlComputedMax, phys.accel);
       if (T != null) {
         totalRealMin += T / 60;
-        totalFuelStl += M;
+        totalFuelStl += stlComputedMax * fuf;
         stlRows.push(['Time (real)', `<span class="approx">${fmtRealTime(T)}</span>`]);
-        stlRows.push(['STL fuel', M.toFixed(1) + ' units']);
+        stlRows.push(['STL fuel', (stlComputedMax * fuf).toFixed(1) + ' units']);
       }
     }
 
@@ -1804,7 +1809,7 @@ async function calculate() {
     ${alertBanner}
     <div class="total-row"><span class="k">STL Fuel Used</span><span class="v">${totalFuelStl.toFixed(1)} units</span></div>
     ${shieldRec}
-    <div class="note" style="margin-top:0.75rem">STL: transfer ellipse arc rendezvous solver (paper §8). TO/LDG: paper §12.4. FTL: A·e^(−β·ρ)·d + charges (paper §12.1–12.3); gateway 3 pc/hr + 1220s (§12.6). Damage: shielding applied per component (general/radiation/heat); landing &amp; departure-thrust terms estimated.</div>
+    <div class="note" style="margin-top:0.75rem">STL: transfer ellipse arc rendezvous solver (paper §8). TO/LDG: paper §12.4. FTL: A·e^(−β·ρ)·d + charges (paper §12.1–12.3); gateway 3 pc/hr + 1220s (§12.6). Damage: shielding applied per component (general/radiation/heat); landing &amp; departure-thrust terms estimated. DEP fuel scales with the fuel usage factor (capped at the physics-computed max). APPROACH fuel = STL tank capacity × 0.491 × fuel usage factor (empirically confirmed across 3 tank sizes).</div>
   `;
 
   resEl.innerHTML = html;
@@ -1873,8 +1878,6 @@ function primePlanetInSys(sysId) {
 
 (async () => {
   document.getElementById('fioKey').value = localStorage.getItem(FIO_KEY) || SWAGGER_KEY;
-  document.getElementById('fuelSlider').addEventListener('input', onFuelChange);
-  onFuelChange();
   await loadData();
   await loadShips();        // auto-load the fleet (read-only key)
 })();
