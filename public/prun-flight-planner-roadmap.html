@@ -82,7 +82,7 @@
 
 <header>
   <h1>PrUn Flight Planner — Master Roadmap</h1>
-  <div class="subtitle">Consolidated 2026-07-03 · Updated 2026-07-04 (radiation damage, release section expanded, repo release roadmap merged, documentation section added) · Supersedes all previous Gantt charts</div>
+  <div class="subtitle">Consolidated 2026-07-03 · Updated 2026-07-04 (v5 formula committed, fuel usage slider investigation complete, APPROACH formula empirically confirmed) · Supersedes all previous Gantt charts</div>
   <div class="goal"><strong>End goal:</strong> Enter origin, destination, and ship → get exact flight time, exact fuel cost, accurate damage projection, and condition alert. Works for any route in the galaxy. Real fleet or hypothetical build.</div>
 </header>
 
@@ -237,9 +237,9 @@
     <span class="phase-number">Phase 5</span>
     <span class="phase-title">Damage Model — Implementation &amp; Calibration</span>
     <span class="phase-where where-both">Code + Chat</span>
-    <span class="phase-status status-complete">Complete — 2026-07-03</span>
+    <span class="phase-status status-complete">Complete — 2026-07-04</span>
   </div>
-  <div class="gate-banner complete">⚑ COMPLETE 2026-07-03: Meteor damage formula v4 implemented and committed. k=7.1742e-6, exponent=0.545, star type multipliers (G=1.000/K=1.305/F=2.366/M=2.092). Real transit distance (chargedKm) fed into formula — SMA proxy bug fixed. Unit scale corrected (÷1e6 convention). Blind test UV-351c→b: planner 0.345% vs APEX 0.317% (8.8% error, within 10% gate). AVI-047P1 +0.51%, AVI-065TE +8.03%. Daniel confirmed in Chat. F/M multipliers remain provisional (1 system each).</div>
+  <div class="gate-banner complete">⚑ COMPLETE 2026-07-04: Meteor formula v5 committed (commit 207845e, prun-toolset). k=7.1692e-6, density-dependent exponent p(ρ)=0.683+0.223·log₁₀(ρ). Star-type multipliers removed entirely — F=G=K=M=1.000 confirmed once density range overlaps. 19 systems, 2 parameters, R²=0.9989, worst residual 7.1%. ZV-307 prior outlier confirmed bad capture — re-capture fits to 1.4%. Fuel usage slider investigation complete 2026-07-04: APPROACH = STL_tank × 0.491 × fuelUsageFactor confirmed across 3 blueprints, 3 tank sizes. Old leg-fuel slider removed, fuelUsageFactor input added. APPROACH 859 vs APEX 860 ✓. Daniel confirmed in Chat 2026-07-04.</div>
   <div class="task-list">
     <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
       <div class="task-name">All 10 Section 7 items implemented in prun_flight_planner.html <span class="task-tag tag-done">Done</span></div>
@@ -277,9 +277,17 @@
       <div class="task-name">Commit and push <span class="task-tag tag-done">Done — 2026-07-03</span></div>
       <div class="task-note">Committed after Daniel confirmed blind test result in Chat.</div>
     </div></div>
-    <div class="task"><div class="task-bar" style="background:var(--p8)"></div><div class="task-content">
-      <div class="task-name">F/M star type multipliers — more data needed <span class="task-tag tag-est">Provisional</span></div>
-      <div class="task-note">F multiplier 2.366 from ZV-307 only. M multiplier 2.092 from VH-331 only. Need at least one more F-star and one more M-dwarf system from controlled per-blueprint captures. Run calibration procedure in new star type systems when fleet flies there.</div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">F/M/K star-type multipliers — resolved and removed <span class="task-tag tag-done">Done — 2026-07-04</span></div>
+      <div class="task-note">Extended calibration across 6 new F/M systems (UB-860/TD-552/SG-928/VI-001/IA-158/KI-439) plus 5 new G/K systems (AJ-575/IY-028/AJ-293/ZV-759/UV-796) confirmed star-type signal absent once density ranges overlap. The apparent per-type multipliers in v4 were a sampling artefact. All multipliers collapsed to 1.000. Real finding: exponent is density-dependent (convex curve), not type-dependent.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Meteor formula v5 — fitted and committed <span class="task-tag tag-done">Done — 2026-07-04</span></div>
+      <div class="task-note">k=7.1692e-6, p(ρ)=0.683+0.223·log₁₀(ρ). 19 systems, R²=0.9989, worst residual 7.1%. Commit 207845e to prun-toolset/main. Old METEOR_TYPE_MULT table, fixed exponent 0.545, typeMult variable all removed. Two call sites updated (DEPARTURE line 1552, STL/APPROACH line 1706).</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Fuel usage slider mapping — capture + investigate <span class="task-tag tag-done">Done — 2026-07-04</span></div>
+      <div class="task-note">Empirically confirmed across 5 slider positions (0.12, 0.25, 0.50, 0.75, 1.00), 3 blueprints, 3 tank sizes, multiple routes. TO/LND/JUMP completely invariant to fuelUsageFactor. DEP scales linearly up to a route-dependent cap. APPROACH = STL_tank_capacity × 0.491 × fuelUsageFactor — confirmed across 1500/3500/8000 tank sizes. Old leg-fuel slider removed from planner UI. fuelUsageFactor input added (default 0.50, range 0.10–1.00). APPROACH formula replaces triangular boundary calculation entirely. Committed to prun-toolset/main.</div>
     </div></div>
     <div class="task"><div class="task-bar" style="background:var(--p8)"></div><div class="task-content">
       <div class="task-name">LANDING damage formula <span class="task-tag tag-chat">Next arc</span></div>
@@ -632,7 +640,7 @@
     </div></div>
     <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
       <div class="task-name">Acceleration &amp; damage research document <span class="task-tag tag-parked">Wait — v5 formula not committed</span></div>
-      <div class="task-note">Do not write until v5 formula is committed and gate-passed. Covers: acceleration model, meteor calibration methodology, star-type multiplier investigation, ZV-307 outlier, convex density curve finding, radiation damage. Credit Marcus (flight dynamics), Aem (calibration datasets).</div>
+      <div class="task-note">v5 formula committed 2026-07-04 — can now be written. Covers: acceleration model, meteor calibration methodology, star-type multiplier investigation (sampling artefact), ZV-307 outlier, convex density curve finding, fuel usage slider empirical laws, APPROACH formula derivation. Credit Marcus (flight dynamics), Aem (calibration datasets).</div>
     </div></div>
   </div>
 </div>
@@ -682,10 +690,17 @@
     </tr>
     <tr>
       <td><span class="phase-pill" style="background:rgba(63,185,80,0.15);color:var(--p3)">5 · Damage Impl.</span></td>
-      <td>Meteor damage formula v4 — implemented, calibrated, blind tested</td>
-      <td style="color:var(--p3)">Complete — 2026-07-03</td>
+      <td>Meteor formula v5 — density-dependent exponent, star-type multipliers removed, 19 systems</td>
+      <td style="color:var(--p3)">Complete — 2026-07-04 (commit 207845e)</td>
       <td style="color:var(--text-dim)">—</td>
-      <td style="color:var(--text-dim)">UV-351c→b blind test: 0.345% vs 0.317% APEX (+8.8%) ✓</td>
+      <td style="color:var(--text-dim)">R²=0.9989, worst residual 7.1%, live test flights match APEX ✓</td>
+    </tr>
+    <tr>
+      <td><span class="phase-pill" style="background:rgba(63,185,80,0.15);color:var(--p3)">Slider</span></td>
+      <td>Fuel usage slider — per-segment scaling laws, APPROACH formula, UI restructure</td>
+      <td style="color:var(--p3)">Complete — 2026-07-04</td>
+      <td style="color:var(--text-dim)">—</td>
+      <td style="color:var(--text-dim)">APPROACH 859 vs APEX 860 ✓. TO/LND/JUMP invariant confirmed ✓</td>
     </tr>
     <tr>
       <td><span class="phase-pill" style="background:rgba(56,139,253,0.15);color:var(--p1)">6 · FTL/Gateway</span></td>
@@ -779,7 +794,7 @@
   prun-acceleration-damage-gantt.html &nbsp;·&nbsp; prun-flight-planner-roadmap.html (old) &nbsp;·&nbsp; prun-capture-extension_gantt.html &nbsp;·&nbsp; prun-repo-release-roadmap.html (merged into Part 4 — 2026-07-04)<br><br>
   <strong>Community references:</strong> Marcus Licinius Crassus (flight dynamics papers, ephemeris — no damage work) &nbsp;·&nbsp; Taiyi Bureau (TO/LND distance formulas confirmed, galaxy map) &nbsp;·&nbsp; Raylu (git.raylu.net/raylu/pruncalc — handles TO/LND pressure/radius) &nbsp;·&nbsp; [OOG] Aem | SR (radiation damage formula via KQ-451 BTF runs, ~60-point landing damage dataset, KI-439 70-flight fuel log). Credit all four in any public release.<br><br>
   <strong>Gate rule:</strong> A phase does not close until at least one real observed value from the game matches the planner output within tolerance. Not "code runs," not "ratios are right." A number from the game equals a number from the planner. Daniel confirms in Chat.<br><br>
-  <strong>Handover doc:</strong> PrUn_Handover_2026-07-03.md — full context for next Chat session.
+  <strong>Handover doc:</strong> PrUn_Handover_2026-07-04.md — full context for next Chat session. Fuel slider investigation complete. Next arc: landing damage formula + TO/LND fuel (atmosphere + radius).
 </div>
 
 </body>

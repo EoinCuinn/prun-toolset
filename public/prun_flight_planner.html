@@ -136,6 +136,7 @@
     <button id="modeHypo" class="mode-btn" onclick="setMode('hypo')">Hypothetical</button>
   </div>
   <input id="fioKey" class="key-input" placeholder="FIO API key (read-only)" autocomplete="off">
+  <input id="fioUser" class="key-input" placeholder="FIO username" autocomplete="off">
   <button class="btn-sm" onclick="loadShips()">Load Fleet</button>
   <div id="shipDot" class="status-dot"></div>
 </div>
@@ -237,9 +238,9 @@
 // Response shape: UserNameToData.<user>.Data[]. Key is read-only.
 const SWAGGER_SHIPS = 'https://api.fnar.net/ships';
 // Ship fuel stores — resolve StorageId → WeightLoad/WeightCapacity to prefill the loadout.
-const SWAGGER_STORAGE = 'https://api.fnar.net/storage?username=eoincuinn&include_ship_stl_stores=true&include_ship_ftl_stores=true&include_items=true';
-const SWAGGER_KEY   = 'REDACTED';
-const FIO_KEY       = 'prun_apikey';   // localStorage override key
+// The /storage URL is built per-request from the user's FIO username (see loadShips).
+const FIO_KEY       = 'prun_apikey';    // localStorage key for the FIO API key
+const FIO_USER      = 'prun_fiouser';   // localStorage key for the FIO username
 const FP_SCALE   = 12.0;     // coordinate units per parsec — paper §12.5: exactly 12
 
 // FTL reactor physics — paper §12.1–12.3 and §13.5
@@ -838,6 +839,25 @@ function meteorDmgRaw(transitDistKm, density) {
   return 7.1692e-6 * transitDistKm * Math.pow(Math.max(0.001, density), rhoExp);
 }
 
+// Landing damage fraction (unshielded) — M2 fit, 2026-07-05.
+// k=1.1322e-4, 24 points (2 blueprints × 12 planets), R²(log-space)=0.98925,
+// worst residual 2.13× (MG-197e, 85 atm — known high-pressure outlier).
+// Drivers: stlDist^0.4934 × accel^-0.9441 × pressure^0.9288.
+// accel in m/s², stlDist in km (from landingDistKm), pressure in atm; result is damage fraction.
+function landingDmgRaw(stlDistKm, accelMs2, pressureAtm) {
+  return 1.1322e-4
+    * Math.pow(stlDistKm, 0.4934)
+    * Math.pow(accelMs2, -0.9441)
+    * Math.pow(Math.max(pressureAtm, 0.001), 0.9288);
+}
+
+// Landing distance — Taiyi landing distance × 1.131 correction (empirically confirmed 2026-07-05).
+// radius in km, pressure in atm, result in km. Matches captured stlDistance for the LDG segment.
+function landingDistKm(radiusKm, pressureAtm) {
+  const p = Math.max(pressureAtm, 0.1);
+  return 1.131 * radiusKm * (0.15 + 0.45 * Math.pow(p, -0.301));
+}
+
 // FTL radiation damage fraction (unshielded)
 function radDmgRaw(parsecs) {
   return 0.000353 * parsecs;
@@ -847,7 +867,6 @@ function radDmgRaw(parsecs) {
 // CHARGE damage: fixed constant per reactor type, keyed by ReactorPower (spec §2c).
 const CHARGE_DMG = { 2000: 6.875e-6, 2400: 7.133e-5 };  // QCR / RCT; unknown → QCR default
 const GATEWAY_DMG = 5.247e-5;   // fixed per gateway hop (spec §2e)
-const LANDING_DMG_EST = 2e-3;   // placeholder per landing — formula not yet derived (spec §2d)
 
 // Per-blueprint shielding factors for the 4 known real blueprints (spec §3c). Unknown
 // blueprints default to BHP baseline (general 0, everything else 0).
@@ -1094,17 +1113,25 @@ function escHtml(s) {
 // ── Ships ─────────────────────────────────────────────────────────────────────
 
 async function loadShips() {
-  const key = document.getElementById('fioKey').value.trim() || localStorage.getItem(FIO_KEY) || SWAGGER_KEY;
+  const key  = document.getElementById('fioKey').value.trim()  || localStorage.getItem(FIO_KEY)  || '';
+  const user = document.getElementById('fioUser').value.trim() || localStorage.getItem(FIO_USER) || '';
   const dot = document.getElementById('shipDot');
-  if (key && key !== SWAGGER_KEY) localStorage.setItem(FIO_KEY, key);
+  if (key)  localStorage.setItem(FIO_KEY, key);
+  if (user) localStorage.setItem(FIO_USER, user);
 
   dot.className = 'status-dot';
+  if (!key) { dot.className = 'status-dot err'; return; }   // no key configured — nothing to load
+
+  // Storage lookup needs the FIO username; skip it (non-fatal) if the user hasn't set one.
+  const storageUrl = user
+    ? `https://api.fnar.net/storage?username=${encodeURIComponent(user)}&include_ship_stl_stores=true&include_ship_ftl_stores=true&include_items=true`
+    : null;
   try {
     const hdr = { headers: { Authorization: `FIOAPIKey ${key}` } };
     // /ships and /storage in parallel. Storage failure is non-fatal — ships still load.
     const [shipsRes, storeRes] = await Promise.all([
       fetch(SWAGGER_SHIPS, hdr),
-      fetch(SWAGGER_STORAGE, hdr).catch(() => null),
+      storageUrl ? fetch(storageUrl, hdr).catch(() => null) : Promise.resolve(null),
     ]);
     if (!shipsRes.ok) throw new Error('HTTP ' + shipsRes.status);
     const json = await shipsRes.json();
@@ -1759,21 +1786,27 @@ async function calculate() {
       ? atmLeg(destPl.Radius, destPl.Pressure ?? 0, phys.accel, 'ldg')
       : null;
     const ldgTime = ldgAtm ? ldgAtm.tReal : 886;
+    // LND fuel: still the atmLeg placeholder (M) — LND-fuel redesign pending (see Step-4 report).
     const ldgFuel = ldgAtm ? ldgAtm.M     : 50;
-    const ldgKm   = ldgAtm ? ldgAtm.dKm   : 18514;
+    // Landing distance — Taiyi × 1.131 (replaces the old atmLeg 'ldg' distance for display + damage).
+    const ldgKm   = destPl.Radius
+      ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0)
+      : (ldgAtm ? ldgAtm.dKm : 18514);
     totalRealMin += ldgTime / 60;
     totalFuelStl += ldgFuel;
-    // LANDING damage — placeholder constant, heat shielding (spec §2d/§3b). Estimated.
-    const ldgDmg = applyShield(LANDING_DMG_EST, sh.heat);
+    // LANDING damage — M2 fitted formula (2026-07-05), heat shielding applied via applyShield.
+    const ldgDmg = (phys?.accel && destPl.Radius)
+      ? applyShield(landingDmgRaw(ldgKm, phys.accel, destPl.Pressure ?? 0.001), sh.heat)
+      : 0;
     totalDmg += ldgDmg;
     const hazards = planetHazardBadges(destPl);
     html += legHtml('LDG', `Orbit → ${destPl.PlanetName || destPl.PlanetNaturalId}`, [
       ['Distance', fmtDist(ldgKm)],
       ['Time (real)', fmtRealTime(ldgTime)],
       ['STL fuel', ldgFuel.toFixed(1) + ' units'],
-      ['Landing dmg', fmtDmg(ldgDmg) + ' <small style="color:var(--text3)">(est)</small>'],
+      ['Landing dmg', fmtDmg(ldgDmg)],
     ], hazards, ldgDmg, ldgAtm
-      ? '⚠ Planetary median ±15% — actual varies by approach geometry &amp; base tile position (paper §1.2). Landing damage estimated.'
+      ? '⚠ Planetary median ±15% — actual varies by approach geometry &amp; base tile position (paper §1.2).'
       : '(estimate — no ship selected)');
   }
 
@@ -1809,7 +1842,7 @@ async function calculate() {
     ${alertBanner}
     <div class="total-row"><span class="k">STL Fuel Used</span><span class="v">${totalFuelStl.toFixed(1)} units</span></div>
     ${shieldRec}
-    <div class="note" style="margin-top:0.75rem">STL: transfer ellipse arc rendezvous solver (paper §8). TO/LDG: paper §12.4. FTL: A·e^(−β·ρ)·d + charges (paper §12.1–12.3); gateway 3 pc/hr + 1220s (§12.6). Damage: shielding applied per component (general/radiation/heat); landing &amp; departure-thrust terms estimated. DEP fuel scales with the fuel usage factor (capped at the physics-computed max). APPROACH fuel = STL tank capacity × 0.491 × fuel usage factor (empirically confirmed across 3 tank sizes).</div>
+    <div class="note" style="margin-top:0.75rem">STL: transfer ellipse arc rendezvous solver (paper §8). TO/LDG: paper §12.4. FTL: A·e^(−β·ρ)·d + charges (paper §12.1–12.3); gateway 3 pc/hr + 1220s (§12.6). Damage: shielding applied per component (general/radiation/heat); landing damage = M2 fit (2026-07-05), departure-thrust term estimated. DEP fuel scales with the fuel usage factor (capped at the physics-computed max). APPROACH fuel = STL tank capacity × 0.491 × fuel usage factor (empirically confirmed across 3 tank sizes).</div>
   `;
 
   resEl.innerHTML = html;
@@ -1877,7 +1910,8 @@ function primePlanetInSys(sysId) {
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 (async () => {
-  document.getElementById('fioKey').value = localStorage.getItem(FIO_KEY) || SWAGGER_KEY;
+  document.getElementById('fioKey').value  = localStorage.getItem(FIO_KEY)  || '';
+  document.getElementById('fioUser').value = localStorage.getItem(FIO_USER) || '';
   await loadData();
   await loadShips();        // auto-load the fleet (read-only key)
 })();
