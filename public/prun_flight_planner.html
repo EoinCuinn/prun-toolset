@@ -1786,12 +1786,15 @@ async function calculate() {
       ? atmLeg(destPl.Radius, destPl.Pressure ?? 0, phys.accel, 'ldg')
       : null;
     const ldgTime = ldgAtm ? ldgAtm.tReal : 886;
-    // LND fuel: still the atmLeg placeholder (M) — LND-fuel redesign pending (see Step-4 report).
-    const ldgFuel = ldgAtm ? ldgAtm.M     : 50;
     // Landing distance — Taiyi × 1.131 (replaces the old atmLeg 'ldg' distance for display + damage).
     const ldgKm   = destPl.Radius
       ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0)
       : (ldgAtm ? ldgAtm.dKm : 18514);
+    // LND fuel uses the same pattern as TO fuel (atmLeg's M = sqrt(d / (13.71 × accel/350.11))),
+    // fed by the corrected Taiyi landing distance (ldgKm) instead of the old atmLeg 'ldg' distance.
+    const ldgFuel = ldgAtm
+      ? Math.round(Math.sqrt(ldgKm / (13.71 * phys.accel / 350.11)))
+      : 50;
     totalRealMin += ldgTime / 60;
     totalFuelStl += ldgFuel;
     // LANDING damage — M2 fitted formula (2026-07-05), heat shielding applied via applyShield.
