@@ -858,9 +858,19 @@ function landingDistKm(radiusKm, pressureAtm) {
   return 1.131 * radiusKm * (0.15 + 0.45 * Math.pow(p, -0.301));
 }
 
-// FTL radiation damage fraction (unshielded)
-function radDmgRaw(parsecs) {
-  return 0.000353 * parsecs;
+// Radiation damage — Aem formula (KQ-451 BTF runs, 2026-07-04)
+// orbitAU = planet OrbitSemiMajorAxis from planet_data.json
+// Returns damage fraction (unshielded)
+// 0.0734 %/Mkm → convert: 0.0734/100 per Mkm = 7.34e-4 per Mkm
+// distance in AU: 1 AU = 149.598 Mkm
+// so per-AU rate = 7.34e-4 × 149.598 = 0.10980 per AU
+// inverse square: radDmg = 0.10980 × AU⁻²  (unshielded, no anti-rad)
+// with advanced anti-rad (ARP): coefficient = 0.0224/0.0734 × 0.10980 = 0.03351
+// floor: 0.0002%/Mkm = 2e-6 per Mkm → negligible, ignore for now
+function radDmgPerParsec(destOrbitAU) {
+  if (!destOrbitAU || destOrbitAU <= 0) return 0;
+  const dmgPerParsec = 0.10980 / (destOrbitAU * destOrbitAU);
+  return dmgPerParsec;
 }
 
 // ── Damage model (Phase 5 — PHASE4_DAMAGE_SPEC.md §2) ─────────────────────────
@@ -1606,7 +1616,9 @@ async function calculate() {
         totalGwDmg += applyShield(GATEWAY_DMG, sh.general);  // fixed per hop, general shield
       } else {
         laneJumps++;
-        totalRadDmg += applyShield(radDmgRaw(pc), sh.radiation);  // FTL radiation, rad shield
+        // Radiation: Aem inverse-square formula, scales with dest planet orbit AU
+        const destOrbitAU = _planets[_dest.planetId]?.OrbitSemiMajorAxis ?? 1.0;
+        totalRadDmg += applyShield(radDmgPerParsec(destOrbitAU) * pc, sh.radiation);
         if (J != null) {
           hopSec = J * pc;
           totalJumpSec += hopSec;
