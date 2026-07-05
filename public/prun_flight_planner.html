@@ -1790,10 +1790,10 @@ async function calculate() {
     const ldgKm   = destPl.Radius
       ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0)
       : (ldgAtm ? ldgAtm.dKm : 18514);
-    // LND fuel uses the same pattern as TO fuel (atmLeg's M = sqrt(d / (13.71 × accel/350.11))),
-    // fed by the corrected Taiyi landing distance (ldgKm) instead of the old atmLeg 'ldg' distance.
-    const ldgFuel = ldgAtm
-      ? Math.round(Math.sqrt(ldgKm / (13.71 * phys.accel / 350.11)))
+    // LND fuel: k × flowRate × sqrt(dist/accel), k=354.5 fitted 2026-07-05.
+    // flowRate (ship.stlFlowRate, t of STL fuel per unit M) in fuel/s, dist (ldgKm) in km, accel in m/s².
+    const ldgFuel = (_currentShip?.stlFlowRate && ldgKm && phys.accel)
+      ? Math.round(354.5 * _currentShip.stlFlowRate * Math.sqrt(ldgKm / phys.accel))
       : 50;
     totalRealMin += ldgTime / 60;
     totalFuelStl += ldgFuel;
