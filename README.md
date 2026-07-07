@@ -110,8 +110,6 @@ This project would not exist without:
 - **Marcus Licinius Crassus** — definitive flight dynamics papers: duration law, speed-cap, rendezvous-floor, FTL-jump laws, ephemeris methodology. The theoretical foundation the flight planner is built on.
 - **Taiyi Bureau** — takeoff/landing distance formulas, independent flight planner, universe map data (`systemstars.json`, MIT licensed). TO/LND distance formulas confirmed accurate to within empirical correction.
 - **Aem | SR** — radiation damage formula, ~60-point landing damage dataset, KI-439 70-flight fuel log. Empirical backbone of the damage calibration arc.
-- **Raylu** — [Refined PrUn tools](https://git.raylu.net/raylu/pruncalc). CONTD import integration pending PR #164.
-
 ---
 
 ## License

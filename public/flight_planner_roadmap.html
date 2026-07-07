@@ -85,7 +85,7 @@
 <body>
 
 <h1>PrUn Command — Path to a Trusted Flight Planner</h1>
-<div class="subtitle">Status &amp; dependency map, not a calendar schedule — bar length reflects relative progress within each task, not elapsed real time. Revised June 27, 2026. Latest update: capture extension live and accumulating data — ANT and BEN now have samples, LDG fuel now collecting passively, 377-planet coverage gap pipeline now running.</div>
+<div class="subtitle">Status &amp; dependency map, not a calendar schedule — bar length reflects relative progress within each task, not elapsed real time. Revised July 7, 2026. Latest update: radiation damage workstream closed — no radiation term in planner, anti-rad plate flagged net negative. Damage model complete: meteor + landing + base only.</div>
 
 <div class="legend">
   <div class="legend-item"><span class="dot" style="background:var(--done)"></span>Done &amp; verified</div>
@@ -99,6 +99,11 @@
 <div class="resolved-box">
   <div class="resolved-title">✓ Resolved since last revision: the "540 km/s defies physics" puzzle</div>
   This morning's finding that HRT's orbit implied ~107× a sun-like star's mass was a units error, not a real anomaly. The game's orbital clock runs <strong>20× faster than real elapsed seconds</strong> (confirmed in project_flight_dynamics.md: <code>worldTime = ref + (unixT−ref)×20</code>). Correcting for that brings the implied GM within 2.6% of VH-331's actual star-mass-derived GM. HRT orbits an ordinary, slightly-sub-solar-mass star — nothing exotic.
+</div>
+
+<div class="resolved-box">
+  <div class="resolved-title">✓ Resolved July 7, 2026: Radiation damage workstream — closed, no term shipped</div>
+  Four days of captures across all segment types (APPROACH, LANDING, TRANSIT, JUMP_GATEWAY) established: <strong>radiation, if it exists, accumulates on TRANSIT segments only</strong> — long intra-system STL cruises near hot stars. APPROACH and LANDING are confirmed dead channels. The definitive test (NL-534a → NL-534h, 38,497 Mkm through O-class system, shield vs no-shield) showed a difference of 0.0000032 — indistinguishable from zero. Worst-case analysis: if Aem's formula were shipped, errors reach 58% on freak O-star long-sublight routes, always in one direction (overselling the plate). Decision: <strong>do not ship a radiation term. Anti-rad plate is net negative</strong> — ~1% guaranteed fuel cost, no measurable damage benefit on any tested route. Meteor + landing + base is the complete damage model.
 </div>
 
 <div class="section">
@@ -245,9 +250,9 @@
   </div>
 
   <div class="row">
-    <div><div class="task-name">Damage formula</div><div class="task-detail">NEW: ~17× too high vs game (2.141% planner vs 0.116% actual). No paper formula exists. Ground truth now available from AVI-047P1: TRANSIT=0.001027, LDG=0.000136. Explicitly deprioritized by Daniel, but now has real numbers to fit against whenever it's picked back up.</div></div>
-    <div class="bar-track"><div class="bar-fill notstarted-bar" style="width:10%">ground truth captured</div></div>
-    <div class="status-pill notstarted">Not started</div>
+    <div><div class="task-name">Damage formula — meteor + landing</div><div class="task-detail">Meteor: 7.1692e-6 × distMkm × density^(0.683+0.223·log₁₀ρ), validated 8.9% on WX-827a. Landing: M2 formula confirmed. Radiation: workstream closed July 7 — no term shipped, anti-rad plate flagged net negative. Model is complete as meteor + landing + base. Anti-rad plate should be shown as net negative in Ship Builder UI (~1% fuel cost, zero measurable benefit).</div></div>
+    <div class="bar-track"><div class="bar-fill done-bar" style="width:100%">complete — no radiation term</div></div>
+    <div class="status-pill done">Verified</div>
   </div>
 </div>
 
@@ -282,7 +287,7 @@
   </div>
 </div>
 
-<div class="note">Revised to incorporate Claude Code's MEMORY.md and project_flight_dynamics.md (uploaded this session). Items are only flipped to "Done &amp; verified" once confirmed against a real reload or flight export — not on self-report alone, from either side of the chat/Code split.</div>
+<div class="note">Revised July 7, 2026. Items are only flipped to "Done &amp; verified" once confirmed against a real reload or flight export — not on self-report alone, from either side of the chat/Code split. Radiation damage closed after 4 days of captures — see handover doc in C:\prun-tools\prun-dam-radiation\RADIATION_HANDOVER_2026-07-07.md for full detail.</div>
 
 </body>
 </html>
