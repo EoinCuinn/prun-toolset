@@ -54,7 +54,7 @@ Empirically calibrated from flight log data.
 
 ### What's in progress
 
-- **Radiation damage** — Aem's inverse-square form confirmed correct (damage ∝ luminosity × AU⁻²). Scaling constant pending recalibration against unshielded capture data. Placeholder formula active.
+- **Radiation damage** — Confirmed real (2026-07-08). Accumulates on TRANSIT segments only; scales as k·AU⁻²·distMkm, k≈0.045 %·AU²/Mkm (O-class, two ships, pre-registered prediction confirmed). Implementation parked — path integration along the transfer ellipse is non-trivial, and star-class dependence is uncalibrated outside O-class. Anti-rad plate is non-functional (not net negative — zero measurable effect across nine captures). No radiation term in active code.
 - **DEP fuel** — ~6% low, departure thrust term not yet fitted.
 - **FTL/Gateway routing** — Phase 6, ready to start.
 

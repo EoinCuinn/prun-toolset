@@ -85,7 +85,7 @@
 <body>
 
 <h1>PrUn Command — Path to a Trusted Flight Planner</h1>
-<div class="subtitle">Status &amp; dependency map, not a calendar schedule — bar length reflects relative progress within each task, not elapsed real time. Revised July 7, 2026. Latest update: radiation damage workstream closed — no radiation term in planner, anti-rad plate flagged net negative. Damage model complete: meteor + landing + base only.</div>
+<div class="subtitle">Status &amp; dependency map, not a calendar schedule — bar length reflects relative progress within each task, not elapsed real time. Revised July 8, 2026. Latest update: radiation damage — real, ∝ AU⁻², confirmed on two ships with pre-registered prediction. Anti-rad plate non-functional (not just net negative). Implementation parked pending multi-star calibration. Damage model: meteor + landing + base + radiation (parked).</div>
 
 <div class="legend">
   <div class="legend-item"><span class="dot" style="background:var(--done)"></span>Done &amp; verified</div>
@@ -102,8 +102,8 @@
 </div>
 
 <div class="resolved-box">
-  <div class="resolved-title">✓ Resolved July 7, 2026: Radiation damage workstream — closed, no term shipped</div>
-  Four days of captures across all segment types (APPROACH, LANDING, TRANSIT, JUMP_GATEWAY) established: <strong>radiation, if it exists, accumulates on TRANSIT segments only</strong> — long intra-system STL cruises near hot stars. APPROACH and LANDING are confirmed dead channels. The definitive test (NL-534a → NL-534h, 38,497 Mkm through O-class system, shield vs no-shield) showed a difference of 0.0000032 — indistinguishable from zero. Worst-case analysis: if Aem's formula were shipped, errors reach 58% on freak O-star long-sublight routes, always in one direction (overselling the plate). Decision: <strong>do not ship a radiation term. Anti-rad plate is net negative</strong> — ~1% guaranteed fuel cost, no measurable damage benefit on any tested route. Meteor + landing + base is the complete damage model.
+  <div class="resolved-title">✓ Resolved July 8, 2026: Radiation damage — real, confirmed, implementation parked</div>
+  July 7 conclusion ("no radiation term") was premature and is reversed. Full AU sweep across NL-534 (O-class) on two independent ships, plus a pre-registered a→h prediction test that breaks the AU/distance confound, establishes: <strong>radiation damage is real, implemented, and scales as k·AU⁻² per Mkm</strong> — k ≈ 0.045 %·AU²/Mkm, roughly ship-independent, within 1.7× of Aem's independent coefficient. The a→h residual (+4.68% ship 1, +4.25% ship 2) was predicted before flight and confirmed on both ships. Whipple shielding reduces the meteoroid floor but leaves radiation unchanged — the two channels are independent. <strong>The anti-rad plate does nothing — non-functional, not merely net negative.</strong> Aem's shielded column in his KQ-451 sheet was back-computed from the tooltip (cell S48 = 0.305×0.0734), not measured — there was no shield effect to measure. His unshielded AU⁻² curve is independently reproduced. APPROACH and LANDING remain confirmed dead channels. Implementation parked: path integration along the transfer ellipse is non-trivial, star-class dependence (B/A/F/G) uncalibrated, and radiation only bites on long inner-system STL legs near O/B stars — rare in normal play. See parked section below and handover doc dated July 8.
 </div>
 
 <div class="section">
@@ -250,8 +250,8 @@
   </div>
 
   <div class="row">
-    <div><div class="task-name">Damage formula — meteor + landing</div><div class="task-detail">Meteor: 7.1692e-6 × distMkm × density^(0.683+0.223·log₁₀ρ), validated 8.9% on WX-827a. Landing: M2 formula confirmed. Radiation: workstream closed July 7 — no term shipped, anti-rad plate flagged net negative. Model is complete as meteor + landing + base. Anti-rad plate should be shown as net negative in Ship Builder UI (~1% fuel cost, zero measurable benefit).</div></div>
-    <div class="bar-track"><div class="bar-fill done-bar" style="width:100%">complete — no radiation term</div></div>
+    <div><div class="task-name">Damage formula — meteor + landing</div><div class="task-detail">Meteor: 7.1692e-6 × distMkm × density^(0.683+0.223·log₁₀ρ), validated 8.9% on WX-827a. Landing: M2 formula confirmed. Radiation: real and confirmed July 8 (k≈0.045·AU⁻²/Mkm, two ships, pre-registered prediction) — implementation parked, see Section 4. Anti-rad plate is non-functional — flag as such in Ship Builder UI, not just net negative. Active model: meteor + landing + base.</div></div>
+    <div class="bar-track"><div class="bar-fill done-bar" style="width:100%">meteor + landing confirmed</div></div>
     <div class="status-pill done">Verified</div>
   </div>
 </div>
@@ -276,6 +276,12 @@
     <div class="bar-track"><div class="bar-fill parked-bar" style="width:100%">do not repeat</div></div>
     <div class="status-pill parked">Failed before</div>
   </div>
+
+  <div class="row">
+    <div><div class="task-name">Radiation damage implementation</div><div class="task-detail">Physics confirmed July 8: damage = k·AU⁻²·distMkm integrated along transfer ellipse, k≈0.045 %·AU²/Mkm (O-class, two ships). Parked because: (1) path integration along curved ellipse is non-trivial; (2) star-class dependence (B/A/F/G stars) uncalibrated — only O-class tested; (3) only bites on long inner-system STL legs near O/B stars, rare in normal play. To implement: need multi-star AU sweep data + numerical integration of AU⁻² along transfer ellipse geometry. Anti-rad plate is non-functional — already flagged, no further work needed on plate side.</div></div>
+    <div class="bar-track"><div class="bar-fill parked-bar" style="width:100%">physics done, integration + calibration pending</div></div>
+    <div class="status-pill parked">Parked</div>
+  </div>
 </div>
 
 <div class="milestone-section">
@@ -287,7 +293,7 @@
   </div>
 </div>
 
-<div class="note">Revised July 7, 2026. Items are only flipped to "Done &amp; verified" once confirmed against a real reload or flight export — not on self-report alone, from either side of the chat/Code split. Radiation damage closed after 4 days of captures — see handover doc in C:\prun-tools\prun-dam-radiation\RADIATION_HANDOVER_2026-07-07.md for full detail.</div>
+<div class="note">Revised July 8, 2026. Items are only flipped to "Done &amp; verified" once confirmed against a real reload or flight export — not on self-report alone, from either side of the chat/Code split. Radiation damage: July 7 "closed, no term" verdict reversed July 8 — radiation is real (k·AU⁻², two ships, pre-registered prediction confirmed), anti-rad plate non-functional. Implementation parked. See handover doc: C:\prun-tools\prun-dam-radiation\RADIATION_HANDOVER_2026-07-08.md</div>
 
 </body>
 </html>
