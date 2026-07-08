@@ -101,6 +101,8 @@ Paste your FIO REST API key in the header on first load — it saves to `localSt
 
 For flight planner real-fleet mode, a FIO Swagger API key (`api.fnar.net`) is also required — different from the REST key. Create one via `POST /auth/createapikey` after authenticating with your FIO password.
 
+For the Flight Log tool, a PUNoted data token (`api.punoted.net`) is required — generate one from your PUNoted account and paste it into the header; it saves to `localStorage` (`prun_punoted_token`). Adding your FIO REST key alongside it is optional and unlocks ship specs (Volume, Condition, Blueprint) per flight.
+
 ---
 
 ## Attribution
@@ -110,6 +112,7 @@ This project would not exist without:
 - **Marcus Licinius Crassus** — definitive flight dynamics papers: duration law, speed-cap, rendezvous-floor, FTL-jump laws, ephemeris methodology. The theoretical foundation the flight planner is built on.
 - **Taiyi Bureau** — takeoff/landing distance formulas, independent flight planner, universe map data (`systemstars.json`, MIT licensed). TO/LND distance formulas confirmed accurate to within empirical correction.
 - **Aem | SR** — radiation damage formula, ~60-point landing damage dataset, KI-439 70-flight fuel log. Empirical backbone of the damage calibration arc.
+- **xflasar** (`xSupeFly` on Discord) — [PUNoted](https://github.com/xflasar), the live flight-data API (`api.punoted.net`) that powers the Flight Log tool — ships and in-progress flights with exact timestamps.
 ---
 
 ## License
