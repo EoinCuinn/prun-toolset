@@ -1,0 +1,130 @@
+MARCUS FIXES REPORT — prun_flight_planner.html
+Date: 2026-07-09
+Source: Marcus Licinius Crassus, 83,939-flight regression (3 STL distance bugs + 2 fuel constant errors)
+File modified: C:\prun-tools\prun-toolset\public\prun_flight_planner.html
+
+Note on naming: the STL distance function in this file is spelled calculateSltDistance3D
+(the spec called it calculateStlDistance3D "or equivalent"). It is the same function.
+
+================================================================================
+FIX 1 — Plane normal in reduction surface  →  fixed +z normal
+Function: calculateSltDistance3D
+Location: lines 449–453 (was 449–453 pre-edit)
+--------------------------------------------------------------------------------
+BEFORE:
+  // Plane normal N = O × P (defines the transfer ellipse plane)
+  const Nx = Oy*Pz - Oz*Py, Ny = Oz*Px - Ox*Pz, Nz = Ox*Py - Oy*Px;
+  const Nmag = Math.hypot(Nx, Ny, Nz);
+  if (Nmag < 1e-10) return null;
+  const Nhx = Nx/Nmag, Nhy = Ny/Nmag, Nhz = Nz/Nmag;
+
+AFTER:
+  const Nhx = 0, Nhy = 0, Nhz = 1;   (+ explanatory comment)
+
+Effect: N no longer flips sign with travel direction, so deltaE is no longer forced
+>= 0 and the reduction branch (deltaE < 0) can fire. Downstream uses of Nhx/Nhy/Nhz
+(e2 vector, minor-axis vector) are unchanged.
+
+================================================================================
+FIX 2 — Deficits removed from planet-to-planet legs
+Function: stlRendezvous
+Location: lines 543–556 (removed the two deficit calls + now-dead scaffolding)
+--------------------------------------------------------------------------------
+REMOVED:
+  const vel1 = planetVelocityKmS(pl1, nowUnix, getPos1);
+  ...
+  if (vel1) d = Math.max(0, d - departureDeficit(d, M, accel, S, P, vel1));
+  const isTriangular = d <= 4 * accel * M * M;
+  if (isTriangular) {
+    const vel2 = planetVelocityKmS(pl2, arriveT, getPos2);
+    if (vel2) d = Math.max(0, d - leverageDeficit(S, P, vel2, tFlight));
+  }
+  (let d ...  →  const d = slt.chargedKm; since d is no longer reassigned)
+
+The departureDeficit and leverageDeficit calls, plus the now-unused vel1/vel2/
+isTriangular scaffolding that existed only to feed them, were removed. A comment
+records why.
+
+CONFIRMED STILL PRESENT / UNTOUCHED (verified by grep):
+  - departureDeficit definition: line 641
+  - departureDeficit USED in departureLegCalc: line 674  ✓ untouched
+  - leverageDeficit definition: line 629
+  - leverageDeficit USED in stlRendezvousFromGate: line 708  ✓ untouched
+  - No deficit calls remain inside stlRendezvous (only the explanatory comment).
+
+================================================================================
+FIX 3 — No-surface fallback formula  →  1 - R/E(psi, m)
+Function: calculateSltDistance3D (else-branch when _reductionSurface is absent)
+Location: lines 515–518
+--------------------------------------------------------------------------------
+BEFORE:
+  const sin2p = Math.sin(2 * psi);
+  const R = (1/3) * m * sin2p * sin2p;
+  factor = Math.max(0, 1 - 2 * R);
+
+AFTER:
+  const sin2p = Math.sin(2 * psi);
+  const R = (1/3) * m * sin2p * sin2p;
+  factor = 1 - R / ellipticEIncomplete(psi, m);
+
+E(psi, m) is the incomplete elliptic integral, computed in this file by
+ellipticEIncomplete(psi, m) — the same function used two lines earlier to form the
+arc length l = 2*a*ellipticEIncomplete(psi, m). The Math.max(0, ...) clamp from the
+old form was dropped, matching the spec's literal "factor = 1 - R/E(psi, m)".
+
+================================================================================
+FIX 4 — LDG fuel constant  354.5  →  337.3
+Location (LDG leg): line 1799 (code), line 1796 (comment)
+--------------------------------------------------------------------------------
+BEFORE:
+  ? Math.round(354.5 * _currentShip.stlFlowRate * Math.sqrt(ldgKm / phys.accel))
+AFTER:
+  ? Math.round(337.3 * _currentShip.stlFlowRate * Math.sqrt(ldgKm / phys.accel))
+
+Formula unchanged: M_ldg = 337.3 × stlFlowRate × √(dist / accel).
+The comment above it was also updated (k=337.3 ... was 354.5).
+Grep confirms zero remaining occurrences of 354.5 in the file.
+
+================================================================================
+FIX 5 — DEP fuel formula
+Function: DEP leg block in the main calculate() render (inside `if (dep)`)
+Location: lines 1550–1557
+--------------------------------------------------------------------------------
+BEFORE:
+  // Fuel usage factor scales DEP fuel, capped at the physics-computed max (dep.M).
+  const depFuel = Math.min(dep.M, dep.M * fuf);
+
+AFTER:
+  const stlFuel_t = _currentShip?.stlFuelCap ?? 0;
+  const depFuel = Math.min(
+    Math.sqrt(dep.chargedKm / (4 * phys.accel)),
+    13.34 * fuf * stlFuel_t / phys.accel
+  );
+
+Implements M_dep = min( √(d / (4a)), 13.34 × fuf × stlFuel_t / accel ).
+Variable mapping used:
+  - d          = dep.chargedKm  (departure distance, km — the value already shown as
+                 the DEP "Distance" row; matches existing km units used by dep.M and
+                 the isTriangular boundary d <= 4*accel*M*M)
+  - a          = phys.accel     (same accel passed to departureLegCalc)
+  - fuf        = fuf            (fuelUsageFactor slider, id="fufInput", clamped 0.1–1.0)
+  - stlFuel_t  = _currentShip?.stlFuelCap ?? 0  (STL tank capacity in tonnes)
+
+================================================================================
+VERIFICATION
+--------------------------------------------------------------------------------
+- Each modified section was read back after editing; all five changes are present.
+- grep confirms: no `354.5` remains; deficit calls exist only in departureLegCalc
+  (line 674) and stlRendezvousFromGate (line 708), never in stlRendezvous.
+- No code outside the five named functions/blocks was touched.
+- No test flight was run, per instruction.
+
+NOTES / THINGS TO WATCH (not defects, flagged for awareness):
+1. Fix 3 removed the Math.max(0, ...) floor and introduces a division by
+   ellipticEIncomplete(psi, m). If psi → 0 (near-degenerate transfer), E → 0 and the
+   term could blow up; this branch only runs when _reductionSurface is unavailable,
+   and the deltaE < 0 branch implies a non-trivial arc, but it is a behavioural change
+   from the clamped old form. Implemented exactly as specified.
+2. Fix 5: when no ship is selected / stlFuelCap is unknown, stlFuel_t = 0 makes the
+   second min() term 0, so depFuel = 0. The old formula fell back to dep.M in that
+   case. Implemented per the literal spec; flag if a no-ship fallback is desired.

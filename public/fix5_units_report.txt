@@ -1,0 +1,133 @@
+FIX 5 UNITS INVESTIGATION — DEP fuel formula
+File: C:\prun-tools\prun-toolset\public\prun_flight_planner.html
+Date: 2026-07-09
+Route: HRT (Hortus Station) → Promitor (VH-331a)   [same system, f2f57766...]
+
+================================================================================
+1. RUNTIME VALUES (from the planner UI / screenshot; ship = 100k thrust,
+   1043 t empty, 0.0075 flow rate, 3500 u STL tank)
+--------------------------------------------------------------------------------
+  dep.chargedKm = 80,559,830 km
+  phys.accel    = 96.44
+  fuf           = 1.0
+  stlFuel_t     = 210 tonnes   (= 3500 units × STL_UNIT_MASS 0.06)
+  Game DEP/TRA fuel (target) = 3474 units
+  STL_UNIT_MASS = 0.06 t/unit
+
+Note (unexpected, per "note and continue"): the original brief quoted ~763 units.
+With the exact inputs above the CURRENT formula evaluates to ~29 units (term 2 wins,
+see below), not 763 — the 763 figure came from a different fuf/route state. Either
+way the current output is far below 3474; the diagnosis and fix are unaffected.
+
+================================================================================
+2. EVALUATING BOTH TERMS OF THE min()  (current buggy formula)
+   depFuel = min( √(dep.chargedKm/(4·accel)),  13.34·fuf·stlFuel_t/accel )
+--------------------------------------------------------------------------------
+  Term 1  √(d/(4a))          = √(80,559,830 / (4×96.44))
+                             = √(80,559,830 / 385.76) = √208,838.6
+                             = 456.98
+  Term 2  13.34·fuf·SF/accel = 13.34 × 1.0 × 210 / 96.44
+                             = 2801.4 / 96.44
+                             = 29.05   <-- WINNER (smaller)
+
+  min = 29.05  → displayed as ~29 units.   Game = 3474 units.
+
+  Term 2 wins and is absurdly small. Even Term 1 (457) is far from 3474.
+  Neither term is in "units" — that is the tell.
+
+================================================================================
+3. UNITS OF dep.chargedKm
+--------------------------------------------------------------------------------
+  dep.chargedKm is set in departureLegCalc() as `arc` = slt.arcKm (post-deficit),
+  and calculateSltDistance3D returns `arcKm: l/1000` (metres → km).
+  => dep.chargedKm is in KILOMETRES.  (Confirmed value 80,559,830 km.)
+
+================================================================================
+4. UNITS OF phys.accel
+--------------------------------------------------------------------------------
+  shipPhysics(): accel = ship.thrust / totalMass  (thrust in N, mass in tonnes),
+  i.e. the raw "Swagger Acceleration" game-unit number (~96.44 here).
+  stlTimeReal uses it as: t = 2·√(dKm/accel) with dKm in km giving seconds — so
+  within these formulas accel behaves as km/s² (game units). NOT SI m/s².
+  Cross-check (validated LDG leg, Fix 4): 337.3·flow·√(distKm/accel) = 27 units for
+  distKm≈10 000, accel≈96 — consistent, so accel≈96 (km/s²) is correct.
+
+================================================================================
+5. UNIT ANALYSIS — what Marcus's formula actually produces
+--------------------------------------------------------------------------------
+Marcus:  M_dep = min( √(d/(4a)),  13.34·fuf·stlFuel_t/accel )
+
+The result "M_dep" is fuel in TONNES, and the two min() branches must both be tonnes:
+
+  • Term 1 = √(d/(4a)) : departure fuel DEMAND (tonnes). d in km, a in game-accel
+    (km/s²). For HRT→Promitor = 457 t — i.e. a full-burn departure to the 74.8 M-km
+    jump gate would "want" 457 t of STL fuel.
+
+  • Term 2 = fuel BUDGET (tonnes) = the STL tank you can actually burn = fuf × stlFuel_t
+    (fuf fraction of the 210 t tank = 210 t). This is what caps the demand: you can't
+    burn more fuel than you carry, so a long departure burns (nearly) the whole tank.
+
+  min(457 t, 210 t) = 210 t  → fuel-LIMITED (correct: it's a long departure).
+
+Then convert TONNES → display UNITS by dividing by STL_UNIT_MASS (0.06):
+  210 t / 0.06 = 3500 units.   Game = 3474 units  →  0.75% high.  MATCH.
+
+TWO unit bugs in the shipped code:
+  (a) Term 2 had a spurious "13.34 / accel" factor. `stlFuel_t/accel` divides a MASS
+      by an ACCELERATION — dimensionally not a mass — collapsing the 210 t budget to
+      13.34×210/96.44 = 29. The budget should simply be `fuf × stlFuel_t` (tonnes).
+  (b) The min() result (tonnes) was used directly as if it were units. It must be
+      divided by STL_UNIT_MASS (÷0.06, i.e. ×16.67) to get game fuel units.
+
+Why the residual 0.75% (3500 vs 3474): the fix caps at full tank CAPACITY (3500 u).
+The game run carried ~3474 u loaded (or leaves a ~26 u / 1.6 t reserve). Using actual
+onboard load (stlFuelLoad ≈ 208.4 t) instead of capacity would land on 3474 exactly;
+capacity is used per the task's definition of stlFuel_t and is well within "close".
+
+================================================================================
+6. FIX APPLIED  (prun_flight_planner.html, DEP leg block, ~lines 1550–1560)
+--------------------------------------------------------------------------------
+BEFORE:
+  const stlFuel_t = _currentShip?.stlFuelCap ?? 0;
+  const depFuel = Math.min(
+    Math.sqrt(dep.chargedKm / (4 * phys.accel)),
+    13.34 * fuf * stlFuel_t / phys.accel
+  );
+
+AFTER:
+  const stlFuel_t = _currentShip?.stlFuelCap ?? 0;
+  const depFuelTonnes = Math.min(
+    Math.sqrt(dep.chargedKm / (4 * phys.accel)),   // term1: fuel demand (tonnes)
+    fuf * stlFuel_t                                 // term2: fuel budget = fuf × tank (tonnes)
+  );
+  const depFuel = depFuelTonnes / STL_UNIT_MASS;    // tonnes → display units (÷0.06)
+
+Changes:
+  - Term 2: `13.34 * fuf * stlFuel_t / phys.accel`  →  `fuf * stlFuel_t`
+  - Added tonnes→units conversion: `/ STL_UNIT_MASS`
+  - Term 1 unchanged (already correct: km & game-accel → tonnes of demand).
+  - Temporary console.log debug instrumentation added during step 1 was removed
+    (verified: no `console.log` / `FIX5 DEBUG` / `__term1` remain in the file).
+
+================================================================================
+7. VERIFICATION (analytic, using the captured runtime values)
+--------------------------------------------------------------------------------
+  Term 1 = √(80,559,830 / (4×96.44)) = 456.98 t
+  Term 2 = 1.0 × 210               = 210.00 t
+  min                              = 210.00 t   (fuel-limited)
+  depFuel = 210.00 / 0.06          = 3500.0 units
+
+  BEFORE fix (same inputs): min(456.98, 29.05) = 29.05  → ~29 units
+  AFTER  fix (same inputs): 3500.0 units
+  GAME:                      3474 units      (fix is 0.75% high → "close", MATCH)
+
+  LDG (Fix 4) unchanged and still correct (27 vs 26).
+
+================================================================================
+SUMMARY
+--------------------------------------------------------------------------------
+Marcus's min() returns fuel in TONNES. The shipped Fix 5 (a) mangled the fuel-budget
+branch with a spurious 13.34/accel factor and (b) never converted the tonnes result
+to display units. Corrected term 2 to `fuf × stlFuel_t` and divided the min() by
+STL_UNIT_MASS. HRT→Promitor DEP fuel goes from ~29 units to 3500 units vs the game's
+3474 (0.75%). Distances are km; accel is the game "Swagger" unit (km/s²), not SI.

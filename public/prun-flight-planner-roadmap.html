@@ -76,13 +76,15 @@
   .phase-pill { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; }
   .retire-note { margin-top: 40px; border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; font-size: 11px; color: var(--text-dim); line-height: 1.7; }
   .retire-note strong { color: var(--text); }
+  .resolved-box { background: rgba(63,185,80,0.06); border: 1px solid rgba(63,185,80,0.25); border-radius: 6px; padding: 14px 16px; margin-bottom: 20px; font-size: 12px; line-height: 1.7; color: var(--text); }
+  .resolved-title { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--p3); margin-bottom: 8px; }
 </style>
 </head>
 <body>
 
 <header>
   <h1>PrUn Flight Planner — Master Roadmap</h1>
-  <div class="subtitle">Consolidated 2026-07-03 · Updated 2026-07-04 (v5 formula committed, fuel usage slider investigation complete, APPROACH formula empirically confirmed) · Supersedes all previous Gantt charts</div>
+  <div class="subtitle">Consolidated 2026-07-03 · Updated 2026-07-04 (v5 formula committed, fuel usage slider investigation complete, APPROACH formula empirically confirmed) · Supersedes all previous Gantt charts · Revised July 9, 2026. Extension pipeline complete (July 9): BLUEPRINT_BLUEPRINTS, SHIP_SHIPS, test flight requests, and flight missions all captured passively. Full join chain operational: blueprint component loadout → missionId → segment/fuel/damage data. Shielding modifier values (SHIELDING_RADIATION=0.7 for SRP) now readable directly from wire.</div>
   <div class="goal"><strong>End goal:</strong> Enter origin, destination, and ship → get exact flight time, exact fuel cost, accurate damage projection, and condition alert. Works for any route in the galaxy. Real fleet or hypothetical build.</div>
 </header>
 
@@ -93,6 +95,16 @@
   <div class="legend-item"><div class="legend-dot" style="background:var(--p5)"></div> Blocked</div>
   <div class="legend-item"><div class="legend-dot" style="background:var(--text-dim)"></div> Pending</div>
   <div class="legend-item"><div class="legend-dot" style="background:var(--p7)"></div> Ongoing (passive)</div>
+</div>
+
+<div class="resolved-box">
+  <div class="resolved-title">✓ Resolved July 9, 2026: Passive capture pipeline complete</div>
+  Four WebSocket message types now captured automatically on game load and blueprint tester use:
+  <strong>BLUEPRINT_BLUEPRINTS</strong> — full component list for all blueprints (engine, tanks, hull plates, shielding slots, modifier values including SHIELDING_RADIATION=0.7 for SRP); fires on cold load, captures all 25 blueprints in one message.
+  <strong>SHIP_SHIPS</strong> — fleet physics parameters (thrust, mass, operatingEmptyMass, stlFuelFlowRate, acceleration, repairMaterials with hull plate type); fires on cold load.
+  <strong>SHIP_FLIGHT_CALCULATE_TEST_FLIGHT</strong> (outgoing) — blueprintId, missionId, fuelUsageFactor, reactorUsageFactor, stlFuel, ftlFuel per slider adjustment.
+  <strong>SHIP_FLIGHT_MISSION</strong> (existing) — full route, segments, fuel consumption, damage.
+  Join chain confirmed: blueprint_data.blueprintId = test_flight_requests.blueprintId → missionId → captures. Swapping a component in the blueprint tester generates a new missionId automatically — no manual labelling required. Every future test flight capture is fully identified by component loadout.
 </div>
 
 <!-- ═══════════════════ PART 1 — PHYSICS & FLIGHT TIME ═══════════════════ -->
@@ -130,7 +142,7 @@
     </div></div>
     <div class="task"><div class="task-bar" style="background:var(--p8)"></div><div class="task-content">
       <div class="task-name">LDG fuel formula <span class="task-tag tag-parked">Parked</span></div>
-      <div class="task-note">~2× off observed values. Mechanism unclear. Not blocking flight time accuracy for STL/FTL legs. Revisit after damage model is stable.</div>
+      <div class="task-note">~2× off observed values. Mechanism unclear. Not blocking flight time accuracy for STL/FTL legs. Revisit after damage model is stable. missionId join chain (July 9) means every blueprint tester landing capture is now automatically labelled by full component loadout — no manual annotation required.</div>
     </div></div>
   </div>
 </div>
@@ -295,7 +307,7 @@
     </div></div>
     <div class="task"><div class="task-bar" style="background:var(--p4)"></div><div class="task-content">
       <div class="task-name">RADIATION damage formula <span class="task-tag tag-chat">Next arc</span></div>
-      <div class="task-note">Formula confirmed by [OOG] Aem | SR via KQ-451 BTF runs (O-type system). With advanced anti-rad shielding: %/Mkm = 0.0224 × AU⁻². Without shielding: %/Mkm = 0.0734 × AU⁻². Unavoidable floor ~0.0002%/Mkm independent of distance. Reduction factor ~70% for advanced anti-rad. Relevant for O/B star systems and inner-planet routes. Not yet implemented in planner. Source: Damage_plotting.xlsx, KQ-451 sheet.</div>
+      <div class="task-note">Formula confirmed by [OOG] Aem | SR via KQ-451 BTF runs (O-type system). With advanced anti-rad shielding: %/Mkm = 0.0224 × AU⁻². Without shielding: %/Mkm = 0.0734 × AU⁻². Unavoidable floor ~0.0002%/Mkm independent of distance. Reduction factor ~70% for advanced anti-rad. Relevant for O/B star systems and inner-planet routes. Not yet implemented in planner. Source: Damage_plotting.xlsx, KQ-451 sheet. Shielding modifier values now readable directly from BLUEPRINT_BLUEPRINTS wire data (SHIELDING_GENERAL on hull plates, SHIELDING_RADIATION=0.7 on SRP) — no inference required.</div>
     </div></div>
     <div class="task"><div class="task-bar" style="background:var(--p8)"></div><div class="task-content">
       <div class="task-name">DEPARTURE thrust term <span class="task-tag tag-parked">Parked</span></div>
@@ -794,7 +806,8 @@
   prun-acceleration-damage-gantt.html &nbsp;·&nbsp; prun-flight-planner-roadmap.html (old) &nbsp;·&nbsp; prun-capture-extension_gantt.html &nbsp;·&nbsp; prun-repo-release-roadmap.html (merged into Part 4 — 2026-07-04)<br><br>
   <strong>Community references:</strong> Marcus Licinius Crassus (flight dynamics papers, ephemeris — no damage work) &nbsp;·&nbsp; Taiyi Bureau (TO/LND distance formulas confirmed, galaxy map) &nbsp;·&nbsp; Raylu (git.raylu.net/raylu/pruncalc — handles TO/LND pressure/radius) &nbsp;·&nbsp; [OOG] Aem | SR (radiation damage formula via KQ-451 BTF runs, ~60-point landing damage dataset, KI-439 70-flight fuel log). Credit all four in any public release.<br><br>
   <strong>Gate rule:</strong> A phase does not close until at least one real observed value from the game matches the planner output within tolerance. Not "code runs," not "ratios are right." A number from the game equals a number from the planner. Daniel confirms in Chat.<br><br>
-  <strong>Handover doc:</strong> PrUn_Handover_2026-07-04.md — full context for next Chat session. Fuel slider investigation complete. Next arc: landing damage formula + TO/LND fuel (atmosphere + radius).
+  <strong>Handover doc:</strong> PrUn_Handover_2026-07-04.md — full context for next Chat session. Fuel slider investigation complete. Next arc: landing damage formula + TO/LND fuel (atmosphere + radius).<br><br>
+  <strong>Revised July 9, 2026.</strong> Extension pipeline: prun-flight-capture now captures BLUEPRINT_BLUEPRINTS, SHIP_SHIPS, outgoing test flight requests, and flight missions with full missionId join chain. See session handover 2026-07-09.
 </div>
 
 </body>
