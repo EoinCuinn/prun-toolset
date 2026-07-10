@@ -67,6 +67,8 @@ function FilterPanel({
   activeResources, onResourceChange,
   activePlanetFilters, onPlanetFiltersChange,
   materials,
+  ppKey, onPpKeyChange,
+  cogcLive,
 }) {
   const [open, setOpen] = useState(false)
   const [resourceQuery, setResourceQuery] = useState('')
@@ -122,6 +124,17 @@ function FilterPanel({
     'LES','LIO','LST','MAG','MGS','N','NE','O','REO','SCR',
     'SIO','TAI','TCO','TIO','TS','ZIR'
   ])
+
+  const cogcStatus = (() => {
+    if (activeCogc.length === 0) return { text: '', style: {} }
+    switch (cogcLive?.status) {
+      case 'loading': return { text: 'loading…', style: { color: '#6a8aaa' } }
+      case 'ok':      return { text: `live · ${cogcLive.count} planets`, style: { color: '#4ade80' } }
+      case 'nokey':   return { text: 'key required ↓', style: { color: '#f7c94f' } }
+      case 'error':   return { text: 'fetch error', style: { color: '#f75f4f' } }
+      default:        return { text: '', style: {} }
+    }
+  })()
 
   const suggestions = resourceQuery.length >= 1
     ? materials
@@ -239,9 +252,29 @@ function FilterPanel({
 
           {/* ── COGC filter ── */}
           <div style={{ paddingTop: '8px', borderBottom: '1px solid #1e3a5f', paddingBottom: '8px' }}>
-            <div style={{ color: '#4a5a7a', fontSize: '10px', padding: '0 12px 6px', letterSpacing: '0.1em' }}>
-              COGC PROGRAM
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '0 12px 6px' }}>
+              <span style={{ color: '#4a5a7a', fontSize: '10px', letterSpacing: '0.1em' }}>COGC PROGRAM</span>
+              <span style={{ fontSize: '10px', ...cogcStatus.style }}>{cogcStatus.text}</span>
             </div>
+
+            {/* PrUn Planner key — COGC rotates weekly, so it must be fetched live */}
+            <div style={{ padding: '0 12px 8px' }}>
+              <input
+                type="password"
+                value={ppKey}
+                onChange={e => onPpKeyChange(e.target.value.trim())}
+                placeholder="PrUn Planner API key"
+                style={{
+                  width: '100%', background: '#0f1117', border: '1px solid #1e3a5f',
+                  borderRadius: '3px', color: '#a0b8d8', fontFamily: 'monospace',
+                  fontSize: '11px', padding: '4px 8px', outline: 'none', boxSizing: 'border-box',
+                }}
+              />
+              <div style={{ color: '#4a5a7a', fontSize: '9px', marginTop: '4px', lineHeight: 1.4 }}>
+                Enables live COGC · saved in your browser only · api.prunplanner.org
+              </div>
+            </div>
+
             {COGC_TYPES.map(({ key, label }) => {
               const active = activeCogc.includes(key)
               return (

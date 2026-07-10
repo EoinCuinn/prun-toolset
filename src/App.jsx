@@ -22,6 +22,14 @@ function App() {
   const [activePlanetFilters, setActivePlanetFilters] = useState({ fertile: false, gravity: [], temp: [], pressure: [] })
   const [showRoute, setShowRoute] = useState(false)
   const [route, setRoute] = useState(null)
+  const [ppKey, setPpKey] = useState(() => localStorage.getItem('prun_ppkey') || '')
+  // Live COGC (PrUn Planner) — { status: 'idle'|'loading'|'ok'|'nokey'|'error', ids: Set|null, count }
+  const [cogcLive, setCogcLive] = useState({ status: 'idle', ids: null, count: 0 })
+
+  const updatePpKey = (v) => {
+    setPpKey(v)
+    if (v) localStorage.setItem('prun_ppkey', v)
+  }
 
   useEffect(() => {
     Promise.all([
@@ -43,6 +51,46 @@ function App() {
       }
     })
   }, [])
+
+  // Fetch planets currently running the selected COGC program(s) from PrUn Planner.
+  // COGC rotates ~weekly, so the static planet_data.json snapshot is always stale —
+  // this is the only source of the live "active_cogc_program_type".
+  useEffect(() => {
+    if (activeCogc.length === 0) { setCogcLive({ status: 'idle', ids: null, count: 0 }); return }
+    if (!ppKey) { setCogcLive({ status: 'nokey', ids: new Set(), count: 0 }); return }
+
+    let cancelled = false
+    setCogcLive(prev => ({ ...prev, status: 'loading' }))
+
+    const body = {
+      materials: [], cogc_programs: activeCogc,
+      must_be_fertile: false,
+      environment_rocky: false, environment_gaseous: false,
+      environment_low_gravity: false, environment_high_gravity: false,
+      environment_low_pressure: false, environment_high_pressure: false,
+      environment_low_temperature: false, environment_high_temperature: false,
+      must_have_localmarket: false, must_have_chamberofcommerce: false,
+      must_have_warehouse: false, must_have_administrationcenter: false, must_have_shipyard: false,
+    }
+
+    fetch('https://api.prunplanner.org/data/planets/search/', {
+      method: 'POST',
+      headers: { 'Authorization': `Api-Key ${ppKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() })
+      .then(list => {
+        if (cancelled) return
+        const sel = new Set(activeCogc)
+        const ids = new Set(
+          list.filter(p => sel.has(p.active_cogc_program_type)).map(p => p.planet_natural_id)
+        )
+        setCogcLive({ status: 'ok', ids, count: ids.size })
+      })
+      .catch(e => { if (!cancelled) setCogcLive({ status: 'error', ids: new Set(), count: 0, error: e.message }) })
+
+    return () => { cancelled = true }
+  }, [activeCogc, ppKey])
 
   const materialIdToTicker = useMemo(() => {
     const map = {}
@@ -71,11 +119,8 @@ function App() {
 
       let cogcOk = true
       if (hasCogc) {
-        const now = Date.now()
-        const types = (p.COGCPrograms || [])
-          .filter(c => c.ProgramType && c.StartEpochMs <= now && c.EndEpochMs > now)
-          .map(c => c.ProgramType)
-        cogcOk = activeCogc.some(f => types.includes(f))
+        // Live COGC set from PrUn Planner (see cogcLive effect). Null = not loaded yet.
+        cogcOk = cogcLive.ids ? cogcLive.ids.has(p.PlanetNaturalId) : false
       }
 
       let resOk = true
@@ -105,7 +150,7 @@ function App() {
       }
     })
     return { filteredSystemIds: systemMatched, filteredPlanetNaturalIds: planetMatched }
-  }, [activeCogc, activeResources, activePlanetFilters, planets, materialIdToTicker])
+  }, [activeCogc, activeResources, activePlanetFilters, planets, materialIdToTicker, cogcLive.ids])
 
   if (loading) return (
     <div style={{ background: '#0f1117', color: '#4f8ef7', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'monospace', fontSize: '24px' }}>
@@ -169,6 +214,9 @@ function App() {
             activePlanetFilters={activePlanetFilters}
             onPlanetFiltersChange={setActivePlanetFilters}
             materials={materials}
+            ppKey={ppKey}
+            onPpKeyChange={updatePpKey}
+            cogcLive={cogcLive}
           />
         </>
       )}
