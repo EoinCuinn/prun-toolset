@@ -446,11 +446,7 @@ function calculateSltDistance3D(Ox, Oy, Oz, Px, Py, Pz) {
 
   const uhx = dx/u, uhy = dy/u, uhz = dz/u;
 
-  // Plane normal N = O × P (defines the transfer ellipse plane)
-  const Nx = Oy*Pz - Oz*Py, Ny = Oz*Px - Ox*Pz, Nz = Ox*Py - Oy*Px;
-  const Nmag = Math.hypot(Nx, Ny, Nz);
-  if (Nmag < 1e-10) return null;
-  const Nhx = Nx/Nmag, Nhy = Ny/Nmag, Nhz = Nz/Nmag;
+  const Nhx = 0, Nhy = 0, Nhz = 1;
 
   // In-plane perpendicular to chord: e2 = N_hat × u_hat
   const e2x = Nhy*uhz - Nhz*uhy;
@@ -514,7 +510,7 @@ function calculateSltDistance3D(Ox, Oy, Oz, Px, Py, Pz) {
     } else {
       const sin2p = Math.sin(2 * psi);
       const R = (1/3) * m * sin2p * sin2p;
-      factor = Math.max(0, 1 - 2 * R);
+      factor = 1 - R / ellipticEIncomplete(psi, m);
     }
     const charged = l * factor;
     return { chargedKm: charged/1000, arcKm: l/1000, isReduced: true };
@@ -541,7 +537,6 @@ function stlRendezvous(pl1, pl2, GM, accel, M, nowUnix, getPos1Override, getPos2
   const getPos2 = getPos2Override || (useEphFrame ? ephGet : fioGet);
   const S = getPos1(pl1, nowUnix);
   if (!S) return null;
-  const vel1 = planetVelocityKmS(pl1, nowUnix, getPos1);
   let tFlight = 2 * M;
   for (let i = 0; i < 25; i++) {
     const arriveT = nowUnix + tFlight;
@@ -549,13 +544,7 @@ function stlRendezvous(pl1, pl2, GM, accel, M, nowUnix, getPos1Override, getPos2
     if (!P) return null;
     const slt = calculateSltDistance3D(S.x, S.y, S.z, P.x, P.y, P.z);
     if (slt == null) return null;
-    let d = slt.chargedKm;
-    if (vel1) d = Math.max(0, d - departureDeficit(d, M, accel, S, P, vel1));
-    const isTriangular = d <= 4 * accel * M * M;
-    if (isTriangular) {
-      const vel2 = planetVelocityKmS(pl2, arriveT, getPos2);
-      if (vel2) d = Math.max(0, d - leverageDeficit(S, P, vel2, tFlight));
-    }
+    const d = slt.chargedKm;
     const newT = stlTimeReal(d, M, accel);
     if (newT == null) return null;
     if (Math.abs(newT - tFlight) < 0.5) return { chargedKm: d, arcKm: slt.arcKm, tReal: newT, isReduced: slt.isReduced, approx: !useEphFrame };
@@ -1550,8 +1539,12 @@ async function calculate() {
         ? Math.floor(onboardMassT().stl / _currentShip.stlFlowRate) : null;
       const dep = departureLegCalc(base, gate, vel, phys.accel, depBudgetM);
       if (dep) {
-        // Fuel usage factor scales DEP fuel, capped at the physics-computed max (dep.M).
-        const depFuel = Math.min(dep.M, dep.M * fuf);
+        const stlFuel_t = _currentShip?.stlFuelCap ?? 0;
+        const depFuelTonnes = Math.min(
+          Math.sqrt(dep.chargedKm / (4 * phys.accel)),
+          13.34 * fuf * stlFuel_t / phys.accel
+        );
+        const depFuel = depFuelTonnes / STL_UNIT_MASS;
         totalRealMin += dep.tReal / 60;
         totalFuelStl += depFuel;
         t += dep.tReal;
@@ -1790,10 +1783,10 @@ async function calculate() {
     const ldgKm   = destPl.Radius
       ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0)
       : (ldgAtm ? ldgAtm.dKm : 18514);
-    // LND fuel: k × flowRate × sqrt(dist/accel), k=354.5 fitted 2026-07-05.
+    // LND fuel: k × flowRate × sqrt(dist/accel), k=337.3 fitted 2026-07-05.
     // flowRate (ship.stlFlowRate, t of STL fuel per unit M) in fuel/s, dist (ldgKm) in km, accel in m/s².
     const ldgFuel = (_currentShip?.stlFlowRate && ldgKm && phys.accel)
-      ? Math.round(354.5 * _currentShip.stlFlowRate * Math.sqrt(ldgKm / phys.accel))
+      ? Math.round(337.3 * _currentShip.stlFlowRate * Math.sqrt(ldgKm / phys.accel))
       : 50;
     totalRealMin += ldgTime / 60;
     totalFuelStl += ldgFuel;
