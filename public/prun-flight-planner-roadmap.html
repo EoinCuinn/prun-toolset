@@ -84,7 +84,7 @@
 
 <header>
   <h1>PrUn Flight Planner — Master Roadmap</h1>
-  <div class="subtitle">Consolidated 2026-07-03 · Updated 2026-07-04 (v5 formula committed, fuel usage slider investigation complete, APPROACH formula empirically confirmed) · Supersedes all previous Gantt charts · Revised July 9, 2026. Extension pipeline complete (July 9): BLUEPRINT_BLUEPRINTS, SHIP_SHIPS, test flight requests, and flight missions all captured passively. Full join chain operational: blueprint component loadout → missionId → segment/fuel/damage data. Shielding modifier values (SHIELDING_RADIATION=0.7 for SRP) now readable directly from wire.</div>
+  <div class="subtitle">Consolidated 2026-07-03 · Updated 2026-07-04 (v5 formula committed, fuel usage slider investigation complete, APPROACH formula empirically confirmed) · Supersedes all previous Gantt charts · Revised July 9, 2026. Extension pipeline complete (July 9): BLUEPRINT_BLUEPRINTS, SHIP_SHIPS, test flight requests, and flight missions all captured passively. Full join chain operational: blueprint component loadout → missionId → segment/fuel/damage data. Shielding modifier values (SHIELDING_RADIATION=0.7 for SRP) now readable directly from wire. · <strong style="color:var(--p4)">REOPENED 2026-07-10:</strong> the entire damage model AND all mitigation is reopened on new information from another player — Part 2 / Phase 5 status is now provisional, not closed. Meteor formula v5 is believed still correct but will be cross-checked under the improved capture methods.</div>
   <div class="goal"><strong>End goal:</strong> Enter origin, destination, and ship → get exact flight time, exact fuel cost, accurate damage projection, and condition alert. Works for any route in the galaxy. Real fleet or hypothetical build.</div>
 </header>
 
@@ -249,9 +249,10 @@
     <span class="phase-number">Phase 5</span>
     <span class="phase-title">Damage Model — Implementation &amp; Calibration</span>
     <span class="phase-where where-both">Code + Chat</span>
-    <span class="phase-status status-complete">Complete — 2026-07-04</span>
+    <span class="phase-status status-inprog">Reopened — 2026-07-10</span>
   </div>
-  <div class="gate-banner complete">⚑ COMPLETE 2026-07-04: Meteor formula v5 committed (commit 207845e, prun-toolset). k=7.1692e-6, density-dependent exponent p(ρ)=0.683+0.223·log₁₀(ρ). Star-type multipliers removed entirely — F=G=K=M=1.000 confirmed once density range overlaps. 19 systems, 2 parameters, R²=0.9989, worst residual 7.1%. ZV-307 prior outlier confirmed bad capture — re-capture fits to 1.4%. Fuel usage slider investigation complete 2026-07-04: APPROACH = STL_tank × 0.491 × fuelUsageFactor confirmed across 3 blueprints, 3 tank sizes. Old leg-fuel slider removed, fuelUsageFactor input added. APPROACH 859 vs APEX 860 ✓. Daniel confirmed in Chat 2026-07-04.</div>
+  <div class="gate-banner">⚑ REOPENED 2026-07-10: entire damage model AND all mitigation reopened on new information from another player. Prior "Complete — 2026-07-04" gate is now provisional pending re-validation under the improved capture methods (July 9 extension pipeline: BLUEPRINT_BLUEPRINTS / SHIP_SHIPS / test-flight requests with full missionId join chain). Meteor v5 is believed still correct but will be cross-checked. Shielding/mitigation, radiation, and landing all re-open with it — treat no damage number as final until re-confirmed against the game.</div>
+  <div class="gate-banner complete">⚑ COMPLETE 2026-07-04 (now provisional — see reopen note above): Meteor formula v5 committed (commit 207845e, prun-toolset). k=7.1692e-6, density-dependent exponent p(ρ)=0.683+0.223·log₁₀(ρ). Star-type multipliers removed entirely — F=G=K=M=1.000 confirmed once density range overlaps. 19 systems, 2 parameters, R²=0.9989, worst residual 7.1%. ZV-307 prior outlier confirmed bad capture — re-capture fits to 1.4%. Fuel usage slider investigation complete 2026-07-04: APPROACH = STL_tank × 0.491 × fuelUsageFactor confirmed across 3 blueprints, 3 tank sizes. Old leg-fuel slider removed, fuelUsageFactor input added. APPROACH 859 vs APEX 860 ✓. Daniel confirmed in Chat 2026-07-04.</div>
   <div class="task-list">
     <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
       <div class="task-name">All 10 Section 7 items implemented in prun_flight_planner.html <span class="task-tag tag-done">Done</span></div>
@@ -494,17 +495,21 @@
     <span class="phase-number">Repo B</span>
     <span class="phase-title">prun-flight-capture — Browser Extension &amp; Data Pipeline</span>
     <span class="phase-where where-code">Code</span>
-    <span class="phase-status status-ready">Ready — data review pending</span>
+    <span class="phase-status status-complete">Released — 2026-07-08 (public clean copy)</span>
   </div>
-  <div class="gate-banner complete">⚑ MV3 extension capturing APEX WebSocket traffic. Writes captures/captures.jsonl. extract.js → extracted_positions.csv. Passive, ongoing. Data scripts are Node-only. Home desktop only — do not run on work network.</div>
+  <div class="gate-banner complete">⚑ RELEASED 2026-07-08: shipped as a fresh clean public repo <strong>github.com/EoinCuinn/prun-flight-capture-public</strong> (allow-list, no git history, raw personal captures excluded). Both Swagger + REST keys rotated. The original private prun-flight-capture stays private/inert — it was NOT flipped public; a sanitised copy was published instead. MV3 extension still captures APEX WebSocket traffic passively; data scripts are Node-only; home desktop only — do not run on work network.</div>
   <div class="task-list">
     <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
       <div class="task-name">Extension built and running <span class="task-tag tag-done">Done</span></div>
       <div class="task-note">Passive capture ongoing. Commit and push before switching machines.</div>
     </div></div>
-    <div class="task"><div class="task-bar" style="background:var(--p4)"></div><div class="task-content">
-      <div class="task-name">Review captured data before publishing <span class="task-tag tag-chat">Next</span></div>
-      <div class="task-note">captures.jsonl / extracted_positions.csv contain personal flight history. Decide whether raw captures ship with the repo or are excluded via .gitignore. Likely: exclude raw captures, ship extension + scripts only.</div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Review captured data before publishing <span class="task-tag tag-done">Done — 2026-07-08</span></div>
+      <div class="task-note">Resolved by shipping a fresh allow-list repo rather than sanitising history: extension + Node scripts only, raw captures.jsonl / extracted_positions.csv excluded, no git history carried over.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Public clean copy released <span class="task-tag tag-done">Done — 2026-07-08</span></div>
+      <div class="task-note">prun-flight-capture-public live and public. Keys rotated. Original repo remains private.</div>
     </div></div>
     <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
       <div class="task-name">Install / usage notes for the extension</div>
@@ -617,7 +622,7 @@
   <div class="task-list">
     <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
       <div class="task-name">Flip repos private → public</div>
-      <div class="task-note">prun-toolset first (closest to ready), then prun-flight-capture, then prun-dam_acc once research exposure is decided.</div>
+      <div class="task-note">prun-flight-capture DONE via a separate public clean copy (prun-flight-capture-public, 2026-07-08) rather than flipping the original. Remaining: prun-toolset first (closest to ready), then prun-dam_acc once research exposure is decided.</div>
     </div></div>
     <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
       <div class="task-name">Deploy main toolset to Render</div>
@@ -701,11 +706,11 @@
       <td style="color:var(--text-dim)">PHASE4_DAMAGE_SPEC.md locked ✓</td>
     </tr>
     <tr>
-      <td><span class="phase-pill" style="background:rgba(63,185,80,0.15);color:var(--p3)">5 · Damage Impl.</span></td>
+      <td><span class="phase-pill" style="background:rgba(255,166,87,0.15);color:var(--p4)">5 · Damage Impl.</span></td>
       <td>Meteor formula v5 — density-dependent exponent, star-type multipliers removed, 19 systems</td>
-      <td style="color:var(--p3)">Complete — 2026-07-04 (commit 207845e)</td>
-      <td style="color:var(--text-dim)">—</td>
-      <td style="color:var(--text-dim)">R²=0.9989, worst residual 7.1%, live test flights match APEX ✓</td>
+      <td style="color:var(--p4)">Reopened — 2026-07-10 (was Complete 2026-07-04, commit 207845e)</td>
+      <td style="color:var(--p4)">New player info — whole damage model + mitigation re-open</td>
+      <td style="color:var(--text-dim)">Prior gate R²=0.9989 / APEX match now provisional; meteor v5 to be cross-checked under improved capture methods</td>
     </tr>
     <tr>
       <td><span class="phase-pill" style="background:rgba(63,185,80,0.15);color:var(--p3)">Slider</span></td>
@@ -757,11 +762,11 @@
       <td>Loads with user keys only, README present, no personal data</td>
     </tr>
     <tr>
-      <td><span class="phase-pill" style="background:rgba(56,139,253,0.15);color:var(--p1)">Repo B</span></td>
+      <td><span class="phase-pill" style="background:rgba(63,185,80,0.15);color:var(--p3)">Repo B</span></td>
       <td>prun-flight-capture — MV3 extension + extract pipeline</td>
-      <td style="color:var(--p1)">Ready — personal capture data review pending</td>
+      <td style="color:var(--p3)">Released — 2026-07-08 (public clean copy)</td>
       <td style="color:var(--text-dim)">—</td>
-      <td>Raw personal captures excluded via .gitignore</td>
+      <td>Shipped as prun-flight-capture-public (allow-list, no history, keys rotated); original stays private ✓</td>
     </tr>
     <tr>
       <td><span class="phase-pill" style="background:rgba(255,166,87,0.15);color:var(--p4)">Repo C</span></td>
@@ -807,7 +812,8 @@
   <strong>Community references:</strong> Marcus Licinius Crassus (flight dynamics papers, ephemeris — no damage work) &nbsp;·&nbsp; Taiyi Bureau (TO/LND distance formulas confirmed, galaxy map) &nbsp;·&nbsp; Raylu (git.raylu.net/raylu/pruncalc — handles TO/LND pressure/radius) &nbsp;·&nbsp; [OOG] Aem | SR (radiation damage formula via KQ-451 BTF runs, ~60-point landing damage dataset, KI-439 70-flight fuel log). Credit all four in any public release.<br><br>
   <strong>Gate rule:</strong> A phase does not close until at least one real observed value from the game matches the planner output within tolerance. Not "code runs," not "ratios are right." A number from the game equals a number from the planner. Daniel confirms in Chat.<br><br>
   <strong>Handover doc:</strong> PrUn_Handover_2026-07-04.md — full context for next Chat session. Fuel slider investigation complete. Next arc: landing damage formula + TO/LND fuel (atmosphere + radius).<br><br>
-  <strong>Revised July 9, 2026.</strong> Extension pipeline: prun-flight-capture now captures BLUEPRINT_BLUEPRINTS, SHIP_SHIPS, outgoing test flight requests, and flight missions with full missionId join chain. See session handover 2026-07-09.
+  <strong>Revised July 9, 2026.</strong> Extension pipeline: prun-flight-capture now captures BLUEPRINT_BLUEPRINTS, SHIP_SHIPS, outgoing test flight requests, and flight missions with full missionId join chain. See session handover 2026-07-09.<br><br>
+  <strong>Revised July 10, 2026.</strong> Two status changes: (1) entire damage model + all mitigation REOPENED on new information from another player — Part 2 / Phase 5 is provisional, not closed; meteor v5 believed still correct but to be cross-checked under improved capture methods. (2) prun-flight-capture RELEASED as a separate public clean copy (prun-flight-capture-public, allow-list, no history, keys rotated) 2026-07-08; original repo stays private.
 </div>
 
 </body>
