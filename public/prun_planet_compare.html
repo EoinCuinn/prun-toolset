@@ -69,6 +69,7 @@ table.ct .sh2{background:#0d1018;color:var(--text3);font-size:9px;letter-spacing
   <div class="ig">
     <button class="sbtn on" id="mProd" onclick="setMode('produce')" style="font-size:10px;padding:3px 8px">PRODUCE</button>
     <button class="sbtn" id="mRes" onclick="setMode('resources')" style="font-size:10px;padding:3px 8px">RESOURCES</button>
+    <button class="sbtn" id="mMan" onclick="setMode('manual')" style="font-size:10px;padding:3px 8px">MANUAL</button>
     <input id="ri" list="rl" placeholder="RAT, DW, HAL…" autocomplete="off" style="width:140px" onkeydown="if(event.key==='Enter')doSearch()">
     <datalist id="rl"></datalist>
   </div>
@@ -161,6 +162,7 @@ const CONS = {
 let _bld={}, _rec=[], _graph={}, _sysById={}, _sysByKey={}, _prices={};
 let _results=[], _sort='j', _sel=[], _pdata={}, _mats=[], _bldTicker=null;
 let _cogcFilter=new Set(), _fertileFilter=false, _mode='produce';
+let _allPlanets=[], _planetLookup={};
 let _plotData={}; // naturalId → { count, cap }
 
 async function ppGet(path) {
@@ -172,7 +174,7 @@ async function ppGet(path) {
 
 async function init() {
   try {
-    await Promise.all([loadBld(), loadRec(), loadGraph(), loadPrices()]);
+    await Promise.all([loadBld(), loadRec(), loadGraph(), loadPrices(), loadPlanets()]);
     buildAC();
     document.getElementById('sts').style.display='none';
     document.getElementById('lay').style.display='flex';
@@ -222,12 +224,33 @@ async function loadPrices() {
   });
 }
 
+async function loadPlanets() {
+  _allPlanets = await fetch('/all_planets.json').then(r=>r.json());
+  _allPlanets.forEach(p=>{
+    _planetLookup[p.NaturalId.toUpperCase()] = p.NaturalId;
+    if (p.Name && p.Name.toUpperCase() !== p.NaturalId.toUpperCase())
+      _planetLookup[p.Name.toUpperCase()] = p.NaturalId;
+  });
+}
+
 function px(ticker, cx) { return (_prices[ticker]||{})[cx]||0; }
 
 function buildAC() {
   const dl=document.getElementById('rl');
   dl.innerHTML='';
-  if (_mode==='resources') {
+  if (_mode==='manual') {
+    const frag=document.createDocumentFragment();
+    _allPlanets.forEach(p=>{
+      const o=document.createElement('option');
+      o.value=p.NaturalId;
+      if (p.Name && p.Name!==p.NaturalId) o.label=p.Name;
+      frag.appendChild(o);
+      if (p.Name && p.Name!==p.NaturalId) {
+        const o2=document.createElement('option'); o2.value=p.Name; frag.appendChild(o2);
+      }
+    });
+    dl.appendChild(frag);
+  } else if (_mode==='resources') {
     [...EXT].sort().forEach(t=>{
       const opt=document.createElement('option');
       opt.value=t; dl.appendChild(opt);
@@ -257,7 +280,51 @@ function bfs(fromId, toId) {
   return 99;
 }
 
+async function addManualPlanet() {
+  const raw=document.getElementById('ri').value.trim();
+  if (!raw) return;
+
+  // Comma/whitespace separated → resolve each to a natural ID
+  const tokens=raw.split(/[,\n]+/).map(t=>t.trim()).filter(Boolean);
+  const ids=[], unknown=[];
+  tokens.forEach(t=>{
+    const id=_planetLookup[t.toUpperCase()];
+    if (!id) unknown.push(t);
+    else if (!ids.includes(id) && !_sel.includes(id)) ids.push(id);
+  });
+  if (unknown.length) alert('Not found: '+unknown.join(', ')+'\nUse a planet name (e.g. Montem) or natural ID (e.g. ZV-307c).');
+  if (!ids.length) { if (!unknown.length) document.getElementById('ri').value=''; return; }
+
+  const free=4-_sel.length;
+  if (free<=0) { alert('Max 4 planets. Remove one first.'); return; }
+  const toAdd=ids.slice(0, free);
+  if (ids.length>free) alert(`Only ${free} slot(s) free — added the first ${free}, skipped ${ids.length-free}.`);
+
+  const btn=document.getElementById('sb');
+  btn.disabled=true; btn.textContent='…';
+  try {
+    for (const id of toAdd) {
+      if (!_pdata[id]) _pdata[id]=await ppGet(`/data/planet/${id}/`);
+      const p=_pdata[id];
+      p._jumps=bfs(p.system_id, _sysByKey[HRT]);
+      p._hasAll=true;
+      if (!_results.some(r=>r.planet_natural_id===id)) _results.push(p);
+      _sel.push(id);
+      fetchPlotData(id); // fire and forget
+    }
+    document.getElementById('ri').value='';
+    renderCogcPills();
+    renderList();
+    renderCompare();
+  } catch(e) {
+    alert('Add error: '+e.message);
+  } finally {
+    btn.disabled=false; btn.textContent='ADD';
+  }
+}
+
 async function doSearch() {
+  if (_mode==='manual') return addManualPlanet();
   const val=document.getElementById('ri').value.trim().toUpperCase();
   if (!val) return;
 
@@ -330,10 +397,13 @@ function setMode(m) {
   _mode=m;
   document.getElementById('mProd').classList.toggle('on', m==='produce');
   document.getElementById('mRes').classList.toggle('on', m==='resources');
+  document.getElementById('mMan').classList.toggle('on', m==='manual');
   const inp=document.getElementById('ri');
-  inp.placeholder = m==='produce' ? 'RAT, DW, HAL…' : 'H2O, FEO, SI…';
+  inp.placeholder = m==='produce' ? 'RAT, DW, HAL…' : m==='resources' ? 'H2O, FEO, SI…' : 'Montem, ZV-307c…';
   inp.value='';
-  document.getElementById('rinfo').textContent='';
+  document.getElementById('rinfo').textContent = m==='manual'
+    ? 'Add planets by name or natural ID (comma-separate for several), then ADD (Enter). Up to 4.' : '';
+  document.getElementById('sb').textContent = m==='manual' ? 'ADD' : 'SEARCH';
   buildAC();
 }
 
@@ -574,6 +644,18 @@ function renderCompare() {
       }));
     });
     // Other notable resources on planet
+  } else if (planets.some(p=>(p.resources||[]).length)) {
+    // Manual mode: no material filter — list every extractable resource per planet
+    h+=row0('RESOURCES — all extractable',planets.length);
+    h+=row('RESOURCES',planets.map(p=>{
+      const rs=(p.resources||[]).slice().sort((a,b)=>(b.factor||0)-(a.factor||0));
+      if (!rs.length) return '<span style="color:#4a5a7a">—</span>';
+      return rs.map(r=>{
+        const pct=Math.round((r.factor||0)*100);
+        const c=pct>=75?'#4f9f70':pct>=40?'#c0a840':'#c05050';
+        return `<div style="display:flex;justify-content:space-between;gap:10px"><span style="color:var(--text2)">${r.material_ticker}</span><span style="color:${c}">${pct}%</span></div>`;
+      }).join('');
+    }));
   }
 
   // CONDITIONS
