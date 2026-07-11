@@ -785,16 +785,20 @@ function fmtMin(min) {
 // Atmospheric leg (TO or landing) — paper Section 12.4, corrected in Section 1.2
 // d_TO  = (R_m/1000) × (0.1482 + 0.4521·P^0.30)   frame km
 // d_LDG = 926 × (R_m/1e6)^0.96 × (1+P)^(-0.42)   frame km  (decreases with pressure)
-// M_atm = sqrt(d / (13.71 × accel_atm))            server-set speed tier (= stlFuelConsumption)
-// t     = M × (13.71/2 + 2) = M × 8.855            real-s
-function atmLeg(R_m, P, accel, which) {
+// tier  = sqrt(d / (13.71 × accel_atm))            server-set speed tier (drives real time)
+// t     = tier × (13.71/2 + 2) = tier × 8.855      real-s
+// fuel  = tier × (flowRate / 0.015)                STL fuel: the tier's 13.71 has the Standard
+//   engine's 0.015 flow rate baked in, so ships with other flow rates scale linearly. Confirmed
+//   vs captures 2026-07-11 (0.015 ships match; AVI-072QE @ 0.0075 halves). Time is flow-independent.
+function atmLeg(R_m, P, accel, which, flowRate) {
   const accel_atm = accel / 350.11;
   const p = Math.max(0, P || 0);
   const d = (which === 'to')
     ? (R_m / 1000) * (0.1482 + 0.4521 * Math.pow(p, 0.30))
     : 926 * Math.pow(R_m / 1e6, 0.96) * Math.pow(1 + p, -0.42);
-  const M = Math.sqrt(d / (13.71 * accel_atm));
-  return { dKm: d, M: Math.round(M) || 1, tReal: M * 8.855 };
+  const tier = Math.sqrt(d / (13.71 * accel_atm));    // speed tier → real time (flow-rate independent)
+  const fuel = tier * ((flowRate ?? 0.015) / 0.015);  // STL fuel scales linearly with flow rate
+  return { dKm: d, M: Math.round(fuel) || 1, tReal: tier * 8.855 };
 }
 
 // FTL physics for a ship — returns { c, A, beta } or null
@@ -1514,7 +1518,7 @@ async function calculate() {
   let toTimeRealS = 0;
   if (originPl) {
     const toAtm = (phys?.accel && originPl.Radius)
-      ? atmLeg(originPl.Radius, originPl.Pressure ?? 0, phys.accel, 'to')
+      ? atmLeg(originPl.Radius, originPl.Pressure ?? 0, phys.accel, 'to', _currentShip?.stlFlowRate)
       : null;
     toTimeRealS        = toAtm ? toAtm.tReal : 886;
     toFuelUnits        = toAtm ? toAtm.M     : 50;
