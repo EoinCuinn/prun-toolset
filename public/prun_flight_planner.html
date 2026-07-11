@@ -171,8 +171,8 @@
       </div>
       <div class="load-row">
         <span class="load-lbl" title="Scales DEP &amp; APPROACH fuel burn (game fuel usage setting)">Fuel use</span>
-        <input id="fufInput" type="number" min="0.10" max="1.00" step="0.05" value="0.50" style="width:100%;background:var(--bg2,#111);color:var(--text2);border:1px solid var(--border);border-radius:4px;padding:3px 6px;font-size:11px" oninput="calculate()">
-        <span class="fuel-val">×</span>
+        <input id="fufInput" class="fuel-slider" type="range" min="0.05" max="1.0" step="0.05" value="0.50" oninput="document.getElementById('fufVal').textContent=(+this.value).toFixed(2); calculate()">
+        <span id="fufVal" class="fuel-val">0.50</span>
       </div>
       <div class="load-row">
         <span class="load-lbl">FTL fuel</span>
@@ -1506,6 +1506,10 @@ async function calculate() {
           ? planetXYZ(tt, pl.OrbitSemiMajorAxis, pl.OrbitEccentricity||0, pl.OrbitInclination||0, stlGM)
           : null;
 
+  // TO & LND fuel are needed up-front by the same-system TRANSIT fuel formula (tank − TO − LND);
+  // hoisted to function scope. ldgFuelUnits is computed early (below) and reused by the LDG leg.
+  let toFuelUnits = 0, ldgFuelUnits = 0;
+
   // ── TO leg ──
   let toTimeRealS = 0;
   if (originPl) {
@@ -1513,15 +1517,15 @@ async function calculate() {
       ? atmLeg(originPl.Radius, originPl.Pressure ?? 0, phys.accel, 'to')
       : null;
     toTimeRealS        = toAtm ? toAtm.tReal : 886;
-    const toFuel      = toAtm ? toAtm.M     : 50;
+    toFuelUnits        = toAtm ? toAtm.M     : 50;
     const toKm        = toAtm ? toAtm.dKm   : 18514;
     totalRealMin += toTimeRealS / 60;
-    totalFuelStl += toFuel;
+    totalFuelStl += toFuelUnits;
     const hazards = planetHazardBadges(originPl);
     html += legHtml('TO', `${originPl.PlanetName || originPl.PlanetNaturalId} → orbit`, [
       ['Distance', fmtDist(toKm)],
       ['Time (real)', fmtRealTime(toTimeRealS)],
-      ['STL fuel', toFuel.toFixed(1) + ' units'],
+      ['STL fuel', toFuelUnits.toFixed(1) + ' units'],
     ], hazards, 0, toAtm ? null : '(estimate — no ship selected)');
   }
   t += toTimeRealS;
@@ -1666,6 +1670,16 @@ async function calculate() {
   // once the real transit distance (rendez.chargedKm / stlDistKm) has been solved.
   let stlMet = 0;
 
+  // LND fuel — computed here up-front (same formula as the LDG leg; ldgAtm is null exactly when
+  // destPl.Radius is falsy, so 18514 matches the LDG fallback) so the same-system TRANSIT fuel
+  // formula (tank − TO − LND) can use it. The LDG leg reuses ldgFuelUnits with no recompute.
+  if (destPl) {
+    const ldgKmE = destPl.Radius ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0) : 18514;
+    ldgFuelUnits = (_currentShip?.stlFlowRate && ldgKmE && phys?.accel)
+      ? Math.round(337.3 * _currentShip.stlFlowRate * Math.sqrt(ldgKmE / phys.accel))
+      : 50;
+  }
+
   let rendez = null;
   let stlDistKm = null, stlDistMinKm = null;
   let stlLegLabel = '';
@@ -1743,9 +1757,13 @@ async function calculate() {
     const stlTankCapacity = _currentShip?.stlFuelCap != null
       ? _currentShip.stlFuelCap / STL_UNIT_MASS
       : (+document.getElementById('stlMassSlider').max || 0);
+    // Same-system TRANSIT fuel = (tank − TO − LND) × fuf. Confirmed across two tank sizes and two
+    // routes (2026-07-11). Kept separate from stlComputedMax, which remains the physics boundary-M
+    // driving the flight time / rendezvous (unchanged). Multi-system APPROACH is untouched.
+    const stlTransitFuel = phys ? Math.max(0, Math.round((stlTankCapacity - toFuelUnits - ldgFuelUnits) * fuf)) : null;
     const stlFuel = !sameSys
       ? stlTankCapacity * 0.491 * fuf
-      : (stlComputedMax != null ? stlComputedMax * fuf : null);
+      : stlTransitFuel;
     if (rendez) {
       totalRealMin += rendez.tReal / 60;
       if (stlFuel != null) totalFuelStl += stlFuel;
@@ -1757,9 +1775,9 @@ async function calculate() {
       const T = stlTimeReal(stlDistKm, stlComputedMax, phys.accel);
       if (T != null) {
         totalRealMin += T / 60;
-        totalFuelStl += stlComputedMax * fuf;
+        totalFuelStl += stlTransitFuel;
         stlRows.push(['Time (real)', `<span class="approx">${fmtRealTime(T)}</span>`]);
-        stlRows.push(['STL fuel', (stlComputedMax * fuf).toFixed(1) + ' units']);
+        stlRows.push(['STL fuel', stlTransitFuel.toFixed(1) + ' units']);
       }
     }
 
@@ -1783,11 +1801,9 @@ async function calculate() {
     const ldgKm   = destPl.Radius
       ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0)
       : (ldgAtm ? ldgAtm.dKm : 18514);
-    // LND fuel: k × flowRate × sqrt(dist/accel), k=337.3 fitted 2026-07-05.
-    // flowRate (ship.stlFlowRate, t of STL fuel per unit M) in fuel/s, dist (ldgKm) in km, accel in m/s².
-    const ldgFuel = (_currentShip?.stlFlowRate && ldgKm && phys.accel)
-      ? Math.round(337.3 * _currentShip.stlFlowRate * Math.sqrt(ldgKm / phys.accel))
-      : 50;
+    // LND fuel: k × flowRate × sqrt(dist/accel), k=337.3 fitted 2026-07-05. Computed up-front as
+    // ldgFuelUnits (see STL leg) so the TRANSIT fuel formula can use it; reused here unchanged.
+    const ldgFuel = ldgFuelUnits;
     totalRealMin += ldgTime / 60;
     totalFuelStl += ldgFuel;
     // LANDING damage — M2 fitted formula (2026-07-05), heat shielding applied via applyShield.
