@@ -1547,6 +1547,12 @@ async function calculate() {
         ? Math.floor(onboardMassT().stl / _currentShip.stlFlowRate) : null;
       const dep = departureLegCalc(base, gate, vel, phys.accel, depBudgetM);
       if (dep) {
+        // ⚠ UNVALIDATED against a real in-game multi-system flight. Marcus's departure
+        // budget: M_dep = min(√(d/(4a)), 13.34·fuf·stlFuel_t/accel); the /STL_UNIT_MASS
+        // tonnes→units step is our addition and is NOT confirmed. The earlier "HRT→Promitor
+        // = 3474 u" test was mis-specified: that route is SAME-SYSTEM (TRA+LND, ~1766 u,
+        // no DEP leg) and already matches in-game — it never exercised this block. TODO:
+        // capture a true cross-system flight (with an actual jump gate) to validate/fit this.
         const stlFuel_t = _currentShip?.stlFuelCap ?? 0;
         const depFuelTonnes = Math.min(
           Math.sqrt(dep.chargedKm / (4 * phys.accel)),
