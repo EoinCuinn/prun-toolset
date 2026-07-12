@@ -844,11 +844,11 @@ function landingDmgRaw(stlDistKm, accelMs2, pressureAtm) {
     * Math.pow(Math.max(pressureAtm, 0.001), 0.9288);
 }
 
-// Landing distance — Taiyi landing distance × 1.131 correction (empirically confirmed 2026-07-05).
+// Landing distance — Taiyi landing distance × 1.113 correction (empirically confirmed 2026-07-13, R²=1.000 across 10 planets / 87 segments).
 // radius in km, pressure in atm, result in km. Matches captured stlDistance for the LDG segment.
 function landingDistKm(radiusKm, pressureAtm) {
   const p = Math.max(pressureAtm, 0.1);
-  return 1.131 * radiusKm * (0.15 + 0.45 * Math.pow(p, -0.301));
+  return 1.113 * radiusKm * (0.15 + 0.45 * Math.pow(p, -0.301));
 }
 
 // FTL radiation damage fraction (unshielded)
@@ -1807,7 +1807,7 @@ async function calculate() {
       ? atmLeg(destPl.Radius, destPl.Pressure ?? 0, phys.accel, 'ldg')
       : null;
     const ldgTime = ldgAtm ? ldgAtm.tReal : 886;
-    // Landing distance — Taiyi × 1.131 (replaces the old atmLeg 'ldg' distance for display + damage).
+    // Landing distance — Taiyi × 1.113 (replaces the old atmLeg 'ldg' distance for display + damage).
     const ldgKm   = destPl.Radius
       ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0)
       : (ldgAtm ? ldgAtm.dKm : 18514);
