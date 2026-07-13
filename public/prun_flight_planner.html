@@ -844,11 +844,29 @@ function landingDmgRaw(stlDistKm, accelMs2, pressureAtm) {
     * Math.pow(Math.max(pressureAtm, 0.001), 0.9288);
 }
 
-// Landing distance — Taiyi landing distance × 1.113 correction (empirically confirmed 2026-07-13, R²=1.000 across 10 planets / 87 segments).
+// Landing distance — Taiyi landing distance × per-engine ratio (empirically confirmed 2026-07-13,
+// ratios constant to 4dp within each engine across 10 planets / 137 segments; same hull, engine the only variable).
 // radius in km, pressure in atm, result in km. Matches captured stlDistance for the LDG segment.
-function landingDistKm(radiusKm, pressureAtm) {
+// engineType falls back to standardEngine's ratio (1.1132) when the engine is unknown.
+const ENGINE_LANDING_RATIO = {
+  glassEngine:       0.8840,
+  fuelSavingEngine:  0.9258,
+  standardEngine:    1.1132,
+  hyperthrustEngine: 1.0827,
+  advancedEngine:    1.0371,
+};
+function landingDistKm(radiusKm, pressureAtm, engineType) {
   const p = Math.max(pressureAtm, 0.1);
-  return 1.113 * radiusKm * (0.15 + 0.45 * Math.pow(p, -0.301));
+  const ratio = ENGINE_LANDING_RATIO[engineType] ?? 1.1132;
+  return ratio * radiusKm * (0.15 + 0.45 * Math.pow(p, -0.301));
+}
+
+// Best-effort engine identification for Real Fleet ships (Swagger exposes no engine field):
+// match total thrust to a single engine's base thrust. Multi-engine / ambiguous → undefined,
+// and landingDistKm() then falls back to the standardEngine ratio.
+function engineFromThrust(thrustN) {
+  for (const c of Object.values(COMPONENT_DATA.engine)) if (c.thrust === thrustN) return c.name;
+  return undefined;
 }
 
 // FTL radiation damage fraction (unshielded)
@@ -1161,6 +1179,7 @@ async function loadShips() {
         inFlight:           !!s.FlightId,
         condition:          s.Condition ?? 1,
         thrust:             s.Thrust,               // Newtons
+        engineType:         engineFromThrust(s.Thrust),  // best-effort; drives landingDistKm() per-engine ratio
         acceleration:       s.Acceleration,         // Thrust[N] / Mass[t] snapshot (game units)
         operatingEmptyMass: s.OperatingEmptyMass,   // empty mass, TONNES
         loadedMass:         s.Mass,                 // current loaded mass, TONNES (empty + fuel + cargo)
@@ -1298,6 +1317,7 @@ function rebuildHypo() {
     label: `${val('hullSel')}+${engQty}×${val('engSel')}`,
     blueprintId: 'HYPOTHETICAL',
     condition: 1,
+    engineType: eng.name,             // e.g. 'standardEngine' → drives landingDistKm() per-engine ratio
     thrust: eng.thrust * engQty,
     operatingEmptyMass: mass,
     maxGFactor: hull.maxGFactor + (seat ? seat.gBonus : 0),
@@ -1684,7 +1704,7 @@ async function calculate() {
   // destPl.Radius is falsy, so 18514 matches the LDG fallback) so the same-system TRANSIT fuel
   // formula (tank − TO − LND) can use it. The LDG leg reuses ldgFuelUnits with no recompute.
   if (destPl) {
-    const ldgKmE = destPl.Radius ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0) : 18514;
+    const ldgKmE = destPl.Radius ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0, _currentShip?.engineType) : 18514;
     ldgFuelUnits = (_currentShip?.stlFlowRate && ldgKmE && phys?.accel)
       ? Math.round(337.3 * _currentShip.stlFlowRate * Math.sqrt(ldgKmE / phys.accel))
       : 50;
@@ -1807,9 +1827,9 @@ async function calculate() {
       ? atmLeg(destPl.Radius, destPl.Pressure ?? 0, phys.accel, 'ldg')
       : null;
     const ldgTime = ldgAtm ? ldgAtm.tReal : 886;
-    // Landing distance — Taiyi × 1.113 (replaces the old atmLeg 'ldg' distance for display + damage).
+    // Landing distance — Taiyi × per-engine ratio (replaces the old atmLeg 'ldg' distance for display + damage).
     const ldgKm   = destPl.Radius
-      ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0)
+      ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0, _currentShip?.engineType)
       : (ldgAtm ? ldgAtm.dKm : 18514);
     // LND fuel: k × flowRate × sqrt(dist/accel), k=337.3 fitted 2026-07-05. Computed up-front as
     // ldgFuelUnits (see STL leg) so the TRANSIT fuel formula can use it; reused here unchanged.
