@@ -857,6 +857,16 @@ const ENGINE_LANDING_RATIO = {
   hyperthrustEngine: 1.0827,
   advancedEngine:    1.0371,
 };
+// Per-engine landing FUEL constant k in: fuel = k × flowRate × √(dist/accel). Fitted from the
+// EngineTesting captures (48 cross-system landings; tight within each engine). Intra-system verified
+// only for standardEngine (≈ cross). Unknown engine → 337.3 (the prior global compromise).
+const ENGINE_LANDING_FUEL_K = {
+  glassEngine:       129,
+  fuelSavingEngine:  366,
+  standardEngine:    361,
+  hyperthrustEngine: 147,
+  advancedEngine:    215,
+};
 function landingDistKm(radiusKm, pressureAtm, engineType, isIntraSystem = false) {
   const p = Math.max(pressureAtm, 0.1);
   const ratio = isIntraSystem ? 0.8822 : (ENGINE_LANDING_RATIO[engineType] ?? 1.1132);
@@ -1708,7 +1718,7 @@ async function calculate() {
   if (destPl) {
     const ldgKmE = destPl.Radius ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0, _currentShip?.engineType, sameSys) : 18514;
     ldgFuelUnits = (_currentShip?.stlFlowRate && ldgKmE && phys?.accel)
-      ? Math.round(337.3 * _currentShip.stlFlowRate * Math.sqrt(ldgKmE / phys.accel))
+      ? Math.round((ENGINE_LANDING_FUEL_K[_currentShip.engineType] ?? 337.3) * _currentShip.stlFlowRate * Math.sqrt(ldgKmE / phys.accel))
       : 50;
   }
 
@@ -1833,7 +1843,7 @@ async function calculate() {
     const ldgKm   = destPl.Radius
       ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0, _currentShip?.engineType, sameSys)
       : (ldgAtm ? ldgAtm.dKm : 18514);
-    // LND fuel: k × flowRate × sqrt(dist/accel), k=337.3 fitted 2026-07-05. Computed up-front as
+    // LND fuel: k × flowRate × sqrt(dist/accel), k = per-engine ENGINE_LANDING_FUEL_K (fallback 337.3). Computed up-front as
     // ldgFuelUnits (see STL leg) so the TRANSIT fuel formula can use it; reused here unchanged.
     const ldgFuel = ldgFuelUnits;
     totalRealMin += ldgTime / 60;
