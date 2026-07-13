@@ -844,10 +844,12 @@ function landingDmgRaw(stlDistKm, accelMs2, pressureAtm) {
     * Math.pow(Math.max(pressureAtm, 0.001), 0.9288);
 }
 
-// Landing distance — Taiyi landing distance × per-engine ratio (empirically confirmed 2026-07-13,
-// ratios constant to 4dp within each engine across 10 planets / 137 segments; same hull, engine the only variable).
+// Landing distance — Taiyi landing distance × landing ratio. TWO REGIMES (empirically confirmed 2026-07-13):
+//  • intra-system landing (no FTL jump on the route): ratio 0.8822, engine-independent — constant to 4dp
+//    across all 10 VH-331 planets (radius 5.3M–67.9M m, pressure 0.63–29.6 atm).
+//  • cross-system landing (FTL jump): per-engine ratio below (constant to 4dp within each engine across
+//    10 planets / 137 segments; same hull, engine the only variable), falling back to standardEngine (1.1132).
 // radius in km, pressure in atm, result in km. Matches captured stlDistance for the LDG segment.
-// engineType falls back to standardEngine's ratio (1.1132) when the engine is unknown.
 const ENGINE_LANDING_RATIO = {
   glassEngine:       0.8840,
   fuelSavingEngine:  0.9258,
@@ -855,9 +857,9 @@ const ENGINE_LANDING_RATIO = {
   hyperthrustEngine: 1.0827,
   advancedEngine:    1.0371,
 };
-function landingDistKm(radiusKm, pressureAtm, engineType) {
+function landingDistKm(radiusKm, pressureAtm, engineType, isIntraSystem = false) {
   const p = Math.max(pressureAtm, 0.1);
-  const ratio = ENGINE_LANDING_RATIO[engineType] ?? 1.1132;
+  const ratio = isIntraSystem ? 0.8822 : (ENGINE_LANDING_RATIO[engineType] ?? 1.1132);
   return ratio * radiusKm * (0.15 + 0.45 * Math.pow(p, -0.301));
 }
 
@@ -1704,7 +1706,7 @@ async function calculate() {
   // destPl.Radius is falsy, so 18514 matches the LDG fallback) so the same-system TRANSIT fuel
   // formula (tank − TO − LND) can use it. The LDG leg reuses ldgFuelUnits with no recompute.
   if (destPl) {
-    const ldgKmE = destPl.Radius ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0, _currentShip?.engineType) : 18514;
+    const ldgKmE = destPl.Radius ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0, _currentShip?.engineType, sameSys) : 18514;
     ldgFuelUnits = (_currentShip?.stlFlowRate && ldgKmE && phys?.accel)
       ? Math.round(337.3 * _currentShip.stlFlowRate * Math.sqrt(ldgKmE / phys.accel))
       : 50;
@@ -1829,7 +1831,7 @@ async function calculate() {
     const ldgTime = ldgAtm ? ldgAtm.tReal : 886;
     // Landing distance — Taiyi × per-engine ratio (replaces the old atmLeg 'ldg' distance for display + damage).
     const ldgKm   = destPl.Radius
-      ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0, _currentShip?.engineType)
+      ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0, _currentShip?.engineType, sameSys)
       : (ldgAtm ? ldgAtm.dKm : 18514);
     // LND fuel: k × flowRate × sqrt(dist/accel), k=337.3 fitted 2026-07-05. Computed up-front as
     // ldgFuelUnits (see STL leg) so the TRANSIT fuel formula can use it; reused here unchanged.
