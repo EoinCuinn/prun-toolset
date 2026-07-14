@@ -42,6 +42,8 @@
   .search-input:focus { border-color: var(--accent); }
   .search-input.resolved { border-color: #2d5a2d; color: var(--green); }
   .search-input.unresolved { border-color: #5a2d2d; color: var(--red); }
+  .search-input.has-idtag { padding-right: 78px; }
+  .search-idtag { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--green); font-family: var(--mono); font-size: 11px; pointer-events: none; display: none; }
   .search-drop { position: absolute; top: calc(100% + 3px); left: 0; right: 0; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); max-height: 220px; overflow-y: auto; z-index: 100; display: none; }
   .drop-item { padding: 6px 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
   .drop-item:hover { background: var(--bg2); }
@@ -194,7 +196,8 @@
       <div class="route-row">
         <span class="route-label">FROM</span>
         <div class="search-wrap" style="flex:1">
-          <input id="originInput" class="search-input" placeholder="Planet or system…" autocomplete="off" oninput="filterDrop('origin')" onfocus="filterDrop('origin')">
+          <input id="originInput" class="search-input" placeholder="Planet or system…" autocomplete="off" oninput="filterDrop('origin')" onfocus="filterDrop('origin')" onblur="showIdTag('origin')">
+          <span id="originIdTag" class="search-idtag"></span>
           <div id="originDrop" class="search-drop"></div>
         </div>
       </div>
@@ -202,7 +205,8 @@
       <div class="route-row">
         <span class="route-label">TO</span>
         <div class="search-wrap" style="flex:1">
-          <input id="destInput" class="search-input" placeholder="Planet or system…" autocomplete="off" oninput="filterDrop('dest')" onfocus="filterDrop('dest')">
+          <input id="destInput" class="search-input" placeholder="Planet or system…" autocomplete="off" oninput="filterDrop('dest')" onfocus="filterDrop('dest')" onblur="showIdTag('dest')">
+          <span id="destIdTag" class="search-idtag"></span>
           <div id="destDrop" class="search-drop"></div>
         </div>
       </div>
@@ -1016,7 +1020,8 @@ async function loadData() {
       label:    hasName ? p.PlanetName : p.PlanetNaturalId,
       sub:      hasName ? p.PlanetNaturalId : '',
       code:     hasName ? p.PlanetNaturalId : sysName,
-      selLabel: hasName ? `${p.PlanetName} (${p.PlanetNaturalId})` : p.PlanetNaturalId,
+      selLabel: hasName ? p.PlanetName : p.PlanetNaturalId,
+      idTag:    hasName ? p.PlanetNaturalId : '',
       value:    'pl:' + p.PlanetNaturalId,
       sysId:    p.SystemId,
       type:     'planet'
@@ -1045,6 +1050,8 @@ async function loadData() {
 function filterDrop(which) {
   const inputEl = document.getElementById(which + 'Input');
   const dropEl  = document.getElementById(which + 'Drop');
+  const tagEl   = document.getElementById(which + 'IdTag');
+  if (tagEl) { tagEl.style.display = 'none'; inputEl.classList.remove('has-idtag'); }
   const q = inputEl.value.trim().toLowerCase();
 
   if (!_loaded) {
@@ -1061,7 +1068,7 @@ function filterDrop(which) {
   if (matches.length === 0) { dropEl.style.display = 'none'; return; }
 
   dropEl.innerHTML = matches.map(item => `
-    <div class="drop-item" data-value="${escHtml(item.value)}" data-label="${escHtml(item.selLabel)}">
+    <div class="drop-item" data-value="${escHtml(item.value)}" data-label="${escHtml(item.selLabel)}" data-idtag="${escHtml(item.idTag || '')}">
       <span class="drop-name">${escHtml(item.label)}${item.sub ? ` <span class="drop-sys">${escHtml(item.sub)}</span>` : ''}</span>
       <span class="drop-code">${escHtml(item.code)}</span>
     </div>`).join('');
@@ -1070,16 +1077,34 @@ function filterDrop(which) {
   dropEl.querySelectorAll('.drop-item').forEach(el => {
     el.addEventListener('mousedown', e => {
       e.preventDefault();
-      selectDrop(which, el.dataset.value, el.dataset.label);
+      selectDrop(which, el.dataset.value, el.dataset.label, el.dataset.idtag);
     });
   });
 }
 
-function selectDrop(which, value, label) {
+// Show/hide the right-justified natural-id tag on a resolved route field (mirrors the dropdown layout).
+function showIdTag(which) {
+  const inputEl = document.getElementById(which + 'Input');
+  const tagEl   = document.getElementById(which + 'IdTag');
+  if (!tagEl) return;
+  const tag = inputEl.dataset.idtag;
+  if (tag && inputEl.value) {
+    tagEl.textContent = tag;
+    tagEl.style.display = 'block';
+    inputEl.classList.add('has-idtag');
+  } else {
+    tagEl.style.display = 'none';
+    inputEl.classList.remove('has-idtag');
+  }
+}
+
+function selectDrop(which, value, label, idtag) {
   const inputEl = document.getElementById(which + 'Input');
   const dropEl  = document.getElementById(which + 'Drop');
   inputEl.value = label;
+  inputEl.dataset.idtag = idtag || '';
   dropEl.style.display = 'none';
+  showIdTag(which);
 
   const resolved = resolveValue(value);
   if (which === 'origin') {

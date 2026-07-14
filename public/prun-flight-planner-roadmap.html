@@ -339,6 +339,37 @@
 
 <div class="connector">↓</div>
 
+<!-- SHIP BUILDER VALIDATION -->
+<div class="phase-block">
+  <div class="phase-header">
+    <span class="phase-number">Ship Val</span>
+    <span class="phase-title">Ship Builder — End-to-End Validation</span>
+    <span class="phase-where where-both">Code + Chat</span>
+    <span class="phase-status status-inprog">In progress — 2026-07-14</span>
+  </div>
+  <div class="gate-banner">⚑ Validate the Hypothetical-mode ship builder end-to-end: a user-built blueprint should reproduce the in-game blueprint tester for fuel, damage, and the underlying physics. The formulae are largely solved — this phase is the systematic cross-check, per component and per leg.</div>
+  <div class="task-list">
+    <div class="task"><div class="task-bar" style="background:var(--p1)"></div><div class="task-content">
+      <div class="task-name">Fuel predictions — TO / LND / TRANSIT <span class="task-tag tag-gate">Validation needed</span></div>
+      <div class="task-note">Formula confirmed: TO/LND = k · flow · √(dist / accel_eff), accel_eff = min(actual, maxGFactor · 9.80665); TRANSIT = (tank − TO − LND) × fuelUsageFactor. Needs end-to-end validation in Hypothetical mode against the in-game blueprint tester — build a ship, run a route, confirm all three fuel legs match APEX within tolerance. Start with the characterised 5-engine Base Hopper set (Standard / Glass / Advanced / Fuel-saving / Hyperthrust).</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p4)"></div><div class="task-content">
+      <div class="task-name">Damage model integration <span class="task-tag tag-parked">Provisional</span></div>
+      <div class="task-note">Meteor formula v5 is committed but PROVISIONAL — the whole damage model was reopened 2026-07-10 on new information (see Phase 5). LANDING damage is still a placeholder (~2e-3), not a solved formula. The builder must surface both as provisional/estimated, not final, until the damage model is closed.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p1)"></div><div class="task-content">
+      <div class="task-name">Component validation <span class="task-tag tag-gate">Validation needed</span></div>
+      <div class="task-note">Confirm every component the builder exposes — hull plates, STL engine, STL / FTL tanks, high-g seats, cargo bay — is read correctly and applied to the physics: mass, acceleration, maxGFactor (g-cap), fuel capacity, and flow rate. Cross-check the derived operatingEmptyMass / acceleration / maxGFactor against the blueprint tester on each component swap (the g-cap that solved Hyperthrust makes maxGFactor especially load-bearing).</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p4)"></div><div class="task-content">
+      <div class="task-name">Anti-rad plate <span class="task-tag tag-parked">Not fully resolved</span></div>
+      <div class="task-note">Confirmed NON-FUNCTIONAL in standard cases — it does not mitigate radiation (triple-confirmed 2026-07-09, incl. FTL radiation via Shielding Matrix sweep). ⚠ Outlier cases are under further scrutiny — do NOT mark as fully resolved. The builder must not credit the anti-rad plate with any radiation mitigation until the outliers are explained.</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="connector">↓</div>
+
 <!-- PHASE 6 -->
 <div class="phase-block">
   <div class="phase-header">
