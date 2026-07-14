@@ -1694,11 +1694,16 @@ async function calculate() {
   // once the real transit distance (rendez.chargedKm / stlDistKm) has been solved.
   let stlMet = 0;
 
-  // LND fuel — distance-based (0.576 × √distance). Computed up-front (in UNITS) so the same-system
-  // TRANSIT fuel formula (tank − TO − LND) can use it, unchanged.
+  // LND fuel — STL burn physics, same as atmLeg/take-off: fuel = √(dist/(13.71·accel/350.11)) × flow/0.015
+  // (≈ 337 × flow × √(dist/accel)). Engine-dependent via flow rate AND acceleration — confirmed 2026-07-14
+  // on a controlled 5-engine set (k≈340 loaded-accel across STD/GLASS/ADV/FUEL-SAVER; Hyperthrust reads
+  // ~21% high, unmodelled). Replaces the old flat per-blueprint constant. Computed up-front (in UNITS) so
+  // the same-system TRANSIT fuel formula (tank − TO − LND) can use it, unchanged.
   if (destPl) {
     const lndDistKm = destPl.Radius ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0) : 18514;
-    const lndFuelT = 0.576 * Math.sqrt(lndDistKm);
+    const lndFuelT = phys?.accel
+      ? Math.sqrt(lndDistKm / (13.71 * (phys.accel / 350.11))) * ((_currentShip?.stlFlowRate ?? 0.015) / 0.015)
+      : 0.576 * Math.sqrt(lndDistKm);
     ldgFuelUnits = Math.round(lndFuelT);
   }
 
@@ -1823,8 +1828,10 @@ async function calculate() {
     const ldgKm   = destPl.Radius
       ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0)
       : (ldgAtm ? ldgAtm.dKm : 18514);
-    // LND fuel — distance-based (0.576 × √distance). ldgFuelUnits (units) reused for the total.
-    const lndFuelT = 0.576 * Math.sqrt(ldgKm);
+    // LND fuel — STL burn physics (flow + accel dependent), same as atmLeg/take-off. ldgFuelUnits reused for the total.
+    const lndFuelT = phys?.accel
+      ? Math.sqrt(ldgKm / (13.71 * (phys.accel / 350.11))) * ((_currentShip?.stlFlowRate ?? 0.015) / 0.015)
+      : 0.576 * Math.sqrt(ldgKm);
     const ldgFuel = ldgFuelUnits;
     totalRealMin += ldgTime / 60;
     totalFuelStl += ldgFuel;
