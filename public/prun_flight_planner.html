@@ -291,12 +291,12 @@ const COMPONENT_DATA = {
     HHP: { name: 'hardenedHullPlate',    mass: 867.8, maxGFactor: 13 },
     AHP: { name: 'advancedHullPlate',    mass: 867.8, maxGFactor: 15 },
   },
-  engine: { // mass additive on hull base; thrust additive across engines
-    GEN: { name: 'glassEngine',       mass: 5,  thrust: 50000  },
-    FSE: { name: 'fuelSavingEngine',  mass: 6,  thrust: 100000 },
-    ENG: { name: 'standardEngine',    mass: 8,  thrust: 125000 },
-    AEN: { name: 'advancedEngine',    mass: 14, thrust: 250000 },
-    HTE: { name: 'hyperthrustEngine', mass: 16, thrust: 450000 },
+  engine: { // mass + thrust + STL flow rate (units/s) additive across engines; flow = blueprint STL_USAGE
+    GEN: { name: 'glassEngine',       mass: 5,  thrust: 50000,  flow: 0.015  },
+    FSE: { name: 'fuelSavingEngine',  mass: 6,  thrust: 100000, flow: 0.0075 },
+    ENG: { name: 'standardEngine',    mass: 8,  thrust: 125000, flow: 0.015  },
+    AEN: { name: 'advancedEngine',    mass: 14, thrust: 250000, flow: 0.02   },
+    HTE: { name: 'hyperthrustEngine', mass: 16, thrust: 450000, flow: 0.03   },
   },
   stlTank:  { SSL: { name: 'smallStlTank', mass: 20 }, MSL: { name: 'mediumStlTank', mass: 50 }, LSL: { name: 'largeStlTank', mass: 125 } },
   ftlReactor: { RCT: { name: 'standardReactor', mass: 7 }, QCR: { name: 'quickChargeReactor', mass: 14 }, HPR: { name: 'highPowerReactor', mass: 16 }, HYR: { name: 'hyperPowerReactor', mass: 25 } },
@@ -1343,7 +1343,7 @@ function rebuildHypo() {
     maxGFactor: hull.maxGFactor + (seat ? seat.gBonus : 0),
     reactorPower: reactor ? REACTOR_POWER[val('reactorSel')] : null,
     chargeFactor: null,
-    stlFlowRate: 0.0075,   // nominal; only used by Fix 1 fuel-starve guard
+    stlFlowRate: eng.flow * engQty,   // real per selected engine × count — drives TO/LND fuel + Fix 1 guard
     cargoCap,
     shielding: sh,
   };
