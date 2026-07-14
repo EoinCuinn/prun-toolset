@@ -1694,13 +1694,12 @@ async function calculate() {
   // once the real transit distance (rendez.chargedKm / stlDistKm) has been solved.
   let stlMet = 0;
 
-  // LND fuel — distance-based, engine-independent (≈1 t per 190 km; 0.00526 = pooled mean fuel/km,
-  // 35-sample Promitor dataset). Computed up-front (in UNITS, via STL_UNIT_MASS) so the same-system
+  // LND fuel — distance-based (0.576 × √distance). Computed up-front (in UNITS) so the same-system
   // TRANSIT fuel formula (tank − TO − LND) can use it, unchanged.
   if (destPl) {
     const lndDistKm = destPl.Radius ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0) : 18514;
-    const lndFuelT = 0.3557 * Math.sqrt(lndDistKm);
-    ldgFuelUnits = Math.round(lndFuelT / STL_UNIT_MASS);
+    const lndFuelT = 0.576 * Math.sqrt(lndDistKm);
+    ldgFuelUnits = Math.round(lndFuelT);
   }
 
   let rendez = null;
@@ -1824,8 +1823,8 @@ async function calculate() {
     const ldgKm   = destPl.Radius
       ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0)
       : (ldgAtm ? ldgAtm.dKm : 18514);
-    // LND fuel — distance-based, engine-independent (≈1 t / 190 km). ldgFuelUnits (units) reused for the total.
-    const lndFuelT = 0.3557 * Math.sqrt(ldgKm);
+    // LND fuel — distance-based (0.576 × √distance). ldgFuelUnits (units) reused for the total.
+    const lndFuelT = 0.576 * Math.sqrt(ldgKm);
     const ldgFuel = ldgFuelUnits;
     totalRealMin += ldgTime / 60;
     totalFuelStl += ldgFuel;
@@ -1838,7 +1837,7 @@ async function calculate() {
     html += legHtml('LDG', `Orbit → ${destPl.PlanetName || destPl.PlanetNaturalId}`, [
       ['Distance', ldgKm.toFixed(1) + ' km (±15%)'],
       ['Time (real)', fmtRealTime(ldgTime)],
-      ['STL fuel', lndFuelT.toFixed(1) + ' t (±15%)'],
+      ['STL fuel', lndFuelT.toFixed(1) + ' units (±15%)'],
       ['Landing dmg', fmtDmg(ldgDmg)],
     ], hazards, ldgDmg, ldgAtm
       ? '⚠ Planetary median ±15% — actual varies by approach geometry &amp; base tile position (paper §1.2).'
