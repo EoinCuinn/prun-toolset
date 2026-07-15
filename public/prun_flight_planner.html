@@ -284,12 +284,18 @@ const REFERENCE_TIME_S = 1451690603; // 2016-01-01 23:23:23 UTC
 // ftl + cargo. Verified: Thrust[N] / raw Mass == Swagger Acceleration fleet-wide
 // (100000 / 2153.5 = 46.44). The spec labels this scale "kg"; do not multiply/divide by 1000.
 const COMPONENT_DATA = {
-  hull: {   // atomic baseline — includes bridge, quarters, structural. maxGFactor sets G-cap.
-    LHP: { name: 'lightweightHullPlate', mass: 579.8, maxGFactor: 10 },
-    BHP: { name: 'basicHullPlate',       mass: 819.8, maxGFactor: 8  },
-    RHP: { name: 'reinforcedHullPlate',  mass: 867.8, maxGFactor: 11 },
-    HHP: { name: 'hardenedHullPlate',    mass: 867.8, maxGFactor: 13 },
-    AHP: { name: 'advancedHullPlate',    mass: 867.8, maxGFactor: 15 },
+  hull: {   // `mass` = FITTED aggregate: it bundles the volume-scaling structural mass (plates +
+            // SSC + bridge + quarters + FFC + emitter) into one per-hull number, so it is NOT a
+            // per-plate weight. `bomWeight` = true per-plate weight (BLUEPRINT_BLUEPRINTS ground
+            // truth, 2026-07-15; OEM = Σ BOM weight×count EXACTLY over 44 BPs). Real empty mass =
+            // plateWeight×STRUCT_COUNT.plate(vol) + 1×STRUCT_COUNT.ssc(vol) + bridge + quarters +
+            // FFC + emitter + engine + tanks + reactor + cargo + seat + damage. rebuildHypo() still
+            // uses the fitted `mass` until the volume-based structural rebuild lands. maxGFactor sets G-cap.
+    LHP: { name: 'lightweightHullPlate', mass: 579.8, bomWeight: 4,  maxGFactor: 10 },
+    BHP: { name: 'basicHullPlate',       mass: 819.8, bomWeight: 9,  maxGFactor: 8  },
+    RHP: { name: 'reinforcedHullPlate',  mass: 867.8, bomWeight: 10, maxGFactor: 11 },
+    HHP: { name: 'hardenedHullPlate',    mass: 867.8, bomWeight: 10, maxGFactor: 13 }, // bomWeight est — HHP absent from dataset
+    AHP: { name: 'advancedHullPlate',    mass: 867.8, bomWeight: 10, maxGFactor: 15 },
   },
   engine: { // mass + thrust + STL flow rate (units/s) additive across engines; flow = blueprint STL_USAGE
     GEN: { name: 'glassEngine',       mass: 5,  thrust: 50000,  flow: 0.015  },
@@ -301,15 +307,16 @@ const COMPONENT_DATA = {
   stlTank:  { SSL: { name: 'smallStlTank', mass: 20 }, MSL: { name: 'mediumStlTank', mass: 50 }, LSL: { name: 'largeStlTank', mass: 125 } },
   ftlReactor: { RCT: { name: 'standardReactor', mass: 7 }, QCR: { name: 'quickChargeReactor', mass: 14 }, HPR: { name: 'highPowerReactor', mass: 16 }, HYR: { name: 'hyperPowerReactor', mass: 25 } },
   ftlTank:  { SFL: { name: 'smallFtlTank', mass: 9 }, MFL: { name: 'mediumFtlTank', mass: 24 }, LFL: { name: 'largeFtlTank', mass: 60 } },
-  cargo: {  // real fitted mass (NOT bomWeight). capT = tonnes ceiling, capM3 = volume ceiling
-    TCB: { name: 'tinyCargoBay',      mass: 630,    capT: 100,  capM3: 100  },
-    VSC: { name: 'verySmallCargoBay', mass: 707.1,  capT: 250,  capM3: 250  },
-    SCB: { name: 'smallCargoBay',     mass: 827.8,  capT: 500,  capM3: 500  },
-    MCB: { name: 'mediumCargoBay',    mass: 1046.8, capT: 1000, capM3: 1000 },
-    LCB: { name: 'largeCargoBay',     mass: 1456.2, capT: 2000, capM3: 2000 },
-    HCB: { name: 'hugeCargoBay',      mass: 2517.4, capT: 5000, capM3: 5000 },
-    VCB: { name: 'highVolumeCargoBay',mass: 1747.6, capT: 1000, capM3: 3000 },
-    WCB: { name: 'highLoadCargoBay',  mass: 1146.8, capT: 3000, capM3: 1000 },
+  cargo: {  // `mass` = FITTED aggregate (bundles structural, used by rebuildHypo today); `bomWeight` =
+            // true BOM per-unit (ground truth 2026-07-15). capT = tonnes ceiling, capM3 = volume ceiling.
+    TCB: { name: 'tinyCargoBay',      mass: 630,    capT: 100,  capM3: 100  }, // bomWeight n/a (not in dataset)
+    VSC: { name: 'verySmallCargoBay', mass: 707.1,  capT: 250,  capM3: 250  }, // bomWeight n/a (not in dataset)
+    SCB: { name: 'smallCargoBay',     mass: 827.8,  bomWeight: 50,  capT: 500,  capM3: 500  },
+    MCB: { name: 'mediumCargoBay',    mass: 1046.8, capT: 1000, capM3: 1000 }, // bomWeight n/a (not in dataset)
+    LCB: { name: 'largeCargoBay',     mass: 1456.2, bomWeight: 200, capT: 2000, capM3: 2000 },
+    HCB: { name: 'hugeCargoBay',      mass: 2517.4, bomWeight: 500, capT: 5000, capM3: 5000 },
+    VCB: { name: 'highVolumeCargoBay',mass: 1747.6, bomWeight: 200, capT: 1000, capM3: 3000 },
+    WCB: { name: 'highLoadCargoBay',  mass: 1146.8, bomWeight: 200, capT: 3000, capM3: 1000 },
   },
   seat: {   // mass additive; maxGFactor bonus additive on hull maxGFactor
     BGS: { name: 'basicHighgSeats',    mass: 20, gBonus: 5  },
@@ -327,6 +334,29 @@ const COMPONENT_DATA = {
     RDS: { name: 'smallShipRepairDroneUnit',  mass: 50   },
     RDL: { name: 'largeShipRepairDroneUnit',  mass: 150  },
   },
+  structural: { // BOM ground truth (BLUEPRINT_BLUEPRINTS, 2026-07-15). Currently bundled into hull.mass
+                // fudge; broken out here for the pending volume-based empty-mass rebuild. Not yet summed.
+    SSC: { name: 'structuralSpacecraftComponent', mass: 1    }, // count = STRUCT_COUNT.ssc(totalVolume)
+    BR1: { name: 'commandBridge1',            mass: 180  },
+    BR2: { name: 'commandBridge2',            mass: 280  },
+    CQS: { name: 'crewQuartersSmall',         mass: 25   },
+    CQM: { name: 'crewQuartersMed',           mass: 50   },
+    CQL: { name: 'crewQuarters',              mass: 75   },
+    HAM: { name: 'habitationModule',          mass: 1200 },
+    FFC: { name: 'ftlFieldController',        mass: 50   }, // ×1 on FTL-capable ships
+    SFE: { name: 'smallEmitter',              mass: 0.1  },
+    MFE: { name: 'mediumEmitter',             mass: 0.2  },
+    LFE: { name: 'largeEmitter',              mass: 0.4  },
+  },
+};
+// Hull-plate & structural part counts as a function of totalVolume (BLUEPRINT_BLUEPRINTS, 44 BPs,
+// 2026-07-15). APPROXIMATE — reproduces actual counts to ±1 (~31/44 exact); the exact rounding rule
+// is not yet pinned, AND totalVolume itself is game-computed (NOT the BOM component-volume sum), so
+// the hypothetical builder can't derive it from the loadout yet. These are the ground-truth targets
+// for the empty-mass rebuild, not yet consumed by rebuildHypo().
+const STRUCT_COUNT = {
+  plate: v => Math.round(0.535 * Math.pow(v, 0.655)), // hull plates of the chosen type
+  ssc:   v => Math.round(0.0478 * v),                 // structuralSpacecraftComponent (weight 1 each)
 };
 // FTL reactor ticker → ReactorPower (keys of FTL_REACTORS). From spec §3 reactor comments.
 const REACTOR_POWER = { QCR: 2000, RCT: 2400, HPR: 4800, HYR: 7200 };
