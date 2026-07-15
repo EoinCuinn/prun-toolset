@@ -1721,10 +1721,10 @@ async function calculate() {
   let stlMet = 0;
 
   // LND fuel — STL burn physics, same as atmLeg/take-off: fuel = √(dist/(13.71·accel/350.11)) × flow/0.015
-  // (≈ 337 × flow × √(dist/accel)). Engine-dependent via flow rate AND acceleration — confirmed 2026-07-14
-  // on a controlled 5-engine set (k≈340 loaded-accel; all 5 engines incl. Hyperthrust, once accel is g-capped
-  // — phys.accel from shipPhysics already applies min(accel, maxGFactor·9.80665), which handles Hyperthrust's
-  // +21%). Replaces the old flat per-blueprint constant. Computed up-front (in UNITS) so
+  // (≈ 336.9 × flow × √(dist/accel)). Engine-dependent via flow rate AND acceleration — confirmed 2026-07-14
+  // on a controlled 5-engine set (k=336.9 loaded-accel, closed-form (4/0.06)·√(350.11/13.71); all 5 engines incl.
+  // Hyperthrust, once accel is g-capped — phys.accel from shipPhysics already applies min(accel, maxGFactor·9.80665),
+  // which handles Hyperthrust's +21%). Replaces the old flat per-blueprint constant. Computed up-front (in UNITS) so
   // the same-system TRANSIT fuel formula (tank − TO − LND) can use it, unchanged.
   if (destPl) {
     const lndDistKm = destPl.Radius ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0) : 18514;
