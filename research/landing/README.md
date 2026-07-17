@@ -12,7 +12,7 @@ d = k(planet) · (13 + 4·r),   r = new java.util.Random(UUID.hashCode(missionId
 
 `d ∈ [13k, 17k)` — mean `15k`, band `±2/15` (±13.3%). The mean (`15k`) is the planet radius/pressure term; the band is the PRNG. The seed is the `missionId`, a UUID the **client** generates and the server echoes verbatim. Real flights inherit their plan's `missionId` and run the same draw. The client mints the UUID with `crypto.getRandomValues()` (CSPRNG), so the draw is predictable-from-the-wire but **unsteerable at source**.
 
-Verified on our own capture corpus: per-planet `k` constant to 0.0000% CV (18 planets); parameter-free ratio check 0.0000% (27 pairs); client-echo 860/860; real flights 21/21 at 0.00000%. Fixed-tile hypothesis tested, leaning dead, not conclusively closed.
+Verified on our own capture corpus: per-planet `k` constant to 0.0000% CV (18 planets); parameter-free ratio check 0.0000% (27 pairs); client-echo 860/860; 21 of 25 real landings carry a byte-exact preview distance. Fixed-tile hypothesis **refuted** — six same-ship, same-base repeats each land at a different distance (spreads 1.6–18.0%).
 
 ## Files
 
