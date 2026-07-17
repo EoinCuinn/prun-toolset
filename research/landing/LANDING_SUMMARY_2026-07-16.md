@@ -1,7 +1,7 @@
 # Landing Distance Workstream — Complete Summary
 
 **Prepared for:** Marcus Licinius Crassus
-**Prepared by:** Daniel (in-game GYFG / COSM), with analysis by Claude Code
+**Prepared by:** Eoin Cuinn (EC3), with analysis by Claude Code
 **Date:** 2026-07-16
 **Working directory:** `C:\prun-tools\prun-toolset\` (planner) and `C:\prun-tools\prun-flight-capture\landing-rng\` (scripts + captures)
 
@@ -125,4 +125,4 @@ The `missionId` provenance and the CSPRNG finding rest on a single bundle versio
 
 ## Credits
 
-**Marcus Licinius Crassus** — the landing-distance PRNG law (`d = k·(13+4r)`, `r = Java Random(UUID.hashCode(missionId))`), the per-planet-`k` form, the R² = 1.000000 validation across 4,482 planets / ~86k flights, and the `k = 336.9` closed form; and the flight-dynamics / ephemeris papers the whole flight model rests on. **Taiyi Bureau** — the landing-distance formula and the approach-orbit / window-reset observable that the PRNG explains, universal constant `C = 20/3`, galaxy map. **Raylu** (`git.raylu.net/raylu/pruncalc`) — take-off/landing pressure and radius handling. **SAGANAKI** — FIO galaxy star/system data (`systemstars.json`) used by the planner. Client-side verification (860/860 echo, 21-of-25 byte-exact preview twins, per-planet CV 0.0000%, and the same-base fixed-tile refutation) and the bundle CSPRNG disassembly were done on own capture data by Daniel (GYFG / COSM) with Claude Code; scripts and outputs are in `prun-flight-capture/landing-rng/`.
+**Marcus Licinius Crassus** — the landing-distance PRNG law (`d = k·(13+4r)`, `r = Java Random(UUID.hashCode(missionId))`), the per-planet-`k` form, the R² = 1.000000 validation across 4,482 planets / ~86k flights, and the `k = 336.9` closed form; and the flight-dynamics / ephemeris papers the whole flight model rests on. **Taiyi Bureau** — the landing-distance formula and the approach-orbit / window-reset observable that the PRNG explains, universal constant `C = 20/3`, galaxy map. **Raylu** (`git.raylu.net/raylu/pruncalc`) — take-off/landing pressure and radius handling. **SAGANAKI** — FIO galaxy star/system data (`systemstars.json`) used by the planner. Client-side verification (860/860 echo, 21-of-25 byte-exact preview twins, per-planet CV 0.0000%, and the same-base fixed-tile refutation) and the bundle CSPRNG disassembly were done on own capture data by Eoin Cuinn (EC3) with Claude Code; scripts and outputs are in `prun-flight-capture/landing-rng/`.

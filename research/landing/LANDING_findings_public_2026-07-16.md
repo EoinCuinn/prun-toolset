@@ -1,6 +1,6 @@
 # Landing Distance — Findings and Open Questions
 
-*Capture study of take-off/landing distance, shared to the flight-discussion channel — 2026-07-16, by GYFG (COSM)*
+*Capture study of take-off/landing distance, shared to the flight-discussion channel — 2026-07-16, by Eoin Cuinn (EC3)*
 
 This writes up what our captures show about the take-off/landing **landing distance** — the last random-looking term in the flight model — so the numbers are on the table. It is built on the full local capture corpus (80 unique `.jsonl` files, 43,149 message frames) plus a static read of the game bundle, and it confirms Marcus Licinius Crassus's landing PRNG law independently on our own data, then adds where the seed comes from. Almost nothing here is a new discovery — the law and the distance formula are prior community work — but the seed provenance and the "is it steerable" question are newly pinned down. Numbers are quoted from the source files named alongside them; the verification scripts are in `prun-flight-capture/landing-rng/`.
 
