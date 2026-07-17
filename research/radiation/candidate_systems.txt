@@ -1,0 +1,52 @@
+CANDIDATE SYSTEMS FOR RADIATION-ISOLATION BTF
+Generated: 2026-07-07T10:57:31.069Z
+Filters: star class O or B; MeteoroidDensity < 0.5; >=1 planet in 0.8-2.5 AU AND >=1 in 4-12 AU; reachable from HRT (VH-331) via jump network.
+radiation contrast grows with AU separation (rad %/Mkm proportional to AU^-2).
+========================================================================================================================
+
+Galaxy-wide O/B systems found: 9 (only 4 O + 5 B exist total).
+Origin HRT system: VH-331 (SystemId f2f57766…, reachable network size 637)
+
+FULL O/B INVENTORY (all 9, ranked)
+------------------------------------------------------------------------------------------------------------------------
+system   T       lum  density  jumps  nPl  close(AU)           far(AU)               pair?  dens<0.5
+NL-534   O    1636.5    2.004     12    8  NL-534a:1.98          NL-534c:6.12          yes    no
+NH-555   B     148.7    2.061     14   10  NH-555a:0.90,NH-555b  NH-555d:5.78,NH-555e  yes    no
+XG-452   O    1681.9    3.734      9    8  XG-452a:1.79          XG-452c:6.46          yes    no
+LS-231   B     157.1    3.861      9    6  LS-231a:0.99,LS-231b  LS-231c:6.27,LS-231d  yes    no
+AM-528   O    1669.6    3.911     20    8  AM-528a:1.87          AM-528c:6.46,AM-528d  yes    no
+KQ-451   O    1591.1    4.620     14   10  KQ-451a:2.07          KQ-451c:6.51,KQ-451d  yes    no
+CG-021   B     142.9    4.646      6    7  CG-021a:1.01,CG-021b  CG-021d:5.08          yes    no
+EL-768   B     149.4    4.707     25   10  EL-768a:0.87,EL-768b  EL-768d:7.01,EL-768e  yes    no
+WX-827   B     157.3    3.132     NR    9  WX-827a:1.43          WX-827c:4.50,WX-827d  yes    no
+
+TOP 5 CANDIDATES
+========================================================================================================================
+#1  NL-534 (O-class, lum 1636, MeteoroidDensity 2.004, 12 jumps from HRT)
+     density<0.5: FAIL (2.00) | close/far pair: PASS
+     FLY: NL-534a (1.98 AU)  <->  NL-534c (6.12 AU)   AU ratio 3.1x  => radiation contrast ~10x (AU^-2)
+
+#2  NH-555 (B-class, lum 149, MeteoroidDensity 2.061, 14 jumps from HRT)
+     density<0.5: FAIL (2.06) | close/far pair: PASS
+     FLY: NH-555a (0.90 AU)  <->  NH-555e (10.74 AU)   AU ratio 11.9x  => radiation contrast ~142x (AU^-2)
+
+#3  XG-452 (O-class, lum 1682, MeteoroidDensity 3.734, 9 jumps from HRT)
+     density<0.5: FAIL (3.73) | close/far pair: PASS
+     FLY: XG-452a (1.79 AU)  <->  XG-452c (6.46 AU)   AU ratio 3.6x  => radiation contrast ~13x (AU^-2)
+
+#4  LS-231 (B-class, lum 157, MeteoroidDensity 3.861, 9 jumps from HRT)
+     density<0.5: FAIL (3.86) | close/far pair: PASS
+     FLY: LS-231a (0.99 AU)  <->  LS-231d (9.93 AU)   AU ratio 10.1x  => radiation contrast ~101x (AU^-2)
+
+#5  AM-528 (O-class, lum 1670, MeteoroidDensity 3.911, 20 jumps from HRT)
+     density<0.5: FAIL (3.91) | close/far pair: PASS
+     FLY: AM-528a (1.87 AU)  <->  AM-528d (10.14 AU)   AU ratio 5.4x  => radiation contrast ~30x (AU^-2)
+
+ASSESSMENT
+------------------------------------------------------------------------------------------------------------------------
+NO O/B system passes MeteoroidDensity < 0.5 — all hot stars in this galaxy have dense meteoroid fields.
+8 O/B system(s) are reachable AND have a close+far planet pair (ignoring density).
+LOWEST-density reachable O/B system with a pair: NL-534 (density 2.004, 12 jumps).
+RECOMMENDATION: density<0.5 is unachievable for O/B. Instead pick the lowest-density O/B system and isolate radiation
+by the SHIELD-DIFFERENCE method at matched slider (spec vs no-shield) on the SAME close-in flight, where the meteoroid
+component cancels and only the 70%-shieldable radiation remains. AU separation still lets you confirm the AU^-2 slope.

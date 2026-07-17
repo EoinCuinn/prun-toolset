@@ -1,0 +1,33 @@
+STEP 3/4 — RADIATION vs DAMAGE CORRELATION
+Generated: 2026-07-07T09:22:26.726Z
+damage field = segment.damage ; radiation = planet Radiation from all_planets.json
+Source: radiation_flat.csv (3258 segment rows; 908 with numeric damage+radiation)
+==============================================================================================================
+
+LINEAR Pearson r (Radiation vs damage) and LOG-LOG Pearson r (log10 both, only damage>0 & radiation>0)
+--------------------------------------------------------------------------------------------------------------
+channel         n_total       lin_r    n_pos    loglog_r  note
+ALL                 908      0.2470      486      0.0824  
+APPROACH            176     -0.0005      176     -0.1589  
+DECAY               121           —        0           —  lin degenerate(zero variance) all damage=0 
+JUMP_GATEWAY        121      0.7901      121      0.8953  
+LANDING             161     -0.1852      161     -0.1292  
+LOCK                121           —        0           —  lin degenerate(zero variance) all damage=0 
+TAKE_OFF             16           —        0           —  lin degenerate(zero variance) all damage=0 
+TRANSIT             192      0.9976       28      0.9568  
+
+STEP 4 — POWER LAW FIT  damage = k * Radiation^b  (least squares on log10 data; channels with |loglog r|>0.5)
+--------------------------------------------------------------------------------------------------------------
+channel            n      b(exp)               k        R2  loglog_r
+JUMP_GATEWAY     121      0.1421       8.3569e-2    0.8015  0.8953
+TRANSIT           28      0.9841      9.6177e+19    0.9154  0.9568
+
+SEGMENT TYPE INVENTORY (usable rows)
+--------------------------------------------------------------------------------------------------------------
+APPROACH      rows=  176  damage>0:   176  distinct planets: 17
+DECAY         rows=  121  damage>0:     0  distinct planets: 4
+JUMP_GATEWAY  rows=  121  damage>0:   121  distinct planets: 4
+LANDING       rows=  161  damage>0:   161  distinct planets: 19
+LOCK          rows=  121  damage>0:     0  distinct planets: 4
+TAKE_OFF      rows=   16  damage>0:     0  distinct planets: 2
+TRANSIT       rows=  192  damage>0:    28  distinct planets: 8

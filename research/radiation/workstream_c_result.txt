@@ -1,0 +1,56 @@
+WORKSTREAM C (CORRECTED) — METEOR VERIFICATION ON WX-827a TRANSIT
+Generated: 2026-07-07T09:36:41.599Z
+==============================================================================================================
+
+STEP 1 — METEOR FORMULA FROM SOURCE
+--------------------------------------------------------------------------------------------------------------
+File: C:\prun-tools\prun-toolset\public\prun_flight_planner.html  (function meteorDmgRaw, lines 837-840; call sites lines 1561 & 1727)
+
+function meteorDmgRaw(transitDistKm, density) {
+  const rhoExp = 0.683 + 0.223 * Math.log10(Math.max(density, 0.001));
+  return 7.1692e-6 * transitDistKm * Math.pow(Math.max(0.001, density), rhoExp);
+}
+CALL SITE (line 1561): applyShield(meteorDmgRaw(dep.chargedKm / 1e6, depDensity), sh.general)
+CALL SITE (line 1727): applyShield(meteorDmgRaw(stlTransitDistKm / 1e6, density), sh.general)
+Source comment (836/1559): "transitDistKm is the charged STL distance ÷ 1e6" — the game STL distance is in METRES,
+  so transitDistKm = stlDistance_metres / 1e6.  (This is the ÷1e6, NOT ÷1000, that corrects the earlier 1000x error.)
+Coefficients used (verbatim from source): k=7.1692e-6, p(rho)=0.683+0.223*log10(rho), density floor 0.001.
+
+STEP 2 — INPUTS
+--------------------------------------------------------------------------------------------------------------
+MeteoroidDensity source: systemstars.json, system WX-827 (Type B)
+  MeteoroidDensity (density) = 3.1318109264435767
+Distance field: segment.stlDistance (METRES) — read from the two WX capture files (radiation_flat.csv has no distance column).
+generalShield = 0 (per brief; applied to noshield rows; predicted is unshielded either way here).
+
+WX-827a TRANSIT segments (8):
+  shield    stlFuel   stlDistance(m)        transitDistKm(=/1e6)    predicted        observed(damage)
+  noshield    244       30173030276.45       30173.0303       0.535222       0.587286
+  noshield    244       30173030011.89       30173.0300       0.535222       0.587286
+  noshield   1786       29030499117.33       29030.4991       0.514956       0.565029
+  noshield   3500       28843149482.91       28843.1495       0.511632       0.561385
+  shield      246       30172210561.47       30172.2106       0.535208       0.587270
+  shield      246       30172210326.31       30172.2103       0.535208       0.587270
+  shield     1787       29032295089.68       29032.2951       0.514988       0.565064
+  shield     3500       28844661020.12       28844.6610       0.511659       0.561414
+
+STEP 3 — RESULT
+--------------------------------------------------------------------------------------------------------------
+  density (MeteoroidDensity): 3.1318109264435767
+  mean transitDistKm: 29555.1357
+  PREDICTED mean meteor damage: 0.524262
+  OBSERVED  mean TRANSIT damage: 0.575250
+  DIFFERENCE (observed - predicted): 0.050988
+  ratio predicted/observed: 0.9114  (|error| = 8.86%)
+
+STEP 4 — VERDICT
+##############################################################################################################
+VERDICT: WX-827a TRANSIT damage is METEOR (radiation contribution negligible).
+  Predicted 0.5243 vs observed 0.5753 (8.9% error — within the brief's ~20% "approx" band).
+  The meteor formula (k=7.1692e-6, density-dependent exponent, MeteoroidDensity=3.1318) accounts for ~91% of the ~0.57
+  TRANSIT damage. Meteoroid ablation, not radiation, is the driver — the TRANSIT-radiation channel is effectively closed.
+  CAVEAT (honest): the 8.9% is a SYSTEMATIC under-prediction (predicted/observed = 0.911 on ALL 8 segments,
+  not random scatter). It exceeds the formula's stated 7.1% worst residual. The residual 0.0510 could be (a) a small
+  radiation contribution, (b) k fit slightly low, or (c) chargedKm differing marginally from raw stlDistance. Meteor clearly
+  dominates, but "radiation exactly zero on TRANSIT" is not proven — an upper bound of ~9% of TRANSIT damage remains unexplained.
+  NOTE: the earlier 100x "overprediction" was my distance-scaling error (÷1000 instead of ÷1e6); source confirms ÷1e6.

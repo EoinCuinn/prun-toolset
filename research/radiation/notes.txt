@@ -1,0 +1,53 @@
+NOTES — radiation flat extraction & correlation
+Generated: 2026-07-07T09:22:26.728Z
+================================================================================
+
+- all_planets.json loaded: 4576 planets, Radiation field = NaturalId key
+- file "prun_rad_dam_noshield.jsonl": 75 missions, 1630 segments
+- file "prun_rad_dam_shield.jsonl": 81 missions, 1580 segments
+- file "prun_rad_WX-827 GH-459 noshield.jsonl": 8 missions, 24 segments
+- file "prun_rad_WX-827 GH-459 shield.jsonl": 8 missions, 24 segments
+- TOTAL segments: 3258 | parse errors: 0 | segments with no PLANET line: 2350
+- All captured planet naturalIds resolved against all_planets.json (no misses)
+- Rows usable for correlation (numeric damage & radiation): 908 of 3258
+- DAMAGE FIELD confirmed in Step 1 = segment.damage (top-level numeric)
+- Segment types present: APPROACH, DECAY, JUMP_GATEWAY, LANDING, LOCK, TAKE_OFF, TRANSIT
+- No rows with radiation exactly 0 (consistent with Radiation field never being 0)
+- Rows with damage exactly 0: 422 (CHARGE/DEPARTURE/DECAY/LOCK/TAKE_OFF/some TRANSIT expected to be 0)
+
+=== POST-RUN CAVEATS (distinct-planet basis of the significant channels) ===
+TRANSIT log-log r=0.957 / linear r=0.998 rests on only 3 DISTINCT PLANETS:
+  VH-331a rad=1.43e-24 dmg~1.34e-4 | GH-459c rad=3.61e-24 dmg~3.7e-3 | WX-827a rad=3.40e-21 dmg~0.57
+  Within-planet damage variation is tiny (slider only), so the fit is effectively 3 points.
+  Monotonic & near-linear (b=0.98) across ~3 orders of magnitude of radiation — PROMISING but 3 points is not robust.
+  ACTION: capture intra-system TRANSIT flights across MANY planets spanning the radiation range to confirm.
+JUMP_GATEWAY r=0.90 rests on only 4 distinct planets (ZV-307c/LS-300c/KW-688c/UV-351a), damage constant per planet,
+  exponent b=0.14 (near-flat) — treat as spurious 4-point fit, not evidence.
+APPROACH: r~0 (lin -0.0005, loglog -0.159) across 17 planets — genuinely NO radiation correlation. Confirms APPROACH-only assumption was wrong.
+LANDING: r=-0.185 across 19 planets — NO positive radiation correlation (mechanical/mass-driven).
+2350/3258 segments have no PLANET line (JUMP/CHARGE/DEPARTURE target a SYSTEM/ORBIT, not a planet) — correctly excluded from correlation.
+WX-827a per-TRANSIT-segment damage ~0.57 (the earlier 2.30 was the SUM of 4 captures).
+
+=== WORKSTREAM C CORRECTED (2026-07-07T09:36:07.399Z) ===
+Meteor formula found in source: prun-toolset/public/prun_flight_planner.html meteorDmgRaw() lines 837-840.
+  k=7.1692e-6, rhoExp=0.683+0.223*log10(density), density floor 0.001.
+KEY FIX: call sites (1561/1727) pass stlDistance_metres / 1e6 as transitDistKm — NOT /1000. My earlier stress-test used /1000, causing the false 100x overprediction.
+WX-827 MeteoroidDensity = 3.1318109264435767 (systemstars.json, Type B).
+WX-827a transitDistKm = 29555.1  =>  predicted meteor 0.5243 vs observed 0.5753 (8.9% error).
+RESULT: MATCH — TRANSIT damage is meteor, radiation contributes ~zero to TRANSIT.
+radiation_flat.csv lacks a distance column; distance read from source jsonl instead (noted deviation from brief).
+
+=== WORKSTREAM C CORRECTED (2026-07-07T09:36:41.600Z) ===
+Meteor formula found in source: prun-toolset/public/prun_flight_planner.html meteorDmgRaw() lines 837-840.
+  k=7.1692e-6, rhoExp=0.683+0.223*log10(density), density floor 0.001.
+KEY FIX: call sites (1561/1727) pass stlDistance_metres / 1e6 as transitDistKm — NOT /1000. My earlier stress-test used /1000, causing the false 100x overprediction.
+WX-827 MeteoroidDensity = 3.1318109264435767 (systemstars.json, Type B).
+WX-827a transitDistKm = 29555.1  =>  predicted meteor 0.5243 vs observed 0.5753 (8.9% error).
+RESULT: MATCH — TRANSIT damage is meteor, radiation contributes ~zero to TRANSIT.
+radiation_flat.csv lacks a distance column; distance read from source jsonl instead (noted deviation from brief).
+
+=== AEM MODEL vs CAPTURES (2026-07-07T10:44:10.595Z) ===
+UNIT MISMATCH (important): Aem formula outputs PERCENT (%/Mkm); segment.damage is a FRACTION. Converted Aem pred ÷100 to compare.
+Aem's 0.0002 %/Mkm "floor" is ~1000s x smaller than the real density-dependent meteoroid damage (meteor formula). His floor was KQ-451-specific, not a universal meteoroid term.
+Aem k=0.0734 is O-class (KQ-451) calibrated; our TRANSIT planets are B/M/K — real rad coefficient would be lower for them (per Aem star-class charts).
+Damage>0 TRANSIT planets: GH-459c, VH-331a, WX-827a. Radiation share of observed is <5% for all of them -> below detection in our captures.

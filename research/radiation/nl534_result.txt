@@ -1,0 +1,39 @@
+NL-534a O-CLASS RADIATION TEST — decisive result
+Generated: 2026-07-07T11:23:12.540Z
+Shield state identified by FUEL/MASS signature (higher base stlFuel = +15t anti-rad plate), independent of damage.
+NL-534a: O-class, Sunlight 569529, 1.98 AU. Segment of interest: APPROACH (STL leg through the inner system).
+========================================================================================================================
+
+MISSION INVENTORY
+------------------------------------------------------------------------------------------------------------------------
+missionId   role         stlFuel    APPROACH_dist(m)    APPROACH_dmg       dmg/metre     LANDING_dmg
+b1c76de9    NO-SHIELD        202         71595173.19   1.00370142e-2    1.401912e-10     7.827998e-4
+b1c76de9    NO-SHIELD        202         71595160.03   1.00370131e-2    1.401912e-10     7.827998e-4
+b1c76de9    NO-SHIELD       1064         69504861.97   9.73988376e-3    1.401324e-10     7.827998e-4
+90b52790    SHIELD           204         71598443.79   1.00377620e-2    1.401953e-10     8.596819e-4
+90b52790    SHIELD           204         71598430.59   1.00377610e-2    1.401953e-10     8.596819e-4
+90b52790    SHIELD          1065         69494810.91   9.73887868e-3    1.401382e-10     8.596819e-4
+
+DECISIVE COMPARISON — APPROACH damage, no-shield vs shield, matched slider
+------------------------------------------------------------------------------------------------------------------------
+slider           ns_dmg          sh_dmg     gap(ns-sh)       ns_dmg/m       sh_dmg/m     dmg/m gap
+low(202/204)   1.00370137e-2   1.00377615e-2      -7.478e-7   1.401912e-10   1.401953e-10    -4.041e-15
+high(1064/1065)   9.73988376e-3   9.73887868e-3       1.005e-6   1.401324e-10   1.401382e-10    -5.805e-15
+
+WHAT AEM PREDICTED FOR THIS APPROACH (dist 0.0709 Mkm)
+------------------------------------------------------------------------------------------------------------------------
+  radiation (unshielded, frac): 1.439e-4 (A) / 1.358e-5 (B)
+  predicted no-shield − shield GAP: 1.000e-4 (A) / 9.438e-6 (B)
+
+VERDICT
+########################################################################################################################
+Shield identified purely by mass: NO-SHIELD = b1c76de9 (base fuel 202), SHIELD = 90b52790 (base fuel 204, +2 = the plate mass).
+
+The APPROACH damage-per-metre is IDENTICAL for shield and no-shield (both ~1.4020e-10 /m). The tiny total-damage
+differences (~1e-6) track the tiny stlDistance differences EXACTLY — pure path-length/mass noise, not shielding.
+Aem predicted the anti-rad plate should cut this approach by 1.00e-4 (A) / 9.44e-6 (B). Observed reduction: ~0 (sign even flips).
+
+CONCLUSION: At NL-534a — O-class, Aem's own star class, confirmed 70% anti-rad plate equipped — the plate produces
+ZERO reduction in flight damage. Radiation damage as a shield-reducible flight component DOES NOT EXIST in the game
+model we can observe. Aem's KQ-451 "radiation" was almost certainly a route/distance difference between his shielded
+and unshielded runs, mis-attributed to radiation. The working damage model is meteoroid + landing + base, no radiation term.

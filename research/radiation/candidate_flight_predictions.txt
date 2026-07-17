@@ -1,0 +1,58 @@
+FLIGHT PREDICTIONS — radiation damage & shield gap for candidate BTF planets
+Generated: 2026-07-07T11:00:06.656Z
+radiation %/Mkm (unshielded) = k × Sunlight ; k_A=3.565e-7 (Sunlight-tab), k_B=k_A/10.6 (KQ-451 BTF)
+anti-rad leaves 30.5% → no-shield−shield GAP = 0.695 × radiation. Reported as FRACTION (game damage units; ÷100 from %).
+Game damage is deterministic to ~5e-9; detection floor 1e-8, conservative "clear" bar 0.000001 (fraction).
+==========================================================================================================================
+
+PER-PLANET RADIATION RATE & SHIELD GAP (per Mkm of transit)
+--------------------------------------------------------------------------------------------------------------------------
+planet   T      lum     AU   Sunlight  rate_A(%/Mkm)  rate_B(%/Mkm)  gap_A/Mkm(frac)  gap_B/Mkm(frac)
+NL-534a  O     1636   1.98     569529       2.030e-1       1.915e-2         1.411e-3         1.331e-4
+NL-534c  O     1636   6.12      59655       2.127e-2       2.006e-3         1.478e-4         1.394e-5
+NH-555a  B      149   0.90     250868       8.943e-2       8.437e-3         6.215e-4         5.864e-5
+NH-555e  B      149  10.74       1761       6.279e-4       5.924e-5         4.364e-6         4.117e-7
+
+NO-SHIELD − SHIELD GAP (fraction) OVER REPRESENTATIVE TRANSIT DISTANCES
+--------------------------------------------------------------------------------------------------------------------------
+Each cell = gap you must resolve between the two runs. "clear" if > 0.000001 (conservative), "det" if > 1e-8.
+
+planet   const            1Mkm         10Mkm         30Mkm        100Mkm        300Mkm
+NL-534a  A             1.41e-3       1.41e-2       4.23e-2       1.41e-1       4.23e-1
+NL-534a  B             1.33e-4       1.33e-3       3.99e-3       1.33e-2       3.99e-2
+NL-534c  A             1.48e-4       1.48e-3       4.43e-3       1.48e-2       4.43e-2
+NL-534c  B             1.39e-5       1.39e-4       4.18e-4       1.39e-3       4.18e-3
+NH-555a  A             6.22e-4       6.22e-3       1.86e-2       6.22e-2       1.86e-1
+NH-555a  B             5.86e-5       5.86e-4       1.76e-3       5.86e-3       1.76e-2
+NH-555e  A             4.36e-6       4.36e-5       1.31e-4       4.36e-4       1.31e-3
+NH-555e  B            4.12e-7~       4.12e-6       1.24e-5       4.12e-5       1.24e-4
+
+(tag: blank = clears conservative bar; ~ = above determinism floor only; x = below floor)
+
+MINIMUM TRANSIT DISTANCE (Mkm) TO CLEAR EACH DETECTION BAR
+--------------------------------------------------------------------------------------------------------------------------
+planet   const    dist for det-floor(1e-8)    dist for clear(1e-6)
+NL-534a  A                           0.000                    0.00
+NL-534a  B                           0.000                    0.01
+NL-534c  A                           0.000                    0.01
+NL-534c  B                           0.001                    0.07
+NH-555a  A                           0.000                    0.00
+NH-555a  B                           0.000                    0.02
+NH-555e  A                           0.002                    0.23
+NH-555e  B                           0.024                    2.43
+
+CONTEXT — total UNSHIELDED radiation damage (fraction) at a 30 Mkm transit (like the WX-827a captures)
+--------------------------------------------------------------------------------------------------------------------------
+  NL-534a  const A: 6.091e-2   const B: 5.746e-3
+  NL-534c  const A: 6.380e-3   const B: 6.019e-4
+  NH-555a  const A: 2.683e-2   const B: 2.531e-3
+  NH-555e  const A: 1.884e-4   const B: 1.777e-5
+
+ASSESSMENT
+==========================================================================================================================
+NL-534a (O, 1.98 AU) — strongest close-in dose. gap/Mkm: A=1.41e-3, B=1.33e-4 (fraction).
+  Even under the pessimistic constant B, a 1 Mkm transit clears the conservative bar; 1 Mkm clears determinism.
+NH-555 pair for the AU^-2 slope: NH-555a (0.90 AU) gap/Mkm A=6.22e-4 vs NH-555e (10.74 AU) A=4.36e-6 — a 142x contrast, exactly the AU^-2 lever.
+Verdict: the shield gap is comfortably measurable (game damage deterministic ~5e-9) even at modest transit distances
+and even under the 10.6x-lower KQ-451 constant. Flying spec-vs-noshield at matched slider WILL isolate radiation and
+simultaneously discriminate between constants A and B (they differ 10.6x in the gap — trivially separable).

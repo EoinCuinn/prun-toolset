@@ -1,0 +1,685 @@
+XG-452 SEGMENT EXTRACT — 2026-07-06T21:00:21.548Z
+Files scanned: 8
+
+################################################################
+FILE: RAD DMG 6-7-26 RAD NO shield.jsonl  (8 XG-452 mission(s))
+################################################################
+
+missionId: f9960772-1ce0-4ecb-ab94-28beb61a5b07
+  idx  type        destSystem   destPlanet   damage%     stlFuel  ftlFuel
+  ------------------------------------------------------------------------
+  0   DEPARTURE   VH-331       -               0.005976      175       50
+  1   JUMP        VH-778       -               0.009293        -        -
+  2   CHARGE      VH-778       -               0.000688        -       69
+  3   JUMP        OZ-189       -               0.012913        -        -
+  4   CHARGE      OZ-189       -               0.000688        -       42
+  5   JUMP        LB-599       -               0.007815        -        -
+  6   CHARGE      LB-599       -               0.000688        -       55
+  7   JUMP        LB-428       -               0.010210        -        -
+  8   CHARGE      LB-428       -               0.000688        -       43
+  9   JUMP        OT-442       -               0.008143        -        -
+  10  CHARGE      OT-442       -               0.000688        -       83
+  11  JUMP        OT-115       -               0.015454        -        -
+  12  CHARGE      OT-115       -               0.000688        -       18
+  13  JUMP        OT-889       -               0.003511        -        -
+  14  CHARGE      OT-889       -               0.000688        -       42
+  15  JUMP        XG-430       -               0.007796        -        -
+  16  CHARGE      XG-430       -               0.000688        -       62
+  17  JUMP        XG-452       -               0.011634        -        -
+  18  APPROACH    XG-452       XG-452a         0.624932     1743        -
+  19  LANDING     XG-452       XG-452a         0.259550       18        -
+
+  >> XG-452 APPROACH segment(s):
+     XG-452a  damage=0.624932%  stlFuel=1743
+  >> Mission totals: stlFuel=1936  ftlFuel=464   (slider indicator)
+
+missionId: f9960772-1ce0-4ecb-ab94-28beb61a5b07
+  idx  type        destSystem   destPlanet   damage%     stlFuel  ftlFuel
+  ------------------------------------------------------------------------
+  0   DEPARTURE   VH-331       -               0.005976      175       50
+  1   JUMP        VH-778       -               0.009293        -        -
+  2   CHARGE      VH-778       -               0.000688        -       69
+  3   JUMP        OZ-189       -               0.012913        -        -
+  4   CHARGE      OZ-189       -               0.000688        -       42
+  5   JUMP        LB-599       -               0.007815        -        -
+  6   CHARGE      LB-599       -               0.000688        -       55
+  7   JUMP        LB-428       -               0.010210        -        -
+  8   CHARGE      LB-428       -               0.000688        -       43
+  9   JUMP        OT-442       -               0.008143        -        -
+  10  CHARGE      OT-442       -               0.000688        -       83
+  11  JUMP        OT-115       -               0.015454        -        -
+  12  CHARGE      OT-115       -               0.000688        -       18
+  13  JUMP        OT-889       -               0.003511        -        -
+  14  CHARGE      OT-889       -               0.000688        -       42
+  15  JUMP        XG-430       -               0.007796        -        -
+  16  CHARGE      XG-430       -               0.000688        -       62
+  17  JUMP        XG-452       -               0.011634        -        -
+  18  APPROACH    XG-452       XG-452a         0.624932     1743        -
+  19  LANDING     XG-452       XG-452a         0.259550       18        -
+
+  >> XG-452 APPROACH segment(s):
+     XG-452a  damage=0.624932%  stlFuel=1743
+  >> Mission totals: stlFuel=1936  ftlFuel=464   (slider indicator)
+
+missionId: f9960772-1ce0-4ecb-ab94-28beb61a5b07
+  idx  type        destSystem   destPlanet   damage%     stlFuel  ftlFuel
+  ------------------------------------------------------------------------
+  0   DEPARTURE   VH-331       -               0.005976       19       50
+  1   JUMP        VH-778       -               0.009293        -        -
+  2   CHARGE      VH-778       -               0.000688        -       69
+  3   JUMP        OZ-189       -               0.012913        -        -
+  4   CHARGE      OZ-189       -               0.000688        -       42
+  5   JUMP        LB-599       -               0.007815        -        -
+  6   CHARGE      LB-599       -               0.000688        -       55
+  7   JUMP        LB-428       -               0.010210        -        -
+  8   CHARGE      LB-428       -               0.000688        -       43
+  9   JUMP        OT-442       -               0.008143        -        -
+  10  CHARGE      OT-442       -               0.000688        -       83
+  11  JUMP        OT-115       -               0.015454        -        -
+  12  CHARGE      OT-115       -               0.000688        -       18
+  13  JUMP        OT-889       -               0.003511        -        -
+  14  CHARGE      OT-889       -               0.000688        -       42
+  15  JUMP        XG-430       -               0.007796        -        -
+  16  CHARGE      XG-430       -               0.000688        -       62
+  17  JUMP        XG-452       -               0.011634        -        -
+  18  APPROACH    XG-452       XG-452a         0.582184       27        -
+  19  LANDING     XG-452       XG-452a         0.259550       18        -
+
+  >> XG-452 APPROACH segment(s):
+     XG-452a  damage=0.582184%  stlFuel=27
+  >> Mission totals: stlFuel=64  ftlFuel=464   (slider indicator)
+
+missionId: f9960772-1ce0-4ecb-ab94-28beb61a5b07
+  idx  type        destSystem   destPlanet   damage%     stlFuel  ftlFuel
+  ------------------------------------------------------------------------
+  0   DEPARTURE   VH-331       -               0.005976      175       50
+  1   JUMP        VH-778       -               0.009293        -        -
+  2   CHARGE      VH-778       -               0.000688        -       69
+  3   JUMP        OZ-189       -               0.012913        -        -
+  4   CHARGE      OZ-189       -               0.000688        -       42
+  5   JUMP        LB-599       -               0.007815        -        -
+  6   CHARGE      LB-599       -               0.000688        -       55
+  7   JUMP        LB-428       -               0.010210        -        -
+  8   CHARGE      LB-428       -               0.000688        -       43
+  9   JUMP        OT-442       -               0.008143        -        -
+  10  CHARGE      OT-442       -               0.000688        -       83
+  11  JUMP        OT-115       -               0.015454        -        -
+  12  CHARGE      OT-115       -               0.000688        -       18
+  13  JUMP        OT-889       -               0.003511        -        -
+  14  CHARGE      OT-889       -               0.000688        -       42
+  15  JUMP        XG-430       -               0.007796        -        -
+  16  CHARGE      XG-430       -               0.000688        -       62
+  17  JUMP        XG-452       -               0.011634        -        -
+  18  APPROACH    XG-452       XG-452a         0.624929     1743        -
+  19  LANDING     XG-452       XG-452a         0.259550       18        -
+
+  >> XG-452 APPROACH segment(s):
+     XG-452a  damage=0.624929%  stlFuel=1743
+  >> Mission totals: stlFuel=1936  ftlFuel=464   (slider indicator)
+
+missionId: f9960772-1ce0-4ecb-ab94-28beb61a5b07
+  idx  type        destSystem   destPlanet   damage%     stlFuel  ftlFuel
+  ------------------------------------------------------------------------
+  0   DEPARTURE   VH-331       -               0.005976      175       50
+  1   JUMP        VH-778       -               0.009293        -        -
+  2   CHARGE      VH-778       -               0.000688        -       69
+  3   JUMP        OZ-189       -               0.012913        -        -
+  4   CHARGE      OZ-189       -               0.000688        -       42
+  5   JUMP        LB-599       -               0.007815        -        -
+  6   CHARGE      LB-599       -               0.000688        -       55
+  7   JUMP        LB-428       -               0.010210        -        -
+  8   CHARGE      LB-428       -               0.000688        -       43
+  9   JUMP        OT-442       -               0.008143        -        -
+  10  CHARGE      OT-442       -               0.000688        -       83
+  11  JUMP        OT-115       -               0.015454        -        -
+  12  CHARGE      OT-115       -               0.000688        -       18
+  13  JUMP        OT-889       -               0.003511        -        -
+  14  CHARGE      OT-889       -               0.000688        -       42
+  15  JUMP        XG-430       -               0.007796        -        -
+  16  CHARGE      XG-430       -               0.000688        -       62
+  17  JUMP        XG-452       -               0.011634        -        -
+  18  APPROACH    XG-452       XG-452c         0.198963     1739        -
+  19  LANDING     XG-452       XG-452c         0.125916       24        -
+
+  >> XG-452 APPROACH segment(s):
+     XG-452c  damage=0.198963%  stlFuel=1739
+  >> Mission totals: stlFuel=1938  ftlFuel=464   (slider indicator)
+
+missionId: f9960772-1ce0-4ecb-ab94-28beb61a5b07
+  idx  type        destSystem   destPlanet   damage%     stlFuel  ftlFuel
+  ------------------------------------------------------------------------
+  0   DEPARTURE   VH-331       -               0.005976      175       50
+  1   JUMP        VH-778       -               0.009293        -        -
+  2   CHARGE      VH-778       -               0.000688        -       69
+  3   JUMP        OZ-189       -               0.012913        -        -
+  4   CHARGE      OZ-189       -               0.000688        -       42
+  5   JUMP        LB-599       -               0.007815        -        -
+  6   CHARGE      LB-599       -               0.000688        -       55
+  7   JUMP        LB-428       -               0.010210        -        -
+  8   CHARGE      LB-428       -               0.000688        -       43
+  9   JUMP        OT-442       -               0.008143        -        -
+  10  CHARGE      OT-442       -               0.000688        -       83
+  11  JUMP        OT-115       -               0.015454        -        -
+  12  CHARGE      OT-115       -               0.000688        -       18
+  13  JUMP        OT-889       -               0.003511        -        -
+  14  CHARGE      OT-889       -               0.000688        -       42
+  15  JUMP        XG-430       -               0.007796        -        -
+  16  CHARGE      XG-430       -               0.000688        -       62
+  17  JUMP        XG-452       -               0.011634        -        -
+  18  APPROACH    XG-452       XG-452c         0.198963     1739        -
+  19  LANDING     XG-452       XG-452c         0.125916       24        -
+
+  >> XG-452 APPROACH segment(s):
+     XG-452c  damage=0.198963%  stlFuel=1739
+  >> Mission totals: stlFuel=1938  ftlFuel=464   (slider indicator)
+
+missionId: f9960772-1ce0-4ecb-ab94-28beb61a5b07
+  idx  type        destSystem   destPlanet   damage%     stlFuel  ftlFuel
+  ------------------------------------------------------------------------
+  0   DEPARTURE   VH-331       -               0.005976       19       50
+  1   JUMP        VH-778       -               0.009293        -        -
+  2   CHARGE      VH-778       -               0.000688        -       69
+  3   JUMP        OZ-189       -               0.012913        -        -
+  4   CHARGE      OZ-189       -               0.000688        -       42
+  5   JUMP        LB-599       -               0.007815        -        -
+  6   CHARGE      LB-599       -               0.000688        -       55
+  7   JUMP        LB-428       -               0.010210        -        -
+  8   CHARGE      LB-428       -               0.000688        -       43
+  9   JUMP        OT-442       -               0.008143        -        -
+  10  CHARGE      OT-442       -               0.000688        -       83
+  11  JUMP        OT-115       -               0.015454        -        -
+  12  CHARGE      OT-115       -               0.000688        -       18
+  13  JUMP        OT-889       -               0.003511        -        -
+  14  CHARGE      OT-889       -               0.000688        -       42
+  15  JUMP        XG-430       -               0.007796        -        -
+  16  CHARGE      XG-430       -               0.000688        -       62
+  17  JUMP        XG-452       -               0.011634        -        -
+  18  APPROACH    XG-452       XG-452c         0.224784       23        -
+  19  LANDING     XG-452       XG-452c         0.125916       24        -
+
+  >> XG-452 APPROACH segment(s):
+     XG-452c  damage=0.224784%  stlFuel=23
+  >> Mission totals: stlFuel=66  ftlFuel=464   (slider indicator)
+
+missionId: f9960772-1ce0-4ecb-ab94-28beb61a5b07
+  idx  type        destSystem   destPlanet   damage%     stlFuel  ftlFuel
+  ------------------------------------------------------------------------
+  0   DEPARTURE   VH-331       -               0.005976      175       50
+  1   JUMP        VH-778       -               0.009293        -        -
+  2   CHARGE      VH-778       -               0.000688        -       69
+  3   JUMP        OZ-189       -               0.012913        -        -
+  4   CHARGE      OZ-189       -               0.000688        -       42
+  5   JUMP        LB-599       -               0.007815        -        -
+  6   CHARGE      LB-599       -               0.000688        -       55
+  7   JUMP        LB-428       -               0.010210        -        -
+  8   CHARGE      LB-428       -               0.000688        -       43
+  9   JUMP        OT-442       -               0.008143        -        -
+  10  CHARGE      OT-442       -               0.000688        -       83
+  11  JUMP        OT-115       -               0.015454        -        -
+  12  CHARGE      OT-115       -               0.000688        -       18
+  13  JUMP        OT-889       -               0.003511        -        -
+  14  CHARGE      OT-889       -               0.000688        -       42
+  15  JUMP        XG-430       -               0.007796        -        -
+  16  CHARGE      XG-430       -               0.000688        -       62
+  17  JUMP        XG-452       -               0.011634        -        -
+  18  APPROACH    XG-452       XG-452c         0.198964     1739        -
+  19  LANDING     XG-452       XG-452c         0.125916       24        -
+
+  >> XG-452 APPROACH segment(s):
+     XG-452c  damage=0.198964%  stlFuel=1739
+  >> Mission totals: stlFuel=1938  ftlFuel=464   (slider indicator)
+
+################################################################
+FILE: RAD DMG 6-7-26 RAD XG planets.jsonl  (16 XG-452 mission(s))
+################################################################
+
+missionId: 2b8c6333-ca80-4547-9b16-9641858ed2d1
+  idx  type        destSystem   destPlanet   damage%     stlFuel  ftlFuel
+  ------------------------------------------------------------------------
+  0   DEPARTURE   VH-331       -               0.005993       87       50
+  1   JUMP        VH-778       -               0.009293        -        -
+  2   CHARGE      VH-778       -               0.000688        -       69
+  3   JUMP        OZ-189       -               0.012913        -        -
+  4   CHARGE      OZ-189       -               0.000688        -       42
+  5   JUMP        LB-599       -               0.007815        -        -
+  6   CHARGE      LB-599       -               0.000688        -       55
+  7   JUMP        LB-428       -               0.010210        -        -
+  8   CHARGE      LB-428       -               0.000688        -       43
+  9   JUMP        OT-442       -               0.008143        -        -
+  10  CHARGE      OT-442       -               0.000688        -       83
+  11  JUMP        OT-115       -               0.015454        -        -
+  12  CHARGE      OT-115       -               0.000688        -       18
+  13  JUMP        OT-889       -               0.003511        -        -
+  14  CHARGE      OT-889       -               0.000688        -       42
+  15  JUMP        XG-430       -               0.007796        -        -
+  16  CHARGE      XG-430       -               0.000688        -       62
+  17  JUMP        XG-452       -               0.011634        -        -
+  18  APPROACH    XG-452       XG-452a         1.672992       96        -
+  19  LANDING     XG-452       XG-452a         0.274288       19        -
+
+  >> XG-452 APPROACH segment(s):
+     XG-452a  damage=1.672992%  stlFuel=96
+  >> Mission totals: stlFuel=202  ftlFuel=464   (slider indicator)
+
+missionId: 2b8c6333-ca80-4547-9b16-9641858ed2d1
+  idx  type        destSystem   destPlanet   damage%     stlFuel  ftlFuel
+  ------------------------------------------------------------------------
+  0   DEPARTURE   VH-331       -               0.005993       87       50
+  1   JUMP        VH-778       -               0.009293        -        -
+  2   CHARGE      VH-778       -               0.000688        -       69
+  3   JUMP        OZ-189       -               0.012913        -        -
+  4   CHARGE      OZ-189       -               0.000688        -       42
+  5   JUMP        LB-599       -               0.007815        -        -
+  6   CHARGE      LB-599       -               0.000688        -       55
+  7   JUMP        LB-428       -               0.010210        -        -
+  8   CHARGE      LB-428       -               0.000688        -       43
+  9   JUMP        OT-442       -               0.008143        -        -
+  10  CHARGE      OT-442       -               0.000688        -       83
+  11  JUMP        OT-115       -               0.015454        -        -
+  12  CHARGE      OT-115       -               0.000688        -       18
+  13  JUMP        OT-889       -               0.003511        -        -
+  14  CHARGE      OT-889       -               0.000688        -       42
+  15  JUMP        XG-430       -               0.007796        -        -
+  16  CHARGE      XG-430       -               0.000688        -       62
+  17  JUMP        XG-452       -               0.011634        -        -
+  18  APPROACH    XG-452       XG-452a         1.672992       96        -
+  19  LANDING     XG-452       XG-452a         0.274288       19        -
+
+  >> XG-452 APPROACH segment(s):
+     XG-452a  damage=1.672992%  stlFuel=96
+  >> Mission totals: stlFuel=202  ftlFuel=464   (slider indicator)
+
+missionId: 2b8c6333-ca80-4547-9b16-9641858ed2d1
+  idx  type        destSystem   destPlanet   damage%     stlFuel  ftlFuel
+  ------------------------------------------------------------------------
+  0   DEPARTURE   VH-331       -               0.005993       19       50
+  1   JUMP        VH-778       -               0.009293        -        -
+  2   CHARGE      VH-778       -               0.000688        -       69
+  3   JUMP        OZ-189       -               0.012913        -        -
+  4   CHARGE      OZ-189       -               0.000688        -       42
+  5   JUMP        LB-599       -               0.007815        -        -
+  6   CHARGE      LB-599       -               0.000688        -       55
+  7   JUMP        LB-428       -               0.010210        -        -
+  8   CHARGE      LB-428       -               0.000688        -       43
+  9   JUMP        OT-442       -               0.008143        -        -
+  10  CHARGE      OT-442       -               0.000688        -       83
+  11  JUMP        OT-115       -               0.015454        -        -
+  12  CHARGE      OT-115       -               0.000688        -       18
+  13  JUMP        OT-889       -               0.003511        -        -
+  14  CHARGE      OT-889       -               0.000688        -       42
+  15  JUMP        XG-430       -               0.007796        -        -
+  16  CHARGE      XG-430       -               0.000688        -       62
+  17  JUMP        XG-452       -               0.011634        -        -
+  18  APPROACH    XG-452       XG-452a         1.576525       27        -
+  19  LANDING     XG-452       XG-452a         0.274288       19        -
+
+  >> XG-452 APPROACH segment(s):
+     XG-452a  damage=1.576525%  stlFuel=27
+  >> Mission totals: stlFuel=65  ftlFuel=464   (slider indicator)
+
+missionId: 2b8c6333-ca80-4547-9b16-9641858ed2d1
+  idx  type        destSystem   destPlanet   damage%     stlFuel  ftlFuel
+  ------------------------------------------------------------------------
+  0   DEPARTURE   VH-331       -               0.005993      174       50
+  1   JUMP        VH-778       -               0.009293        -        -
+  2   CHARGE      VH-778       -               0.000688        -       69
+  3   JUMP        OZ-189       -               0.012913        -        -
+  4   CHARGE      OZ-189       -               0.000688        -       42
+  5   JUMP        LB-599       -               0.007815        -        -
+  6   CHARGE      LB-599       -               0.000688        -       55
+  7   JUMP        LB-428       -               0.010210        -        -
+  8   CHARGE      LB-428       -               0.000688        -       43
+  9   JUMP        OT-442       -               0.008143        -        -
+  10  CHARGE      OT-442       -               0.000688        -       83
+  11  JUMP        OT-115       -               0.015454        -        -
+  12  CHARGE      OT-115       -               0.000688        -       18
+  13  JUMP        OT-889       -               0.003511        -        -
+  14  CHARGE      OT-889       -               0.000688        -       42
+  15  JUMP        XG-430       -               0.007796        -        -
+  16  CHARGE      XG-430       -               0.000688        -       62
+  17  JUMP        XG-452       -               0.011634        -        -
+  18  APPROACH    XG-452       XG-452a         1.693893     1742        -
+  19  LANDING     XG-452       XG-452a         0.274288       19        -
+
+  >> XG-452 APPROACH segment(s):
+     XG-452a  damage=1.693893%  stlFuel=1742
+  >> Mission totals: stlFuel=1935  ftlFuel=464   (slider indicator)
+
+missionId: 2b8c6333-ca80-4547-9b16-9641858ed2d1
+  idx  type        destSystem   destPlanet   damage%     stlFuel  ftlFuel
+  ------------------------------------------------------------------------
+  0   DEPARTURE   VH-331       -               0.005993      174       50
+  1   JUMP        VH-778       -               0.009293        -        -
+  2   CHARGE      VH-778       -               0.000688        -       69
+  3   JUMP        OZ-189       -               0.012913        -        -
+  4   CHARGE      OZ-189       -               0.000688        -       42
+  5   JUMP        LB-599       -               0.007815        -        -
+  6   CHARGE      LB-599       -               0.000688        -       55
+  7   JUMP        LB-428       -               0.010210        -        -
+  8   CHARGE      LB-428       -               0.000688        -       43
+  9   JUMP        OT-442       -               0.008143        -        -
+  10  CHARGE      OT-442       -               0.000688        -       83
+  11  JUMP        OT-115       -               0.015454        -        -
+  12  CHARGE      OT-115       -               0.000688        -       18
+  13  JUMP        OT-889       -               0.003511        -        -
+  14  CHARGE      OT-889       -               0.000688        -       42
+  15  JUMP        XG-430       -               0.007796        -        -
+  16  CHARGE      XG-430       -               0.000688        -       62
+  17  JUMP        XG-452       -               0.011634        -        -
+  18  APPROACH    XG-452       XG-452c         0.261786     1738        -
+  19  LANDING     XG-452       XG-452c         0.133304       25        -
+
+  >> XG-452 APPROACH segment(s):
+     XG-452c  damage=0.261786%  stlFuel=1738
+  >> Mission totals: stlFuel=1937  ftlFuel=464   (slider indicator)
+
+missionId: 2b8c6333-ca80-4547-9b16-9641858ed2d1
+  idx  type        destSystem   destPlanet   damage%     stlFuel  ftlFuel
+  ------------------------------------------------------------------------
+  0   DEPARTURE   VH-331       -               0.005993      174       50
+  1   JUMP        VH-778       -               0.009293        -        -
+  2   CHARGE      VH-778       -               0.000688        -       69
+  3   JUMP        OZ-189       -               0.012913        -        -
+  4   CHARGE      OZ-189       -               0.000688        -       42
+  5   JUMP        LB-599       -               0.007815        -        -
+  6   CHARGE      LB-599       -               0.000688        -       55
+  7   JUMP        LB-428       -               0.010210        -        -
+  8   CHARGE      LB-428       -               0.000688        -       43
+  9   JUMP        OT-442       -               0.008143        -        -
+  10  CHARGE      OT-442       -               0.000688        -       83
+  11  JUMP        OT-115       -               0.015454        -        -
+  12  CHARGE      OT-115       -               0.000688        -       18
+  13  JUMP        OT-889       -               0.003511        -        -
+  14  CHARGE      OT-889       -               0.000688        -       42
+  15  JUMP        XG-430       -               0.007796        -        -
+  16  CHARGE      XG-430       -               0.000688        -       62
+  17  JUMP        XG-452       -               0.011634        -        -
+  18  APPROACH    XG-452       XG-452c         0.261786     1738        -
+  19  LANDING     XG-452       XG-452c         0.133304       25        -
+
+  >> XG-452 APPROACH segment(s):
+     XG-452c  damage=0.261786%  stlFuel=1738
+  >> Mission totals: stlFuel=1937  ftlFuel=464   (slider indicator)
+
+missionId: 2b8c6333-ca80-4547-9b16-9641858ed2d1
+  idx  type        destSystem   destPlanet   damage%     stlFuel  ftlFuel
+  ------------------------------------------------------------------------
+  0   DEPARTURE   VH-331       -               0.005993       19       50
+  1   JUMP        VH-778       -               0.009293        -        -
+  2   CHARGE      VH-778       -               0.000688        -       69
+  3   JUMP        OZ-189       -               0.012913        -        -
+  4   CHARGE      OZ-189       -               0.000688        -       42
+  5   JUMP        LB-599       -               0.007815        -        -
+  6   CHARGE      LB-599       -               0.000688        -       55
+  7   JUMP        LB-428       -               0.010210        -        -
+  8   CHARGE      LB-428       -               0.000688        -       43
+  9   JUMP        OT-442       -               0.008143        -        -
+  10  CHARGE      OT-442       -               0.000688        -       83
+  11  JUMP        OT-115       -               0.015454        -        -
+  12  CHARGE      OT-115       -               0.000688        -       18
+  13  JUMP        OT-889       -               0.003511        -        -
+  14  CHARGE      OT-889       -               0.000688        -       42
+  15  JUMP        XG-430       -               0.007796        -        -
+  16  CHARGE      XG-430       -               0.000688        -       62
+  17  JUMP        XG-452       -               0.011634        -        -
+  18  APPROACH    XG-452       XG-452c         0.295592       23        -
+  19  LANDING     XG-452       XG-452c         0.133304       25        -
+
+  >> XG-452 APPROACH segment(s):
+     XG-452c  damage=0.295592%  stlFuel=23
+  >> Mission totals: stlFuel=67  ftlFuel=464   (slider indicator)
+
+missionId: 2b8c6333-ca80-4547-9b16-9641858ed2d1
+  idx  type        destSystem   destPlanet   damage%     stlFuel  ftlFuel
+  ------------------------------------------------------------------------
+  0   DEPARTURE   VH-331       -               0.005993      174       50
+  1   JUMP        VH-778       -               0.009293        -        -
+  2   CHARGE      VH-778       -               0.000688        -       69
+  3   JUMP        OZ-189       -               0.012913        -        -
+  4   CHARGE      OZ-189       -               0.000688        -       42
+  5   JUMP        LB-599       -               0.007815        -        -
+  6   CHARGE      LB-599       -               0.000688        -       55
+  7   JUMP        LB-428       -               0.010210        -        -
+  8   CHARGE      LB-428       -               0.000688        -       43
+  9   JUMP        OT-442       -               0.008143        -        -
+  10  CHARGE      OT-442       -               0.000688        -       83
+  11  JUMP        OT-115       -               0.015454        -        -
+  12  CHARGE      OT-115       -               0.000688        -       18
+  13  JUMP        OT-889       -               0.003511        -        -
+  14  CHARGE      OT-889       -               0.000688        -       42
+  15  JUMP        XG-430       -               0.007796        -        -
+  16  CHARGE      XG-430       -               0.000688        -       62
+  17  JUMP        XG-452       -               0.011634        -        -
+  18  APPROACH    XG-452       XG-452c         0.261784     1738        -
+  19  LANDING     XG-452       XG-452c         0.133304       25        -
+
+  >> XG-452 APPROACH segment(s):
+     XG-452c  damage=0.261784%  stlFuel=1738
+  >> Mission totals: stlFuel=1937  ftlFuel=464   (slider indicator)
+
+missionId: 1f8d2df6-cd83-4c48-8f85-01d2076964be
+  idx  type        destSystem   destPlanet   damage%     stlFuel  ftlFuel
+  ------------------------------------------------------------------------
+  0   DEPARTURE   VH-331       -               0.005976       87       50
+  1   JUMP        VH-778       -               0.009293        -        -
+  2   CHARGE      VH-778       -               0.000688        -       69
+  3   JUMP        OZ-189       -               0.012913        -        -
+  4   CHARGE      OZ-189       -               0.000688        -       42
+  5   JUMP        LB-599       -               0.007815        -        -
+  6   CHARGE      LB-599       -               0.000688        -       55
+  7   JUMP        LB-428       -               0.010210        -        -
+  8   CHARGE      LB-428       -               0.000688        -       43
+  9   JUMP        OT-442       -               0.008143        -        -
+  10  CHARGE      OT-442       -               0.000688        -       83
+  11  JUMP        OT-115       -               0.015454        -        -
+  12  CHARGE      OT-115       -               0.000688        -       18
+  13  JUMP        OT-889       -               0.003511        -        -
+  14  CHARGE      OT-889       -               0.000688        -       42
+  15  JUMP        XG-430       -               0.007796        -        -
+  16  CHARGE      XG-430       -               0.000688        -       62
+  17  JUMP        XG-452       -               0.011634        -        -
+  18  APPROACH    XG-452       XG-452a         0.616980       96        -
+  19  LANDING     XG-452       XG-452a         0.252181       18        -
+
+  >> XG-452 APPROACH segment(s):
+     XG-452a  damage=0.616980%  stlFuel=96
+  >> Mission totals: stlFuel=201  ftlFuel=464   (slider indicator)
+
+missionId: 1f8d2df6-cd83-4c48-8f85-01d2076964be
+  idx  type        destSystem   destPlanet   damage%     stlFuel  ftlFuel
+  ------------------------------------------------------------------------
+  0   DEPARTURE   VH-331       -               0.005976       87       50
+  1   JUMP        VH-778       -               0.009293        -        -
+  2   CHARGE      VH-778       -               0.000688        -       69
+  3   JUMP        OZ-189       -               0.012913        -        -
+  4   CHARGE      OZ-189       -               0.000688        -       42
+  5   JUMP        LB-599       -               0.007815        -        -
+  6   CHARGE      LB-599       -               0.000688        -       55
+  7   JUMP        LB-428       -               0.010210        -        -
+  8   CHARGE      LB-428       -               0.000688        -       43
+  9   JUMP        OT-442       -               0.008143        -        -
+  10  CHARGE      OT-442       -               0.000688        -       83
+  11  JUMP        OT-115       -               0.015454        -        -
+  12  CHARGE      OT-115       -               0.000688        -       18
+  13  JUMP        OT-889       -               0.003511        -        -
+  14  CHARGE      OT-889       -               0.000688        -       42
+  15  JUMP        XG-430       -               0.007796        -        -
+  16  CHARGE      XG-430       -               0.000688        -       62
+  17  JUMP        XG-452       -               0.011634        -        -
+  18  APPROACH    XG-452       XG-452a         0.616980       96        -
+  19  LANDING     XG-452       XG-452a         0.252181       18        -
+
+  >> XG-452 APPROACH segment(s):
+     XG-452a  damage=0.616980%  stlFuel=96
+  >> Mission totals: stlFuel=201  ftlFuel=464   (slider indicator)
+
+missionId: 1f8d2df6-cd83-4c48-8f85-01d2076964be
+  idx  type        destSystem   destPlanet   damage%     stlFuel  ftlFuel
+  ------------------------------------------------------------------------
+  0   DEPARTURE   VH-331       -               0.005976       19       50
+  1   JUMP        VH-778       -               0.009293        -        -
+  2   CHARGE      VH-778       -               0.000688        -       69
+  3   JUMP        OZ-189       -               0.012913        -        -
+  4   CHARGE      OZ-189       -               0.000688        -       42
+  5   JUMP        LB-599       -               0.007815        -        -
+  6   CHARGE      LB-599       -               0.000688        -       55
+  7   JUMP        LB-428       -               0.010210        -        -
+  8   CHARGE      LB-428       -               0.000688        -       43
+  9   JUMP        OT-442       -               0.008143        -        -
+  10  CHARGE      OT-442       -               0.000688        -       83
+  11  JUMP        OT-115       -               0.015454        -        -
+  12  CHARGE      OT-115       -               0.000688        -       18
+  13  JUMP        OT-889       -               0.003511        -        -
+  14  CHARGE      OT-889       -               0.000688        -       42
+  15  JUMP        XG-430       -               0.007796        -        -
+  16  CHARGE      XG-430       -               0.000688        -       62
+  17  JUMP        XG-452       -               0.011634        -        -
+  18  APPROACH    XG-452       XG-452a         0.581766       27        -
+  19  LANDING     XG-452       XG-452a         0.252181       18        -
+
+  >> XG-452 APPROACH segment(s):
+     XG-452a  damage=0.581766%  stlFuel=27
+  >> Mission totals: stlFuel=64  ftlFuel=464   (slider indicator)
+
+missionId: 1f8d2df6-cd83-4c48-8f85-01d2076964be
+  idx  type        destSystem   destPlanet   damage%     stlFuel  ftlFuel
+  ------------------------------------------------------------------------
+  0   DEPARTURE   VH-331       -               0.005976      175       50
+  1   JUMP        VH-778       -               0.009293        -        -
+  2   CHARGE      VH-778       -               0.000688        -       69
+  3   JUMP        OZ-189       -               0.012913        -        -
+  4   CHARGE      OZ-189       -               0.000688        -       42
+  5   JUMP        LB-599       -               0.007815        -        -
+  6   CHARGE      LB-599       -               0.000688        -       55
+  7   JUMP        LB-428       -               0.010210        -        -
+  8   CHARGE      LB-428       -               0.000688        -       43
+  9   JUMP        OT-442       -               0.008143        -        -
+  10  CHARGE      OT-442       -               0.000688        -       83
+  11  JUMP        OT-115       -               0.015454        -        -
+  12  CHARGE      OT-115       -               0.000688        -       18
+  13  JUMP        OT-889       -               0.003511        -        -
+  14  CHARGE      OT-889       -               0.000688        -       42
+  15  JUMP        XG-430       -               0.007796        -        -
+  16  CHARGE      XG-430       -               0.000688        -       62
+  17  JUMP        XG-452       -               0.011634        -        -
+  18  APPROACH    XG-452       XG-452a         0.624657     1743        -
+  19  LANDING     XG-452       XG-452a         0.252181       18        -
+
+  >> XG-452 APPROACH segment(s):
+     XG-452a  damage=0.624657%  stlFuel=1743
+  >> Mission totals: stlFuel=1936  ftlFuel=464   (slider indicator)
+
+missionId: 1f8d2df6-cd83-4c48-8f85-01d2076964be
+  idx  type        destSystem   destPlanet   damage%     stlFuel  ftlFuel
+  ------------------------------------------------------------------------
+  0   DEPARTURE   VH-331       -               0.005976      175       50
+  1   JUMP        VH-778       -               0.009293        -        -
+  2   CHARGE      VH-778       -               0.000688        -       69
+  3   JUMP        OZ-189       -               0.012913        -        -
+  4   CHARGE      OZ-189       -               0.000688        -       42
+  5   JUMP        LB-599       -               0.007815        -        -
+  6   CHARGE      LB-599       -               0.000688        -       55
+  7   JUMP        LB-428       -               0.010210        -        -
+  8   CHARGE      LB-428       -               0.000688        -       43
+  9   JUMP        OT-442       -               0.008143        -        -
+  10  CHARGE      OT-442       -               0.000688        -       83
+  11  JUMP        OT-115       -               0.015454        -        -
+  12  CHARGE      OT-115       -               0.000688        -       18
+  13  JUMP        OT-889       -               0.003511        -        -
+  14  CHARGE      OT-889       -               0.000688        -       42
+  15  JUMP        XG-430       -               0.007796        -        -
+  16  CHARGE      XG-430       -               0.000688        -       62
+  17  JUMP        XG-452       -               0.011634        -        -
+  18  APPROACH    XG-452       XG-452c         0.198915     1739        -
+  19  LANDING     XG-452       XG-452c         0.122529       23        -
+
+  >> XG-452 APPROACH segment(s):
+     XG-452c  damage=0.198915%  stlFuel=1739
+  >> Mission totals: stlFuel=1937  ftlFuel=464   (slider indicator)
+
+missionId: 1f8d2df6-cd83-4c48-8f85-01d2076964be
+  idx  type        destSystem   destPlanet   damage%     stlFuel  ftlFuel
+  ------------------------------------------------------------------------
+  0   DEPARTURE   VH-331       -               0.005976      175       50
+  1   JUMP        VH-778       -               0.009293        -        -
+  2   CHARGE      VH-778       -               0.000688        -       69
+  3   JUMP        OZ-189       -               0.012913        -        -
+  4   CHARGE      OZ-189       -               0.000688        -       42
+  5   JUMP        LB-599       -               0.007815        -        -
+  6   CHARGE      LB-599       -               0.000688        -       55
+  7   JUMP        LB-428       -               0.010210        -        -
+  8   CHARGE      LB-428       -               0.000688        -       43
+  9   JUMP        OT-442       -               0.008143        -        -
+  10  CHARGE      OT-442       -               0.000688        -       83
+  11  JUMP        OT-115       -               0.015454        -        -
+  12  CHARGE      OT-115       -               0.000688        -       18
+  13  JUMP        OT-889       -               0.003511        -        -
+  14  CHARGE      OT-889       -               0.000688        -       42
+  15  JUMP        XG-430       -               0.007796        -        -
+  16  CHARGE      XG-430       -               0.000688        -       62
+  17  JUMP        XG-452       -               0.011634        -        -
+  18  APPROACH    XG-452       XG-452c         0.198915     1739        -
+  19  LANDING     XG-452       XG-452c         0.122529       23        -
+
+  >> XG-452 APPROACH segment(s):
+     XG-452c  damage=0.198915%  stlFuel=1739
+  >> Mission totals: stlFuel=1937  ftlFuel=464   (slider indicator)
+
+missionId: 1f8d2df6-cd83-4c48-8f85-01d2076964be
+  idx  type        destSystem   destPlanet   damage%     stlFuel  ftlFuel
+  ------------------------------------------------------------------------
+  0   DEPARTURE   VH-331       -               0.005976       19       50
+  1   JUMP        VH-778       -               0.009293        -        -
+  2   CHARGE      VH-778       -               0.000688        -       69
+  3   JUMP        OZ-189       -               0.012913        -        -
+  4   CHARGE      OZ-189       -               0.000688        -       42
+  5   JUMP        LB-599       -               0.007815        -        -
+  6   CHARGE      LB-599       -               0.000688        -       55
+  7   JUMP        LB-428       -               0.010210        -        -
+  8   CHARGE      LB-428       -               0.000688        -       43
+  9   JUMP        OT-442       -               0.008143        -        -
+  10  CHARGE      OT-442       -               0.000688        -       83
+  11  JUMP        OT-115       -               0.015454        -        -
+  12  CHARGE      OT-115       -               0.000688        -       18
+  13  JUMP        OT-889       -               0.003511        -        -
+  14  CHARGE      OT-889       -               0.000688        -       42
+  15  JUMP        XG-430       -               0.007796        -        -
+  16  CHARGE      XG-430       -               0.000688        -       62
+  17  JUMP        XG-452       -               0.011634        -        -
+  18  APPROACH    XG-452       XG-452c         0.224779       23        -
+  19  LANDING     XG-452       XG-452c         0.122529       23        -
+
+  >> XG-452 APPROACH segment(s):
+     XG-452c  damage=0.224779%  stlFuel=23
+  >> Mission totals: stlFuel=65  ftlFuel=464   (slider indicator)
+
+missionId: 1f8d2df6-cd83-4c48-8f85-01d2076964be
+  idx  type        destSystem   destPlanet   damage%     stlFuel  ftlFuel
+  ------------------------------------------------------------------------
+  0   DEPARTURE   VH-331       -               0.005976      175       50
+  1   JUMP        VH-778       -               0.009293        -        -
+  2   CHARGE      VH-778       -               0.000688        -       69
+  3   JUMP        OZ-189       -               0.012913        -        -
+  4   CHARGE      OZ-189       -               0.000688        -       42
+  5   JUMP        LB-599       -               0.007815        -        -
+  6   CHARGE      LB-599       -               0.000688        -       55
+  7   JUMP        LB-428       -               0.010210        -        -
+  8   CHARGE      LB-428       -               0.000688        -       43
+  9   JUMP        OT-442       -               0.008143        -        -
+  10  CHARGE      OT-442       -               0.000688        -       83
+  11  JUMP        OT-115       -               0.015454        -        -
+  12  CHARGE      OT-115       -               0.000688        -       18
+  13  JUMP        OT-889       -               0.003511        -        -
+  14  CHARGE      OT-889       -               0.000688        -       42
+  15  JUMP        XG-430       -               0.007796        -        -
+  16  CHARGE      XG-430       -               0.000688        -       62
+  17  JUMP        XG-452       -               0.011634        -        -
+  18  APPROACH    XG-452       XG-452c         0.198915     1739        -
+  19  LANDING     XG-452       XG-452c         0.122529       23        -
+
+  >> XG-452 APPROACH segment(s):
+     XG-452c  damage=0.198915%  stlFuel=1739
+  >> Mission totals: stlFuel=1937  ftlFuel=464   (slider indicator)
+
+================================================================
+TOTAL XG-452 missions reported: 24

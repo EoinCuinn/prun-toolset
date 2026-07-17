@@ -1,0 +1,47 @@
+PrUn SYSTEM STAR-CLASS JOIN — route_structure.txt × all_stars.json
+Generated: 2026-07-07T08:54:35.108Z
+isSignal = true when StarType is O or B class
+====================================================================================================
+
+PER-PLANET TABLE
+----------------------------------------------------------------------------------------------------
+planet     system   StarType        Luminosity  role                  isSignal
+AM-528a    AM-528   O              1669.648071  destination           TRUE
+CG-021a    CG-021   B               142.903679  destination           TRUE
+CG-021b    CG-021   B               142.903679  destination           TRUE
+CG-021c    CG-021   B               142.903679  destination           TRUE
+CG-021d    CG-021   B               142.903679  destination           TRUE
+EL-768d    EL-768   B               149.352620  destination           TRUE
+EY-430a    EY-430   A                24.475566  destination           false
+IA-158b    IA-158   M                 0.001937  waypoint              false
+JS-299a    JS-299   G                 1.018511  destination           false
+LS-231a    LS-231   B               157.106761  destination           TRUE
+LS-231c    LS-231   B               157.106761  destination           TRUE
+NH-555a    NH-555   B               148.712008  destination           TRUE
+NH-555c    NH-555   B               148.712008  destination           TRUE
+UB-557a    UB-557   F                 4.466668  destination           false
+VH-192a    VH-192   A                25.010159  destination           false
+XG-452a    XG-452   O              1681.887792  destination           TRUE
+XG-452c    XG-452   O              1681.887792  destination           TRUE
+
+UNIQUE SYSTEMS (11)
+----------------------------------------------------------------------------------------------------
+system   StarType        Luminosity  isSignal
+AM-528   O              1669.648071  TRUE
+CG-021   B               142.903679  TRUE
+EL-768   B               149.352620  TRUE
+EY-430   A                24.475566  false
+IA-158   M                 0.001937  false
+JS-299   G                 1.018511  false
+LS-231   B               157.106761  TRUE
+NH-555   B               148.712008  TRUE
+UB-557   F                 4.466668  false
+VH-192   A                25.010159  false
+XG-452   O              1681.887792  TRUE
+
+SUMMARY
+----------------------------------------------------------------------------------------------------
+Planets: 17   |   Unique systems: 11
+Signal (O/B) planets: 12  -> AM-528a(AM-528/O), CG-021a(CG-021/B), CG-021b(CG-021/B), CG-021c(CG-021/B), CG-021d(CG-021/B), EL-768d(EL-768/B), LS-231a(LS-231/B), LS-231c(LS-231/B), NH-555a(NH-555/B), NH-555c(NH-555/B), XG-452a(XG-452/O), XG-452c(XG-452/O)
+Systems not found in all_stars.json: 0
+Roles: destination=16, waypoint=1

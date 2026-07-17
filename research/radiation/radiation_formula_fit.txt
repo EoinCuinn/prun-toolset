@@ -1,0 +1,68 @@
+RADIATION FORMULA FIT — 2026-07-06
+====================================
+
+Data points: 4  (matched planets + CG-021, flagged excluded)
+
+Planet       AU       Lum        rad_dmg%   predicted%  residual%
+-----------------------------------------------------------------
+XG-452a       1.7946   1681.888    1.37078    0.61904    0.75174
+XG-452c       6.4564   1681.888    0.04491    0.05067   -0.00576
+CG-021a       1.0112    142.904    0.12686    0.16143   -0.03457
+CG-021b       1.7282    142.904    0.03671    0.05662   -0.01991
+
+Fitted formula:
+  radiation_damage = k × luminosity × AU^n
+  k = 1.1545e-5
+  n = -1.9548
+
+R² (log space): 0.88834
+Max residual: 0.75174%
+Mean absolute residual: 0.20300%
+
+Non-radiation APPROACH floor (should be ~constant):
+  Mean: 0.14119%
+  Std dev: 0.06093%
+  Min: 0.08029%  Max: 0.20575%
+
+Comparison to previous 3-point fit (CG-021 only):
+  Previous: k=8.416e-6, n=-1.963
+  New:      k=1.1545e-5, n=-1.9548
+
+Flagged/excluded rows (radiation below measurement resolution or negative):
+  VH-192a: rad%=0.00015 (SMALL)
+  UB-557a: rad%=0.00015 (SMALL)
+  UB-557c: rad%=0.00001 (SMALL)
+  LS-231a: rad%=0.00005 (SMALL)
+  LS-231c: rad%=0.00006 (SMALL)
+  EY-430a: rad%=-0.00014 (NEGATIVE)
+  EY-430b: rad%=0.00003 (SMALL)
+  CG-021d: rad%=0.00514 (SMALL)
+
+====================================================================
+ANOMALY ANALYSIS — the k*lum*AU^n model does NOT hold cross-system
+====================================================================
+
+1. CROSS-SYSTEM LUMINOSITY SCALING FAILS.
+   Two Type-B stars of near-identical luminosity give opposite results:
+     CG-021a: starType=B lum=142.9 AU=1.011 -> rad=0.12686%
+     LS-231a: starType=B lum=157.1 AU=0.988 -> rad=0.00005%
+   Same luminosity, same AU (~1.0), radiation differs by ~2500x.
+   => luminosity is not the cross-system driver. Model is overfit.
+
+2. MEASURABLE RADIATION ONLY IN CG-021 AND XG-452.
+   All mid/low-lum systems (VH-192, UB-557, LS-231, EY-430) show
+   radiation below the game damage resolution (< 0.0002%), even LS-231
+   whose luminosity (157) exceeds CG-021 (143). 8 of 12 points flagged.
+
+3. WITHIN-SYSTEM FALLOFF EXPONENTS DISAGREE.
+   Fit each system that has >=2 measurable points independently:
+     XG-452 (type O, 2 pts): AU exponent n = -2.670
+     CG-021 (type B, 2 pts): AU exponent n = -2.313
+   A single universal n does not describe both systems.
+
+CONCLUSION: The fitted k/n above is mechanically what the brief asked for,
+but it is only constrained by 4 points from 2 systems and does not
+generalise. Before adopting a radiation formula, resolve why two nearly
+identical Type-B stars (CG-021 vs LS-231) disagree — likely a per-star or
+per-system radiation property not present in luminosity, or the older
+CG-021 "validated" numbers were captured under different conditions.

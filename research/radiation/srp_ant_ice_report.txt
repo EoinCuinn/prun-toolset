@@ -1,0 +1,224 @@
+==================================================================
+ SRP INVESTIGATION — ANT -> SE-110c (Ice Station Alpha)
+ Source: ant_ice.json  |  generated 2026-07-08T10:36:15.394Z
+==================================================================
+
+Number of captures in file: 2
+
+------------------------------------------------------------------
+CAPTURE 1  missionId=2ae5f730-5d1b-4d1c-b87a-8b7d9f827fbb
+  totals: stlDistance=99123354.84059183  ftlDistance=15.215242355172752  stlFuel=2281  ftlFuel=71
+  build-related keys found in payload: minReactorUsageFactor, maxReactorUsageFactor
+  full segment list:
+    [0] DEPARTURE  SYSTEM:ZV-307 / STATION:ANT  ->  SYSTEM:ZV-307 / ORBIT(a=0.193AU)
+         stlDistance=20402054.051146265  ftlDistance=null  damage=0.0005552190277793006
+    [1] JUMP       SYSTEM:ZV-307 / ORBIT(a=0.193AU)  ->  SYSTEM:ZV-639 / ORBIT(a=12.285AU)
+         stlDistance=null  ftlDistance=6.0458162941626865  damage=0.00006045816294162687
+    [2] CHARGE     SYSTEM:ZV-639 / ORBIT(a=12.285AU)  ->  SYSTEM:ZV-639 / ORBIT(a=12.285AU)
+         stlDistance=null  ftlDistance=null  damage=0.00017621527777777777
+    [3] JUMP       SYSTEM:ZV-639 / ORBIT(a=12.285AU)  ->  SYSTEM:SE-110 / ORBIT(a=0.697AU)
+         stlDistance=null  ftlDistance=9.169426061010066  damage=0.00009169426061010067
+    [4] APPROACH   SYSTEM:SE-110 / ORBIT(a=0.697AU)  ->  SYSTEM:SE-110 / PLANET:SE-110c / ORBIT(a=0.000AU)
+         stlDistance=78718514.40628703  ftlDistance=null  damage=0.0012335303022388592
+    [5] LANDING    SYSTEM:SE-110 / PLANET:SE-110c / ORBIT(a=0.000AU)  ->  SYSTEM:SE-110 / PLANET:SE-110c
+         stlDistance=2786.383158537454  ftlDistance=null  damage=0.0008548660766601562
+
+------------------------------------------------------------------
+CAPTURE 2  missionId=8582ec41-ff0c-41ef-aa28-47dbd09e6742
+  totals: stlDistance=99114236.95420225  ftlDistance=15.215242355172752  stlFuel=2279  ftlFuel=71
+  build-related keys found in payload: minReactorUsageFactor, maxReactorUsageFactor
+  full segment list:
+    [0] DEPARTURE  SYSTEM:ZV-307 / STATION:ANT  ->  SYSTEM:ZV-307 / ORBIT(a=0.193AU)
+         stlDistance=20400948.187535778  ftlDistance=null  damage=0.0005551595545239194
+    [1] JUMP       SYSTEM:ZV-307 / ORBIT(a=0.193AU)  ->  SYSTEM:ZV-639 / ORBIT(a=11.899AU)
+         stlDistance=null  ftlDistance=6.0458162941626865  damage=0.00006045816294162687
+    [2] CHARGE     SYSTEM:ZV-639 / ORBIT(a=11.899AU)  ->  SYSTEM:ZV-639 / ORBIT(a=11.899AU)
+         stlDistance=null  ftlDistance=null  damage=0.00017621527777777777
+    [3] JUMP       SYSTEM:ZV-639 / ORBIT(a=11.899AU)  ->  SYSTEM:SE-110 / ORBIT(a=0.696AU)
+         stlDistance=null  ftlDistance=9.169426061010066  damage=0.00009169426061010067
+    [4] APPROACH   SYSTEM:SE-110 / ORBIT(a=0.696AU)  ->  SYSTEM:SE-110 / PLANET:SE-110c / ORBIT(a=0.000AU)
+         stlDistance=78710891.66958696  ftlDistance=null  damage=0.0012334108414502633
+    [5] LANDING    SYSTEM:SE-110 / PLANET:SE-110c / ORBIT(a=0.000AU)  ->  SYSTEM:SE-110 / PLANET:SE-110c
+         stlDistance=2397.097079521805  ftlDistance=null  damage=0.0007940329101562499
+
+==================================================================
+ PART 2 — per-segment damage/Mkm  (ANOMALY: file has NO TRANSIT segments;
+          reporting all segments; STL legs = DEPARTURE / APPROACH / LANDING)
+==================================================================
+
+CAPTURE 1 (2ae5f730-5d1b-4d1c-b87a-8b7d9f827fbb)
+  idx type       distField        dist(Mkm)        damage              damage/Mkm
+  0   DEPARTURE  STL(km)        20.402054 0.0005552190277793006      2.721388e-5
+  1   JUMP       FTL(pc?)        6.045816 0.00006045816294162687         -
+  2   CHARGE               - 0.00017621527777777777         -
+  3   JUMP       FTL(pc?)        9.169426 0.00009169426061010067         -
+  4   APPROACH   STL(km)        78.718514 0.0012335303022388592      1.567014e-5
+  5   LANDING    STL(km)         0.002786 0.0008548660766601562      3.068013e-1
+
+CAPTURE 2 (8582ec41-ff0c-41ef-aa28-47dbd09e6742)
+  idx type       distField        dist(Mkm)        damage              damage/Mkm
+  0   DEPARTURE  STL(km)        20.400948 0.0005551595545239194      2.721244e-5
+  1   JUMP       FTL(pc?)        6.045816 0.00006045816294162687         -
+  2   CHARGE               - 0.00017621527777777777         -
+  3   JUMP       FTL(pc?)        9.169426 0.00009169426061010067         -
+  4   APPROACH   STL(km)        78.710892 0.0012334108414502633      1.567014e-5
+  5   LANDING    STL(km)         0.002397 0.0007940329101562499      3.312477e-1
+
+==================================================================
+ PART 3 — CAPTURE 1 vs CAPTURE 2, segment by segment (5 sig figs)
+==================================================================
+type       | dist/Mkm A  dist/Mkm B | dmg/Mkm A     dmg/Mkm B     | ratio B/A   | pct diff
+DEPARTURE  |     20.4021     20.4009 | 2.72139e-5 2.72124e-5 |   0.999947 | -0.0052916%
+JUMP       |           -           - |     -         -     |          - | -
+CHARGE     |           -           - |     -         -     |          - | -
+JUMP       |           -           - |     -         -     |          - | -
+APPROACH   |     78.7185     78.7109 | 1.56701e-5 1.56701e-5 |    1.00000 | -9.2603e-7%
+LANDING    |      0.0028      0.0024 | 3.06801e-1 3.31248e-1 |    1.07968 | 7.9681%
+
+Also compare RAW damage where distances are identical (JUMP/CHARGE):
+  JUMP     dmgA=0.00006045816294162687  dmgB=0.00006045816294162687  identical=true
+  CHARGE   dmgA=0.00017621527777777777  dmgB=0.00017621527777777777  identical=true
+  JUMP     dmgA=0.00009169426061010067  dmgB=0.00009169426061010067  identical=true
+
+==================================================================
+ PART 4 — PrUn Ship Repair Calc.xlsx
+==================================================================
+Sheet names: Ship Calc | Min Preset Trips data | Half Preset Trips data | Hull Reducer | Max Preset Trips data | RO - CALC Sheet
+
+
+####### SHEET: Ship Calc  (37 rows) #######
+  r1: Ship Design: │ Ship1 │ Ship2 │ Ship3 │  │ Material Cost │  │ Plate Cost │  │  │ Estimated Cost Per Trip │  │  │ Ship1 │ Ship2 │ Ship3
+  r2: Plate Type │ LHP │ AHP │ AHP │  │ BPT │ 6080 │ BHP │ 4606 │  │ Reduction(s) │ Plate │  │ LHP -10% │ AHP 30% │ AHP 30%
+  r3: Plate Count │ 63 │ 63 │ 63 │  │ BWH │ 8792 │ LHP │ 4989 │  │  │ Whipple │  │ ​  │ AWH 100% │ AWH 100%
+  r5: Heat │ ​ │ APT │ APT │  │ APT │ 18141 │ HHP │ 4900 │  │  │ Radiation  │  │ ​  │ ​  │ SRP 70%
+  r6: Radiation  │ ​ │ ​ │ SRP │  │ AWH │ 19526 │ AHP │ 14697 │  │  │ Drone │  │ ​  │ ​  │ ​ 
+  r7: Drone │ ​ │ ​ │ ​ │  │ ARP │ 10000 │ ​ │ ​ │  │ Pre-set Trip │ Ant -> Ice Station │  │  │  │ 
+  r8:  │  │  │  │  │ SRP │ 16474 │  │  │  │ Fuel Use │ Max │  │  │  │ 
+  r13:  │  │  │  │  │  │  │  │  │  │ Radiation │ 0.1503759398 │  │ 0.06914285714 │ 0.044 │ 0.0132
+  r23:  │  │  │  │  │  │  │  │  │  │ Ship3: │ AHP 6 AWH 7 APT 7 SRP 7  MFK 12 FLP 8 │  │  │  │ 
+  --- 9 matching row(s) above ---
+
+####### SHEET: Min Preset Trips data  (1019 rows) #######
+  r2:  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │ Apply a single type of shield (AWH, ATP, SRP) & insert trip dmg  │ 
+  r3: Pre-set Trip │ Base Trip Dmg │ Wear │ Meteor │ Heat │ Radiation │  │ Meteor │ Heat │ Radiation │  │ Pre-set Trip │ Base Trip Dmg │ Wear │ Meteor │ Heat │ Radiation │  │ Check │ Count │ Take-off previous shield and replace with another type & insert trip dmg │ 
+  r7: Ant -> Origo │ 0.418 │ 0.05357142857 │ 0.149 │ 0.414 │ 0.354 │  │ 0.269 │ 0.0040000000000000036 │ 0.09142857142857144 │  │ Ant -> Origo │ 0.418 │ 0.1281613124 │ 0.6435406699 │ 0.00956937799 │ 0.2187286398 │  │ 1 │ 4 │  │ 
+  r8: Ant -> Harm. │ 0.141 │ 0.027000000000000024 │ 0.096 │ 0.102 │ 0.12 │  │ 0.044999999999999984 │ 0.03899999999999999 │ 0.02999999999999999 │  │ Ant -> Harm. │ 0.141 │ 0.19148936170212785 │ 0.31914893617021267 │ 0.276595744680851 │ 0.21276595744680846 │  │ 1 │ 5 │  │ 
+  r9: Ant -> Ice Station │ 0.433 │ 0.023999999999999966 │ 0.294 │ 0.243 │ 0.377 │  │ 0.139 │ 0.19 │ 0.08 │  │ Ant -> Ice Station │ 0.433 │ 0.055427251732101536 │ 0.3210161662817552 │ 0.43879907621247116 │ 0.18475750577367206 │  │ 1 │ 6 │  │ 
+  r12: Ant -> Eos │ 0.102 │ 0.016428571428571445 │ 0.096 │ 0.101 │ 0.047 │  │ 0.0059999999999999915 │ 0.000999999999999987 │ 0.07857142857142857 │  │ Ant -> Eos │ 0.102 │ 0.1610644257703083 │ 0.05882352941176463 │ 0.009803921568627324 │ 0.7703081232492998 │  │ 1 │ 9 │  │ 
+  r13: Ant -> Hephaestus │ 0.236 │ 0.05728571428571427 │ 0.209 │ 0.21 │ 0.148 │  │ 0.026999999999999996 │ 0.025999999999999995 │ 0.12571428571428572 │  │ Ant -> Hephaestus │ 0.236 │ 0.24273607748184015 │ 0.11440677966101694 │ 0.11016949152542371 │ 0.5326876513317192 │  │ 1 │ 10 │  │ 
+  r14: Ant -> Deimos │ 0.081 │ 0.014285714285714277 │ 0.072 │ 0.049 │ 0.063 │  │ 0.009000000000000008 │ 0.032 │ 0.025714285714285717 │  │ Ant -> Deimos │ 0.081 │ 0.17636684303350958 │ 0.1111111111111112 │ 0.3950617283950617 │ 0.3174603174603175 │  │ 1 │ 11 │  │ 
+  r15: Ant -> Griffonstone │ 0.125 │ 0.03128571428571428 │ 0.073 │ 0.109 │ 0.107 │  │ 0.052000000000000005 │ 0.016 │ 0.025714285714285717 │  │ Ant -> Griffonstone │ 0.125 │ 0.2502857142857142 │ 0.41600000000000004 │ 0.128 │ 0.20571428571428574 │  │ 1 │ 12 │  │ 
+  r16: Ant -> Ben │ 0.106 │ 0.07171428571428572 │ 0.096 │ 0.106 │ 0.089 │  │ 0.009999999999999995 │ 0 │ 0.02428571428571429 │  │ Ant -> Ben │ 0.106 │ 0.6765498652291105 │ 0.09433962264150939 │ 0 │ 0.22911051212938008 │  │ 1 │ 13 │  │ 
+  r29: Mor -> Verdant │ 0.146 │ 0.06000000000000001 │ 0.093 │ 0.113 │ 0.146 │  │ 0.05299999999999999 │ 0.03299999999999999 │ 0 │  │ Mor -> Verdant │ 0.146 │ 0.41095890410958913 │ 0.36301369863013694 │ 0.2260273972602739 │ 0 │  │ 0.9999999999999999 │ 26 │  │ Preset trips were calculated in BLU using a HCB ship with minimal fuel use & under a full inventory load.
+  r35: Hrt -> Ant │ 0.095 │ 0.06871428571428571 │ 0.093 │ 0.095 │ 0.078 │  │ 0.0020000000000000018 │ 0 │ 0.02428571428571429 │  │ Hrt -> Ant │ 0.095 │ 0.7233082706766917 │ 0.021052631578947385 │ 0 │ 0.25563909774436094 │  │ 1 │ 32 │  │ 
+  r37: Hrt -> Phantasm │ 0.133 │ 0.03499999999999999 │ 0.06 │ 0.108 │ 0.133 │  │ 0.07300000000000001 │ 0.02500000000000001 │ 0 │  │ Hrt -> Phantasm │ 0.133 │ 0.26315789473684204 │ 0.5488721804511278 │ 0.18796992481203012 │ 0 │  │ 1 │ 34 │  │ 
+  --- 13 matching row(s) above ---
+
+####### SHEET: Half Preset Trips data  (1003 rows) #######
+  r3: Pre-set Trip │ Base Trip Dmg │ Wear │ Meteor │ Heat │ Radiation │  │ Meteor │ Heat │ Radiation │  │ Pre-set Trip │ Base Trip Dmg │ Wear │ Meteor │ Heat │ Radiation │  │ Check
+  r7: Ant -> Origo │ 0.254 │ 0.04471428571 │ 0.134 │ 0.249 │ 0.195 │  │ 0.12 │ 0.0050000000000000044 │ 0.08428571428571428 │  │ Ant -> Origo │ 0.254 │ 0.1760404949 │ 0.4724409449 │ 0.01968503937 │ 0.3318335208 │  │ 1
+  r8: Ant -> Harm. │ 0.159 │ 0.045857142857142874 │ 0.112 │ 0.12 │ 0.14 │  │ 0.047 │ 0.03900000000000001 │ 0.02714285714285713 │  │ Ant -> Harm. │ 0.159 │ 0.2884097035040432 │ 0.29559748427672955 │ 0.24528301886792456 │ 0.17070979335130268 │  │ 1
+  r9: Ant -> Ice Station │ 0.405 │ 0.026428571428571357 │ 0.301 │ 0.209 │ 0.35 │  │ 0.10400000000000004 │ 0.19600000000000004 │ 0.07857142857142865 │  │ Ant -> Ice Station │ 0.405 │ 0.0652557319223984 │ 0.2567901234567902 │ 0.48395061728395067 │ 0.19400352733686085 │  │ 1
+  r12: Ant -> Eos │ 0.13 │ 0.019999999999999976 │ 0.121 │ 0.129 │ 0.06 │  │ 0.009000000000000008 │ 0.0010000000000000009 │ 0.10000000000000002 │  │ Ant -> Eos │ 0.13 │ 0.15384615384615366 │ 0.06923076923076929 │ 0.007692307692307699 │ 0.7692307692307694 │  │ 1
+  r13: Ant -> Hephaestus │ 0.209 │ 0.05185714285714288 │ 0.184 │ 0.184 │ 0.134 │  │ 0.024999999999999994 │ 0.024999999999999994 │ 0.10714285714285712 │  │ Ant -> Hephaestus │ 0.209 │ 0.24812030075187982 │ 0.11961722488038275 │ 0.11961722488038275 │ 0.5126452494873547 │  │ 1
+  r14: Ant -> Deimos │ 0.091 │ 0.026142857142857134 │ 0.08 │ 0.06 │ 0.075 │  │ 0.010999999999999996 │ 0.031 │ 0.02285714285714286 │  │ Ant -> Deimos │ 0.091 │ 0.2872841444270015 │ 0.12087912087912084 │ 0.34065934065934067 │ 0.2511773940345369 │  │ 1
+  r15: Ant -> Griffonstone │ 0.172 │ 0.05585714285714288 │ 0.099 │ 0.156 │ 0.153 │  │ 0.07299999999999998 │ 0.015999999999999986 │ 0.02714285714285713 │  │ Ant -> Griffonstone │ 0.172 │ 0.3247508305647842 │ 0.4244186046511627 │ 0.09302325581395342 │ 0.1578073089700996 │  │ 1
+  r16: Ant -> Ben │ 0.147 │ 0.11571428571428574 │ 0.14 │ 0.147 │ 0.13 │  │ 0.0069999999999999785 │ 0 │ 0.024285714285714268 │  │ Ant -> Ben │ 0.147 │ 0.7871720116618078 │ 0.04761904761904748 │ 0 │ 0.1652089407191447 │  │ 1
+  r29: Mor -> Verdant │ 0.19 │ 0.0797142857142857 │ 0.118 │ 0.156 │ 0.187 │  │ 0.07200000000000001 │ 0.034 │ 0.004285714285714289 │  │ Mor -> Verdant │ 0.19 │ 0.419548872180451 │ 0.37894736842105264 │ 0.17894736842105263 │ 0.02255639097744363 │  │ 1
+  r35: Hrt -> Ant │ 0.174 │ 0.11385714285714289 │ 0.171 │ 0.174 │ 0.134 │  │ 0.002999999999999975 │ 0 │ 0.05714285714285712 │  │ Hrt -> Ant │ 0.174 │ 0.6543513957307063 │ 0.017241379310344685 │ 0 │ 0.328407224958949 │  │ 1
+  r37: Hrt -> Phantasm │ 0.095 │ 0.028999999999999998 │ 0.055 │ 0.069 │ 0.095 │  │ 0.04 │ 0.025999999999999995 │ 0 │  │ Hrt -> Phantasm │ 0.095 │ 0.3052631578947368 │ 0.42105263157894735 │ 0.27368421052631575 │ 0 │  │ 0.9999999999999999
+  --- 12 matching row(s) above ---
+
+####### SHEET: Hull Reducer  (53 rows) #######
+  r3: APT │ 0.15 │  │ AWH │ 1 │  │  │ RHP │ 10% │ .1 │  │  │  │ SRP │ 70% │ .7 │  │  │  │  │  │ 
+  r6: SRP │ 0.15 │  │ SRP │ 0.7 │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │ 
+  --- 2 matching row(s) above ---
+
+####### SHEET: Max Preset Trips data  (1003 rows) #######
+  r3: Pre-set Trip │ Base Trip Dmg │ Wear │ Meteor │ Heat │ Radiation │  │ Meteor │ Heat │ Radiation │  │ Pre-set Trip │ Base Trip Dmg │ Wear │ Meteor │ Heat │ Radiation │  │ Check
+  r7: Ant -> Origo │ 0.262 │ 0.05671428571 │ 0.146 │ 0.257 │ 0.203 │  │ 0.11600000000000002 │ 0.0050000000000000044 │ 0.08428571428571428 │  │ Ant -> Origo │ 0.262 │ 0.2164667394 │ 0.4427480916 │ 0.01908396947 │ 0.3217011996 │  │ 1
+  r8: Ant -> Harm. │ 0.171 │ 0.055428571428571397 │ 0.124 │ 0.131 │ 0.151 │  │ 0.047000000000000014 │ 0.04000000000000001 │ 0.0285714285714286 │  │ Ant -> Harm. │ 0.171 │ 0.324143692564745 │ 0.2748538011695907 │ 0.23391812865497078 │ 0.16708437761069356 │  │ 1
+  r9: Ant -> Ice Station │ 0.418 │ 0.0381428571428572 │ 0.297 │ 0.222 │ 0.374 │  │ 0.121 │ 0.19599999999999998 │ 0.06285714285714283 │  │ Ant -> Ice Station │ 0.418 │ 0.09125085440874929 │ 0.2894736842105263 │ 0.4688995215311004 │ 0.15037593984962402 │  │ 1
+  r12: Ant -> Eos │ 0.131 │ 0.00957142857142855 │ 0.112 │ 0.13 │ 0.06 │  │ 0.019000000000000003 │ 0.0010000000000000009 │ 0.10142857142857145 │  │ Ant -> Eos │ 0.131 │ 0.0730643402399126 │ 0.14503816793893132 │ 0.007633587786259549 │ 0.7742639040348965 │  │ 1
+  r13: Ant -> Hephaestus │ 0.209 │ 0.05042857142857146 │ 0.185 │ 0.183 │ 0.133 │  │ 0.023999999999999994 │ 0.025999999999999995 │ 0.10857142857142855 │  │ Ant -> Hephaestus │ 0.209 │ 0.24128503075871513 │ 0.11483253588516744 │ 0.12440191387559807 │ 0.5194805194805194 │  │ 1
+  r14: Ant -> Deimos │ 0.1 │ 0.025857142857142842 │ 0.087 │ 0.066 │ 0.081 │  │ 0.013000000000000012 │ 0.034 │ 0.02714285714285715 │  │ Ant -> Deimos │ 0.1 │ 0.2585714285714284 │ 0.13000000000000012 │ 0.34 │ 0.27142857142857146 │  │ 1
+  r15: Ant -> Griffonstone │ 0.197 │ 0.08228571428571424 │ 0.123 │ 0.182 │ 0.179 │  │ 0.07400000000000001 │ 0.015000000000000013 │ 0.025714285714285738 │  │ Ant -> Griffonstone │ 0.197 │ 0.41769398114575756 │ 0.3756345177664975 │ 0.0761421319796955 │ 0.13052936910804944 │  │ 1
+  r16: Ant -> Ben │ 0.198 │ 0.1667142857142857 │ 0.191 │ 0.198 │ 0.181 │  │ 0.007000000000000006 │ 0 │ 0.02428571428571431 │  │ Ant -> Ben │ 0.198 │ 0.8419913419913418 │ 0.03535353535353538 │ 0 │ 0.12265512265512277 │  │ 1
+  r29: Mor -> Verdant │ 0.213 │ 0.10028571428571427 │ 0.141 │ 0.178 │ 0.209 │  │ 0.07200000000000001 │ 0.035 │ 0.0057142857142857195 │  │ Mor -> Verdant │ 0.213 │ 0.47082494969818905 │ 0.33802816901408456 │ 0.1643192488262911 │ 0.026827632461435304 │  │ 1
+  r35: Hrt -> Ant │ 0.212 │ 0.15757142857142856 │ 0.209 │ 0.212 │ 0.176 │  │ 0.0030000000000000027 │ 0 │ 0.051428571428571435 │  │ Hrt -> Ant │ 0.212 │ 0.7432614555256064 │ 0.014150943396226428 │ 0 │ 0.24258760107816715 │  │ 1
+  r37: Hrt -> Phantasm │ 0.104 │ 0.03157142857142857 │ 0.061 │ 0.076 │ 0.103 │  │ 0.043 │ 0.027999999999999997 │ 0.0014285714285714299 │  │ Hrt -> Phantasm │ 0.104 │ 0.30357142857142855 │ 0.41346153846153844 │ 0.2692307692307692 │ 0.01373626373626375 │  │ 0.9999999999999999
+  --- 12 matching row(s) above ---
+
+####### SHEET: RO - CALC Sheet  (1015 rows) #######
+  r2: Plate │  │ 100 │ 99 │ 98 │ 97 │ 96 │ 95 │ 94 │ 93 │ 92 │ 91 │ 90 │ 89 │ 88 │ 87 │ 86 │ 85 │ 84 │ 83 │ 82 │ 81 │ 80 │ 79 │ 78 │ 77 │ 76 │ 75 │ 74 │ 73 │ 72 │ 71 │ 70 │ 69 │ 68 │ 67 │ 66 │ 65 │ 64 │ 63 │ 62 │ 61 │ 60 │ 59 │ 58 │ 57 │ 56 │ 55 │ 54 │ 53 │ 52 │ 51 │ 50 │ 49 │ 48 │ 47 │ 46 │ 45 │ 44 │ 43 │ 42 │ 41 │ 40 │ 39 │ 38 │ 37 │ 36 │ 35 │ 34 │ 33 │ 32 │ 31 │ 30
+  r20: SRP │ Ship3 │ 0 │ 1 │ 1 │ 1 │ 2 │ 2 │ 2 │ 3 │ 3 │ 3 │ 4 │ 4 │ 4 │ 5 │ 5 │ 5 │ 6 │ 6 │ 6 │ 6 │ 7 │ 7 │ 7 │ 8 │ 8 │ 8 │ 9 │ 9 │ 9 │ 10 │ 10 │ 10 │ 11 │ 11 │ 11 │ 11 │ 12 │ 12 │ 12 │ 13 │ 13 │ 13 │ 14 │ 14 │ 14 │ 15 │ 15 │ 15 │ 16 │ 16 │ 16 │ 16 │ 17 │ 17 │ 17 │ 18 │ 18 │ 18 │ 19 │ 19 │ 19 │ 20 │ 20 │ 20 │ 21 │ 21 │ 21 │ 21 │ 22 │ 22 │ 22
+  r28: Plate │  │ 100 │ 99 │ 98 │ 97 │ 96 │ 95 │ 94 │ 93 │ 92 │ 91 │ 90 │ 89 │ 88 │ 87 │ 86 │ 85 │ 84 │ 83 │ 82 │ 81 │ 80 │ 79 │ 78 │ 77 │ 76 │ 75 │ 74 │ 73 │ 72 │ 71 │ 70 │ 69 │ 68 │ 67 │ 66 │ 65 │ 64 │ 63 │ 62 │ 61 │ 60 │ 59 │ 58 │ 57 │ 56 │ 55 │ 54 │ 53 │ 52 │ 51 │ 50 │ 49 │ 48 │ 47 │ 46 │ 45 │ 44 │ 43 │ 42 │ 41 │ 40 │ 39 │ 38 │ 37 │ 36 │ 35 │ 34 │ 33 │ 32 │ 31 │ 30
+  r63:  │ AHP 6 AWH 7 APT 7 SRP 7  MFK 12 FLP 8 │ MFK 12 FLP 8 │ AHP 6 │ AWH 7 │ APT 7 │ SRP 7 │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │ 
+  --- 4 matching row(s) above ---
+==================================================================
+ PART 5 — FINDINGS SUMMARY
+==================================================================
+
+STAR CONTEXT (systemstars.json):
+  Route: ANT(ZV-307,F) -> ZV-639(G) -> SE-110 Thalassa (M-class)
+  SE-110 luminosity = 0.00204 (M = dimmest class), meteoroidDensity = 2.733 (HIGH)
+  APPROACH into SE-110c happens at ~0.697 AU from the M-star.
+  Aem-formula radiation prediction for that approach: 2.05e-6 %/Mkm
+    over 78.7 Mkm = 1.6e-4 %  = 1.6e-6 fraction.
+  Observed approach damage = 1.23e-3 fraction. So predicted radiation is
+  ~0.13% of the approach damage -- physically UNDETECTABLE on this route.
+
+DID THE SRP SHOW ANY EFFECT IN THE CAPTURES?
+  NO. The two captures are the same flight with tiny ephemeris drift.
+   - JUMP x2 and CHARGE damage: byte-identical between captures.
+   - DEPARTURE damage/Mkm: identical to 5 sig figs (diff -5e-3 %, tracks the
+     0.005% distance difference, not shielding).
+   - APPROACH damage/Mkm (the only near-star STL cruise): identical to 5 sig
+     figs (1.56701e-5 both), diff -9e-7 %. This is THE leg where an anti-rad
+     plate would act, and it shows ZERO difference.
+   - LANDING differs 8% -- but purely because landing distance differs
+     (2786 vs 2397 km); landing damage is distance-driven, not shield-driven.
+  => If one capture is truly SRP-fitted and the other bare, the SRP removed
+     0.0000% of damage on every leg, including the near-star approach.
+
+CAVEATS / ANOMALIES:
+  * ant_ice.json contains NO component/blueprint/shield fields (only
+    minReactorUsageFactor). The payload CANNOT confirm which capture is
+    SRP-fitted -- that label is external. Taken at face value per the brief,
+    the null result stands; but the file alone cannot prove the fitting.
+  * The file has NO TRANSIT segments. The route is DEPARTURE/JUMP/CHARGE/
+    JUMP/APPROACH/LANDING. The APPROACH (78.7 Mkm STL cruise) is the closest
+    analogue and is what Part 2/3 use for the near-star damage/Mkm test.
+  * This is an M-class star -- the WEAKEST possible radiation environment.
+    Even a perfectly-working SRP would have almost nothing to remove here,
+    so this route is a poor place to detect SRP, and a very poor place to
+    claim a large radiation channel.
+
+WHAT RNGZERO'S SPREADSHEET ASSUMES (PrUn Ship Repair Calc.xlsx, shared by Raylu):
+  Sheets: Ship Calc | Min/Half/Max Preset Trips data | Hull Reducer | RO-CALC.
+  Mechanism: each preset trip's damage is DECOMPOSED into channels
+    Wear + Meteor + Heat + Radiation. 'Hull Reducer' sheet hard-codes each
+    plate's multiplier: SRP -> 0.7 (i.e. removes 70% of the Radiation channel).
+  For 'Ant -> Ice Station' the sheet assigns a LARGE Radiation channel:
+    min preset Radiation = 0.377, half = 0.35, max = 0.374 (columns), and a
+    normalised radiation share ~0.18-0.19 of the trip. SRP's value is then
+    computed as 0.7 x that assumed radiation channel.
+  Note (sheet r29): preset trips were 'calculated in BLU using a HCB ship',
+    i.e. these channel splits are a MODEL/estimate, not a measured
+    shield-on vs shield-off delta.
+
+WHY THE TWO DISAGREE:
+  The calculator's SRP recommendation rests entirely on the ASSUMPTION that ~1/5 of
+  the Ant->Ice trip damage is radiation. On an M-class star (lum 0.002) that
+  is physically implausible; the approach damage here is meteoroid-dominated
+  (density 2.73). Our direct with/without capture on this exact route shows
+  the near-star leg damage is unchanged, i.e. there is no radiation channel
+  for the SRP to cut. The model is decomposing modelled damage into a radiation
+  bucket that the game does not actually charge on this route, then crediting
+  the SRP for removing 70% of a bucket that is ~0.13% of the real damage.
+
+CONSISTENCY WITH PRIOR WORK:
+  Matches the session finding that the anti-rad plate is non-functional in
+  observed damage, AND that radiation (Aem's AU^-2 term) is only non-trivial
+  near hot O/B stars. SE-110 is M-class => radiation ~0 => SRP does nothing
+  here for TWO independent reasons.

@@ -1,0 +1,26 @@
+CORRECTED MATCHED-PAIR RADIATION (HI slider, stl>1000) — 2026-07-06T21:16:10.048Z
+no-shield file: RAD DMG 6-7-26 RAD NO shield.jsonl
+spec-shield file: RAD DMG 6-7-26 RAD spec  shield.jsonl
+
+planet    noShield%   spec%     radiation%   radiates?
+--------------------------------------------------------
+VH-192a     0.1716    0.1716      0.0001   no
+VH-192d     0.1364    0.1364      0.0000   no
+UB-557a     0.1331    0.1330      0.0001   no
+UB-557c     0.1103    0.1103      0.0000   no
+LS-231a     0.2373    0.2373     -0.0001   no
+LS-231c     0.1722    0.1722      0.0000   no
+EY-430a     0.2017    0.2018     -0.0001   no
+EY-430b     0.1671    0.1671      0.0000   no
+IA-158b     0.1826    0.1826      0.0000   no
+
+CG-021 (no-shield vs spec, HI slider):
+CG-021a     0.2068    0.1182      0.1265   YES
+CG-021b     0.1170    0.0913      0.0366   YES
+CG-021d     0.0878    0.0842      0.0051   no
+
+AM-528a (AM-528a.jsonl: mission 5c9da50c vs 4d28d408, HI slider):
+AM-528a     0.4129    0.1685      0.3492   YES
+
+XG-452a: two distinct levels seen (HI slider) — shield labelling ambiguous:
+  readings: 0.6249, 1.6939, 0.6247, 0.5861  -> if 1.69 unshielded & 0.625 spec: rad=1.5274%
