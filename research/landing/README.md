@@ -31,4 +31,4 @@ Verified on our own capture corpus: per-planet `k` constant to 0.0000% CV (18 pl
 
 ## Credits
 
-**Marcus Licinius Crassus** — landing PRNG law, per-planet-`k` form, R²=1.000000 validation (4,482 planets / ~86k flights), ephemeris/flight-dynamics papers. **Taiyi Bureau** — landing-distance formula, approach-orbit/window-reset observable, C=20/3, galaxy map. **Raylu** (`git.raylu.net/raylu/pruncalc`) — take-off/landing pressure/radius. **SAGANAKI** — FIO galaxy star/system data. Client-side verification + bundle disassembly on own capture data (Eoin Cuinn / EC3, with Claude Code).
+**Marcus Licinius Crassus** — landing PRNG law, per-planet-`k` form, R²=1.000000 validation (4,482 planets / ~86k flights), ephemeris/flight-dynamics papers. **Taiyi Bureau** — landing-distance formula, approach-orbit/window-reset observable, C=20/3, galaxy map. **Raylu** (`git.raylu.net/raylu/pruncalc`) — take-off/landing pressure/radius. **SAGANAKI** — FIO galaxy star/system data. Client-side verification + bundle disassembly on own capture data (EoinCuinn, with Claude Code).
