@@ -1,0 +1,19 @@
+**Radiation damage — what our blueprint-tester captures show (and one paradox I can't resolve alone)**
+
+Been chasing radiation damage in the flight-planner work and want to put the data on the table, because it lands partly with Aem's model and partly against it, and there's one result I genuinely can't explain.
+
+**The good news for Aem's model:** radiation is real and it's inverse-square. In NL-534 (O-class) I flew intra-system sublight legs at increasing orbital radius on two different ships. Damage per million km falls from ~8.2e-5 close in to a ~1.3e-5 floor far out, and the excess scales as ~AU⁻² — Aem's exact functional form. I also flew a control leg that covers the same distance as the outermost leg but dives in to 2 AU; it takes ~9% more damage per Mkm purely from going near the star, which rules out "it's just a longer flight." So the shape is confirmed independently of Aem's spreadsheet.
+
+**On the constant:** my O-class number comes out ~0.046 %/Mkm at 1 AU. That's within ~1.6× of Aem's KQ-451 tab (0.0734), but ~17× *below* his generalised Sunlight-tab constant. So our data backs the KQ-451 tab and not the generalised one — which lines up with the ~10× gap that's already sitting between Aem's two tabs. Aem, which of those two do you treat as canonical now?
+
+**The paradox — and this is the important bit:** I can't detect any effect from the Specialised Anti-Rad Plate. Same leg, plate on vs plate off, matched slider — identical damage to 5 sig figs, on every capture I have, including the close-in leg where 84% of the damage is the radiation excess. And this isn't the plate simply not being fitted: on the NL-534a approach test the plate showed up as a +2 fuel (mass) signature confirming it was physically on, and the damage still didn't move. So either the plate is inert/bugged right now, or it acts on something these captures don't expose. I'm not claiming it's worthless as a certainty — I'm saying I can't measure it working on the cleanest tests I could build. **If anyone has a clean capture where the plate measurably lowers damage — or can spot where my setup is wrong — I really want to see it.** That's the single thing that would resolve this.
+
+**Raylu / RNGzero** — trying to reconcile something on the ANT → Ice Station Alpha route. SE-110 (Thalassa) is M-class, luminosity 0.002 — the dimmest class — so by any inverse-square model there's almost no radiation on that route to begin with. RNGzero's repair calc (which Raylu shared) assigns that trip an ~18% radiation channel and credits the plate with cutting 70% of it. I did fly it plate-on vs plate-off and saw no difference, but I'd put little weight on that by itself — an M-star route is a weak plate test either way, since there's so little radiation there. The bit I can't square is the 18% channel itself on an M-star: can you walk me through how that fraction was derived? If it came from measured plate deltas somewhere, that's exactly the data I'm missing.
+
+**One thing nobody's cracked:** two near-identical B-class stars, CG-021 (lum 143) and LS-231 (lum 157), at basically the same orbital radius, showed radiation differing by ~2500× in my early approach captures. If that's real, luminosity isn't the whole story and there's a per-system property missing. Anyone seen this?
+
+**What would close it:** a plate-on/plate-off, matched-slider sweep at 2–3 known radii around a *second* hot star (a B like NH-555 and one more O). That pins the constant, tests whether it really scales with luminosity, and gives the plate its cleanest possible test where radiation dominates. Game damage is deterministic to ~5e-9 so it's not noise-limited - just needs the right legs flown.
+
+Full writeup with every number attached. Really grateful for all the prior work here, this one was a head scratcher (still is actually)
+
+(Star/system data throughout — luminosities, meteoroid densities — is FIO data submitted by **SAGANAKI**; thanks for gathering it.)

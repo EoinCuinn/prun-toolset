@@ -1,0 +1,32 @@
+TRANSIT RESIDUAL SHIELD TEST — residual = observed damage − predicted meteor damage
+Generated: 2026-07-07T09:41:34.706Z
+meteor formula: 7.1692e-6 * (stlDistance/1e6) * MeteoroidDensity^(0.683+0.223*log10(density))  [prun_flight_planner.html:837]
+MeteoroidDensity per planet system from systemstars.json. Shield state from filename.
+NOTE: radiation_flat.csv has no distance column; TRANSIT distance read from source jsonl (equivalent rows).
+===================================================================================================================
+
+COVERAGE
+-------------------------------------------------------------------------------------------------------------------
+Total TRANSIT segments: 192 | with computable residual: 192 | damage>0: 28
+TRANSIT segs with null distance: 0
+Systems with no MeteoroidDensity: none
+
+MEAN RESIDUAL — NO-SHIELD vs SHIELD
+-------------------------------------------------------------------------------------------------------------------
+group                         noshield_n     noshield_mean  shield_n       shield_mean       diff(ns-sh)
+ALL TRANSIT rows                     104         1.9726e-3        88         2.3308e-3        -3.5817e-4
+damage>0 TRANSIT rows                 16         1.2823e-2        12         1.7093e-2        -4.2705e-3
+
+PER-PLANET (damage>0), residual mean by shield state
+-------------------------------------------------------------------------------------------------------------------
+planet    system      density  ns_n     ns_resid_mean  sh_n     sh_resid_mean     diff(ns-sh)  obs_mean
+GH-459c   GH-459       4.6585     4         2.7964e-4     4         2.7978e-4       -1.353e-7  3.7385e-3
+VH-331a   VH-331       0.0284     8         1.1969e-5     4         1.1770e-5        1.987e-7  1.3436e-4
+WX-827a   WX-827       3.1318     4         5.0988e-2     4         5.0989e-2       -7.163e-7  5.7525e-1
+
+INTERPRETATION
+-------------------------------------------------------------------------------------------------------------------
+If the spec anti-rad shield removes a radiation component on TRANSIT, no-shield residual should exceed shield residual
+(diff > 0), and diff ≈ 0.70 × radiation. If diff ≈ 0 (or negative), no shieldable radiation is present on TRANSIT.
+Residuals are dominated by the meteor formula's ~9% systematic under-prediction, so expect a positive residual in BOTH
+states; the SHIELD TEST is whether no-shield − shield differs, not whether residual is nonzero.

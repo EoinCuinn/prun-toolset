@@ -1,0 +1,942 @@
+[
+    {
+        "type": "SHIP_FLIGHT_MISSION",
+        "meta": {
+            "responseId": "56529db3-ce0f-493f-8cb7-907239eaaed9",
+            "responseStatus": 0
+        },
+        "data": {
+            "missionId": "2ae5f730-5d1b-4d1c-b87a-8b7d9f827fbb",
+            "segments": [
+                {
+                    "type": "DEPARTURE",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "8ecf9670ba070d78cfb5537e8d9f1b6c",
+                                    "naturalId": "ZV-307",
+                                    "name": "Antares I",
+                                    "_type": "system",
+                                    "_proxy_key": "8ecf9670ba070d78cfb5537e8d9f1b6c"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "1deca369a92788b8079e7ac245be66f7",
+                                    "naturalId": "ANT",
+                                    "name": "Antares Station",
+                                    "_type": "station",
+                                    "_proxy_key": "1deca369a92788b8079e7ac245be66f7"
+                                },
+                                "type": "STATION"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783505256434
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "8ecf9670ba070d78cfb5537e8d9f1b6c",
+                                    "naturalId": "ZV-307",
+                                    "name": "Antares I",
+                                    "_type": "system",
+                                    "_proxy_key": "8ecf9670ba070d78cfb5537e8d9f1b6c"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 28801176069.34447,
+                                    "eccentricity": 0.995077883184504,
+                                    "inclination": 2.1647470075180126,
+                                    "rightAscension": 2.8522639951855076,
+                                    "periapsis": -3.2277440416558694
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783506275434
+                    },
+                    "stlDistance": 20402054.051146265,
+                    "stlFuelConsumption": 255,
+                    "transferEllipse": {
+                        "startPosition": {
+                            "x": 18846985.166013453,
+                            "y": -27865085.852436624,
+                            "z": 477963.8374767211
+                        },
+                        "targetPosition": {
+                            "x": 10648150.40446623,
+                            "y": -47978621.01096396,
+                            "z": -5157998.62882926
+                        },
+                        "center": {
+                            "x": -11154158.735235402,
+                            "y": -27363591.340705898,
+                            "z": 0
+                        },
+                        "alpha": 1.9578609925232466,
+                        "semiMajorAxis": 41393174.9106746,
+                        "semiMinorAxis": 28986437.191102296
+                    },
+                    "ftlDistance": null,
+                    "ftlFuelConsumption": 28,
+                    "damage": 0.0005552190277793006,
+                    "cost": null
+                },
+                {
+                    "type": "JUMP",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "8ecf9670ba070d78cfb5537e8d9f1b6c",
+                                    "naturalId": "ZV-307",
+                                    "name": "Antares I",
+                                    "_type": "system",
+                                    "_proxy_key": "8ecf9670ba070d78cfb5537e8d9f1b6c"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 28801176069.34447,
+                                    "eccentricity": 0.995077883184504,
+                                    "inclination": 2.1647470075180126,
+                                    "rightAscension": 2.8522639951855076,
+                                    "periapsis": -3.2277440416558694
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783506275434
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "76efb33ed2c068611e880b02ef2b700a",
+                                    "naturalId": "ZV-639",
+                                    "name": "Roshar",
+                                    "_type": "system",
+                                    "_proxy_key": "76efb33ed2c068611e880b02ef2b700a"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 1837844611342.0461,
+                                    "eccentricity": 0.08384444490906229,
+                                    "inclination": 0.009353492745245613,
+                                    "rightAscension": 0.008910588311938363,
+                                    "periapsis": -0.1405297681786582
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783514418434
+                    },
+                    "stlDistance": null,
+                    "stlFuelConsumption": null,
+                    "transferEllipse": null,
+                    "ftlDistance": 6.0458162941626865,
+                    "ftlFuelConsumption": null,
+                    "damage": 0.00006045816294162687,
+                    "cost": null
+                },
+                {
+                    "type": "CHARGE",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "76efb33ed2c068611e880b02ef2b700a",
+                                    "naturalId": "ZV-639",
+                                    "name": "Roshar",
+                                    "_type": "system",
+                                    "_proxy_key": "76efb33ed2c068611e880b02ef2b700a"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 1837844611342.0461,
+                                    "eccentricity": 0.08384444490906229,
+                                    "inclination": 0.009353492745245613,
+                                    "rightAscension": 0.008910588311938363,
+                                    "periapsis": -0.1405297681786582
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783514418434
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "76efb33ed2c068611e880b02ef2b700a",
+                                    "naturalId": "ZV-639",
+                                    "name": "Roshar",
+                                    "_type": "system",
+                                    "_proxy_key": "76efb33ed2c068611e880b02ef2b700a"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 1837844611342.0461,
+                                    "eccentricity": 0.08384444490906229,
+                                    "inclination": 0.009353492745245613,
+                                    "rightAscension": 0.008910588311938363,
+                                    "periapsis": -0.1405297681786582
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783514712965
+                    },
+                    "stlDistance": null,
+                    "stlFuelConsumption": null,
+                    "transferEllipse": null,
+                    "ftlDistance": null,
+                    "ftlFuelConsumption": 43,
+                    "damage": 0.00017621527777777777,
+                    "cost": null
+                },
+                {
+                    "type": "JUMP",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "76efb33ed2c068611e880b02ef2b700a",
+                                    "naturalId": "ZV-639",
+                                    "name": "Roshar",
+                                    "_type": "system",
+                                    "_proxy_key": "76efb33ed2c068611e880b02ef2b700a"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 1837844611342.0461,
+                                    "eccentricity": 0.08384444490906229,
+                                    "inclination": 0.009353492745245613,
+                                    "rightAscension": 0.008910588311938363,
+                                    "periapsis": -0.1405297681786582
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783514712965
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "a4f8152ef31be5e5ec7036d049c0dd0f",
+                                    "naturalId": "SE-110",
+                                    "name": "Thalassa",
+                                    "_type": "system",
+                                    "_proxy_key": "a4f8152ef31be5e5ec7036d049c0dd0f"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 104216863974.23563,
+                                    "eccentricity": 0.9459590756676328,
+                                    "inclination": 0.30251767973328136,
+                                    "rightAscension": 2.0429945493619233,
+                                    "periapsis": 2.994037582386052
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783527063965
+                    },
+                    "stlDistance": null,
+                    "stlFuelConsumption": null,
+                    "transferEllipse": null,
+                    "ftlDistance": 9.169426061010066,
+                    "ftlFuelConsumption": null,
+                    "damage": 0.00009169426061010067,
+                    "cost": null
+                },
+                {
+                    "type": "APPROACH",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "a4f8152ef31be5e5ec7036d049c0dd0f",
+                                    "naturalId": "SE-110",
+                                    "name": "Thalassa",
+                                    "_type": "system",
+                                    "_proxy_key": "a4f8152ef31be5e5ec7036d049c0dd0f"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 104216863974.23563,
+                                    "eccentricity": 0.9459590756676328,
+                                    "inclination": 0.30251767973328136,
+                                    "rightAscension": 2.0429945493619233,
+                                    "periapsis": 2.994037582386052
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783527063965
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "a4f8152ef31be5e5ec7036d049c0dd0f",
+                                    "naturalId": "SE-110",
+                                    "name": "Thalassa",
+                                    "_type": "system",
+                                    "_proxy_key": "a4f8152ef31be5e5ec7036d049c0dd0f"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "71aca87814fd51f346495870c8de0ef8",
+                                    "naturalId": "SE-110c",
+                                    "name": "Ice Station Alpha",
+                                    "_type": "planet",
+                                    "_proxy_key": "71aca87814fd51f346495870c8de0ef8"
+                                },
+                                "type": "PLANET"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 8131135.1919438075,
+                                    "eccentricity": 0.03998055665313924,
+                                    "inclination": 0.4294718545988518,
+                                    "rightAscension": 5.4795118038032165,
+                                    "periapsis": 0
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783529066965
+                    },
+                    "stlDistance": 78718514.40628703,
+                    "stlFuelConsumption": 1995,
+                    "transferEllipse": {
+                        "startPosition": {
+                            "x": 52749861.052035995,
+                            "y": -50576599.43872724,
+                            "z": 6569335.5269181095
+                        },
+                        "targetPosition": {
+                            "x": -22734322.517426908,
+                            "y": -49206106.74547693,
+                            "z": 305357.6915791828
+                        },
+                        "center": {
+                            "x": 15908353.851694746,
+                            "y": -288832.4637614265,
+                            "z": 0
+                        },
+                        "alpha": 0.01815402999580866,
+                        "semiMajorAxis": 63641577.269926205,
+                        "semiMinorAxis": 61620542.118202224
+                    },
+                    "ftlDistance": null,
+                    "ftlFuelConsumption": null,
+                    "damage": 0.0012335303022388592,
+                    "cost": null
+                },
+                {
+                    "type": "LANDING",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "a4f8152ef31be5e5ec7036d049c0dd0f",
+                                    "naturalId": "SE-110",
+                                    "name": "Thalassa",
+                                    "_type": "system",
+                                    "_proxy_key": "a4f8152ef31be5e5ec7036d049c0dd0f"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "71aca87814fd51f346495870c8de0ef8",
+                                    "naturalId": "SE-110c",
+                                    "name": "Ice Station Alpha",
+                                    "_type": "planet",
+                                    "_proxy_key": "71aca87814fd51f346495870c8de0ef8"
+                                },
+                                "type": "PLANET"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 8131135.1919438075,
+                                    "eccentricity": 0.03998055665313924,
+                                    "inclination": 0.4294718545988518,
+                                    "rightAscension": 5.4795118038032165,
+                                    "periapsis": 0
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783529066965
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "a4f8152ef31be5e5ec7036d049c0dd0f",
+                                    "naturalId": "SE-110",
+                                    "name": "Thalassa",
+                                    "_type": "system",
+                                    "_proxy_key": "a4f8152ef31be5e5ec7036d049c0dd0f"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "71aca87814fd51f346495870c8de0ef8",
+                                    "naturalId": "SE-110c",
+                                    "name": "Ice Station Alpha",
+                                    "_type": "planet",
+                                    "_proxy_key": "71aca87814fd51f346495870c8de0ef8"
+                                },
+                                "type": "PLANET"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783529333965
+                    },
+                    "stlDistance": 2786.383158537454,
+                    "stlFuelConsumption": 31,
+                    "transferEllipse": null,
+                    "ftlDistance": null,
+                    "ftlFuelConsumption": null,
+                    "damage": 0.0008548660766601562,
+                    "cost": null
+                }
+            ],
+            "status": "OK",
+            "eta": {
+                "millis": 24077531
+            },
+            "chargeTime": {
+                "millis": 294531
+            },
+            "stlFuelConsumption": 2281,
+            "ftlFuelConsumption": 71,
+            "ftlFuelType": "FTL",
+            "stlDistance": 99123354.84059183,
+            "ftlDistance": 15.215242355172752,
+            "minReactorUsageFactor": 0.303,
+            "maxReactorUsageFactor": 1,
+            "costs": [],
+            "isUsingReducedFlightTimes": false
+        }
+    },
+    {
+        "type": "SHIP_FLIGHT_MISSION",
+        "meta": {
+            "responseId": "0a96c34d-fe3b-4f16-9286-7d27372266d3",
+            "responseStatus": 0
+        },
+        "data": {
+            "missionId": "8582ec41-ff0c-41ef-aa28-47dbd09e6742",
+            "segments": [
+                {
+                    "type": "DEPARTURE",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "8ecf9670ba070d78cfb5537e8d9f1b6c",
+                                    "naturalId": "ZV-307",
+                                    "name": "Antares I",
+                                    "_type": "system",
+                                    "_proxy_key": "8ecf9670ba070d78cfb5537e8d9f1b6c"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "1deca369a92788b8079e7ac245be66f7",
+                                    "naturalId": "ANT",
+                                    "name": "Antares Station",
+                                    "_type": "station",
+                                    "_proxy_key": "1deca369a92788b8079e7ac245be66f7"
+                                },
+                                "type": "STATION"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783505267452
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "8ecf9670ba070d78cfb5537e8d9f1b6c",
+                                    "naturalId": "ZV-307",
+                                    "name": "Antares I",
+                                    "_type": "system",
+                                    "_proxy_key": "8ecf9670ba070d78cfb5537e8d9f1b6c"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 28805297571.83524,
+                                    "eccentricity": 0.9950674042472251,
+                                    "inclination": 2.166338166572189,
+                                    "rightAscension": 2.852335326957043,
+                                    "periapsis": -3.227828602176494
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783506286452
+                    },
+                    "stlDistance": 20400948.187535778,
+                    "stlFuelConsumption": 255,
+                    "transferEllipse": {
+                        "startPosition": {
+                            "x": 18833359.101290584,
+                            "y": -27874319.272585258,
+                            "z": 477618.2773710978
+                        },
+                        "targetPosition": {
+                            "x": 10634524.33974336,
+                            "y": -47987854.431112595,
+                            "z": -5158344.188934883
+                        },
+                        "center": {
+                            "x": -11159327.758502737,
+                            "y": -27376272.085500307,
+                            "z": 0
+                        },
+                        "alpha": 1.9578609925232466,
+                        "semiMajorAxis": 41396216.15716902,
+                        "semiMinorAxis": 28976815.608517587
+                    },
+                    "ftlDistance": null,
+                    "ftlFuelConsumption": 28,
+                    "damage": 0.0005551595545239194,
+                    "cost": null
+                },
+                {
+                    "type": "JUMP",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "8ecf9670ba070d78cfb5537e8d9f1b6c",
+                                    "naturalId": "ZV-307",
+                                    "name": "Antares I",
+                                    "_type": "system",
+                                    "_proxy_key": "8ecf9670ba070d78cfb5537e8d9f1b6c"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 28805297571.83524,
+                                    "eccentricity": 0.9950674042472251,
+                                    "inclination": 2.166338166572189,
+                                    "rightAscension": 2.852335326957043,
+                                    "periapsis": -3.227828602176494
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783506286452
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "76efb33ed2c068611e880b02ef2b700a",
+                                    "naturalId": "ZV-639",
+                                    "name": "Roshar",
+                                    "_type": "system",
+                                    "_proxy_key": "76efb33ed2c068611e880b02ef2b700a"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 1780140154941.1655,
+                                    "eccentricity": 0.08696955460011517,
+                                    "inclination": 0.00929229349813709,
+                                    "rightAscension": 0.020037156583943536,
+                                    "periapsis": -0.2565153270936146
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783514429452
+                    },
+                    "stlDistance": null,
+                    "stlFuelConsumption": null,
+                    "transferEllipse": null,
+                    "ftlDistance": 6.0458162941626865,
+                    "ftlFuelConsumption": null,
+                    "damage": 0.00006045816294162687,
+                    "cost": null
+                },
+                {
+                    "type": "CHARGE",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "76efb33ed2c068611e880b02ef2b700a",
+                                    "naturalId": "ZV-639",
+                                    "name": "Roshar",
+                                    "_type": "system",
+                                    "_proxy_key": "76efb33ed2c068611e880b02ef2b700a"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 1780140154941.1655,
+                                    "eccentricity": 0.08696955460011517,
+                                    "inclination": 0.00929229349813709,
+                                    "rightAscension": 0.020037156583943536,
+                                    "periapsis": -0.2565153270936146
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783514429452
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "76efb33ed2c068611e880b02ef2b700a",
+                                    "naturalId": "ZV-639",
+                                    "name": "Roshar",
+                                    "_type": "system",
+                                    "_proxy_key": "76efb33ed2c068611e880b02ef2b700a"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 1780140154941.1655,
+                                    "eccentricity": 0.08696955460011517,
+                                    "inclination": 0.00929229349813709,
+                                    "rightAscension": 0.020037156583943536,
+                                    "periapsis": -0.2565153270936146
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783514723983
+                    },
+                    "stlDistance": null,
+                    "stlFuelConsumption": null,
+                    "transferEllipse": null,
+                    "ftlDistance": null,
+                    "ftlFuelConsumption": 43,
+                    "damage": 0.00017621527777777777,
+                    "cost": null
+                },
+                {
+                    "type": "JUMP",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "76efb33ed2c068611e880b02ef2b700a",
+                                    "naturalId": "ZV-639",
+                                    "name": "Roshar",
+                                    "_type": "system",
+                                    "_proxy_key": "76efb33ed2c068611e880b02ef2b700a"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 1780140154941.1655,
+                                    "eccentricity": 0.08696955460011517,
+                                    "inclination": 0.00929229349813709,
+                                    "rightAscension": 0.020037156583943536,
+                                    "periapsis": -0.2565153270936146
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783514723983
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "a4f8152ef31be5e5ec7036d049c0dd0f",
+                                    "naturalId": "SE-110",
+                                    "name": "Thalassa",
+                                    "_type": "system",
+                                    "_proxy_key": "a4f8152ef31be5e5ec7036d049c0dd0f"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 104195810072.47205,
+                                    "eccentricity": 0.9459803087854659,
+                                    "inclination": 0.30260887721553187,
+                                    "rightAscension": 2.0430909750169555,
+                                    "periapsis": 2.994110190443338
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783527074983
+                    },
+                    "stlDistance": null,
+                    "stlFuelConsumption": null,
+                    "transferEllipse": null,
+                    "ftlDistance": 9.169426061010066,
+                    "ftlFuelConsumption": null,
+                    "damage": 0.00009169426061010067,
+                    "cost": null
+                },
+                {
+                    "type": "APPROACH",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "a4f8152ef31be5e5ec7036d049c0dd0f",
+                                    "naturalId": "SE-110",
+                                    "name": "Thalassa",
+                                    "_type": "system",
+                                    "_proxy_key": "a4f8152ef31be5e5ec7036d049c0dd0f"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 104195810072.47205,
+                                    "eccentricity": 0.9459803087854659,
+                                    "inclination": 0.30260887721553187,
+                                    "rightAscension": 2.0430909750169555,
+                                    "periapsis": 2.994110190443338
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783527074983
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "a4f8152ef31be5e5ec7036d049c0dd0f",
+                                    "naturalId": "SE-110",
+                                    "name": "Thalassa",
+                                    "_type": "system",
+                                    "_proxy_key": "a4f8152ef31be5e5ec7036d049c0dd0f"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "71aca87814fd51f346495870c8de0ef8",
+                                    "naturalId": "SE-110c",
+                                    "name": "Ice Station Alpha",
+                                    "_type": "planet",
+                                    "_proxy_key": "71aca87814fd51f346495870c8de0ef8"
+                                },
+                                "type": "PLANET"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 7981637.314274698,
+                                    "eccentricity": 0.0270627285602148,
+                                    "inclination": 0.22133657414757626,
+                                    "rightAscension": 6.020058316921902,
+                                    "periapsis": 0
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783529076983
+                    },
+                    "stlDistance": 78710891.66958696,
+                    "stlFuelConsumption": 1996,
+                    "transferEllipse": {
+                        "startPosition": {
+                            "x": 52744626.278460845,
+                            "y": -50574179.75749663,
+                            "z": 6569406.194434414
+                        },
+                        "targetPosition": {
+                            "x": -22731605.088071555,
+                            "y": -49214582.47280331,
+                            "z": 306431.68575496424
+                        },
+                        "center": {
+                            "x": 15900127.70329896,
+                            "y": -286418.25459858775,
+                            "z": 0
+                        },
+                        "alpha": 0.01801163400081123,
+                        "semiMajorAxis": 63642128.08689736,
+                        "semiMinorAxis": 61623245.37892553
+                    },
+                    "ftlDistance": null,
+                    "ftlFuelConsumption": null,
+                    "damage": 0.0012334108414502633,
+                    "cost": null
+                },
+                {
+                    "type": "LANDING",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "a4f8152ef31be5e5ec7036d049c0dd0f",
+                                    "naturalId": "SE-110",
+                                    "name": "Thalassa",
+                                    "_type": "system",
+                                    "_proxy_key": "a4f8152ef31be5e5ec7036d049c0dd0f"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "71aca87814fd51f346495870c8de0ef8",
+                                    "naturalId": "SE-110c",
+                                    "name": "Ice Station Alpha",
+                                    "_type": "planet",
+                                    "_proxy_key": "71aca87814fd51f346495870c8de0ef8"
+                                },
+                                "type": "PLANET"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 7981637.314274698,
+                                    "eccentricity": 0.0270627285602148,
+                                    "inclination": 0.22133657414757626,
+                                    "rightAscension": 6.020058316921902,
+                                    "periapsis": 0
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783529076983
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "a4f8152ef31be5e5ec7036d049c0dd0f",
+                                    "naturalId": "SE-110",
+                                    "name": "Thalassa",
+                                    "_type": "system",
+                                    "_proxy_key": "a4f8152ef31be5e5ec7036d049c0dd0f"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "71aca87814fd51f346495870c8de0ef8",
+                                    "naturalId": "SE-110c",
+                                    "name": "Ice Station Alpha",
+                                    "_type": "planet",
+                                    "_proxy_key": "71aca87814fd51f346495870c8de0ef8"
+                                },
+                                "type": "PLANET"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783529324983
+                    },
+                    "stlDistance": 2397.097079521805,
+                    "stlFuelConsumption": 28,
+                    "transferEllipse": null,
+                    "ftlDistance": null,
+                    "ftlFuelConsumption": null,
+                    "damage": 0.0007940329101562499,
+                    "cost": null
+                }
+            ],
+            "status": "OK",
+            "eta": {
+                "millis": 24057531
+            },
+            "chargeTime": {
+                "millis": 294531
+            },
+            "stlFuelConsumption": 2279,
+            "ftlFuelConsumption": 71,
+            "ftlFuelType": "FTL",
+            "stlDistance": 99114236.95420225,
+            "ftlDistance": 15.215242355172752,
+            "minReactorUsageFactor": 0.303,
+            "maxReactorUsageFactor": 1,
+            "costs": [],
+            "isUsingReducedFlightTimes": false
+        }
+    }
+]

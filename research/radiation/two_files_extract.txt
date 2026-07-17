@@ -1,0 +1,26 @@
+XG-452a & AM-528a APPROACH EXTRACT (all APPROACH segments) — 2026-07-06T21:09:07.271Z
+Files: XG-452a.jsonl, AM-528a.jsonl
+Distinct APPROACH readings: 20
+
+file       missionId  seg  planet     approachDmg%  appStlFuel  appFtlFuel  missionStlFuel  missionFtlFuel
+----------------------------------------------------------------------------------------------------------
+AM-528a    4d28d408    8  IA-158b       0.2123         47          -            296            669
+AM-528a    4d28d408    8  IA-158b       0.2049        426          -           1441            669
+AM-528a    4d28d408    8  IA-158b       0.2049        847          -           2283            669
+AM-528a    4d28d408   44  AM-528a       0.1623         52          -            296            669
+AM-528a    4d28d408   44  AM-528a       0.1685        430          -           1441            669
+AM-528a    4d28d408   44  AM-528a       0.1685        851          -           2283            669
+AM-528a    5c9da50c    8  IA-158b       0.2122         47          -            296            669
+AM-528a    5c9da50c    8  IA-158b       0.2049        426          -           1438            669
+AM-528a    5c9da50c    8  IA-158b       0.2049        847          -           2280            669
+AM-528a    5c9da50c   44  AM-528a       0.3972         52          -            296            669
+AM-528a    5c9da50c   44  AM-528a       0.4129        430          -           1438            669
+AM-528a    5c9da50c   44  AM-528a       0.4129        851          -           2280            669
+XG-452a    259c8e22   18  XG-452a       0.5748         96          -            202            464
+XG-452a    259c8e22   18  XG-452a       0.5861        876          -           1060            464
+XG-452a    8bf1730a   28  KQ-451a       0.3652         96          -            202            662
+XG-452a    8bf1730a   28  KQ-451a       0.3571        876          -           1063            662
+XG-452a    8bf1730a   28  KQ-451a       0.3571       1742          -           1929            662
+XG-452a    d4dfa0e9   28  KQ-451a       0.3651         96          -            202            662
+XG-452a    d4dfa0e9   28  KQ-451a       0.3571        876          -           1063            662
+XG-452a    d4dfa0e9   28  KQ-451a       0.3571       1742          -           1929            662

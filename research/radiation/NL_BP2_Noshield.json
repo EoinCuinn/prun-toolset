@@ -1,0 +1,1397 @@
+[
+    {
+        "type": "SHIP_FLIGHT_MISSION",
+        "meta": {
+            "responseId": "01d21cb2-7b18-483b-8549-2273942eaab8",
+            "responseStatus": 0
+        },
+        "data": {
+            "missionId": "2ae5f730-5d1b-4d1c-b87a-8b7d9f827fbb",
+            "segments": [
+                {
+                    "type": "TAKE_OFF",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "650681c553159dbb4f408ccb6038ecdd",
+                                    "naturalId": "NL-534a",
+                                    "name": "NL-534a",
+                                    "_type": "planet",
+                                    "_proxy_key": "650681c553159dbb4f408ccb6038ecdd"
+                                },
+                                "type": "PLANET"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783503793183
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "650681c553159dbb4f408ccb6038ecdd",
+                                    "naturalId": "NL-534a",
+                                    "name": "NL-534a",
+                                    "_type": "planet",
+                                    "_proxy_key": "650681c553159dbb4f408ccb6038ecdd"
+                                },
+                                "type": "PLANET"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 7987722.598110814,
+                                    "eccentricity": 0.03998055665313924,
+                                    "inclination": 0.4294718545988518,
+                                    "rightAscension": 5.4795118038032165,
+                                    "periapsis": 0
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783504191183
+                    },
+                    "stlDistance": 6195.834949427854,
+                    "stlFuelConsumption": 45,
+                    "transferEllipse": null,
+                    "ftlDistance": null,
+                    "ftlFuelConsumption": null,
+                    "damage": 0,
+                    "cost": null
+                },
+                {
+                    "type": "TRANSIT",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "650681c553159dbb4f408ccb6038ecdd",
+                                    "naturalId": "NL-534a",
+                                    "name": "NL-534a",
+                                    "_type": "planet",
+                                    "_proxy_key": "650681c553159dbb4f408ccb6038ecdd"
+                                },
+                                "type": "PLANET"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 7987722.598110814,
+                                    "eccentricity": 0.03998055665313924,
+                                    "inclination": 0.4294718545988518,
+                                    "rightAscension": 5.4795118038032165,
+                                    "periapsis": 0
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783504191183
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "2b8505c36e3a8cd3142cec134eee0c08",
+                                    "naturalId": "NL-534b",
+                                    "name": "NL-534b",
+                                    "_type": "planet",
+                                    "_proxy_key": "2b8505c36e3a8cd3142cec134eee0c08"
+                                },
+                                "type": "PLANET"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 7066124.858118691,
+                                    "eccentricity": 0.03998055665313924,
+                                    "inclination": 0.4294718545988518,
+                                    "rightAscension": 5.4795118038032165,
+                                    "periapsis": 0
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783510561183
+                    },
+                    "stlDistance": 796121281.0291476,
+                    "stlFuelConsumption": 3967,
+                    "transferEllipse": {
+                        "startPosition": {
+                            "x": -78245408.07807535,
+                            "y": -295440093.2854686,
+                            "z": 793902.1597700989
+                        },
+                        "targetPosition": {
+                            "x": -428322193.6676044,
+                            "y": 305989239.43638265,
+                            "z": -26087665.699276347
+                        },
+                        "center": {
+                            "x": -66391387.95061436,
+                            "y": 114059914.27387542,
+                            "z": 0
+                        },
+                        "alpha": 4.185254146259452,
+                        "semiMajorAxis": 416009321.28675795,
+                        "semiMinorAxis": 394520309.9452501
+                    },
+                    "ftlDistance": null,
+                    "ftlFuelConsumption": null,
+                    "damage": 0.05919164439382611,
+                    "cost": null
+                },
+                {
+                    "type": "LANDING",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "2b8505c36e3a8cd3142cec134eee0c08",
+                                    "naturalId": "NL-534b",
+                                    "name": "NL-534b",
+                                    "_type": "planet",
+                                    "_proxy_key": "2b8505c36e3a8cd3142cec134eee0c08"
+                                },
+                                "type": "PLANET"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 7066124.858118691,
+                                    "eccentricity": 0.03998055665313924,
+                                    "inclination": 0.4294718545988518,
+                                    "rightAscension": 5.4795118038032165,
+                                    "periapsis": 0
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783510561183
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "2b8505c36e3a8cd3142cec134eee0c08",
+                                    "naturalId": "NL-534b",
+                                    "name": "NL-534b",
+                                    "_type": "planet",
+                                    "_proxy_key": "2b8505c36e3a8cd3142cec134eee0c08"
+                                },
+                                "type": "PLANET"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783510811183
+                    },
+                    "stlDistance": 2435.1700395600756,
+                    "stlFuelConsumption": 29,
+                    "transferEllipse": null,
+                    "ftlDistance": null,
+                    "ftlFuelConsumption": null,
+                    "damage": 0.0007764121532440186,
+                    "cost": null
+                }
+            ],
+            "status": "OK",
+            "eta": {
+                "millis": 7018000
+            },
+            "chargeTime": {
+                "millis": 0
+            },
+            "stlFuelConsumption": 4041,
+            "ftlFuelConsumption": 0,
+            "ftlFuelType": "FTL",
+            "stlDistance": 796129912.0341365,
+            "ftlDistance": 0,
+            "minReactorUsageFactor": 0.303,
+            "maxReactorUsageFactor": 0,
+            "costs": [],
+            "isUsingReducedFlightTimes": false
+        }
+    },
+    {
+        "type": "SHIP_FLIGHT_MISSION",
+        "meta": {
+            "responseId": "f71eddbb-f1e2-4ac8-b92d-4b403ca2c9a0",
+            "responseStatus": 0
+        },
+        "data": {
+            "missionId": "2ae5f730-5d1b-4d1c-b87a-8b7d9f827fbb",
+            "segments": [
+                {
+                    "type": "TAKE_OFF",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "f8bf05334f277ba8349868fb2c796645",
+                                    "naturalId": "NL-534c",
+                                    "name": "NL-534c",
+                                    "_type": "planet",
+                                    "_proxy_key": "f8bf05334f277ba8349868fb2c796645"
+                                },
+                                "type": "PLANET"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783503809486
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "f8bf05334f277ba8349868fb2c796645",
+                                    "naturalId": "NL-534c",
+                                    "name": "NL-534c",
+                                    "_type": "planet",
+                                    "_proxy_key": "f8bf05334f277ba8349868fb2c796645"
+                                },
+                                "type": "PLANET"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 6708539.654025387,
+                                    "eccentricity": 0.03998055665313924,
+                                    "inclination": 0.4294718545988518,
+                                    "rightAscension": 5.4795118038032165,
+                                    "periapsis": 0
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783504181486
+                    },
+                    "stlDistance": 5401.704475958139,
+                    "stlFuelConsumption": 42,
+                    "transferEllipse": null,
+                    "ftlDistance": null,
+                    "ftlFuelConsumption": null,
+                    "damage": 0,
+                    "cost": null
+                },
+                {
+                    "type": "TRANSIT",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "f8bf05334f277ba8349868fb2c796645",
+                                    "naturalId": "NL-534c",
+                                    "name": "NL-534c",
+                                    "_type": "planet",
+                                    "_proxy_key": "f8bf05334f277ba8349868fb2c796645"
+                                },
+                                "type": "PLANET"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 6708539.654025387,
+                                    "eccentricity": 0.03998055665313924,
+                                    "inclination": 0.4294718545988518,
+                                    "rightAscension": 5.4795118038032165,
+                                    "periapsis": 0
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783504181486
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "35ca87260705d86974373aa5810be1f6",
+                                    "naturalId": "NL-534d",
+                                    "name": "NL-534d",
+                                    "_type": "planet",
+                                    "_proxy_key": "35ca87260705d86974373aa5810be1f6"
+                                },
+                                "type": "PLANET"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 14571428.653633215,
+                                    "eccentricity": 0.03998055665313924,
+                                    "inclination": 0.4294718545988518,
+                                    "rightAscension": 5.4795118038032165,
+                                    "periapsis": 0
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783515158486
+                    },
+                    "stlDistance": 2364298328.2663155,
+                    "stlFuelConsumption": 3958,
+                    "transferEllipse": {
+                        "startPosition": {
+                            "x": 773332825.9939176,
+                            "y": -495507478.5322818,
+                            "z": -38013619.46795506
+                        },
+                        "targetPosition": {
+                            "x": -1243310672.0816097,
+                            "y": -1349587415.36792,
+                            "z": -51435619.474926196
+                        },
+                        "center": {
+                            "x": -530541352.60248995,
+                            "y": -224692527.63408256,
+                            "z": 0
+                        },
+                        "alpha": 2.740979996445514,
+                        "semiMajorAxis": 1376728325.9615848,
+                        "semiMinorAxis": 1250367955.7270792
+                    },
+                    "ftlDistance": null,
+                    "ftlFuelConsumption": null,
+                    "damage": 0.04249376215421839,
+                    "cost": null
+                },
+                {
+                    "type": "LANDING",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "35ca87260705d86974373aa5810be1f6",
+                                    "naturalId": "NL-534d",
+                                    "name": "NL-534d",
+                                    "_type": "planet",
+                                    "_proxy_key": "35ca87260705d86974373aa5810be1f6"
+                                },
+                                "type": "PLANET"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 14571428.653633215,
+                                    "eccentricity": 0.03998055665313924,
+                                    "inclination": 0.4294718545988518,
+                                    "rightAscension": 5.4795118038032165,
+                                    "periapsis": 0
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783515158486
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "35ca87260705d86974373aa5810be1f6",
+                                    "naturalId": "NL-534d",
+                                    "name": "NL-534d",
+                                    "_type": "planet",
+                                    "_proxy_key": "35ca87260705d86974373aa5810be1f6"
+                                },
+                                "type": "PLANET"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783515562486
+                    },
+                    "stlDistance": 6385.580977653789,
+                    "stlFuelConsumption": 46,
+                    "transferEllipse": null,
+                    "ftlDistance": null,
+                    "ftlFuelConsumption": null,
+                    "damage": 0.00037418145141601564,
+                    "cost": null
+                }
+            ],
+            "status": "OK",
+            "eta": {
+                "millis": 11753000
+            },
+            "chargeTime": {
+                "millis": 0
+            },
+            "stlFuelConsumption": 4046,
+            "ftlFuelConsumption": 0,
+            "ftlFuelType": "FTL",
+            "stlDistance": 2364310115.551769,
+            "ftlDistance": 0,
+            "minReactorUsageFactor": 0.303,
+            "maxReactorUsageFactor": 0,
+            "costs": [],
+            "isUsingReducedFlightTimes": false
+        }
+    },
+    {
+        "type": "SHIP_FLIGHT_MISSION",
+        "meta": {
+            "responseId": "ac7df449-9e3c-47d5-bde6-014ffc918228",
+            "responseStatus": 0
+        },
+        "data": {
+            "missionId": "2ae5f730-5d1b-4d1c-b87a-8b7d9f827fbb",
+            "segments": [
+                {
+                    "type": "TAKE_OFF",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "e188b9967864eb0f441eb7a00911f1cd",
+                                    "naturalId": "NL-534e",
+                                    "name": "NL-534e",
+                                    "_type": "planet",
+                                    "_proxy_key": "e188b9967864eb0f441eb7a00911f1cd"
+                                },
+                                "type": "PLANET"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783503822199
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "e188b9967864eb0f441eb7a00911f1cd",
+                                    "naturalId": "NL-534e",
+                                    "name": "NL-534e",
+                                    "_type": "planet",
+                                    "_proxy_key": "e188b9967864eb0f441eb7a00911f1cd"
+                                },
+                                "type": "PLANET"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 9893604.050531033,
+                                    "eccentricity": 0.03998055665313924,
+                                    "inclination": 0.4294718545988518,
+                                    "rightAscension": 5.4795118038032165,
+                                    "periapsis": 0
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783504246199
+                    },
+                    "stlDistance": 7026.896155682694,
+                    "stlFuelConsumption": 48,
+                    "transferEllipse": null,
+                    "ftlDistance": null,
+                    "ftlFuelConsumption": null,
+                    "damage": 0,
+                    "cost": null
+                },
+                {
+                    "type": "TRANSIT",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "e188b9967864eb0f441eb7a00911f1cd",
+                                    "naturalId": "NL-534e",
+                                    "name": "NL-534e",
+                                    "_type": "planet",
+                                    "_proxy_key": "e188b9967864eb0f441eb7a00911f1cd"
+                                },
+                                "type": "PLANET"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 9893604.050531033,
+                                    "eccentricity": 0.03998055665313924,
+                                    "inclination": 0.4294718545988518,
+                                    "rightAscension": 5.4795118038032165,
+                                    "periapsis": 0
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783504246199
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "8d60661ab39797c6a8b523df950d57ea",
+                                    "naturalId": "NL-534f",
+                                    "name": "NL-534f",
+                                    "_type": "planet",
+                                    "_proxy_key": "8d60661ab39797c6a8b523df950d57ea"
+                                },
+                                "type": "PLANET"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 30772157.123090334,
+                                    "eccentricity": 0.03998055665313924,
+                                    "inclination": 0.4294718545988518,
+                                    "rightAscension": 5.4795118038032165,
+                                    "periapsis": 0
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783524067199
+                    },
+                    "stlDistance": 7385767627.964033,
+                    "stlFuelConsumption": 3941,
+                    "transferEllipse": {
+                        "startPosition": {
+                            "x": -2995971112.072267,
+                            "y": -1821026659.1727214,
+                            "z": -57256349.105297744
+                        },
+                        "targetPosition": {
+                            "x": 2123314107.8687406,
+                            "y": -6397409259.361626,
+                            "z": -77739395.5295302
+                        },
+                        "center": {
+                            "x": 1799245523.335813,
+                            "y": -1608434684.2774038,
+                            "z": 0
+                        },
+                        "alpha": 0.7294622242612407,
+                        "semiMajorAxis": 5123281972.1105795,
+                        "semiMinorAxis": 4519255644.342634
+                    },
+                    "ftlDistance": null,
+                    "ftlFuelConsumption": null,
+                    "damage": 0.09190944118626754,
+                    "cost": null
+                },
+                {
+                    "type": "LANDING",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "8d60661ab39797c6a8b523df950d57ea",
+                                    "naturalId": "NL-534f",
+                                    "name": "NL-534f",
+                                    "_type": "planet",
+                                    "_proxy_key": "8d60661ab39797c6a8b523df950d57ea"
+                                },
+                                "type": "PLANET"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 30772157.123090334,
+                                    "eccentricity": 0.03998055665313924,
+                                    "inclination": 0.4294718545988518,
+                                    "rightAscension": 5.4795118038032165,
+                                    "periapsis": 0
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783524067199
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "8d60661ab39797c6a8b523df950d57ea",
+                                    "naturalId": "NL-534f",
+                                    "name": "NL-534f",
+                                    "_type": "planet",
+                                    "_proxy_key": "8d60661ab39797c6a8b523df950d57ea"
+                                },
+                                "type": "PLANET"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783524702199
+                    },
+                    "stlDistance": 15779.73268111981,
+                    "stlFuelConsumption": 72,
+                    "transferEllipse": null,
+                    "ftlDistance": null,
+                    "ftlFuelConsumption": null,
+                    "damage": 0.00028538783097267154,
+                    "cost": null
+                }
+            ],
+            "status": "OK",
+            "eta": {
+                "millis": 20880000
+            },
+            "chargeTime": {
+                "millis": 0
+            },
+            "stlFuelConsumption": 4061,
+            "ftlFuelConsumption": 0,
+            "ftlFuelType": "FTL",
+            "stlDistance": 7385790434.59287,
+            "ftlDistance": 0,
+            "minReactorUsageFactor": 0.303,
+            "maxReactorUsageFactor": 0,
+            "costs": [],
+            "isUsingReducedFlightTimes": false
+        }
+    },
+    {
+        "type": "SHIP_FLIGHT_MISSION",
+        "meta": {
+            "responseId": "7596cff3-476f-42d8-9798-876a61c4bf71",
+            "responseStatus": 0
+        },
+        "data": {
+            "missionId": "2ae5f730-5d1b-4d1c-b87a-8b7d9f827fbb",
+            "segments": [
+                {
+                    "type": "TAKE_OFF",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "240256ea75a5b3e2b440962ae3ee281e",
+                                    "naturalId": "NL-534g",
+                                    "name": "NL-534g",
+                                    "_type": "planet",
+                                    "_proxy_key": "240256ea75a5b3e2b440962ae3ee281e"
+                                },
+                                "type": "PLANET"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783503841543
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "240256ea75a5b3e2b440962ae3ee281e",
+                                    "naturalId": "NL-534g",
+                                    "name": "NL-534g",
+                                    "_type": "planet",
+                                    "_proxy_key": "240256ea75a5b3e2b440962ae3ee281e"
+                                },
+                                "type": "PLANET"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 78533751.81359567,
+                                    "eccentricity": 0.03998055665313924,
+                                    "inclination": 0.4294718545988518,
+                                    "rightAscension": 5.4795118038032165,
+                                    "periapsis": 0
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783504849543
+                    },
+                    "stlDistance": 39823.35479280091,
+                    "stlFuelConsumption": 114,
+                    "transferEllipse": null,
+                    "ftlDistance": null,
+                    "ftlFuelConsumption": null,
+                    "damage": 0,
+                    "cost": null
+                },
+                {
+                    "type": "TRANSIT",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "240256ea75a5b3e2b440962ae3ee281e",
+                                    "naturalId": "NL-534g",
+                                    "name": "NL-534g",
+                                    "_type": "planet",
+                                    "_proxy_key": "240256ea75a5b3e2b440962ae3ee281e"
+                                },
+                                "type": "PLANET"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 78533751.81359567,
+                                    "eccentricity": 0.03998055665313924,
+                                    "inclination": 0.4294718545988518,
+                                    "rightAscension": 5.4795118038032165,
+                                    "periapsis": 0
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783504849543
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "0486c8cfb0cedc6aa905f8540a71bb0e",
+                                    "naturalId": "NL-534h",
+                                    "name": "NL-534h",
+                                    "_type": "planet",
+                                    "_proxy_key": "0486c8cfb0cedc6aa905f8540a71bb0e"
+                                },
+                                "type": "PLANET"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 63659661.952476315,
+                                    "eccentricity": 0.03998055665313924,
+                                    "inclination": 0.4294718545988518,
+                                    "rightAscension": 5.4795118038032165,
+                                    "periapsis": 0
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783577289543
+                    },
+                    "stlDistance": 39515927245.55603,
+                    "stlFuelConsumption": 3894,
+                    "transferEllipse": {
+                        "startPosition": {
+                            "x": -5509496070.529537,
+                            "y": 11375504797.25762,
+                            "z": 194254349.11079398
+                        },
+                        "targetPosition": {
+                            "x": 34554028809.09299,
+                            "y": 14924181369.139458,
+                            "z": -1943887024.2246728
+                        },
+                        "center": {
+                            "x": 15564911661.844679,
+                            "y": 1378681419.6644154,
+                            "z": 0
+                        },
+                        "alpha": 6.194839627416679,
+                        "semiMajorAxis": 25139362054.143257,
+                        "semiMinorAxis": 19693153302.38765
+                    },
+                    "ftlDistance": null,
+                    "ftlFuelConsumption": null,
+                    "damage": 0.47578310323878376,
+                    "cost": null
+                },
+                {
+                    "type": "LANDING",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "0486c8cfb0cedc6aa905f8540a71bb0e",
+                                    "naturalId": "NL-534h",
+                                    "name": "NL-534h",
+                                    "_type": "planet",
+                                    "_proxy_key": "0486c8cfb0cedc6aa905f8540a71bb0e"
+                                },
+                                "type": "PLANET"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 63659661.952476315,
+                                    "eccentricity": 0.03998055665313924,
+                                    "inclination": 0.4294718545988518,
+                                    "rightAscension": 5.4795118038032165,
+                                    "periapsis": 0
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783577289543
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "0486c8cfb0cedc6aa905f8540a71bb0e",
+                                    "naturalId": "NL-534h",
+                                    "name": "NL-534h",
+                                    "_type": "planet",
+                                    "_proxy_key": "0486c8cfb0cedc6aa905f8540a71bb0e"
+                                },
+                                "type": "PLANET"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783578173543
+                    },
+                    "stlDistance": 30630.40974629796,
+                    "stlFuelConsumption": 100,
+                    "transferEllipse": null,
+                    "ftlDistance": null,
+                    "ftlFuelConsumption": null,
+                    "damage": 0.0005297836053848267,
+                    "cost": null
+                }
+            ],
+            "status": "OK",
+            "eta": {
+                "millis": 74332000
+            },
+            "chargeTime": {
+                "millis": 0
+            },
+            "stlFuelConsumption": 4108,
+            "ftlFuelConsumption": 0,
+            "ftlFuelType": "FTL",
+            "stlDistance": 39515997699.320564,
+            "ftlDistance": 0,
+            "minReactorUsageFactor": 0.303,
+            "maxReactorUsageFactor": 0,
+            "costs": [],
+            "isUsingReducedFlightTimes": false
+        }
+    },
+    {
+        "type": "SHIP_FLIGHT_MISSION",
+        "meta": {
+            "responseId": "dccd7d7c-3d79-410e-8a6c-4881c78bb372",
+            "responseStatus": 0
+        },
+        "data": {
+            "missionId": "2ae5f730-5d1b-4d1c-b87a-8b7d9f827fbb",
+            "segments": [
+                {
+                    "type": "TAKE_OFF",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "650681c553159dbb4f408ccb6038ecdd",
+                                    "naturalId": "NL-534a",
+                                    "name": "NL-534a",
+                                    "_type": "planet",
+                                    "_proxy_key": "650681c553159dbb4f408ccb6038ecdd"
+                                },
+                                "type": "PLANET"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783503854078
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "650681c553159dbb4f408ccb6038ecdd",
+                                    "naturalId": "NL-534a",
+                                    "name": "NL-534a",
+                                    "_type": "planet",
+                                    "_proxy_key": "650681c553159dbb4f408ccb6038ecdd"
+                                },
+                                "type": "PLANET"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 7987722.598110814,
+                                    "eccentricity": 0.03998055665313924,
+                                    "inclination": 0.4294718545988518,
+                                    "rightAscension": 5.4795118038032165,
+                                    "periapsis": 0
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783504252078
+                    },
+                    "stlDistance": 6195.834949427854,
+                    "stlFuelConsumption": 45,
+                    "transferEllipse": null,
+                    "ftlDistance": null,
+                    "ftlFuelConsumption": null,
+                    "damage": 0,
+                    "cost": null
+                },
+                {
+                    "type": "TRANSIT",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "650681c553159dbb4f408ccb6038ecdd",
+                                    "naturalId": "NL-534a",
+                                    "name": "NL-534a",
+                                    "_type": "planet",
+                                    "_proxy_key": "650681c553159dbb4f408ccb6038ecdd"
+                                },
+                                "type": "PLANET"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 7987722.598110814,
+                                    "eccentricity": 0.03998055665313924,
+                                    "inclination": 0.4294718545988518,
+                                    "rightAscension": 5.4795118038032165,
+                                    "periapsis": 0
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783504252078
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "0486c8cfb0cedc6aa905f8540a71bb0e",
+                                    "naturalId": "NL-534h",
+                                    "name": "NL-534h",
+                                    "_type": "planet",
+                                    "_proxy_key": "0486c8cfb0cedc6aa905f8540a71bb0e"
+                                },
+                                "type": "PLANET"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 63659661.952476315,
+                                    "eccentricity": 0.03998055665313924,
+                                    "inclination": 0.4294718545988518,
+                                    "rightAscension": 5.4795118038032165,
+                                    "periapsis": 0
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783575030078
+                    },
+                    "stlDistance": 38794151179.98675,
+                    "stlFuelConsumption": 3928,
+                    "transferEllipse": {
+                        "startPosition": {
+                            "x": -78321934.15500349,
+                            "y": -295425759.01982504,
+                            "z": 790677.086249989
+                        },
+                        "targetPosition": {
+                            "x": 34553930573.828476,
+                            "y": 14924403531.467476,
+                            "z": -1943881497.8573408
+                        },
+                        "center": {
+                            "x": 17141667487.68184,
+                            "y": 7533245285.061156,
+                            "z": 0
+                        },
+                        "alpha": 5.8691227167986275,
+                        "semiMajorAxis": 18972432842.52644,
+                        "semiMinorAxis": 3060499825.360404
+                    },
+                    "ftlDistance": null,
+                    "ftlFuelConsumption": null,
+                    "damage": 0.5096288237789643,
+                    "cost": null
+                },
+                {
+                    "type": "LANDING",
+                    "origin": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "0486c8cfb0cedc6aa905f8540a71bb0e",
+                                    "naturalId": "NL-534h",
+                                    "name": "NL-534h",
+                                    "_type": "planet",
+                                    "_proxy_key": "0486c8cfb0cedc6aa905f8540a71bb0e"
+                                },
+                                "type": "PLANET"
+                            },
+                            {
+                                "orbit": {
+                                    "semiMajorAxis": 63659661.952476315,
+                                    "eccentricity": 0.03998055665313924,
+                                    "inclination": 0.4294718545988518,
+                                    "rightAscension": 5.4795118038032165,
+                                    "periapsis": 0
+                                },
+                                "type": "ORBIT"
+                            }
+                        ]
+                    },
+                    "departure": {
+                        "timestamp": 1783575030078
+                    },
+                    "destination": {
+                        "lines": [
+                            {
+                                "entity": {
+                                    "id": "336a6352e70511bb49ce96e9efa226c3",
+                                    "naturalId": "NL-534",
+                                    "name": "NL-534",
+                                    "_type": "system",
+                                    "_proxy_key": "336a6352e70511bb49ce96e9efa226c3"
+                                },
+                                "type": "SYSTEM"
+                            },
+                            {
+                                "entity": {
+                                    "id": "0486c8cfb0cedc6aa905f8540a71bb0e",
+                                    "naturalId": "NL-534h",
+                                    "name": "NL-534h",
+                                    "_type": "planet",
+                                    "_proxy_key": "0486c8cfb0cedc6aa905f8540a71bb0e"
+                                },
+                                "type": "PLANET"
+                            }
+                        ]
+                    },
+                    "arrival": {
+                        "timestamp": 1783575914078
+                    },
+                    "stlDistance": 30630.40974629796,
+                    "stlFuelConsumption": 100,
+                    "transferEllipse": null,
+                    "ftlDistance": null,
+                    "ftlFuelConsumption": null,
+                    "damage": 0.0005297836053848267,
+                    "cost": null
+                }
+            ],
+            "status": "OK",
+            "eta": {
+                "millis": 72060000
+            },
+            "chargeTime": {
+                "millis": 0
+            },
+            "stlFuelConsumption": 4073,
+            "ftlFuelConsumption": 0,
+            "ftlFuelType": "FTL",
+            "stlDistance": 38794188006.23144,
+            "ftlDistance": 0,
+            "minReactorUsageFactor": 0.303,
+            "maxReactorUsageFactor": 0,
+            "costs": [],
+            "isUsingReducedFlightTimes": false
+        }
+    }
+]
