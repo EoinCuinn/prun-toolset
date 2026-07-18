@@ -366,37 +366,6 @@ const G0 = 9.80665;  // m/s² — G-cap factor
 const STL_UNIT_MASS = 0.06;
 const FTL_UNIT_MASS = 0.05;
 
-// ── Empty-mass ground truth (BLUEPRINT_BLUEPRINTS, 87 blueprints, 2026-07-18) ─────────
-// operatingEmptyMass == Σ(per-unit BOM weight × count) over the FULL bill of material,
-// EXACTLY — 0 residual across all 87 pooled blueprints (R²=1.000). NO baseline term, NO
-// hull offset. BOM_WEIGHT is the authoritative per-unit weight for every component ticker
-// (cross-checked identical across both capture files). It supersedes the scattered fitted
-// `mass` fields for empty-mass math — those bundle volume-scaling structural mass and are
-// kept only for selector labels / thrust / flow / capacity.
-const BOM_WEIGHT = {
-  AEN:14, AGS:30, AHP:10, APT:0.03, ARP:0.04, AWH:0.12, BGS:20, BHP:9, BPT:0.02, BR1:180,
-  BR2:280, BRP:0.03, BRS:150, BWH:0.1, CQL:75, CQM:50, CQS:25, CQT:12.5, ENG:8, FFC:50,
-  FSE:6, GEN:5, HAM:1200, HCB:500, HHP:10, HPR:16, HTE:16, HYR:25, LCB:200, LFE:0.4,
-  LFL:60, LHP:4, LSL:125, MCB:100, MFE:0.2, MFL:24, MSL:50, QCR:14, RCT:7, RDL:150, RDS:50,
-  RHP:10, SCB:50, SFE:0.1, SFL:9, SRP:0.1, SSC:1, SSL:20, STS:0.1, TCB:20, VCB:200,
-  VFT:1000, VOE:40, VSC:35, WCB:200,
-};
-// Empty mass = Σ(BOM per-unit weight × count). bom: [{ticker, qty}]. Exact sum, no baseline.
-function bomEmptyMass(bom) {
-  let m = 0;
-  for (const { ticker, qty } of bom) m += (BOM_WEIGHT[ticker] || 0) * qty;
-  return m;
-}
-// Structural fittings NOT exposed as hypo selectors. FTL-capable ships (reactor present)
-// carry an FTL field controller + field emitters; every ship carries a command bridge +
-// crew quarters. These are ASSUMED (Base Hopper profile) for the hypothetical rebuild — the
-// dominant structural mass (hull plates + SSC) is reconstructed from totalVolume via
-// STRUCT_COUNT. Validated: real totalVolume + this fitting set reproduces OEM to 3.4% mean
-// (77/87 within 5%); the floor with each ship's real fittings is 0.16%.
-const STD_FITTINGS_FTL = [{ticker:'FFC',qty:1},{ticker:'BR1',qty:1},{ticker:'CQM',qty:1},
-  {ticker:'SFE',qty:1},{ticker:'MFE',qty:2},{ticker:'LFE',qty:2}];
-const STD_FITTINGS_STL = [{ticker:'BR1',qty:1},{ticker:'CQM',qty:1}];
-
 // ── Orbital ephemeris ────────────────────────────────────────────────────────
 
 function worldTime(unixT) {
@@ -1355,8 +1324,6 @@ function buildComponentSelectors() {
     row('ftlTkSel',  'FTL tank','ftlTank',   true,  true ) +
     row('cargoSel',  'Cargo',   'cargo',     true,  true ) +
     row('seatSel',   'Seats',   'seat',      true,  false) +
-    `<div class="comp-row"><span class="comp-lbl" title="Game-computed hull envelope volume (BLUEPRINT_BLUEPRINTS performance.totalVolume). Drives hull-plate + SSC counts, which dominate empty mass. It is NOT derivable from the loadout, so enter it from your blueprint; the default is a 2t Base Hopper.">totalVolume</span>
-      <input id="hypoVol" class="comp-qty" style="width:80px" type="number" min="0" step="1" value="2664" oninput="rebuildHypo()"><span></span></div>` +
     `<div class="comp-lbl" style="margin-top:6px">Damage / repair</div><div class="comp-dmg">${dmg}</div>`;
   // Sensible defaults: basic hull + standard engine
   document.getElementById('hullSel').value = 'BHP';
@@ -1373,32 +1340,17 @@ function rebuildHypo() {
   const engQty = qty('engSelQty');
   if (!hull || !eng) { _currentShip = null; document.getElementById('hypoMeta').innerHTML = 'Select at least a hull and engine.'; updateFuelSlider(); onLoadoutChange(); return; }
 
-  const reactor = C.ftlReactor[val('reactorSel')];
+  let mass = hull.mass;
+  mass += eng.mass * engQty;
+  const add = (cat, sel, q) => { const c = C[cat][val(sel)]; if (c) mass += c.mass * q; };
+  add('stlTank',   'stlTkSel',  qty('stlTkSelQty'));
+  add('ftlTank',   'ftlTkSel',  qty('ftlTkSelQty'));
+  add('cargo',     'cargoSel',  qty('cargoSelQty'));
   const seat = C.seat[val('seatSel')];
+  if (seat) mass += seat.mass;
+  document.querySelectorAll('.dmg-cb:checked').forEach(cb => { mass += C.damage[cb.value].mass; });
 
-  // Empty mass = Σ(per-unit BOM weight × count) over the FULL bill of material — exact, no
-  // baseline, no hull offset (ground truth: 0 residual over 87 blueprints; see BOM_WEIGHT).
-  // Structural plates + SSC dominate and scale with the game-computed totalVolume, which is
-  // NOT derivable from a loadout: it comes from the `hypoVol` input. Non-selectable fittings
-  // (FFC/bridge/quarters/emitters) use the standard set. Everything the UI exposes is summed
-  // at its true per-unit weight — cargo now 200t (LCB), not the old fitted 1456.2t.
-  const V = qty('hypoVol');
-  const bom = [];
-  if (V > 0) {
-    bom.push({ ticker: val('hullSel'), qty: STRUCT_COUNT.plate(V) });   // hull plates
-    bom.push({ ticker: 'SSC',          qty: STRUCT_COUNT.ssc(V)   });   // structural components
-    for (const f of (reactor ? STD_FITTINGS_FTL : STD_FITTINGS_STL)) bom.push(f);
-  }
-  bom.push({ ticker: val('engSel'), qty: engQty });
-  const pushSel = (sel, q) => { const t = val(sel); if (t) bom.push({ ticker: t, qty: q }); };
-  pushSel('stlTkSel', qty('stlTkSelQty'));
-  pushSel('ftlTkSel', qty('ftlTkSelQty'));
-  pushSel('cargoSel', qty('cargoSelQty'));
-  if (reactor) bom.push({ ticker: val('reactorSel'), qty: 1 });
-  if (seat)    bom.push({ ticker: val('seatSel'),    qty: 1 });
-  document.querySelectorAll('.dmg-cb:checked').forEach(cb => bom.push({ ticker: cb.value, qty: 1 }));
-  const mass = bomEmptyMass(bom);
-
+  const reactor = C.ftlReactor[val('reactorSel')];
   const cargoC = C.cargo[val('cargoSel')];
   const cargoCap = cargoC ? cargoC.capT * qty('cargoSelQty') : 0;
 
