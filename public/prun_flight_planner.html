@@ -309,10 +309,10 @@ const COMPONENT_DATA = {
   ftlTank:  { SFL: { name: 'smallFtlTank', mass: 9 }, MFL: { name: 'mediumFtlTank', mass: 24 }, LFL: { name: 'largeFtlTank', mass: 60 } },
   cargo: {  // `mass` = FITTED aggregate (bundles structural, used by rebuildHypo today); `bomWeight` =
             // true BOM per-unit (ground truth 2026-07-15). capT = tonnes ceiling, capM3 = volume ceiling.
-    TCB: { name: 'tinyCargoBay',      mass: 630,    capT: 100,  capM3: 100  }, // bomWeight n/a (not in dataset)
-    VSC: { name: 'verySmallCargoBay', mass: 707.1,  capT: 250,  capM3: 250  }, // bomWeight n/a (not in dataset)
+    TCB: { name: 'tinyCargoBay',      mass: 630,    bomWeight: 20,  capT: 100,  capM3: 100  },
+    VSC: { name: 'verySmallCargoBay', mass: 707.1,  bomWeight: 35,  capT: 250,  capM3: 250  },
     SCB: { name: 'smallCargoBay',     mass: 827.8,  bomWeight: 50,  capT: 500,  capM3: 500  },
-    MCB: { name: 'mediumCargoBay',    mass: 1046.8, capT: 1000, capM3: 1000 }, // bomWeight n/a (not in dataset)
+    MCB: { name: 'mediumCargoBay',    mass: 1046.8, bomWeight: 100, capT: 1000, capM3: 1000 },
     LCB: { name: 'largeCargoBay',     mass: 1456.2, bomWeight: 200, capT: 2000, capM3: 2000 },
     HCB: { name: 'hugeCargoBay',      mass: 2517.4, bomWeight: 500, capT: 5000, capM3: 5000 },
     VCB: { name: 'highVolumeCargoBay',mass: 1747.6, bomWeight: 200, capT: 1000, capM3: 3000 },
@@ -339,6 +339,8 @@ const COMPONENT_DATA = {
     SSC: { name: 'structuralSpacecraftComponent', mass: 1    }, // count = STRUCT_COUNT.ssc(totalVolume)
     BR1: { name: 'commandBridge1',            mass: 180  },
     BR2: { name: 'commandBridge2',            mass: 280  },
+    BRS: { name: 'commandBridgeShort',        mass: 150  },
+    CQT: { name: 'crewQuartersTiny',          mass: 12.5 },
     CQS: { name: 'crewQuartersSmall',         mass: 25   },
     CQM: { name: 'crewQuartersMed',           mass: 50   },
     CQL: { name: 'crewQuarters',              mass: 75   },
@@ -358,6 +360,88 @@ const STRUCT_COUNT = {
   plate: v => Math.round(0.535 * Math.pow(v, 0.655)), // hull plates of the chosen type
   ssc:   v => Math.round(0.0478 * v),                 // structuralSpacecraftComponent (weight 1 each)
 };
+// ── totalVolume formula + full empty-mass chain ───────────────────────────
+// Derived from the 87 captured blueprints (prun-openmass). totalVolume is ADDITIVE over the five
+// volume-driving fields; every delta below was measured from CLEAN one-field-change pairs (the other
+// four fields held fixed) — a regression over these fields is confounded and gives wrong signs.
+//   totalVolume = 438 + 1.05 x cargo_capM3 + engineD + stlTankD + reactorD + ftlTankD
+// Validated: 86/87 blueprints within 0.5% (79 exact). The single miss is the vortex-drive ship,
+// whose drive is not one of the 12 selectable fields.
+const VOL_BASE  = 438;   // fixed hull/bridge/FFC/emitter baseline of a minimal FTL ship
+const VOL_CARGO = 1.05;  // per m3 of cargo VOLUME capacity (capM3), incl. structure feedback
+const VOL_DELTA = {
+  engine:  { ENG: 0, AEN: 3, GEN: -1, FSE: -1, HTE: 7 },
+  stlTank: { SSL: 0, MSL: 126, LSL: 410 },
+  reactor: { RCT: 0, QCR: 7, HPR: 117, HYR: 127 },
+  ftlTank: { SFL: 0, MFL: 6, LFL: 18 },
+};
+const VOL_NONE = { reactor: -126, ftlTank: -3 };  // slot left empty
+// s = { engine, stlTank, reactor, ftlTank, cargo, hull, seat, drone, heat, whipple, radiation,
+//       stability } as tickers, or '' / null when that slot is empty.
+function computeTotalVolume(s) {
+  const bay = s.cargo ? COMPONENT_DATA.cargo[s.cargo] : null;
+  const capM3 = bay ? (bay.capM3 || 0) : 0;   // capacity read from COMPONENT_DATA, never hardcoded
+  let v = VOL_BASE + VOL_CARGO * capM3;
+  v += VOL_DELTA.engine[s.engine]   || 0;
+  v += VOL_DELTA.stlTank[s.stlTank] || 0;
+  v += s.reactor ? (VOL_DELTA.reactor[s.reactor] || 0) : VOL_NONE.reactor;
+  v += s.ftlTank ? (VOL_DELTA.ftlTank[s.ftlTank] || 0) : VOL_NONE.ftlTank;
+  return v;
+}
+// Auto-assigned parts the game adds. Bridge follows the FTL reactor tier (measured: no reactor -> BRS,
+// Standard/QuickCharge -> BR1, HighPower/HyperPower -> BR2). Crew quarters follow a totalVolume
+// threshold band; the real cutoffs sit in unsampled gaps so these are gap midpoints.
+function autoBridge(s)   { if (!s.reactor) return 'BRS'; return (s.reactor === 'HPR' || s.reactor === 'HYR') ? 'BR2' : 'BR1'; }
+function autoQuarters(v) { return v < 900 ? 'CQT' : v < 2075 ? 'CQS' : v < 2740 ? 'CQM' : 'CQL'; }
+const AUTO_EMITTER_MASS = 1.5;  // nominal FTL field-emitter set (real sets range ~0.5-2.8 t)
+// Full chain: selections -> totalVolume -> plate & SSC counts -> sum(part weight x count).
+// Returns the mass plus the intermediates so the UI can show them.
+function computeEmptyMass(s) {
+  const C = COMPONENT_DATA;
+  const v  = computeTotalVolume(s);
+  const pc = STRUCT_COUNT.plate(v);
+  const sc = STRUCT_COUNT.ssc(v);
+  const hullPlate = C.hull[s.hull];
+  let mass = pc * ((hullPlate && hullPlate.bomWeight) || 0) + sc * C.structural.SSC.mass;
+  const add = (cat, t, n) => {
+    const c = t && C[cat] && C[cat][t];
+    if (c) mass += (c.bomWeight != null ? c.bomWeight : c.mass) * (n || 1);
+  };
+  add('engine',     s.engine);
+  add('stlTank',    s.stlTank);
+  add('ftlReactor', s.reactor);
+  add('ftlTank',    s.ftlTank);
+  add('cargo',      s.cargo);
+  add('seat',       s.seat);
+  add('damage',     s.drone);
+  add('damage',     s.stability);
+  // heat/whipple/radiation shielding coats EVERY hull plate, so its count == plate count
+  add('damage', s.heat,      pc);
+  add('damage', s.whipple,   pc);
+  add('damage', s.radiation, pc);
+  // auto-assigned structural fittings
+  const brg = autoBridge(s), qtr = autoQuarters(v);
+  mass += C.structural[brg].mass;
+  mass += C.structural[qtr].mass;
+  if (s.reactor) mass += C.structural.FFC.mass + AUTO_EMITTER_MASS;  // FTL controller + emitters
+  return { mass: mass, totalVolume: v, plateCount: pc, sscCount: sc, bridge: brg, quarters: qtr };
+}
+// Read the 12 user selections out of the hypo UI (7 dropdowns + damage/repair checkboxes).
+function hypoSelections() {
+  const gv = id => document.getElementById(id)?.value || '';
+  const checked = new Set([...document.querySelectorAll('.dmg-cb:checked')].map(cb => cb.value));
+  const pick = arr => arr.find(t => checked.has(t)) || '';
+  return {
+    engine:  gv('engSel'),   stlTank: gv('stlTkSel'), reactor: gv('reactorSel'),
+    ftlTank: gv('ftlTkSel'), cargo:   gv('cargoSel'), hull:    gv('hullSel'),
+    seat:    gv('seatSel'),
+    heat:      pick(['BPT','APT']),
+    whipple:   pick(['BWH','AWH']),
+    stability: pick(['STS']),
+    radiation: pick(['BRP','ARP','SRP']),
+    drone:     pick(['RDS','RDL']),
+  };
+}
 // FTL reactor ticker → ReactorPower (keys of FTL_REACTORS). From spec §3 reactor comments.
 const REACTOR_POWER = { QCR: 2000, RCT: 2400, HPR: 4800, HYR: 7200 };
 const G0 = 9.80665;  // m/s² — G-cap factor
@@ -1304,6 +1388,35 @@ function setMode(mode) {
 
 // ── Hypothetical build ─────────────────────────────────────────────────────────
 
+// ── Empty-mass lookup (12 user selections → operatingEmptyMass) ─────────────────
+// Built from 87 captured blueprints → 61 distinct 12-selection combos (prun-openmass/
+// build_lookup.js). Key = ticker per field, or NONE, in this exact order:
+//   engine|stlTank|reactor|ftlTank|cargo|hull|heat|whipple|stability|radiation|drone|seats
+// Value = { m: operatingEmptyMass, bp: representative blueprint, n: #blueprints sharing it }.
+// Exact reproduction of captured empty mass — no interpolation; a loadout not among the 61
+// combos returns no match (the UI says so). Component quantities are ignored (presence only).
+const LOOKUP_MASS = {"ENG|MSL|RCT|SFL|LCB|RHP|NONE|NONE|STS|NONE|RDS|BGS":{"m":1682.4,"bp":"BP-EBKR-1418","n":3},"FSE|MSL|QCR|LFL|HCB|LHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":1843.5,"bp":"BP-WIYN-8444","n":4},"GEN|MSL|RCT|SFL|LCB|RHP|NONE|NONE|STS|NONE|RDS|BGS":{"m":1679.4,"bp":"BP-MNWM-4454","n":1},"HTE|MSL|RCT|SFL|LCB|RHP|NONE|NONE|STS|NONE|RDS|BGS":{"m":1701.4,"bp":"BP-ISFD-5728","n":1},"AEN|MSL|RCT|SFL|LCB|RHP|NONE|NONE|STS|NONE|RDS|BGS":{"m":1698.4,"bp":"BP-BOXD-6581","n":1},"FSE|MSL|RCT|SFL|LCB|RHP|NONE|NONE|STS|NONE|RDS|BGS":{"m":1680.4,"bp":"BP-MSWC-4866","n":1},"ENG|SSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":827.8,"bp":"BP-RWDC-2551","n":16},"ENG|MSL|RCT|MFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":915.5,"bp":"BP-BTQI-7530","n":1},"ENG|MSL|RCT|MFL|SCB|RHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":967.5,"bp":"BP-OEFO-2864","n":1},"ENG|MSL|RCT|MFL|SCB|LHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":655.5,"bp":"BP-EGVM-6823","n":1},"ENG|MSL|RCT|MFL|SCB|BHP|BPT|NONE|NONE|NONE|NONE|NONE":{"m":916.54,"bp":"BP-SQHH-0614","n":1},"ENG|MSL|RCT|MFL|SCB|BHP|NONE|BWH|NONE|NONE|NONE|NONE":{"m":920.7,"bp":"BP-UOAL-4711","n":1},"ENG|MSL|RCT|MFL|SCB|BHP|NONE|NONE|NONE|ARP|NONE|NONE":{"m":917.58,"bp":"BP-XTGD-7413","n":1},"ENG|MSL|RCT|MFL|SCB|BHP|NONE|NONE|NONE|SRP|NONE|NONE":{"m":920.7,"bp":"BP-GHOV-0545","n":1},"ENG|MSL|RCT|MFL|HCB|BHP|APT|AWH|STS|NONE|NONE|NONE":{"m":2611.15,"bp":"BP-VWVB-2566","n":1},"ENG|MSL|QCR|MFL|HCB|BHP|NONE|NONE|NONE|SRP|NONE|NONE":{"m":2610.2,"bp":"BP-KURM-2554","n":1},"FSE|LSL|HYR|LFL|HCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":2897.8,"bp":"BP-IKDW-2041","n":1},"FSE|MSL|HYR|LFL|HCB|LHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":1968.6,"bp":"BP-JRJA-4840","n":1},"HTE|LSL|NONE|NONE|HCB|AHP|APT|AWH|STS|SRP|RDL|AGS":{"m":5893.6,"bp":"BP-CLNY-0000","n":1},"HTE|MSL|HYR|MFL|LCB|RHP|APT|AWH|STS|SRP|RDL|AGS":{"m":2029.75,"bp":"BP-HBSU-1821","n":1},"ENG|MSL|RCT|SFL|LCB|RHP|NONE|NONE|STS|NONE|RDS|NONE":{"m":1662.4,"bp":"BP-UMTS-3580","n":1},"ENG|MSL|RCT|SFL|WCB|RHP|NONE|NONE|STS|NONE|RDS|NONE":{"m":1327,"bp":"BP-BYIP-7818","n":1},"ENG|MSL|RCT|SFL|WCB|RHP|NONE|NONE|STS|NONE|RDS|BGS":{"m":1347,"bp":"BP-BXYK-5103","n":1},"ENG|SSL|RCT|SFL|LCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":1456.2,"bp":"BP-UJUA-7750","n":2},"ENG|MSL|RCT|MFL|VCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":1826.7,"bp":"BP-SSHF-7118","n":1},"AEN|SSL|HPR|SFL|WCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":1294.9,"bp":"BP-DTUV-4363","n":1},"GEN|SSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":824.8,"bp":"BP-GCFD-1072","n":2},"HTE|SSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":836.8,"bp":"BP-OCTM-8557","n":2},"AEN|SSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":833.8,"bp":"BP-BJKP-8817","n":2},"FSE|SSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":825.8,"bp":"BP-CXVC-4221","n":2},"ENG|SSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|AGS":{"m":857.8,"bp":"BP-JNZB-4277","n":1},"ENG|SSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|BGS":{"m":847.8,"bp":"BP-OWTS-7141","n":1},"ENG|SSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|NONE|RDL|NONE":{"m":977.8,"bp":"BP-AXRC-2155","n":1},"ENG|SSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|NONE|RDS|NONE":{"m":877.8,"bp":"BP-QTAW-2541","n":1},"ENG|SSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|SRP|NONE|NONE":{"m":832.6,"bp":"BP-VKJR-5302","n":1},"ENG|SSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|ARP|NONE|NONE":{"m":829.72,"bp":"BP-MKMN-8547","n":1},"ENG|SSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|BRP|NONE|NONE":{"m":829.24,"bp":"BP-NVBH-4203","n":1},"ENG|SSL|RCT|SFL|SCB|BHP|NONE|NONE|STS|NONE|NONE|NONE":{"m":827.9,"bp":"BP-BTJI-6635","n":1},"ENG|SSL|RCT|SFL|SCB|BHP|NONE|AWH|NONE|NONE|NONE|NONE":{"m":833.56,"bp":"BP-CFYJ-5156","n":1},"ENG|SSL|RCT|SFL|SCB|BHP|NONE|BWH|NONE|NONE|NONE|NONE":{"m":832.6,"bp":"BP-ILEC-5060","n":1},"ENG|SSL|RCT|SFL|SCB|BHP|APT|NONE|NONE|NONE|NONE|NONE":{"m":829.24,"bp":"BP-VYYQ-3022","n":1},"ENG|SSL|RCT|SFL|SCB|BHP|BPT|NONE|NONE|NONE|NONE|NONE":{"m":828.76,"bp":"BP-QNLF-0141","n":1},"ENG|SSL|RCT|SFL|SCB|AHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":875.8,"bp":"BP-ZYRW-4882","n":1},"ENG|SSL|RCT|SFL|SCB|HHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":875.8,"bp":"BP-JKZU-8825","n":2},"ENG|SSL|RCT|SFL|SCB|RHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":875.8,"bp":"BP-BUCN-5374","n":1},"ENG|SSL|RCT|SFL|SCB|LHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":587.8,"bp":"BP-FPCF-6431","n":1},"ENG|SSL|RCT|SFL|WCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":1146.8,"bp":"BP-AXDN-7712","n":1},"ENG|SSL|RCT|SFL|VCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":1747.6,"bp":"BP-HSVZ-4056","n":1},"ENG|SSL|RCT|SFL|HCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":2517.4,"bp":"BP-VAKC-0378","n":1},"ENG|SSL|RCT|SFL|MCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":1046.8,"bp":"BP-QEQW-2455","n":1},"ENG|SSL|RCT|SFL|VSC|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":707.1,"bp":"BP-UVUA-6284","n":1},"ENG|SSL|RCT|SFL|TCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":630,"bp":"BP-WANU-1257","n":1},"ENG|SSL|RCT|LFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":879.8,"bp":"BP-GKUH-6184","n":1},"ENG|SSL|RCT|MFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":843.8,"bp":"BP-HIWJ-4476","n":1},"ENG|SSL|NONE|NONE|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":667.5,"bp":"BP-LVAW-3661","n":1},"ENG|SSL|HYR|SFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":987.5,"bp":"BP-VUNR-1627","n":1},"ENG|SSL|HPR|SFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":969.5,"bp":"BP-CJZI-6715","n":1},"ENG|SSL|QCR|SFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":835.8,"bp":"BP-XURB-5377","n":1},"ENG|SSL|NONE|SFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":676.5,"bp":"BP-ZWNU-4008","n":1},"ENG|LSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":1060.7,"bp":"BP-GLFR-5857","n":1},"ENG|MSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":899.5,"bp":"BP-NXEY-5602","n":1}};
+// Build the 12-selection key from the current hypo UI (7 dropdowns + damage/repair checkboxes).
+function hypoLookupKey() {
+  const gv = id => document.getElementById(id)?.value || '';
+  const checked = new Set([...document.querySelectorAll('.dmg-cb:checked')].map(cb => cb.value));
+  const pick = arr => arr.find(t => checked.has(t)) || 'NONE';
+  return [
+    gv('engSel')     || 'NONE',
+    gv('stlTkSel')   || 'NONE',
+    gv('reactorSel') || 'NONE',
+    gv('ftlTkSel')   || 'NONE',
+    gv('cargoSel')   || 'NONE',
+    gv('hullSel')    || 'NONE',
+    pick(['BPT','APT']),        // heat shielding
+    pick(['BWH','AWH']),        // whipple shielding
+    pick(['STS']),              // stability system
+    pick(['BRP','ARP','SRP']),  // radiation shielding
+    pick(['RDS','RDL']),        // self-repair drone hub
+    gv('seatSel')    || 'NONE',
+  ].join('|');
+}
+
 function buildComponentSelectors() {
   const wrap = document.getElementById('componentSelectors');
   const opt = (tick, c) => `<option value="${tick}">${tick} · ${c.name}</option>`;
@@ -1340,15 +1453,15 @@ function rebuildHypo() {
   const engQty = qty('engSelQty');
   if (!hull || !eng) { _currentShip = null; document.getElementById('hypoMeta').innerHTML = 'Select at least a hull and engine.'; updateFuelSlider(); onLoadoutChange(); return; }
 
-  let mass = hull.mass;
-  mass += eng.mass * engQty;
-  const add = (cat, sel, q) => { const c = C[cat][val(sel)]; if (c) mass += c.mass * q; };
-  add('stlTank',   'stlTkSel',  qty('stlTkSelQty'));
-  add('ftlTank',   'ftlTkSel',  qty('ftlTkSelQty'));
-  add('cargo',     'cargoSel',  qty('cargoSelQty'));
+  // PRIMARY: derive totalVolume from the selections, then the full part list, then the mass.
+  const chain = computeEmptyMass(hypoSelections());
+  let mass = chain.mass;
   const seat = C.seat[val('seatSel')];
-  if (seat) mass += seat.mass;
-  document.querySelectorAll('.dmg-cb:checked').forEach(cb => { mass += C.damage[cb.value].mass; });
+
+  // SECONDARY CHECK: the captured-blueprint lookup. Kept as a cross-check, not the source of
+  // truth — if the formula and a real captured blueprint disagree by >1%, surface it in the UI.
+  const lkHit = LOOKUP_MASS[hypoLookupKey()] || null;
+  const lkDeltaPct = lkHit ? 100 * (mass - lkHit.m) / lkHit.m : null;
 
   const reactor = C.ftlReactor[val('reactorSel')];
   const cargoC = C.cargo[val('cargoSel')];
@@ -1370,6 +1483,14 @@ function rebuildHypo() {
     engineType: eng.name,             // e.g. 'standardEngine' → drives landingDistKm() per-engine ratio
     thrust: eng.thrust * engQty,
     operatingEmptyMass: mass,
+    totalVolume: chain.totalVolume,
+    plateCount: chain.plateCount,
+    sscCount: chain.sscCount,
+    autoBridge: chain.bridge,
+    autoQuarters: chain.quarters,
+    lookupMass: lkHit ? lkHit.m : null,
+    lookupDeltaPct: lkDeltaPct,
+    lookupMatch: lkHit ? lkHit.bp : null,
     maxGFactor: hull.maxGFactor + (seat ? seat.gBonus : 0),
     reactorPower: reactor ? REACTOR_POWER[val('reactorSel')] : null,
     chargeFactor: null,
@@ -1396,7 +1517,17 @@ function renderHypoMeta() {
     <span>Thrust:</span> ${s.thrust.toLocaleString()}N<br>
     <span>maxG:</span> ${s.maxGFactor} → cap ${(s.maxGFactor * G0).toFixed(1)} &nbsp;
     ${s.reactorPower ? `<span>reactor P:</span> ${s.reactorPower}` : '<span style="color:var(--yellow)">no FTL reactor</span>'}
-    ${s.cargoCap ? `<br><span>cargo cap:</span> ${s.cargoCap}t` : ''}`;
+    ${s.cargoCap ? `<br><span>cargo cap:</span> ${s.cargoCap}t` : ''}
+    <br><span>totalVolume:</span> ${s.totalVolume.toFixed(0)} &nbsp;
+    <span>plates:</span> ${s.plateCount}×${s.autoBridge ? '' : ''}${document.getElementById('hullSel')?.value || ''} &nbsp;
+    <span>SSC:</span> ${s.sscCount} &nbsp;
+    <span>bridge:</span> ${s.autoBridge} &nbsp;
+    <span>quarters:</span> ${s.autoQuarters}
+    ${s.lookupMass == null
+      ? `<br><span style="color:var(--yellow)">no captured blueprint matches this loadout — formula only</span>`
+      : (Math.abs(s.lookupDeltaPct) > 1
+          ? `<br><span style="color:#e53935">⚠ formula vs captured blueprint ${s.lookupMatch}: ${s.lookupMass.toFixed(1)}t (${s.lookupDeltaPct >= 0 ? '+' : ''}${s.lookupDeltaPct.toFixed(2)}%) — DISAGREE >1%</span>`
+          : `<br><span style="color:#4caf50">✓ agrees with captured blueprint ${s.lookupMatch} (${s.lookupDeltaPct >= 0 ? '+' : ''}${s.lookupDeltaPct.toFixed(2)}%)</span>`)}`;
 }
 
 // ── Loadout (onboard mass) ──────────────────────────────────────────────────────
