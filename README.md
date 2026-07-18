@@ -1,6 +1,6 @@
 # PrUn Command
 
-A browser-based toolsuite for [Prosperous Universe](https://prosperousuniverse.com), built by **EoinCuinn** (COSM).
+A browser-based toolsuite for [Prosperous Universe](https://prosperousuniverse.com), built by **EoinCuinn**.
 
 Static site — no backend, no server. Drop it in a browser, paste your FIO API key, and go.
 
@@ -21,10 +21,14 @@ p(ρ) = 0.683 + 0.223 × log₁₀(ρ)
 Density-dependent exponent — star-type multipliers were a sampling artefact, not a real signal.
 
 **Landing distance**
-Taiyi's formula confirmed correct shape, empirical correction factor ×1.131 across all test planets:
+Not a physics quantity — a deterministic PRNG draw, seeded by the `missionId` the client sends with the flight calc:
 ```
-landingDistKm = 1.131 × radius_km × (0.15 + 0.45 × max(pressure, 0.1)^−0.301)
+d = k(planet) × (13 + 4·r)
+r = new java.util.Random(UUID.hashCode(missionId)).nextDouble()
 ```
+So `d ∈ [13k, 17k)` — mean `15k`, band exactly `±2/15` (±13.3%, the familiar "±15%"). The mean is the planet radius/pressure term (Taiyi's distance work); the planner estimates it as `926 × (radius_m/1e6)^0.96 × (1 + pressure)^−0.42`.
+
+The seed is **client-generated** and echoed verbatim by the server, so a landing is predictable from the wire — but the client mints that UUID with `crypto.getRandomValues()` (OS CSPRNG), so it is **not steerable**. Real flights inherit their plan's draw and re-roll per flight, including to an established base — the fixed-tile hypothesis is refuted. Full write-up and verification: [`research/landing/`](research/landing/).
 
 **Landing damage**
 Fitted 2026-07-05, 24 points (2 blueprints × 12 planets), R²=0.989:
@@ -33,11 +37,12 @@ damage = 1.1322e-4 × dist_km^0.4934 × accel^−0.9441 × pressure^0.9288
 ```
 Higher acceleration = less damage — exposure time, not speed, drives accumulation. Accel exponent −0.94 is near-perfect inverse. Known outlier: MG-197e (85 atm) over-predicted ~2×, pressure law saturates at extreme values.
 
-**Landing fuel**
+**Take-off / landing fuel** — the same STL burn physics for both legs
 ```
-fuel = 354.5 × stlFlowRate × √(dist_km / accel)
+fuel     = 336.9 × stlFlowRate × √(dist_km / accel_eff)
+accel_eff = min(thrust / mass, maxGFactor × 9.80665)
 ```
-Mean error 4.3%, max 5.9% across 12 planets × 2 blueprints.
+`336.9` is derived, not fitted — it is the closed form `(4/0.06) × √(350.11/13.71)` (credit: Marcus Licinius Crassus), and supersedes the earlier fitted `354.5`. Confirmed across a controlled 5-engine set. The g-force cap only binds for Hyperthrust, the one engine whose raw acceleration exceeds the hull's g-limit; capped, all five engines agree.
 
 **Approach fuel**
 ```
@@ -69,6 +74,19 @@ Empirically calibrated from flight log data.
 - `systemstars.json` — star luminosity and meteoroid density, sourced from [Taiyi Bureau's universe map](https://github.com/Taiyi-94/prun_universe_map) (MIT)
 - `ephemeris.json` — 4,199 planets. Supplied by Marcus Licinius Crassus.
 - `station_data.json` — HRT and ANT orbital parameters fitted from captured SYSTEM_TRAFFIC data
+
+---
+
+## Research
+
+Reverse-engineering write-ups behind the planner's physics — game flight quantities are deterministic to ~machine precision, so these quote exact numbers sourced from packet captures. Index: [`research/`](research/).
+
+| Folder | Subject |
+|--------|---------|
+| [`research/landing/`](research/landing/) | Take-off/landing distance — the `missionId`-seeded PRNG law, client-controlled seed, CSPRNG (unsteerable), fixed-tile hypothesis refuted |
+| [`research/radiation/`](research/radiation/) | Radiation damage — real and ~inverse-square near hot stars, but the Specialised Anti-Radiation Plate shows no measurable effect (the open paradox). Includes captures, derived analyses, and scripts |
+
+Each workstream ships the same doc set: a peer **SUMMARY**, a **findings_public** technical write-up, and a short **post_channel** version for Discord.
 
 ---
 
@@ -109,8 +127,10 @@ For the Flight Log tool, a PUNoted data token (`api.punoted.net`) is required �
 
 This project would not exist without:
 
-- **Marcus Licinius Crassus** — definitive flight dynamics papers: duration law, speed-cap, rendezvous-floor, FTL-jump laws, ephemeris methodology. The theoretical foundation the flight planner is built on.
-- **Taiyi Bureau** — takeoff/landing distance formulas, independent flight planner, universe map data (`systemstars.json`, MIT licensed). TO/LND distance formulas confirmed accurate to within empirical correction.
+- **Marcus Licinius Crassus** — definitive flight dynamics papers: duration law, speed-cap, rendezvous-floor, FTL-jump laws, ephemeris methodology. Also the landing-distance PRNG law (`d = k·(13+4r)`) and the closed-form TO/LND fuel constant `336.9`. The theoretical foundation the flight planner is built on.
+- **Taiyi Bureau** — takeoff/landing distance formulas, independent flight planner, universe map data (`systemstars.json`, MIT licensed). The landing-distance mean (`15k`) is their distance work; the ±13.3% band around it is the PRNG.
+- **Raylu** — [pruncalc](https://git.raylu.net/raylu/pruncalc) — take-off/landing pressure and radius handling, ship repair calculator.
+- **SAGANAKI** — FIO galaxy star/system data gathered and shared.
 - **Aem | SR** — radiation damage formula, ~60-point landing damage dataset, KI-439 70-flight fuel log. Empirical backbone of the damage calibration arc.
 - **xflasar** (`xSupeFly` on Discord) — [PUNoted](https://github.com/xflasar), the live flight-data API (`api.punoted.net`) that powers the Flight Log tool — ships and in-progress flights with exact timestamps.
 ---

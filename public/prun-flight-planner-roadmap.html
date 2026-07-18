@@ -519,9 +519,9 @@
       <div class="task-name">User-supplied API key architecture <span class="task-tag tag-done">Done</span></div>
       <div class="task-note">All tools read keys from localStorage (prun_apikey / prun_ppkey). No hardcoded keys. envConfigPlugin removed. Safe to publish.</div>
     </div></div>
-    <div class="task"><div class="task-bar" style="background:var(--p1)"></div><div class="task-content">
-      <div class="task-name">Collate landing research into research/landing/ <span class="task-tag tag-chat">Next — Code</span></div>
-      <div class="task-note">Create prun-toolset/research/landing/. Copy all five deliverables produced in the 2026-07-14 session (located in C:\prun-tools\prun-landing\ unless Code placed them elsewhere — Code must ls the working dir first): LANDING_MODEL_STATUS.md, LANDING_discord_post.md, LANDING_summary.md, LANDING_complete.md, analyze_landing_test.js. Also write a README.md (result, data source, commit 34ef374, Taiyi credit). Raw captures.jsonl stay out — personal data, too large. Commit and push.</div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Consolidate research into research/ <span class="task-tag tag-done">Done — 2026-07-16</span></div>
+      <div class="task-note"><code>prun-toolset/research/</code> created as the home for all reverse-engineering write-ups. <strong>research/landing/</strong> — four documents written fresh for the seed/PRNG arc (superseding the 2026-07-14 drafts originally scoped in this task): <code>LANDING_SUMMARY_2026-07-16.md</code> (peer write-up for Marcus), <code>LANDING_findings_public_2026-07-16.md</code>, <code>LANDING_post_channel.md</code>, <code>README.md</code>. Commit e147589 (create), then 281a77e (corrections after external review — denominator corrected 21/21 → 21/25, the "0.00000%" demoted to a byte-exact-twin count since the join is circular, fixed-tile flipped to REFUTED, Discord ask removed). <strong>research/radiation/</strong> — the entire prun-radiation-research repo imported (55 files: write-ups, captures, OldCaptures/, reference data, scripts), commit e8dce94; nested LICENSE/.gitignore dropped so the repo-level MIT governs. <strong>research/README.md</strong> — index for both workstreams, commit f6b4ebe. Landing scripts + captures stay in the private prun-flight-capture/landing-rng/ (dcbd9ac). Author attribution normalised to EoinCuinn throughout (the earlier "GYFG" was a blueprint-id misread; company code is EC3).</div>
     </div></div>
     <div class="task"><div class="task-bar" style="background:var(--p4)"></div><div class="task-content">
       <div class="task-name">Sweep public/ tools for release readiness <span class="task-tag tag-chat">Code</span></div>
@@ -832,6 +832,13 @@
       <td style="color:var(--p4)">In progress — consolidation + .gitignore pass needed</td>
       <td style="color:var(--text-dim)">—</td>
       <td>Clean git tree, exposure decision made</td>
+    </tr>
+    <tr>
+      <td><span class="phase-pill" style="background:rgba(63,185,80,0.15);color:var(--p3)">Repo D</span></td>
+      <td>prun-radiation-research — radiation write-ups, captures + analysis</td>
+      <td style="color:var(--p3)">Consolidated — 2026-07-16</td>
+      <td style="color:var(--text-dim)">—</td>
+      <td>Whole repo imported into prun-toolset/research/radiation/ (e8dce94, 55 files). Original kept as mirror/archive with a redirect banner to the new home (5bf0592) — deliberately not deleted ✓</td>
     </tr>
     <tr>
       <td><span class="phase-pill" style="background:rgba(110,118,129,0.15);color:var(--text-dim)">Secrets</span></td>
