@@ -359,11 +359,50 @@
     </div></div>
     <div class="task"><div class="task-bar" style="background:var(--p1)"></div><div class="task-content">
       <div class="task-name">Component validation <span class="task-tag tag-gate">Validation needed</span></div>
-      <div class="task-note">Confirm every component the builder exposes — hull plates, STL engine, STL / FTL tanks, high-g seats, cargo bay — is read correctly and applied to the physics: mass, acceleration, maxGFactor (g-cap), fuel capacity, and flow rate. Cross-check the derived operatingEmptyMass / acceleration / maxGFactor against the blueprint tester on each component swap (the g-cap that solved Hyperthrust makes maxGFactor especially load-bearing).</div>
+      <div class="task-note">Confirm every component the builder exposes — hull plates, STL engine, STL / FTL tanks, high-g seats, cargo bay — is read correctly and applied to the physics: mass, acceleration, maxGFactor (g-cap), fuel capacity, and flow rate. Cross-check the derived operatingEmptyMass / acceleration / maxGFactor against the blueprint tester on each component swap (the g-cap that solved Hyperthrust makes maxGFactor especially load-bearing). <strong>Update 2026-07-18:</strong> the operatingEmptyMass half of this is solved and shipped — see <em>Open Mass</em> below (empty mass = Σ BOM weight × count; totalVolume derived from the loadout). Acceleration and maxGFactor cross-checks against the blueprint tester remain outstanding.</div>
     </div></div>
     <div class="task"><div class="task-bar" style="background:var(--p4)"></div><div class="task-content">
       <div class="task-name">Anti-rad plate <span class="task-tag tag-parked">Not fully resolved</span></div>
       <div class="task-note">Confirmed NON-FUNCTIONAL in standard cases — it does not mitigate radiation (triple-confirmed 2026-07-09, incl. FTL radiation via Shielding Matrix sweep). ⚠ Outlier cases are under further scrutiny — do NOT mark as fully resolved. The builder must not credit the anti-rad plate with any radiation mitigation until the outliers are explained.</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="connector">↓</div>
+
+<!-- OPEN MASS -->
+<div class="phase-block">
+  <div class="phase-header">
+    <span class="phase-number">Open Mass</span>
+    <span class="phase-title">Empty Mass &amp; totalVolume — Derived from the Blueprint Dropdowns</span>
+    <span class="phase-where where-both">Code + Chat</span>
+    <span class="phase-status status-complete">Complete — 2026-07-18 · commit 7c74e80</span>
+  </div>
+  <div class="gate-banner">✔ Hypothetical mode now derives operatingEmptyMass from the twelve selectable components instead of a fitted aggregate. Empty mass turned out to be exactly the bill of material; the real blocker was totalVolume, which is now computed from the loadout. Shipped accuracy: volume 86/86 within 1% (mean 0.002%), mass 82/86 within 1% (mean 0.199%). Full write-up: research/openmass/.</div>
+  <div class="task-list">
+    <div class="task"><div class="task-bar" style="background:var(--p1)"></div><div class="task-content">
+      <div class="task-name">Empty mass = bill of material <span class="task-tag tag-done">Solved — 2026-07-18</span></div>
+      <div class="task-note">operatingEmptyMass = Σ(component weight × count) over the full BOM, including the parts the game auto-adds. Exact on 87/87 captured blueprints, max residual 2.3e-13 t. No baseline term, no hull offset, no crew/consumables fudge. This retired two long-carried &quot;corrections&quot;: the &quot;largeCargoBay at 1456.2 t&quot; note was the whole-ship empty mass of BP-UJUA-7750 folded into the cargo entry (the bay is 200 t), and the &quot;−477 t reinforced-hull baseline&quot; does not exist — there is no baseline to be wrong.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p1)"></div><div class="task-content">
+      <div class="task-name">totalVolume derived from the loadout <span class="task-tag tag-done">Solved — 2026-07-18</span></div>
+      <div class="task-note">totalVolume = 438 + 1.05 × cargo_capM3 + engineΔ + stlTankΔ + reactorΔ + ftlTankΔ — 86/87 blueprints within 0.5%, 79 exact. It is NOT the sum of component volumes (0/87, residuals −3089 to +205) and has no constant packing factor (volume-sum ÷ totalVolume ranges 0.725–2.015): the game sizes plating and structure FROM volume, and those parts then occupy volume, so it is a fixed point. Cargo drives it by m³ capacity, not by the bay&#39;s own volume or tonnage — proven by High-Load (3000 t / 1000 m³) and Medium (1000 t / 1000 m³) giving identical totalVolume. Deltas: STL tank Med +126 / Large +410; reactor QC +7 / HP +117 / Hyper +127 / none −126; FTL tank Med +6 / Large +18 / none −3; engine ±a few.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p1)"></div><div class="task-content">
+      <div class="task-name">Downstream chain — plates, SSC, quarters, bridge <span class="task-tag tag-done">Solved — 2026-07-18</span></div>
+      <div class="task-note">With volume known the whole ship falls out: hull plates = round(0.535 × V^0.655), structural components = round(0.0478 × V), crew quarters by volume band (CQT ≤837 · CQS 962–1614 · CQM 2538–2671 · CQL 2803+), command bridge by FTL-reactor tier (none → BRS 150 t · Standard/Quick-Charge → BR1 180 t · High/Hyper-Power → BR2 280 t), FTL field controller if an FTL reactor is fitted. Only 5 of the 12 fields move volume — hull plates, all four shielding types, drone and seats have ZERO effect. Hull plates are two knobs: you pick the type (weight per plate), the game picks the count (from volume, identical across types) — Lightweight over Reinforced saves 288 t on a 48-plate ship, 930 t on a 155-plate one.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p4)"></div><div class="task-content">
+      <div class="task-name">Method note — regression is confounded here <span class="task-tag tag-done">Recorded</span></div>
+      <div class="task-note">⚠ A ridge fit over the five volume fields returns R²=0.992 and confidently WRONG coefficients — Quick-Charge reactor at −77 m³ where a controlled pair gives +7, and &quot;no FTL tank&quot; at +770 where the pair gives −3. The fields co-vary in any naturally-collected corpus, so a fit smears one field&#39;s effect across its correlates and the high R² gives no warning. Every delta above was measured from CLEAN one-field-change blueprint pairs (other four volume fields held fixed). Earlier attempts failed the same way: a fit on raw BOM counts scored R²=1.000 in-sample then collapsed in CV (worst −84%) because the BOM contains the volume-derived plate counts — it was predicting volume from volume.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p4)"></div><div class="task-content">
+      <div class="task-name">Exact rounding rule for plate / SSC counts <span class="task-tag tag-gate">Open</span></div>
+      <div class="task-note">Counts are reproduced to ±1 but not exactly (52/87 have both exact). The counts themselves are deterministic — every ship at V=963 has exactly 48 plates and 46 SSC — so the game&#39;s rounding boundary is a real, findable rule that round(0.535·V^0.655) and round(0.0478·V) only approximate. This is the sole remaining source of mass error (four ships sit at 1.03–1.35%). Closing it needs a size ladder: sweep one volume field across its range with the other eleven fixed and read the count transitions.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p4)"></div><div class="task-content">
+      <div class="task-name">Vortex drive — trigger unknown <span class="task-tag tag-parked">Open — 1 sample</span></div>
+      <div class="task-note">BP-CLNY-0000 is the only vortex ship captured and also the largest hull (V=8532); it carries a Vortex Reactor + Vortex Fuel Tank and NO standard FTL reactor. The formula misses it by −49.7% because those parts (~2556 m³ once their structure cascade is counted) sit outside the twelve fields. Working hypothesis: the vortex drive is volume-triggered, auto-fitted once a hull outgrows the top standard reactor — the largest non-vortex ship runs Hyper-Power at V=6242, so any threshold lies between 6242 and 8532. One sample cannot confirm it; deliberately building an oversized hull and watching for the drive to appear is the experiment.</div>
     </div></div>
   </div>
 </div>

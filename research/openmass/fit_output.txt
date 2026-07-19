@@ -1,0 +1,962 @@
+================================================================================
+totalVolume FIT — prun-openmass
+================================================================================
+
+################################################################################
+STEP 1 — FULL RAW STRUCTURE OF FIRST NEW BLUEPRINT
+################################################################################
+
+receivedAt: 2026-07-13T23:58:31.196Z
+blueprints in first line: 40
+
+STRUCTURE CHECK vs previously documented format:
+  billOfMaterial.quantities[] present: YES (16 lines)
+  per-material weight/volume present: YES
+  selections[] HULL present: YES -> HULL_PLATES_REINFORCED
+  performance.totalVolume present: YES (2664)
+  performance.operatingEmptyMass present: YES (1682.4)
+  performance keys: ["totalVolume","operatingEmptyMass","maxGFactor","acceleration","accelerationMax","emitterChargeTime","maxOverchargeTime","ftlMaxSpeed","minReactorUsage","storeCapacityWeight","storeCapacityVolume","stlFuelCapacity","ftlFuelCapacity","ftlFuelMaterial"]
+  blueprint top keys: ["id","naturalId","created","name","billOfMaterial","type","status","selections","performance","buildTime"]
+
+FULL RAW FIRST BLUEPRINT (expanded):
+{
+  "id": "f81d5a0635396ab3d727b2e6bff63227",
+  "naturalId": "BP-EBKR-1418",
+  "created": {
+    "timestamp": 1783985966754
+  },
+  "name": "Base Hopper 2t NEW",
+  "billOfMaterial": {
+    "quantities": [
+      {
+        "material": {
+          "name": "ftlFieldController",
+          "id": "11cfa0cf3614e7a2405a31039c44632e",
+          "ticker": "FFC",
+          "category": "1e1a3a579c46d5f9c4e9959650c6b7a3",
+          "weight": 50,
+          "volume": 16,
+          "resource": false,
+          "tradable": true
+        },
+        "amount": 1
+      },
+      {
+        "material": {
+          "name": "stabilitySupportSystem",
+          "id": "83cadb15cbdc91cbdf616710b05afb34",
+          "ticker": "STS",
+          "category": "1e1a3a579c46d5f9c4e9959650c6b7a3",
+          "weight": 0.1,
+          "volume": 0.1,
+          "resource": false,
+          "tradable": true
+        },
+        "amount": 1
+      },
+      {
+        "material": {
+          "name": "largeEmitter",
+          "id": "e892dd87f4f499f96bdbaa2ca5965ce9",
+          "ticker": "LFE",
+          "category": "16b943147bb16fe84c0d62de8a4316a7",
+          "weight": 0.4,
+          "volume": 1.6,
+          "resource": false,
+          "tradable": true
+        },
+        "amount": 2
+      },
+      {
+        "material": {
+          "name": "mediumEmitter",
+          "id": "943fff6ce1b470ea031432a15a9afe47",
+          "ticker": "MFE",
+          "category": "16b943147bb16fe84c0d62de8a4316a7",
+          "weight": 0.2,
+          "volume": 0.8,
+          "resource": false,
+          "tradable": true
+        },
+        "amount": 2
+      },
+      {
+        "material": {
+          "name": "smallEmitter",
+          "id": "bbfa7555fbfa8ef2852d4479f7aa703e",
+          "ticker": "SFE",
+          "category": "16b943147bb16fe84c0d62de8a4316a7",
+          "weight": 0.1,
+          "volume": 0.4,
+          "resource": false,
+          "tradable": true
+        },
+        "amount": 1
+      },
+      {
+        "material": {
+          "name": "standardEngine",
+          "id": "39cbe35342c34d16bc02009130920bb4",
+          "ticker": "ENG",
+          "category": "16b943147bb16fe84c0d62de8a4316a7",
+          "weight": 8,
+          "volume": 4,
+          "resource": false,
+          "tradable": true
+        },
+        "amount": 1
+      },
+      {
+        "material": {
+          "name": "standardReactor",
+          "id": "17147bdc09c3762514c78f12dc17b79a",
+          "ticker": "RCT",
+          "category": "16b943147bb16fe84c0d62de8a4316a7",
+          "weight": 7,
+          "volume": 4,
+          "resource": false,
+          "tradable": true
+        },
+        "amount": 1
+      },
+      {
+        "material": {
+          "name": "largeCargoBay",
+          "id": "d140bdc3f13c831ab8931e330c8d6120",
+          "ticker": "LCB",
+          "category": "b7102e43e58120a254cf161c226d4177",
+          "weight": 200,
+          "volume": 200,
+          "resource": false,
+          "tradable": true
+        },
+        "amount": 1
+      },
+      {
+        "material": {
+          "name": "mediumStlTank",
+          "id": "11fa820041249299d95d85191dc378fc",
+          "ticker": "MSL",
+          "category": "b7102e43e58120a254cf161c226d4177",
+          "weight": 50,
+          "volume": 50,
+          "resource": false,
+          "tradable": true
+        },
+        "amount": 1
+      },
+      {
+        "material": {
+          "name": "smallFtlTank",
+          "id": "e8b8b2f9a1e27ff69fe0c15b25a1d424",
+          "ticker": "SFL",
+          "category": "b7102e43e58120a254cf161c226d4177",
+          "weight": 9,
+          "volume": 1.5,
+          "resource": false,
+          "tradable": true
+        },
+        "amount": 1
+      },
+      {
+        "material": {
+          "name": "basicHighgSeats",
+          "id": "9375c2dbd1de92b8ec107677bfeda193",
+          "ticker": "BGS",
+          "category": "d23b9225010ad7978e5496e55359e19b",
+          "weight": 20,
+          "volume": 3,
+          "resource": false,
+          "tradable": true
+        },
+        "amount": 1
+      },
+      {
+        "material": {
+          "name": "reinforcedHullPlate",
+          "id": "e59f70623448014f8fac5af9922de5c3",
+          "ticker": "RHP",
+          "category": "d23b9225010ad7978e5496e55359e19b",
+          "weight": 10,
+          "volume": 10,
+          "resource": false,
+          "tradable": true
+        },
+        "amount": 93
+      },
+      {
+        "material": {
+          "name": "structuralSpacecraftComponent",
+          "id": "b700f9670131981590e77238d7c207d3",
+          "ticker": "SSC",
+          "category": "d23b9225010ad7978e5496e55359e19b",
+          "weight": 1,
+          "volume": 1,
+          "resource": false,
+          "tradable": true
+        },
+        "amount": 127
+      },
+      {
+        "material": {
+          "name": "commandBridge1",
+          "id": "70504de53ce6b9348f725e442586d75c",
+          "ticker": "BR1",
+          "category": "2c6ca18d24e03fc9250d8ca7d577568b",
+          "weight": 180,
+          "volume": 300,
+          "resource": false,
+          "tradable": true
+        },
+        "amount": 1
+      },
+      {
+        "material": {
+          "name": "crewQuartersMed",
+          "id": "128870a0d62fc67b9d562bb40ddf3922",
+          "ticker": "CQM",
+          "category": "2c6ca18d24e03fc9250d8ca7d577568b",
+          "weight": 50,
+          "volume": 100,
+          "resource": false,
+          "tradable": true
+        },
+        "amount": 1
+      },
+      {
+        "material": {
+          "name": "smallShipRepairDroneUnit",
+          "id": "addf3b08bfd443feb2c5f51c776155f5",
+          "ticker": "RDS",
+          "category": "2c6ca18d24e03fc9250d8ca7d577568b",
+          "weight": 50,
+          "volume": 10,
+          "resource": false,
+          "tradable": true
+        },
+        "amount": 1
+      }
+    ]
+  },
+  "type": "REGULAR",
+  "status": "IN_PROGRESS",
+  "selections": [
+    {
+      "id": "39f94926e2137c9b12d6ba463d386974",
+      "type": "STL_ENGINE",
+      "cardinality": "ONE",
+      "option": "STL_ENGINE_STANDARD",
+      "optionMaterialId": "39cbe35342c34d16bc02009130920bb4",
+      "optionMaterialName": "standardEngine",
+      "amount": 1,
+      "modifiers": [
+        {
+          "type": "STL_USAGE",
+          "value": 0.015
+        }
+      ]
+    },
+    {
+      "id": "56e1223c81745dde29e5d37b52dd5d85",
+      "type": "STL_FUEL_TANK",
+      "cardinality": "ONE",
+      "option": "STL_FUEL_TANK_MEDIUM",
+      "optionMaterialId": "11fa820041249299d95d85191dc378fc",
+      "optionMaterialName": "mediumStlTank",
+      "amount": 1,
+      "modifiers": [
+        {
+          "type": "STL_FUEL_CAPACITY",
+          "value": 3500
+        }
+      ]
+    },
+    {
+      "id": "4e74a27034dc278b3f866ef068cf64e3",
+      "type": "FTL_REACTOR",
+      "cardinality": "ZERO_OR_ONE",
+      "option": "FTL_REACTOR_STANDARD",
+      "optionMaterialId": "17147bdc09c3762514c78f12dc17b79a",
+      "optionMaterialName": "standardReactor",
+      "amount": 1,
+      "modifiers": [
+        {
+          "type": "FTL_POWER",
+          "value": 2400
+        },
+        {
+          "type": "FTL_CHARGE_FACTOR",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "id": "67da8096ec3e522f66ad8f55c1bd1cce",
+      "type": "FTL_FUEL_TANK",
+      "cardinality": "ZERO_OR_ONE",
+      "option": "FTL_FUEL_TANK_SMALL",
+      "optionMaterialId": "e8b8b2f9a1e27ff69fe0c15b25a1d424",
+      "optionMaterialName": "smallFtlTank",
+      "amount": 1,
+      "modifiers": [
+        {
+          "type": "FTL_FUEL_CAPACITY",
+          "value": 300
+        }
+      ]
+    },
+    {
+      "id": "2108329d075e7b17bbd2563a47e5f809",
+      "type": "VORTEX_REACTOR",
+      "cardinality": "ZERO_OR_ONE",
+      "option": "NONE",
+      "optionMaterialId": null,
+      "optionMaterialName": null,
+      "amount": 0,
+      "modifiers": []
+    },
+    {
+      "id": "cb0d1f5dfde7ad9a84d7a8a063a9d287",
+      "type": "VORTEX_FUEL_TANK",
+      "cardinality": "ZERO_OR_ONE",
+      "option": "NONE",
+      "optionMaterialId": null,
+      "optionMaterialName": null,
+      "amount": 0,
+      "modifiers": []
+    },
+    {
+      "id": "381ab038857f63d8d3d85794ab7fc9ee",
+      "type": "CARGO_BAY",
+      "cardinality": "ONE",
+      "option": "CARGO_BAY_LARGE",
+      "optionMaterialId": "d140bdc3f13c831ab8931e330c8d6120",
+      "optionMaterialName": "largeCargoBay",
+      "amount": 1,
+      "modifiers": [
+        {
+          "type": "CARGO_CAPACITY_VOLUME",
+          "value": 2000
+        },
+        {
+          "type": "CARGO_CAPACITY_WEIGHT",
+          "value": 2000
+        }
+      ]
+    },
+    {
+      "id": "62202a89451798aef0e32049dae0ccaf",
+      "type": "HULL_TYPE",
+      "cardinality": "ONE",
+      "option": "HULL_PLATES_REINFORCED",
+      "optionMaterialId": "e59f70623448014f8fac5af9922de5c3",
+      "optionMaterialName": "reinforcedHullPlate",
+      "amount": 93,
+      "modifiers": [
+        {
+          "type": "SHIELDING_GENERAL",
+          "value": 0.1
+        },
+        {
+          "type": "MAX_G_FACTOR",
+          "value": 11
+        }
+      ]
+    },
+    {
+      "id": "3e7b81bda92a081505723dc76bf6f057",
+      "type": "HEAT_SHIELD",
+      "cardinality": "ZERO_OR_ONE",
+      "option": "NONE",
+      "optionMaterialId": null,
+      "optionMaterialName": null,
+      "amount": 0,
+      "modifiers": []
+    },
+    {
+      "id": "0e8aebeb451100624ca2f13b6f2ecf7d",
+      "type": "WHIPPLE_SHIELD",
+      "cardinality": "ZERO_OR_ONE",
+      "option": "NONE",
+      "optionMaterialId": null,
+      "optionMaterialName": null,
+      "amount": 0,
+      "modifiers": []
+    },
+    {
+      "id": "7a0f99725737d128e281f828d2683cf1",
+      "type": "GRAVITY_SHIELD",
+      "cardinality": "ZERO_OR_ONE",
+      "option": "GRAVITY_SHIELD_BASIC",
+      "optionMaterialId": "83cadb15cbdc91cbdf616710b05afb34",
+      "optionMaterialName": "stabilitySupportSystem",
+      "amount": 1,
+      "modifiers": [
+        {
+          "type": "SHIELDING_GRAVITY",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "74ff62c5c59c3645fcb110faf9fcff03",
+      "type": "RADIATION_SHIELD",
+      "cardinality": "ZERO_OR_ONE",
+      "option": "NONE",
+      "optionMaterialId": null,
+      "optionMaterialName": null,
+      "amount": 0,
+      "modifiers": []
+    },
+    {
+      "id": "96e92fde632dc0e28de18227d5b671cd",
+      "type": "REPAIR_DRONES",
+      "cardinality": "ZERO_OR_ONE",
+      "option": "REPAIR_DRONES_SMALL",
+      "optionMaterialId": "addf3b08bfd443feb2c5f51c776155f5",
+      "optionMaterialName": "smallShipRepairDroneUnit",
+      "amount": 1,
+      "modifiers": [
+        {
+          "type": "SHIELDING_GENERAL",
+          "value": 0.05
+        }
+      ]
+    },
+    {
+      "id": "68c19e7f21762a3ffd97b1894173163e",
+      "type": "HIGH_G_SEATS",
+      "cardinality": "ZERO_OR_ONE",
+      "option": "HIGH_G_SEATS_BASIC",
+      "optionMaterialId": "9375c2dbd1de92b8ec107677bfeda193",
+      "optionMaterialName": "basicHighgSeats",
+      "amount": 1,
+      "modifiers": [
+        {
+          "type": "MAX_G_FACTOR_INCREASE",
+          "value": 5
+        }
+      ]
+    },
+    {
+      "id": "fddedb97029d1d0e0e3f45ae56c44f65",
+      "type": "STRUCTURE",
+      "cardinality": "ONE_OR_MANY",
+      "option": "STRUCTURAL_SPACECRAFT_COMPONENT",
+      "optionMaterialId": "b700f9670131981590e77238d7c207d3",
+      "optionMaterialName": "structuralSpacecraftComponent",
+      "amount": 127,
+      "modifiers": []
+    },
+    {
+      "id": "de7a8cf67178f02a231657c80dfdebbc",
+      "type": "COMMAND_BRIDGE",
+      "cardinality": "ONE",
+      "option": "COMMAND_BRIDGE_MK1",
+      "optionMaterialId": "70504de53ce6b9348f725e442586d75c",
+      "optionMaterialName": "commandBridge1",
+      "amount": 1,
+      "modifiers": []
+    },
+    {
+      "id": "090a05ad49d39536db26b1aa8593fcff",
+      "type": "CREW_QUARTERS",
+      "cardinality": "ONE",
+      "option": "CREW_QUARTERS_MEDIUM",
+      "optionMaterialId": "128870a0d62fc67b9d562bb40ddf3922",
+      "optionMaterialName": "crewQuartersMed",
+      "amount": 1,
+      "modifiers": []
+    },
+    {
+      "id": "cf73edbb4f187146195781a1b2174acd",
+      "type": "FTL_FIELD_CONTROLLER",
+      "cardinality": "ZERO_OR_ONE",
+      "option": "FTL_FIELD_CONTROLLER",
+      "optionMaterialId": "11cfa0cf3614e7a2405a31039c44632e",
+      "optionMaterialName": "ftlFieldController",
+      "amount": 1,
+      "modifiers": []
+    },
+    {
+      "id": "76207bcb60c676faab525ff0563624dd",
+      "type": "FTL_FIELD_EMITTER_SMALL",
+      "cardinality": "ZERO_OR_MANY",
+      "option": "FTL_FIELD_EMITTER_SMALL",
+      "optionMaterialId": "bbfa7555fbfa8ef2852d4479f7aa703e",
+      "optionMaterialName": "smallEmitter",
+      "amount": 1,
+      "modifiers": [
+        {
+          "type": "FTL_VOLUME_SPAN",
+          "value": 250
+        },
+        {
+          "type": "POWER_REQUIREMENT",
+          "value": 100
+        }
+      ]
+    },
+    {
+      "id": "b78024308a78c33cddfc9c126b9c647a",
+      "type": "FTL_FIELD_EMITTER_MEDIUM",
+      "cardinality": "ZERO_OR_MANY",
+      "option": "FTL_FIELD_EMITTER_MEDIUM",
+      "optionMaterialId": "943fff6ce1b470ea031432a15a9afe47",
+      "optionMaterialName": "mediumEmitter",
+      "amount": 2,
+      "modifiers": [
+        {
+          "type": "FTL_VOLUME_SPAN",
+          "value": 500
+        },
+        {
+          "type": "POWER_REQUIREMENT",
+          "value": 175
+        }
+      ]
+    },
+    {
+      "id": "18b8858b75be29a2eae696573474b58f",
+      "type": "FTL_FIELD_EMITTER_LARGE",
+      "cardinality": "ZERO_OR_MANY",
+      "option": "FTL_FIELD_EMITTER_LARGE",
+      "optionMaterialId": "e892dd87f4f499f96bdbaa2ca5965ce9",
+      "optionMaterialName": "largeEmitter",
+      "amount": 2,
+      "modifiers": [
+        {
+          "type": "FTL_VOLUME_SPAN",
+          "value": 1000
+        },
+        {
+          "type": "POWER_REQUIREMENT",
+          "value": 300
+        }
+      ]
+    },
+    {
+      "id": "d942d137c94feef16dd09292f79c74cb",
+      "type": "HABITATION_MODULE",
+      "cardinality": "ZERO_OR_MANY",
+      "option": "NONE",
+      "optionMaterialId": null,
+      "optionMaterialName": null,
+      "amount": 0,
+      "modifiers": []
+    }
+  ],
+  "performance": {
+    "totalVolume": 2664,
+    "operatingEmptyMass": 1682.4,
+    "maxGFactor": 16,
+    "acceleration": 74.29862101759392,
+    "accelerationMax": 74.29862101759392,
+    "emitterChargeTime": 196.875,
+    "maxOverchargeTime": 253.125,
+    "ftlMaxSpeed": 0.0006280681244213134,
+    "minReactorUsage": 0.4375,
+    "storeCapacityWeight": 2000,
+    "storeCapacityVolume": 2000,
+    "stlFuelCapacity": 3500,
+    "ftlFuelCapacity": 300,
+    "ftlFuelMaterial": {
+      "name": "ftlFuel",
+      "id": "7a2a12cd6872b89a6b97532618788a4d",
+      "ticker": "FF",
+      "category": "ba98fa0cf77040a96cd8a608ad0d08e9",
+      "weight": 0.05,
+      "volume": 0.01,
+      "resource": false,
+      "tradable": true
+    }
+  },
+  "buildTime": 33
+}
+
+################################################################################
+STEP 2 — POOL & DEDUPLICATE
+################################################################################
+
+New file raw records: 893 | unique ids: 87
+Old file raw records: 833 | unique ids: 44
+Pooled unique blueprints (by internal id): 87
+New blueprints not in old set: 43
+
+Hull tier breakdown: {"REINFORCED":13,"LIGHTWEIGHT":7,"BASIC":63,"ADVANCED":2,"HARDENED":2}
+totalVolume range: 543 .. 8532
+Component ticker universe (55): AEN, AGS, AHP, APT, ARP, AWH, BGS, BHP, BPT, BR1, BR2, BRP, BRS, BWH, CQL, CQM, CQS, CQT, ENG, FFC, FSE, GEN, HAM, HCB, HHP, HPR, HTE, HYR, LCB, LFE, LFL, LHP, LSL, MCB, MFE, MFL, MSL, QCR, RCT, RDL, RDS, RHP, SCB, SFE, SFL, SRP, SSC, SSL, STS, TCB, VCB, VFT, VOE, VSC, WCB
+
+Per-blueprint table:
+naturalId       |  totVol |    opMass | tier        | src | name
+--------------------------------------------------------------------------------------------------------------
+BP-WANU-1257    |     543 |       630 | BASIC       | NEW | 
+BP-UVUA-6284    |     701 |     707.1 | BASIC       | NEW | 
+BP-LVAW-3661    |     834 |     667.5 | BASIC       | NEW | 
+BP-ZWNU-4008    |     837 |     676.5 | BASIC       | NEW | 
+BP-GCFD-1072    |     962 |     824.8 | BASIC       | both | Base Hopper 2t STL  GLASS
+BP-CXVC-4221    |     962 |     825.8 | BASIC       | both | Base Hopper 2t STL FUEL SAVER
+BP-FRVH-7208    |     962 |     824.8 | BASIC       | NEW | 
+BP-YXTK-3382    |     962 |     825.8 | BASIC       | NEW | 
+BP-RWDC-2551    |     963 |     827.8 | BASIC       | both | SLD-Control-SMALLSLT
+BP-KHWP-1082    |     963 |     827.8 | BASIC       | both | ADV Hull Plate
+BP-QPTL-6486    |     963 |     827.8 | BASIC       | both | BHP TESTER STD STL
+BP-GYFG-1743    |     963 |     827.8 | BASIC       | both | Hortus to Boucher Testing 1
+BP-LAQG-6147    |     963 |     827.8 | BASIC       | both | Hortus to Boucher Testing 2
+BP-IDJK-1102    |     963 |     827.8 | BASIC       | both | Vortex
+BP-QATA-5745    |     963 |     827.8 | BASIC       | both | 
+BP-HJRK-4575    |     963 |     827.8 | BASIC       | both | 
+BP-TPKQ-3458    |     963 |     827.8 | BASIC       | both | 
+BP-STRT-0000    |     963 |     827.8 | BASIC       | both | Starter Ship
+BP-JNZB-4277    |     963 |     857.8 | BASIC       | NEW | 
+BP-OWTS-7141    |     963 | 847.8000000000001 | BASIC       | NEW | 
+BP-AXRC-2155    |     963 |     977.8 | BASIC       | NEW | 
+BP-QTAW-2541    |     963 | 877.8000000000001 | BASIC       | NEW | 
+BP-VKJR-5302    |     963 |     832.6 | BASIC       | NEW | 
+BP-MKMN-8547    |     963 |    829.72 | BASIC       | NEW | 
+BP-NVBH-4203    |     963 |    829.24 | BASIC       | NEW | 
+BP-BTJI-6635    |     963 |     827.9 | BASIC       | NEW | 
+BP-CFYJ-5156    |     963 |    833.56 | BASIC       | NEW | 
+BP-ILEC-5060    |     963 |     832.6 | BASIC       | NEW | 
+BP-VYYQ-3022    |     963 |    829.24 | BASIC       | NEW | 
+BP-QNLF-0141    |     963 |    828.76 | BASIC       | NEW | 
+BP-ZYRW-4882    |     963 |     875.8 | ADVANCED    | NEW | 
+BP-JKZU-8825    |     963 |     875.8 | HARDENED    | NEW | 
+BP-FQID-7560    |     963 |     875.8 | HARDENED    | NEW | 
+BP-BUCN-5374    |     963 |     875.8 | REINFORCED  | NEW | 
+BP-FPCF-6431    |     963 |     587.8 | LIGHTWEIGHT | NEW | 
+BP-PVIC-2346    |     963 |     827.8 | BASIC       | NEW | 
+BP-SWRD-8221    |     963 | 827.8000000000001 | BASIC       | NEW | 
+BP-KDTA-2565    |     963 |     827.8 | BASIC       | NEW | 
+BP-ZOEF-1571    |     963 |     827.8 | BASIC       | NEW | 
+BP-MSVU-0618    |     963 |     827.8 | BASIC       | NEW | 
+BP-CXHG-6746    |     963 |     827.8 | BASIC       | NEW | 
+BP-BJKP-8817    |     966 |     833.8 | BASIC       | both | Base Hopper 2t STL ADVANCED
+BP-DFBW-1574    |     966 |     833.8 | BASIC       | NEW | 
+BP-HIWJ-4476    |     969 | 843.8000000000001 | BASIC       | NEW | 
+BP-OCTM-8557    |     970 |     836.8 | BASIC       | both | Base Hopper 2t STL Hyperthrust
+BP-XURB-5377    |     970 |     835.8 | BASIC       | NEW | 
+BP-MGPC-8017    |     970 |     836.8 | BASIC       | NEW | 
+BP-GKUH-6184    |     981 |     879.8 | BASIC       | NEW | 
+BP-CJZI-6715    |    1080 |     969.5 | BASIC       | NEW | 
+BP-NXEY-5602    |    1089 |     899.5 | BASIC       | NEW | 
+BP-VUNR-1627    |    1090 |     987.5 | BASIC       | NEW | 
+BP-BTQI-7530    |    1095 |     915.5 | BASIC       | both | SLD-Control
+BP-OEFO-2864    |    1095 |     967.5 | REINFORCED  | both | SLD-RHP
+BP-EGVM-6823    |    1095 |     655.5 | LIGHTWEIGHT | both | SLD-LHP
+BP-SQHH-0614    |    1095 |    916.54 | BASIC       | both | SLD-Heat
+BP-UOAL-4711    |    1095 |     920.7 | BASIC       | both | SLD-Whipple
+BP-XTGD-7413    |    1095 | 917.5799999999999 | BASIC       | both | SLD-RadAdv
+BP-GHOV-0545    |    1095 |     920.7 | BASIC       | both | SLD-RadSpec
+BP-GLFR-5857    |    1373 |    1060.7 | BASIC       | NEW | 
+BP-AXDN-7712    |    1488 |    1146.8 | BASIC       | NEW | 
+BP-QEQW-2455    |    1488 |    1046.8 | BASIC       | NEW | 
+BP-DTUV-4363    |    1608 |    1294.9 | BASIC       | both | adv STIL FTL 3k cargo
+BP-BYIP-7818    |    1614 |      1327 | REINFORCED  | both | Base Hopper No High G Seats
+BP-BXYK-5103    |    1614 |      1347 | REINFORCED  | both | Base Hopper
+BP-UJUA-7750    |    2538 |    1456.2 | BASIC       | both | 2k cargo only
+BP-KZHE-3277    |    2538 |    1456.2 | BASIC       | NEW | 
+BP-MNWM-4454    |    2663 |    1679.4 | REINFORCED  | both | Base Hopper 2t GLASS
+BP-MSWC-4866    |    2663 |    1680.4 | REINFORCED  | both | Base Hopper 2t fuel saver
+BP-EBKR-1418    |    2664 |    1682.4 | REINFORCED  | both | Base Hopper 2t NEW
+BP-LYAM-3006    |    2664 |    1682.4 | REINFORCED  | both | Base Hopper 2t STD
+BP-HJQJ-2441    |    2664 |    1682.4 | REINFORCED  | both | Base Hopper 2t 2t Copy
+BP-UMTS-3580    |    2664 |    1662.4 | REINFORCED  | both | Base Hopper 2t 2t
+BP-BOXD-6581    |    2667 |    1698.4 | REINFORCED  | both | Base Hopper 2t ADV
+BP-ISFD-5728    |    2671 |    1701.4 | REINFORCED  | both | Base Hopper 2t Hyper
+BP-HBSU-1821    |    2803 |   2029.75 | REINFORCED  | both | 2t 2m Interplanet
+BP-HSVZ-4056    |    3588 | 1747.6000000000001 | BASIC       | NEW | 
+BP-SSHF-7118    |    3720 |    1826.7 | BASIC       | both | 3k Cargo MED STL FTL tanks
+BP-VAKC-0378    |    5688 |    2517.4 | BASIC       | NEW | 
+BP-VWVB-2566    |    5820 |   2611.15 | BASIC       | both | Capture Blueprint different
+BP-KURM-2554    |    5826 |    2610.2 | BASIC       | both | Capture Blueprint Example
+BP-WIYN-8444    |    5837 |    1843.5 | LIGHTWEIGHT | both | Big Hauler 2 Copy
+BP-NVGM-1171    |    5837 |    1843.5 | LIGHTWEIGHT | both | Big Hauler 3
+BP-IXZI-0433    |    5837 |    1843.5 | LIGHTWEIGHT | both | Big Hauler 2
+BP-JRAJ-3531    |    5837 |    1843.5 | LIGHTWEIGHT | both | Big Hauler
+BP-JRJA-4840    |    5958 |    1968.6 | LIGHTWEIGHT | both | 
+BP-IKDW-2041    |    6242 |    2897.8 | BASIC       | both | HARD Hull Plate
+BP-CLNY-0000    |    8532 |    5893.6 | ADVANCED    | both | 
+
+################################################################################
+STEP 3 — FEATURE MATRIX
+################################################################################
+
+Written to feature_matrix.csv
+Rows: 87 | feature columns: 59
+Component features (55): AEN, AGS, AHP, APT, ARP, AWH, BGS, BHP, BPT, BR1, BR2, BRP, BRS, BWH, CQL, CQM, CQS, CQT, ENG, FFC, FSE, GEN, HAM, HCB, HHP, HPR, HTE, HYR, LCB, LFE, LFL, LHP, LSL, MCB, MFE, MFL, MSL, QCR, RCT, RDL, RDS, RHP, SCB, SFE, SFL, SRP, SSC, SSL, STS, TCB, VCB, VFT, VOE, VSC, WCB
+Hull one-hot features: HULL_BASIC, HULL_LIGHTWEIGHT, HULL_REINFORCED, HULL_ADVANCED
+
+################################################################################
+STEP 4 — LINEAR FIT of totalVolume ~ component quantities + hull one-hot
+################################################################################
+
+Model A (NO intercept):   R^2 = 1.000000   SSres = 0.00
+Model B (WITH intercept): R^2 = 1.000000   SSres = 0.00
+
+--- Model A (no intercept) coefficients (non-negligible, |coef| > 1e-6) ---
+  AEN              = -3.0000
+  BR1              = -6391.1091
+  BR2              = -6049.7494
+  BRS              = 2181.4390
+  CQL              = 7597.9143
+  CQM              = 7597.9143
+  CQS              = 2072.1584
+  ENG              = -6.0000
+  FFC              = 8383.2675
+  FSE              = -7.0000
+  GEN              = -7.0000
+  HCB              = 5525.7558
+  HPR              = -10.0000
+  LCB              = -2762.8779
+  LFE              = -1762.8779
+  LFL              = 20.0000
+  LSL              = 1051.0792
+  MFE              = -440.7195
+  MFL              = 8.0000
+  MSL              = 340.3597
+  QCR              = 6.0000
+  SCB              = -1381.4390
+  SFE              = -220.3597
+  SFL              = 3.0000
+  SSC              = 1.0000
+  TCB              = -370.3597
+
+  Residuals (worst 15 by |abs error|):
+  naturalId      tier           actual       pred    absErr   pctErr
+  BP-VKJR-5302   BASIC             963     963.00      0.00     0.00
+  BP-GHOV-0545   BASIC            1095    1095.00      0.00     0.00
+  BP-XURB-5377   BASIC             970     970.00      0.00     0.00
+  BP-VAKC-0378   BASIC            5688    5688.00      0.00     0.00
+  BP-KURM-2554   BASIC            5826    5826.00     -0.00    -0.00
+  BP-BOXD-6581   REINFORCED       2667    2667.00     -0.00    -0.00
+  BP-ISFD-5728   REINFORCED       2671    2671.00     -0.00    -0.00
+  BP-CFYJ-5156   BASIC             963     963.00     -0.00    -0.00
+  BP-VYYQ-3022   BASIC             963     963.00     -0.00    -0.00
+  BP-SSHF-7118   BASIC            3720    3720.00      0.00     0.00
+  BP-HSVZ-4056   BASIC            3588    3588.00     -0.00    -0.00
+  BP-BTJI-6635   BASIC             963     963.00     -0.00    -0.00
+  BP-AXDN-7712   BASIC            1488    1488.00     -0.00    -0.00
+  BP-BTQI-7530   BASIC            1095    1095.00     -0.00    -0.00
+  BP-NXEY-5602   BASIC            1089    1089.00     -0.00    -0.00
+  max |absErr| = 0.000 | RMSE = 0.000
+
+--- Model B (with intercept) coefficients (non-negligible, |coef| > 1e-6) ---
+  (intercept)      = 700.0000
+  AEN              = -3.0000
+  BR1              = 8464.0000
+  BR2              = 8435.0000
+  CQL              = -550.0000
+  CQM              = -550.0000
+  CQS              = -150.0000
+  ENG              = -6.0000
+  FFC              = -9394.0000
+  FSE              = -7.0000
+  GEN              = -7.0000
+  HCB              = -400.0000
+  HPR              = -10.0000
+  LCB              = 200.0000
+  LFE              = 1200.0000
+  LFL              = 20.0000
+  LSL              = -60.0000
+  MFE              = 300.0000
+  MFL              = 8.0000
+  MSL              = -30.0000
+  QCR              = 6.0000
+  SCB              = 100.0000
+  SFE              = 150.0000
+  SFL              = 3.0000
+  SSC              = 1.0000
+
+  Residuals (worst 15 by |abs error|):
+  naturalId      tier           actual       pred    absErr   pctErr
+  BP-VKJR-5302   BASIC             963     963.00      0.00     0.00
+  BP-GHOV-0545   BASIC            1095    1095.00      0.00     0.00
+  BP-XURB-5377   BASIC             970     970.00      0.00     0.00
+  BP-ISFD-5728   REINFORCED       2671    2671.00     -0.00    -0.00
+  BP-KURM-2554   BASIC            5826    5826.00     -0.00    -0.00
+  BP-BOXD-6581   REINFORCED       2667    2667.00     -0.00    -0.00
+  BP-VAKC-0378   BASIC            5688    5688.00      0.00     0.00
+  BP-CFYJ-5156   BASIC             963     963.00     -0.00    -0.00
+  BP-VYYQ-3022   BASIC             963     963.00     -0.00    -0.00
+  BP-SSHF-7118   BASIC            3720    3720.00      0.00     0.00
+  BP-HSVZ-4056   BASIC            3588    3588.00     -0.00    -0.00
+  BP-BJKP-8817   BASIC             966     966.00      0.00     0.00
+  BP-DFBW-1574   BASIC             966     966.00      0.00     0.00
+  BP-BTJI-6635   BASIC             963     963.00     -0.00    -0.00
+  BP-OCTM-8557   BASIC             970     970.00      0.00     0.00
+  max |absErr| = 0.000 | RMSE = 0.000
+
+Best model: B (with intercept) (R^2 = 1.000000)
+################################################################################
+STEP 5 — VALIDATION: LCB and RHP cases
+################################################################################
+
+Note: known problem cases are stated against operatingEmptyMass (mass), while the
+fit above targets totalVolume. Reporting both actual totalVolume and
+operatingEmptyMass for every blueprint containing LCB or RHP, plus the fitted
+totalVolume coefficient for those components.
+
+Fitted totalVolume coefficient (Model A) for LCB: -2762.8779
+Fitted totalVolume coefficient (Model A) for RHP: -0.0000
+
+Blueprints containing LCB (11):
+  naturalId      tier         LCB   totVol    opMass predVol(B)
+  BP-UJUA-7750   BASIC          1     2538    1456.2    2538.00
+  BP-KZHE-3277   BASIC          1     2538    1456.2    2538.00
+  BP-MNWM-4454   REINFORCED     1     2663    1679.4    2663.00
+  BP-MSWC-4866   REINFORCED     1     2663    1680.4    2663.00
+  BP-EBKR-1418   REINFORCED     1     2664    1682.4    2664.00
+  BP-LYAM-3006   REINFORCED     1     2664    1682.4    2664.00
+  BP-HJQJ-2441   REINFORCED     1     2664    1682.4    2664.00
+  BP-UMTS-3580   REINFORCED     1     2664    1662.4    2664.00
+  BP-BOXD-6581   REINFORCED     1     2667    1698.4    2667.00
+  BP-ISFD-5728   REINFORCED     1     2671    1701.4    2671.00
+  BP-HBSU-1821   REINFORCED     1     2803   2029.75    2803.00
+
+Blueprints containing RHP (13):
+  naturalId      tier         RHP   totVol    opMass predVol(B)
+  BP-BUCN-5374   REINFORCED    48      963     875.8     963.00
+  BP-OEFO-2864   REINFORCED    52     1095     967.5    1095.00
+  BP-BYIP-7818   REINFORCED    67     1614      1327    1614.00
+  BP-BXYK-5103   REINFORCED    67     1614      1347    1614.00
+  BP-MNWM-4454   REINFORCED    93     2663    1679.4    2663.00
+  BP-MSWC-4866   REINFORCED    93     2663    1680.4    2663.00
+  BP-EBKR-1418   REINFORCED    93     2664    1682.4    2664.00
+  BP-LYAM-3006   REINFORCED    93     2664    1682.4    2664.00
+  BP-HJQJ-2441   REINFORCED    93     2664    1682.4    2664.00
+  BP-UMTS-3580   REINFORCED    93     2664    1662.4    2664.00
+  BP-BOXD-6581   REINFORCED    94     2667    1698.4    2667.00
+  BP-ISFD-5728   REINFORCED    94     2671    1701.4    2671.00
+  BP-HBSU-1821   REINFORCED    97     2803   2029.75    2803.00
+
+################################################################################
+ADDENDUM — INTERPRETATION, COLLINEARITY & HYPOTHESIS TESTS
+################################################################################
+
+WHY THE STEP-4 COEFFICIENTS LOOK WRONG (BR1=-6391 in Model A vs +8464 in Model B):
+  The fit is EXACT (R^2=1.000000, all residuals 0) but the coefficients are NOT
+  uniquely identifiable. Many components always co-occur in fixed ratios (every
+  ship carries exactly one FFC + one BR1 + one bridge etc.), so the design matrix
+  is rank-deficient and infinitely many coefficient vectors reproduce totalVolume
+  perfectly. Gaussian elimination returns one arbitrary basic solution; the
+  no-intercept and with-intercept runs land on different arbitrary solutions.
+
+  Feature matrix: 87 rows x 59 feature columns
+  Numerical column rank of X: 45  ->  14 redundant/collinear directions
+  => individual per-component coefficients cannot be pinned down from this data,
+     even though totalVolume itself is perfectly predicted for any build lying in
+     the column space of the training set.
+
+CLOSED-FORM HYPOTHESIS TESTS (all 87 blueprints):
+  H1: totalVolume == sum(component volume x amount)     -> FALSE (0/87 match)
+      e.g. Base Hopper BP-EBKR-1418: totalVolume=2664 vs sum-of-volumes=1750.8 (+913.2)
+  H2: totalVolume == performance.storeCapacityVolume    -> FALSE (0/87 match)
+      e.g. BP-EBKR-1418: totalVolume=2664 vs storeCapacityVolume=2000
+  H3: totalVolume == round(sum component volume x amount)-> FALSE (0/87 match)
+  CONCLUSION: totalVolume is a distinct game-computed hull-envelope quantity, not a
+  trivial reduction of the BOM volumes or the cargo store capacity. It IS an exact
+  integer-valued linear function of the component quantities (hence R^2=1).
+
+STABLE (RIDGE, lambda=1e-6) MINIMUM-NORM COEFFICIENTS:
+  This is the unique minimum-norm exact solution — reproducible, unlike the two
+  arbitrary Step-4 solutions. R^2 with lambda=1e-6: 1.000000
+  (These distribute the totalVolume contribution across collinear components; they
+   are the best-behaved coefficient set but still not a claim of per-part truth.)
+  feature         coef
+  HULL_ADVANCED   -1067.6026
+  LFE             711.3655
+  HCB             517.0930
+  HULL_REINFORCED 461.8768
+  HULL_BASIC      461.6967
+  HULL_LIGHTWEIGHT461.3639
+  VFT             332.9647
+  VOE             332.9647
+  HAM             332.9647
+  FFC             -261.5019
+  CQL             260.9739
+  CQM             257.6884
+  BRS             246.0677
+  TCB             -185.0822
+  MFE             177.8450
+  LSL             159.3067
+  VSC             -135.5066
+  CQS             -126.6105
+  HPR             -123.6019
+  HYR             -113.3654
+  VCB             102.9470
+  LCB             -101.3777
+  BR2             95.9974
+  MSL             89.4180
+  SFE             87.9494
+  MCB             74.7637
+  WCB             74.6906
+  CQT             -74.5211
+  SSL             68.8061
+  HTE             66.7705
+  AEN             65.4880
+  ENG             62.4164
+  FSE             61.4360
+  GEN             61.4199
+  AHP             31.6422
+  SCB             -29.9973
+  BR1             -24.5345
+  LFL             18.3470
+  RCT             -14.5093
+  QCR             -10.0253
+  HHP             9.4004
+  MFL             6.2762
+  SFL             2.9997
+  SSC             2.7234
+  RHP             -0.2219
+  BHP             -0.2187
+  LHP             -0.2112
+  STS             -0.0488
+  RDL             0.0225
+  AGS             0.0225
+  RDS             -0.0189
+  BGS             0.0173
+  SRP             0.0052
+  APT             -0.0016
+  AWH             -0.0016
+  ARP             0.0009
+  BWH             0.0009
+  BPT             0.0009
+  BRP             0.0005
+
+  For reference, a heavily-regularized fit (lambda=1.0) still achieves R^2=0.999999,
+  confirming the linear relationship is strong and robust, not an artifact of overfit.
+
+PRACTICAL UPSHOT for rebuildHypo:
+  totalVolume for any hypothetical build can be predicted exactly (0 error observed
+  across all 87 real blueprints) from its component quantities via this linear map.
+  Risk: a hypothetical loadout using a component combination OUTSIDE the training
+  column space could extrapolate wrongly, because those directions are unconstrained.
+  To harden it, capture builds that vary the collinear components independently
+  (single-component add/remove ladders), especially bridges (BR1/BR2/BRS),
+  FTL field controller (FFC), and crew quarters (CQS/CQM/CQL).
+################################################################################
+STEP 5 (cont.) — MASS-SIDE RESOLUTION OF THE TWO KNOWN PROBLEM CASES
+################################################################################
+
+The two known problem cases are stated in tonnes (operatingEmptyMass), so resolved
+against component BOM weights:
+
+LCB real BOM weight (largeCargoBay) from capture material data: 200 t
+RHP real BOM weight (reinforcedHullPlate) from capture material data: 10 t
+
+CASE 1 — "LCB at 1456.2t vs real ~200t (+1256t)":
+  1456.2 is NOT the LCB weight — it is the WHOLE-SHIP operatingEmptyMass of
+  BP-UJUA-7750 / BP-KZHE-3277 ("2k cargo only", BASIC hull). The prior code
+  misattributed the ship empty mass to the single LCB line. LCB actual weight = 200t,
+  matching the "real ~200t". RESOLVED: the discrepancy was a misread, not a data error.
+
+CASE 2 — "RHP hull baseline wrong (-477t offset)":
+  RHP (reinforcedHullPlate) real weight = 10t each; it is a STRUCTURE component
+  whose count scales the hull, not a fixed baseline. operatingEmptyMass is checked
+  below as sum(BOM weight x amount) to see if a hull baseline offset remains.
+
+HYPOTHESIS: operatingEmptyMass == sum(component weight x amount)
+  exact matches (<0.5t): 87 / 87
+
+CONCLUSION: operatingEmptyMass IS exactly the BOM weight sum; both problem cases fully explained by BOM weights (LCB=200t, RHP=10t).

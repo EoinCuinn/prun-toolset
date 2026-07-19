@@ -1,0 +1,122 @@
+FIXED-MASS DETERMINISM CHECK
+======================================================================
+fixed_mass = operatingEmptyMass − plateMass − sscMass   (using ACTUAL counts from BOM)
+Question: is fixed_mass fully determined by the 12 user-selected fields?
+
+Reconciliation (fixed_mass == twelveMass + extraMass): 87 / 87 exact  (sanity check of the split)
+
+EXTRA (non-12) component mass per ship — bridge / crew quarters / FFC / emitters / habitation / vortex:
+  ships with nonzero extra mass: 87 / 87
+  extra mass range: 162.50 .. 2595.00  (mean 297.14)
+  => if this is nonzero and varies, fixed_mass includes mass NOT selected via the 12 fields.
+
+Shield-coating mass inside fixed_mass (heat/whipple/rad — these ALSO scale with plate count):
+  ships with shield coatings: 15 / 87  (coat mass up to 50.50)
+  => for these ships fixed_mass is NOT constant with size — coatings scale like the plates.
+
+DETERMINISM via duplicates:
+  distinct 12-selection combinations among 87 blueprints: 61
+  groups sharing an identical 12-selection combo: 9
+  consistent duplicate groups (same fixed_mass): 9 / 9
+
+######################################################################
+PER-BLUEPRINT
+######################################################################
+  naturalId            V      OEM   plateM   sscM    fixed      12M  extraM   coatM
+  BP-CLNY-0000      8532   5893.6   2020.0    407   3466.6    871.6  2595.0    50.5
+  BP-IKDW-2041      6242   2897.8   1476.0    298   1123.8    716.0   407.8     0.0
+  BP-JRJA-4840      5958   1968.6    636.0    284   1048.6    641.0   407.6     0.0
+  BP-HBSU-1821      2803  2029.75    970.0    134    925.8    519.4   406.4    24.3
+  BP-DTUV-4363      1608   1294.9    603.0     77    614.9    259.0   355.9     0.0
+  BP-VUNR-1627      1090    987.5    468.0     52    467.5    112.0   355.5     0.0
+  BP-CJZI-6715      1080    969.5    459.0     52    458.5    103.0   355.5     0.0
+  BP-WIYN-8444      5837   1843.5    628.0    278    937.5    630.0   307.5     0.0
+  BP-VWVB-2566      5820  2611.15   1413.0    278    920.1    612.6   307.5    23.6
+  BP-KURM-2554      5826   2610.2   1413.0    278    919.2    611.7   307.5    15.7
+  BP-NVGM-1171      5837   1843.5    628.0    278    937.5    630.0   307.5     0.0
+  BP-IXZI-0433      5837   1843.5    628.0    278    937.5    630.0   307.5     0.0
+  BP-JRAJ-3531      5837   1843.5    628.0    278    937.5    630.0   307.5     0.0
+  BP-VAKC-0378      5688   2517.4   1395.0    271    851.4    544.0   307.4     0.0
+  BP-SSHF-7118      3720   1826.7   1053.0    178    595.7    289.0   306.7     0.0
+  BP-HSVZ-4056      35881747.6000000000001   1026.0    171    550.6    244.0   306.6     0.0
+  BP-EBKR-1418      2664   1682.4    930.0    127    625.4    344.1   281.3     0.0
+  BP-LYAM-3006      2664   1682.4    930.0    127    625.4    344.1   281.3     0.0
+  BP-MNWM-4454      2663   1679.4    930.0    127    622.4    341.1   281.3     0.0
+  BP-ISFD-5728      2671   1701.4    940.0    128    633.4    352.1   281.3     0.0
+  BP-BOXD-6581      2667   1698.4    940.0    127    631.4    350.1   281.3     0.0
+  BP-MSWC-4866      2663   1680.4    930.0    127    623.4    342.1   281.3     0.0
+  BP-HJQJ-2441      2664   1682.4    930.0    127    625.4    344.1   281.3     0.0
+  BP-UMTS-3580      2664   1662.4    930.0    127    605.4    324.1   281.3     0.0
+  BP-UJUA-7750      2538   1456.2    810.0    121    525.2    244.0   281.2     0.0
+  BP-KZHE-3277      2538   1456.2    810.0    121    525.2    244.0   281.2     0.0
+  BP-BYIP-7818      1614     1327    670.0     77    580.0    324.1   255.9     0.0
+  BP-BXYK-5103      1614     1347    670.0     77    600.0    344.1   255.9     0.0
+  BP-RWDC-2551       963    827.8    432.0     46    349.8     94.0   255.8     0.0
+  BP-KHWP-1082       963    827.8    432.0     46    349.8     94.0   255.8     0.0
+  BP-QPTL-6486       963    827.8    432.0     46    349.8     94.0   255.8     0.0
+  BP-GYFG-1743       963    827.8    432.0     46    349.8     94.0   255.8     0.0
+  BP-LAQG-6147       963    827.8    432.0     46    349.8     94.0   255.8     0.0
+  BP-IDJK-1102       963    827.8    432.0     46    349.8     94.0   255.8     0.0
+  BP-QATA-5745       963    827.8    432.0     46    349.8     94.0   255.8     0.0
+  BP-HJRK-4575       963    827.8    432.0     46    349.8     94.0   255.8     0.0
+  BP-TPKQ-3458       963    827.8    432.0     46    349.8     94.0   255.8     0.0
+  BP-STRT-0000       963    827.8    432.0     46    349.8     94.0   255.8     0.0
+  BP-GCFD-1072       962    824.8    432.0     46    346.8     91.0   255.8     0.0
+  BP-OCTM-8557       970    836.8    432.0     47    357.8    102.0   255.8     0.0
+  BP-BJKP-8817       966    833.8    432.0     46    355.8    100.0   255.8     0.0
+  BP-CXVC-4221       962    825.8    432.0     46    347.8     92.0   255.8     0.0
+  BP-JNZB-4277       963    857.8    432.0     46    379.8    124.0   255.8     0.0
+  BP-OWTS-7141       963847.8000000000001    432.0     46    369.8    114.0   255.8     0.0
+  BP-AXRC-2155       963    977.8    432.0     46    499.8    244.0   255.8     0.0
+  BP-QTAW-2541       963877.8000000000001    432.0     46    399.8    144.0   255.8     0.0
+  BP-VKJR-5302       963    832.6    432.0     46    354.6     98.8   255.8     4.8
+  BP-MKMN-8547       963   829.72    432.0     46    351.7     95.9   255.8     1.9
+  BP-NVBH-4203       963   829.24    432.0     46    351.2     95.4   255.8     1.4
+  BP-BTJI-6635       963    827.9    432.0     46    349.9     94.1   255.8     0.0
+  BP-CFYJ-5156       963   833.56    432.0     46    355.6     99.8   255.8     5.8
+  BP-ILEC-5060       963    832.6    432.0     46    354.6     98.8   255.8     4.8
+  BP-VYYQ-3022       963   829.24    432.0     46    351.2     95.4   255.8     1.4
+  BP-QNLF-0141       963   828.76    432.0     46    350.8     95.0   255.8     1.0
+  BP-ZYRW-4882       963    875.8    480.0     46    349.8     94.0   255.8     0.0
+  BP-JKZU-8825       963    875.8    480.0     46    349.8     94.0   255.8     0.0
+  BP-FQID-7560       963    875.8    480.0     46    349.8     94.0   255.8     0.0
+  BP-BUCN-5374       963    875.8    480.0     46    349.8     94.0   255.8     0.0
+  BP-FPCF-6431       963    587.8    192.0     46    349.8     94.0   255.8     0.0
+  BP-PVIC-2346       963    827.8    432.0     46    349.8     94.0   255.8     0.0
+  BP-AXDN-7712      1488   1146.8    576.0     71    499.8    244.0   255.8     0.0
+  BP-QEQW-2455      1488   1046.8    576.0     71    399.8    144.0   255.8     0.0
+  BP-SWRD-8221       963827.8000000000001    432.0     46    349.8     94.0   255.8     0.0
+  BP-GKUH-6184       981    879.8    432.0     47    400.8    145.0   255.8     0.0
+  BP-HIWJ-4476       969843.8000000000001    432.0     47    364.8    109.0   255.8     0.0
+  BP-KDTA-2565       963    827.8    432.0     46    349.8     94.0   255.8     0.0
+  BP-XURB-5377       970    835.8    432.0     47    356.8    101.0   255.8     0.0
+  BP-ZOEF-1571       963    827.8    432.0     46    349.8     94.0   255.8     0.0
+  BP-MSVU-0618       963    827.8    432.0     46    349.8     94.0   255.8     0.0
+  BP-FRVH-7208       962    824.8    432.0     46    346.8     91.0   255.8     0.0
+  BP-MGPC-8017       970    836.8    432.0     47    357.8    102.0   255.8     0.0
+  BP-DFBW-1574       966    833.8    432.0     46    355.8    100.0   255.8     0.0
+  BP-YXTK-3382       962    825.8    432.0     46    347.8     92.0   255.8     0.0
+  BP-CXHG-6746       963    827.8    432.0     46    349.8     94.0   255.8     0.0
+  BP-GLFR-5857      1373   1060.7    540.0     66    454.7    199.0   255.7     0.0
+  BP-BTQI-7530      1095    915.5    468.0     53    394.5    139.0   255.5     0.0
+  BP-OEFO-2864      1095    967.5    520.0     53    394.5    139.0   255.5     0.0
+  BP-EGVM-6823      1095    655.5    208.0     53    394.5    139.0   255.5     0.0
+  BP-SQHH-0614      1095   916.54    468.0     53    395.5    140.0   255.5     1.0
+  BP-UOAL-4711      1095    920.7    468.0     53    399.7    144.2   255.5     5.2
+  BP-XTGD-7413      1095917.5799999999999    468.0     53    396.6    141.1   255.5     2.1
+  BP-GHOV-0545      1095    920.7    468.0     53    399.7    144.2   255.5     5.2
+  BP-NXEY-5602      1089    899.5    468.0     52    379.5    124.0   255.5     0.0
+  BP-UVUA-6284       701    707.1    351.0     34    322.1     79.0   243.1     0.0
+  BP-WANU-1257       543      630    297.0     26    307.0     64.0   243.0     0.0
+  BP-LVAW-3661       834    667.5    387.0     40    240.5     78.0   162.5     0.0
+  BP-ZWNU-4008       837    676.5    387.0     40    249.5     87.0   162.5     0.0
+
+CONCLUSION (Step 3):
+  Is fixed_mass fully determined by the 12 user-selected fields? NO.
+  Reasons:
+   - 87 ships carry EXTRA mass from components outside the 12 fields (command bridge,
+     crew quarters, FTL field controller, FTL emitters, habitation, vortex). That mass is real
+     empty mass and is NOT captured by the 12 selections unless the game DERIVES those parts
+     from the 12 (which cannot be confirmed here — every 12-combo is unique, no repeats).
+   - 15 ships have shield coatings whose count scales with plate count, so their
+     fixed_mass changes with SIZE — there are effectively MORE than two scaling components.
