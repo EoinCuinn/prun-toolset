@@ -1,0 +1,252 @@
+================================================================================
+CORRECTED AUDIT — feature matrix from ONLY the 12 user-selectable dropdown fields
+================================================================================
+
+Dataset: C:\prun-tools\prun-openmass\blueprint_data.jsonl ONLY. It already contains
+all 87 canonical blueprints (superset of LNG_TEST_TIME_3), so no pooling needed.
+
+12 fields used (designer name = selection type):
+  STL Engine               = STL_ENGINE
+  STL fuel tank            = STL_FUEL_TANK
+  FTL Reactor              = FTL_REACTOR
+  FTL fuel tank            = FTL_FUEL_TANK
+  Cargo bay                = CARGO_BAY
+  Hull plates              = HULL_TYPE
+  Heat shielding           = HEAT_SHIELD
+  Whipple Shielding        = WHIPPLE_SHIELD
+  Stability System         = GRAVITY_SHIELD
+  Radiation Shielding      = RADIATION_SHIELD
+  Self-repair Drone Hub    = REPAIR_DRONES
+  High-G Seats             = HIGH_G_SEATS
+EXCLUDED as not user-selectable / game-derived: Command Bridge, Crew Quarters,
+Habitation Module, Structure, FTL Field Emitters (S/M/L), FTL Field Controller.
+ALSO EXCLUDED: Vortex Reactor / Vortex Fuel Tank — separate selection types not among the
+12 named fields (present only in BP-CLNY-0000). Consequence: CLNY's FTL drive reads as
+None/None in the FTL Reactor + FTL fuel tank fields. Noted as an unexpected edge case.
+
+################################################################################
+STEP 1 — FEATURE MATRIX & RANK
+################################################################################
+
+Encoding: one column per unique option per field, one-hot PRESENCE (1 if that option is
+chosen). NONE is kept as an explicit option column where a field can be empty (literal
+"one column per unique option"). Game-derived AMOUNTS (hull-plate/shield coating counts)
+are NOT used — only which option is selected.
+
+Rows (blueprints): 87
+Columns: 48
+Column rank: 37 of 48
+Rank deficiency: 11 collinear direction(s).
+
+CAUSE of the deficiency:
+  * Dummy-variable trap: every field is a "pick exactly one option" slot, so each field's
+    one-hot columns sum to 1 across every row. With 12 such fields that gives ~11 mutually
+    redundant "sum=1" directions (each field-sum equals every other). This is a STRUCTURAL
+    encoding artefact, identical for held-out rows, and does NOT harm prediction — it is the
+    reason ridge (not plain OLS) is used. Dropping one reference option per field (or the
+    NONE columns) removes it without changing any prediction.
+  * Redundant columns identified: FTL_FUEL_TANK=NONE, FTL_REACTOR=NONE, GRAVITY_SHIELD=NONE, HEAT_SHIELD=NONE, HIGH_G_SEATS=NONE, HULL_TYPE=HULL_PLATES_REINFORCED, RADIATION_SHIELD=RADIATION_SHIELD_SPECIALIZED, REPAIR_DRONES=REPAIR_DRONES_SMALL, STL_ENGINE=STL_ENGINE_STANDARD, STL_FUEL_TANK=STL_FUEL_TANK_SMALL, WHIPPLE_SHIELD=WHIPPLE_SHIELD_BASIC
+
+################################################################################
+STEP 2 — RIDGE (λ=1e-6) + 10-FOLD CROSS-VALIDATION
+################################################################################
+
+In-sample R² (full fit): 0.995582
+
+10-fold CV (seeded mulberry32/20260718) held-out predictions:
+  naturalId         actual   predicted     absErr   pctErr
+  BP-WANU-1257         543     2210.78    1667.78  307.143
+  BP-LVAW-3661         834     3391.39    2557.39  306.641
+  BP-ZYRW-4882         963     3519.59    2556.59  265.482
+  BP-UVUA-6284         701     2176.51    1475.51  210.486
+  BP-HBSU-1821        2803     4141.00    1338.00   47.734
+  BP-QEQW-2455        1488     2139.18     651.18   43.762
+  BP-ZWNU-4008         837     1129.82     292.82   34.985
+  BP-GKUH-6184         981      668.77    -312.23  -31.828
+  BP-CLNY-0000        8532     5973.91   -2558.09  -29.982
+  BP-NVBH-4203         963      677.71    -285.29  -29.625
+  BP-OEFO-2864        1095      814.28    -280.72  -25.636
+  BP-HIWJ-4476         969      790.71    -178.29  -18.399
+  BP-VKJR-5302         963     1126.63     163.63   16.991
+  BP-MGPC-8017         970     1110.72     140.72   14.507
+  BP-VWVB-2566        5820     6579.57     759.57   13.051
+  BP-BTQI-7530        1095      968.60    -126.40  -11.543
+  BP-MKMN-8547         963     1068.11     105.11   10.915
+  BP-VYYQ-3022         963      859.59    -103.41  -10.738
+  BP-QNLF-0141         963     1043.60      80.60    8.369
+  BP-DTUV-4363        1608     1724.53     116.53    7.247
+  BP-KZHE-3277        2538     2355.52    -182.48   -7.190
+  BP-RWDC-2551         963      894.55     -68.45   -7.108
+  BP-MSVU-0618         963      894.55     -68.45   -7.108
+  BP-VAKC-0378        5688     6091.80     403.80    7.099
+  BP-XTGD-7413        1095     1022.33     -72.67   -6.636
+  BP-IKDW-2041        6242     6655.05     413.05    6.617
+  BP-ILEC-5060         963     1024.80      61.80    6.417
+  BP-UJUA-7750        2538     2380.63    -157.37   -6.201
+  BP-CXVC-4221         962      902.76     -59.24   -6.158
+  BP-ISFD-5728        2671     2834.19     163.19    6.110
+  BP-AXDN-7712        1488     1401.84     -86.16   -5.790
+  BP-OCTM-8557         970     1026.15      56.15    5.789
+  BP-ZOEF-1571         963      912.44     -50.56   -5.250
+  BP-CXHG-6746         963      912.44     -50.56   -5.250
+  BP-TPKQ-3458         963      913.06     -49.94   -5.186
+  BP-STRT-0000         963      913.06     -49.94   -5.186
+  BP-PVIC-2346         963      913.06     -49.94   -5.186
+  BP-KDTA-2565         963      913.06     -49.94   -5.186
+  BP-QATA-5745         963      921.96     -41.04   -4.262
+  BP-KHWP-1082         963      924.46     -38.54   -4.002
+  BP-IDJK-1102         963      924.46     -38.54   -4.002
+  BP-SWRD-8221         963      924.46     -38.54   -4.002
+  BP-GYFG-1743         963      924.59     -38.41   -3.988
+  BP-HJRK-4575         963      924.59     -38.41   -3.988
+  BP-UMTS-3580        2664     2559.37    -104.63   -3.928
+  BP-BUCN-5374         963      925.18     -37.82   -3.927
+  BP-EGVM-6823        1095     1057.07     -37.93   -3.464
+  BP-KURM-2554        5826     6003.96     177.96    3.055
+  BP-SSHF-7118        3720     3639.40     -80.60   -2.167
+  BP-HSVZ-4056        3588     3662.22      74.22    2.069
+  BP-FRVH-7208         962      943.39     -18.61   -1.934
+  BP-JRJA-4840        5958     5842.83    -115.17   -1.933
+  BP-OWTS-7141         963      947.86     -15.14   -1.572
+  BP-EBKR-1418        2664     2632.76     -31.24   -1.173
+  BP-DFBW-1574         966      957.95      -8.05   -0.834
+  BP-MNWM-4454        2663     2685.17      22.17    0.832
+  BP-LYAM-3006        2664     2645.12     -18.88   -0.709
+  BP-BOXD-6581        2667     2684.96      17.96    0.674
+  BP-HJQJ-2441        2664     2648.07     -15.93   -0.598
+  BP-IXZI-0433        5837     5867.16      30.16    0.517
+  BP-QTAW-2541         963      959.00      -4.00   -0.415
+  BP-WIYN-8444        5837     5853.44      16.44    0.282
+  BP-AXRC-2155         963      961.41      -1.59   -0.165
+  BP-JNZB-4277         963      961.80      -1.20   -0.124
+  BP-XURB-5377         970      968.95      -1.05   -0.108
+  BP-NVGM-1171        5837     5842.51       5.51    0.094
+  BP-VUNR-1627        1090     1090.64       0.64    0.059
+  BP-CFYJ-5156         963      962.65      -0.35   -0.036
+  BP-BTJI-6635         963      963.17       0.17    0.017
+  BP-GLFR-5857        1373     1372.84      -0.16   -0.011
+  BP-FPCF-6431         963      962.91      -0.09   -0.009
+  BP-GHOV-0545        1095     1094.93      -0.07   -0.007
+  BP-YXTK-3382         962      961.95      -0.05   -0.005
+  BP-CJZI-6715        1080     1080.04       0.04    0.004
+  BP-NXEY-5602        1089     1088.96      -0.04   -0.004
+  BP-QPTL-6486         963      963.02       0.02    0.002
+  BP-BXYK-5103        1614     1614.04       0.04    0.002
+  BP-MSWC-4866        2663     2662.94      -0.06   -0.002
+  BP-LAQG-6147         963      963.02       0.02    0.002
+  BP-BJKP-8817         966      966.02       0.02    0.002
+  BP-SQHH-0614        1095     1094.98      -0.02   -0.002
+  BP-UOAL-4711        1095     1094.98      -0.02   -0.002
+  BP-BYIP-7818        1614     1614.00      -0.00   -0.000
+  BP-JRAJ-3531        5837     5837.01       0.01    0.000
+  BP-GCFD-1072         962      962.00      -0.00   -0.000
+  BP-FQID-7560         963      963.00      -0.00   -0.000
+  BP-JKZU-8825         963      963.00      -0.00   -0.000
+
+CROSS-VALIDATION SUMMARY:
+  mean absolute % error : 18.5002 %
+  max % error           : 307.1426 %  on BP-WANU-1257 (actual 543, predicted 2210.78)
+  held-out R²           : 0.886555
+  within 2% : 37/87   within 5% : 49/87
+
+DECISION THRESHOLD: pass iff mean abs %err < 2% AND max %err < 5%.
+  mean abs %err < 2% : NO (18.500%)
+  max  abs %err < 5% : NO (307.143%)
+  => RESULT: FAIL
+
+Undersampled options (<=3 blueprints), by field:
+  STL Engine:
+      ENGINE_GLASS                   3 bp
+  STL fuel tank:
+      FUEL_TANK_LARGE                3 bp
+  FTL Reactor:
+      REACTOR_HIGH_POWER             2 bp
+  Cargo bay:
+      BAY_MEDIUM                     1 bp
+      BAY_VERY_SMALL                 1 bp
+      BAY_TINY                       1 bp
+      BAY_HIGH_VOLUME                2 bp
+  Hull plates:
+      PLATES_ADVANCED                2 bp
+      PLATES_HARDENED                2 bp
+  Heat shielding:
+      SHIELD_BASIC                   2 bp
+  Whipple Shielding:
+      SHIELD_BASIC                   2 bp
+  Radiation Shielding:
+      SHIELD_BASIC                   1 bp
+      SHIELD_ADVANCED                2 bp
+  Self-repair Drone Hub:
+      DRONES_LARGE                   3 bp
+  High-G Seats:
+      G_SEATS_ADVANCED               3 bp
+################################################################################
+STEP 2b — DIAGNOSIS: undersampling, encoding artefact, or missing information?
+################################################################################
+
+CV error split by whether a build uses a rare (<=3 bp) 12-field option:
+  ALL 87        : mean 18.50%  median 3.99%  within2 37/87
+  COMMON-ONLY 61: mean 10.19%  median 3.99%  within2 26/61   (uses only well-sampled options)
+  USES-RARE  26 : mean 37.99%  median 6.42%  within2 11/26
+  -> Common-only builds ALSO fail badly (median ~4%), so this is not merely undersampling.
+
+IN-SAMPLE floor (fit on all 87, predict all 87 — no held-out, no undersampling, best case):
+  ridge λ=1e-6 : mean 4.94%  median 3.07%  max 51.9%  within2 36/87
+  Even fitting the training data to itself, the 12-field one-hot LINEAR model cannot put
+  most builds within 2%. That removes undersampling AND held-out/dummy-trap instability as
+  the cause — the ~3-5% error is a STRUCTURAL floor of this model.
+
+Under-determination check: 0 groups of blueprints share identical 12-field selections with
+different totalVolume. So the 12 fields are a unique key per build — yet an ADDITIVE one-hot
+model still cannot reproduce totalVolume. Reason: totalVolume is (very nearly) the additive
+sum of the volumes of ALL onboard components; the excluded FTL Field Emitters (counts 0-5),
+Command Bridge and Crew Quarters contribute volume that is simply absent from the 12 fields.
+
+Cross-check (prior session, selections_audit.txt): the SAME linear method, but INCLUDING FTL
+emitters + command bridge + crew quarters, reached in-sample R²=1.000 (exact) and 76/87 within
+2% on 10-fold CV. Adding those fields back is exactly what completes the additive volume sum.
+=> The excluded fields are volumetrically real, not derived noise.
+
+################################################################################
+CONCLUSION
+################################################################################
+
+Does the 12-field model pass the 2%/5% threshold?  NO.
+  10-fold CV: mean |%err| 18.50%, max 307.1% (BP-WANU-1257), held-out R² 0.887, 37/87 within 2%.
+  In-sample best case: mean 4.94%, 36/87 within 2% — fails even before any held-out.
+
+Rank deficiency (11 of 48): entirely the benign dummy-variable trap — each of the 12 "pick one
+option" fields has its one-hot columns sum to 1, so ~11 directions are mutually redundant. It
+is structural, harms nothing, and is NOT the reason the fit fails.
+
+Which dropdown options are undersampled (<=3 blueprints)?  These 15 (secondary issue):
+  Hull plates: Advanced(2), Hardened(2)   |  STL Engine: Glass(3)   |  STL fuel tank: Large(3)
+  FTL Reactor: High Power(2)              |  High-G Seats: Advanced(3)  |  Self-repair Drone Hub: Large(3)
+  Cargo bay: Tiny(1), Very Small(1), Medium(1), High Volume(2)
+  Heat: Basic(2)  |  Whipple: Basic(2)  |  Radiation: Basic(1), Advanced(2)
+
+DO MORE CAPTURES FIX IT?  NO — and this is the key finding.
+  Topping up those 15 options would cure the undersampling COMPONENT, but the model still
+  cannot pass: the in-sample floor (4.94% mean, 36/87 within 2%) is already a failure, and it
+  exists with zero undersampling. The 12 one-hot fields provide at most rank 37 of additive
+  freedom — capped and independent of sample count — which cannot reconstruct a totalVolume
+  that also depends on emitters/bridge/quarters. No number of 12-field captures raises that.
+
+ACTUAL REMEDY (not more 12-field captures):
+  Predict totalVolume from the fuller user selection set = these 12 fields PLUS FTL Field
+  Emitters (S/M/L counts), Command Bridge, and Crew Quarters. That model already reaches
+  in-sample R²=1.000 and 76/87 within 2% (prior session). It needs only the small, targeted
+  option top-ups already written in capture_checklist.txt (v2) — those ARE worth the tester
+  time; a 12-field-only capture list is not.
+
+################################################################################
+STEP 3 — CORRECTED CAPTURE LIST: intentionally NOT produced
+################################################################################
+
+capture_checklist_corrected.txt is deliberately not written. Step 3 is gated on captures being
+the remedy; the diagnosis above proves they are not for a 12-field-only model (it fails even
+in-sample). Producing a 12-field capture list would send you back to the blueprint tester for a
+model that cannot pass — the opposite of the intent. The under-sampled options are listed above
+for reference; the build table worth using remains capture_checklist.txt (v2), which is keyed to
+the fuller field set that actually reconstructs totalVolume. Say the word if you still want the
+12-field-only table generated anyway.

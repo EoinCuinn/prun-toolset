@@ -57,6 +57,18 @@ FP_FUEL_PER_PARSEC = 14.2
 ```
 Empirically calibrated from flight log data.
 
+**Ship empty mass and hull volume** — derived from the blueprint dropdowns, not fitted
+```
+operatingEmptyMass = Σ(component weight × count)          # exact, 87/87 blueprints
+totalVolume = 438 + 1.05 × cargo_capM3
+              + engineΔ + stlTankΔ + reactorΔ + ftlTankΔ  # 86/87 within 0.5%
+```
+Empty mass is exactly the bill of material — no baseline, no hull offset. The hard part was `totalVolume`, the hull-envelope figure the game sizes plating and structure from: it is *not* the sum of component volumes (0/87) and has no constant packing factor, but it is additive over five of the twelve selectable fields and driven by the cargo bay's **m³ capacity** (not its weight or tonnage). The `1.05` is structure feedback — capacity demands space, and the plates enclosing it eat ~5% more.
+
+With volume known the whole ship follows: plates `round(0.535 × V^0.655)`, structural components `round(0.0478 × V)`, crew quarters by volume band, command bridge by FTL-reactor tier. Hypothetical mode now computes empty mass from the dropdowns instead of a fitted aggregate — **volume 86/87 within 1% (mean 0.002% over the 86 non-vortex ships; the single miss is the vortex ship BP-CLNY-0000), mass 82/86 within 1% (mean 0.199%)**. Full write-up: [`research/openmass/`](research/openmass/).
+
+Note for anyone reproducing this: a regression over these fields is confounded and returns confidently wrong coefficients (R²=0.992 while reporting the Quick-Charge reactor at −77 m³ where a controlled pair gives +7). Every delta was measured from one-field-change blueprint pairs.
+
 ### What's in progress
 
 - **Radiation damage** — Confirmed real (2026-07-08). Accumulates on TRANSIT segments only; scales as k·AU⁻²·distMkm, k≈0.045 %·AU²/Mkm (O-class, two ships, pre-registered prediction confirmed). Implementation parked — path integration along the transfer ellipse is non-trivial, and star-class dependence is uncalibrated outside O-class. Anti-rad plate is non-functional (not net negative — zero measurable effect across nine captures). No radiation term in active code.
@@ -66,7 +78,7 @@ Empirically calibrated from flight log data.
 ### Modes
 
 - **Real fleet** — pulls your ships direct from FIO Swagger API (`api.fnar.net`). Prefills blueprint, mass, thrust, flow rate, condition.
-- **Hypothetical** — component selector. Mix and match any hull/engine/tank/shielding combination to compare builds before committing.
+- **Hypothetical** — component selector. Mix and match any hull/engine/tank/shielding combination to compare builds before committing. Empty mass and `totalVolume` are derived from the selections (see above) and shown alongside the plate/structural counts, so a build can be spot-checked against the in-game blueprint tester. A lookup of 61 captured blueprint combinations is kept as a secondary cross-check; any disagreement over 1% is flagged in the UI.
 
 ### Data sources
 
@@ -85,6 +97,7 @@ Reverse-engineering write-ups behind the planner's physics — game flight quant
 |--------|---------|
 | [`research/landing/`](research/landing/) | Take-off/landing distance — the `missionId`-seeded PRNG law, client-controlled seed, CSPRNG (unsteerable), fixed-tile hypothesis refuted |
 | [`research/radiation/`](research/radiation/) | Radiation damage — real and ~inverse-square near hot stars, but the Specialised Anti-Radiation Plate shows no measurable effect (the open paradox). Includes captures, derived analyses, and scripts |
+| [`research/openmass/`](research/openmass/) | Ship empty mass and hull volume — empty mass is exactly the BOM sum; `totalVolume` derived from the twelve selectable fields (cargo m³ capacity dominant), and the confounded-regression trap that hid it |
 
 Each workstream ships the same doc set: a peer **SUMMARY**, a **findings_public** technical write-up, and a short **post_channel** version for Discord.
 

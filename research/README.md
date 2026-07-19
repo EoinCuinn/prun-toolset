@@ -16,6 +16,13 @@ Radiation-like damage is real on sublight legs near a hot star, rising as ~inver
 - [RADIATION_SUMMARY_2026-07-08.md](radiation/RADIATION_SUMMARY_2026-07-08.md) · [findings_public](radiation/RADIATION_findings_public_2026-07-08.md) · [post_channel](radiation/RADIATION_post_channel.md) · [METEOROID_FORMULA.md](radiation/METEOROID_FORMULA.md)
 - Captures, reference data, and analysis scripts are included in-folder (imported from the former `prun-radiation-research` repo).
 
+## [openmass/](openmass/) — ship empty mass & hull volume
+
+`operatingEmptyMass` is exactly the bill of material — `Σ(component weight × count)`, 87 of 87 blueprints, max residual `2.3e-13 t`, no baseline or hull offset. The blocker was `totalVolume`, the hull-envelope figure the game sizes plating and structure from: it is **not** the sum of component volumes (0 of 87) and has no constant packing factor, but it *is* additive over five of the twelve selectable fields and driven by the cargo bay's **m³ capacity** — `totalVolume = 438 + 1.05 × cargo_capM3 + engineΔ + stlTankΔ + reactorΔ + ftlTankΔ` (86 of 87 within 0.5%). With volume known, plate count, structural count, crew quarters and command bridge all follow, and so does exact empty mass. Carries a methodological warning: regression over these fields is confounded and returns confidently wrong coefficients (R²=0.992 while putting the Quick-Charge reactor at −77 m³ where a controlled pair gives +7) — every delta was measured from one-field-change blueprint pairs.
+
+- [OPENMASS_SUMMARY_2026-07-18.md](openmass/OPENMASS_SUMMARY_2026-07-18.md) · [findings_public](openmass/OPENMASS_findings_public_2026-07-18.md) · [post_channel](openmass/OPENMASS_post_channel.md)
+- Blueprint corpus, scripts and outputs: `prun-openmass/` (not included here).
+
 ## Credits
 
-**Marcus Licinius Crassus** (flight-dynamics/ephemeris papers, landing PRNG law), **Taiyi Bureau** (landing-distance formula, approach-orbit theory), **Raylu** (`git.raylu.net/raylu/pruncalc`), **Aem** (radiation formula), **SAGANAKI** (FIO galaxy data). Capture analysis by EoinCuinn with Claude Code.
+**Marcus Licinius Crassus** (flight-dynamics/ephemeris papers, landing PRNG law, in-flight mass composition), **Taiyi Bureau** (landing-distance formula, approach-orbit theory), **Raylu** (`git.raylu.net/raylu/pruncalc`), **Aem** (radiation formula), **SAGANAKI** (FIO galaxy data). Capture analysis by EoinCuinn with Claude Code.

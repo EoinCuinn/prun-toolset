@@ -1,0 +1,1558 @@
+BLUEPRINT DUMP — 87 blueprints
+======================================================================
+
+BP-EBKR-1418   Base Hopper 2t NEW
+  totalVolume        = 2664
+  operatingEmptyMass = 1682.4
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    STS   | stabilitySupportSystem         | qty    1 | wt     0.1 | vol     0.1
+    LFE   | largeEmitter                   | qty    2 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    2 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    LCB   | largeCargoBay                  | qty    1 | wt     200 | vol     200
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    BGS   | basicHighgSeats                | qty    1 | wt      20 | vol       3
+    RHP   | reinforcedHullPlate            | qty   93 | wt      10 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty  127 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQM   | crewQuartersMed                | qty    1 | wt      50 | vol     100
+    RDS   | smallShipRepairDroneUnit       | qty    1 | wt      50 | vol      10
+
+BP-WIYN-8444   Big Hauler 2 Copy
+  totalVolume        = 5837
+  operatingEmptyMass = 1843.5
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    FSE   | fuelSavingEngine               | qty    1 | wt       6 | vol       3
+    LFE   | largeEmitter                   | qty    5 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    2 | wt     0.2 | vol     0.8
+    QCR   | quickChargeReactor             | qty    1 | wt      14 | vol      10
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    HCB   | hugeCargoBay                   | qty    1 | wt     500 | vol     500
+    LFL   | largeFtlTank                   | qty    1 | wt      60 | vol      10
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    LHP   | lightweightHullPlate           | qty  157 | wt       4 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty  278 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQL   | crewQuarters                   | qty    1 | wt      75 | vol     150
+
+BP-LYAM-3006   Base Hopper 2t STD
+  totalVolume        = 2664
+  operatingEmptyMass = 1682.4
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    STS   | stabilitySupportSystem         | qty    1 | wt     0.1 | vol     0.1
+    LFE   | largeEmitter                   | qty    2 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    2 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    LCB   | largeCargoBay                  | qty    1 | wt     200 | vol     200
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    BGS   | basicHighgSeats                | qty    1 | wt      20 | vol       3
+    RHP   | reinforcedHullPlate            | qty   93 | wt      10 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty  127 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQM   | crewQuartersMed                | qty    1 | wt      50 | vol     100
+    RDS   | smallShipRepairDroneUnit       | qty    1 | wt      50 | vol      10
+
+BP-MNWM-4454   Base Hopper 2t GLASS
+  totalVolume        = 2663
+  operatingEmptyMass = 1679.4
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    STS   | stabilitySupportSystem         | qty    1 | wt     0.1 | vol     0.1
+    GEN   | glassEngine                    | qty    1 | wt       5 | vol       3
+    LFE   | largeEmitter                   | qty    2 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    2 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    LCB   | largeCargoBay                  | qty    1 | wt     200 | vol     200
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    BGS   | basicHighgSeats                | qty    1 | wt      20 | vol       3
+    RHP   | reinforcedHullPlate            | qty   93 | wt      10 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty  127 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQM   | crewQuartersMed                | qty    1 | wt      50 | vol     100
+    RDS   | smallShipRepairDroneUnit       | qty    1 | wt      50 | vol      10
+
+BP-ISFD-5728   Base Hopper 2t Hyper
+  totalVolume        = 2671
+  operatingEmptyMass = 1701.4
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    STS   | stabilitySupportSystem         | qty    1 | wt     0.1 | vol     0.1
+    HTE   | hyperthrustEngine              | qty    1 | wt      16 | vol      10
+    LFE   | largeEmitter                   | qty    2 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    2 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    LCB   | largeCargoBay                  | qty    1 | wt     200 | vol     200
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    BGS   | basicHighgSeats                | qty    1 | wt      20 | vol       3
+    RHP   | reinforcedHullPlate            | qty   94 | wt      10 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty  128 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQM   | crewQuartersMed                | qty    1 | wt      50 | vol     100
+    RDS   | smallShipRepairDroneUnit       | qty    1 | wt      50 | vol      10
+
+BP-BOXD-6581   Base Hopper 2t ADV
+  totalVolume        = 2667
+  operatingEmptyMass = 1698.4
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    STS   | stabilitySupportSystem         | qty    1 | wt     0.1 | vol     0.1
+    AEN   | advancedEngine                 | qty    1 | wt      14 | vol       7
+    LFE   | largeEmitter                   | qty    2 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    2 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    LCB   | largeCargoBay                  | qty    1 | wt     200 | vol     200
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    BGS   | basicHighgSeats                | qty    1 | wt      20 | vol       3
+    RHP   | reinforcedHullPlate            | qty   94 | wt      10 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty  127 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQM   | crewQuartersMed                | qty    1 | wt      50 | vol     100
+    RDS   | smallShipRepairDroneUnit       | qty    1 | wt      50 | vol      10
+
+BP-MSWC-4866   Base Hopper 2t fuel saver
+  totalVolume        = 2663
+  operatingEmptyMass = 1680.4
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    STS   | stabilitySupportSystem         | qty    1 | wt     0.1 | vol     0.1
+    FSE   | fuelSavingEngine               | qty    1 | wt       6 | vol       3
+    LFE   | largeEmitter                   | qty    2 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    2 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    LCB   | largeCargoBay                  | qty    1 | wt     200 | vol     200
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    BGS   | basicHighgSeats                | qty    1 | wt      20 | vol       3
+    RHP   | reinforcedHullPlate            | qty   93 | wt      10 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty  127 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQM   | crewQuartersMed                | qty    1 | wt      50 | vol     100
+    RDS   | smallShipRepairDroneUnit       | qty    1 | wt      50 | vol      10
+
+BP-RWDC-2551   SLD-Control-SMALLSLT
+  totalVolume        = 963
+  operatingEmptyMass = 827.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-BTQI-7530   SLD-Control
+  totalVolume        = 1095
+  operatingEmptyMass = 915.5
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    LFE   | largeEmitter                   | qty    1 | wt     0.4 | vol     1.6
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    MFL   | mediumFtlTank                  | qty    1 | wt      24 | vol       4
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    BHP   | basicHullPlate                 | qty   52 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   53 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-OEFO-2864   SLD-RHP
+  totalVolume        = 1095
+  operatingEmptyMass = 967.5
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    LFE   | largeEmitter                   | qty    1 | wt     0.4 | vol     1.6
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    MFL   | mediumFtlTank                  | qty    1 | wt      24 | vol       4
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    RHP   | reinforcedHullPlate            | qty   52 | wt      10 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   53 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-EGVM-6823   SLD-LHP
+  totalVolume        = 1095
+  operatingEmptyMass = 655.5
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    LFE   | largeEmitter                   | qty    1 | wt     0.4 | vol     1.6
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    MFL   | mediumFtlTank                  | qty    1 | wt      24 | vol       4
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    LHP   | lightweightHullPlate           | qty   52 | wt       4 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   53 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-SQHH-0614   SLD-Heat
+  totalVolume        = 1095
+  operatingEmptyMass = 916.54
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    LFE   | largeEmitter                   | qty    1 | wt     0.4 | vol     1.6
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    MFL   | mediumFtlTank                  | qty    1 | wt      24 | vol       4
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    BHP   | basicHullPlate                 | qty   52 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   53 | wt       1 | vol       1
+    BPT   | basicHeatShield                | qty   52 | wt    0.02 | vol     0.3
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-UOAL-4711   SLD-Whipple
+  totalVolume        = 1095
+  operatingEmptyMass = 920.7
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    LFE   | largeEmitter                   | qty    1 | wt     0.4 | vol     1.6
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    MFL   | mediumFtlTank                  | qty    1 | wt      24 | vol       4
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    BHP   | basicHullPlate                 | qty   52 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   53 | wt       1 | vol       1
+    BWH   | basicWhippleShielding          | qty   52 | wt     0.1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-XTGD-7413   SLD-RadAdv
+  totalVolume        = 1095
+  operatingEmptyMass = 917.5799999999999
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    LFE   | largeEmitter                   | qty    1 | wt     0.4 | vol     1.6
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    MFL   | mediumFtlTank                  | qty    1 | wt      24 | vol       4
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    BHP   | basicHullPlate                 | qty   52 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   53 | wt       1 | vol       1
+    ARP   | advancedRadiationShielding     | qty   52 | wt    0.04 | vol     0.2
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-GHOV-0545   SLD-RadSpec
+  totalVolume        = 1095
+  operatingEmptyMass = 920.7
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    LFE   | largeEmitter                   | qty    1 | wt     0.4 | vol     1.6
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    MFL   | mediumFtlTank                  | qty    1 | wt      24 | vol       4
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    BHP   | basicHullPlate                 | qty   52 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   53 | wt       1 | vol       1
+    SRP   | specializedRadiationShielding  | qty   52 | wt     0.1 | vol     0.2
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-VWVB-2566   Capture Blueprint different
+  totalVolume        = 5820
+  operatingEmptyMass = 2611.15
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    STS   | stabilitySupportSystem         | qty    1 | wt     0.1 | vol     0.1
+    LFE   | largeEmitter                   | qty    5 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    2 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    HCB   | hugeCargoBay                   | qty    1 | wt     500 | vol     500
+    MFL   | mediumFtlTank                  | qty    1 | wt      24 | vol       4
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    BHP   | basicHullPlate                 | qty  157 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty  278 | wt       1 | vol       1
+    APT   | advancedHeatShield             | qty  157 | wt    0.03 | vol     0.3
+    AWH   | advancedWhippleShielding       | qty  157 | wt    0.12 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQL   | crewQuarters                   | qty    1 | wt      75 | vol     150
+
+BP-KURM-2554   Capture Blueprint Example
+  totalVolume        = 5826
+  operatingEmptyMass = 2610.2
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    LFE   | largeEmitter                   | qty    5 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    2 | wt     0.2 | vol     0.8
+    QCR   | quickChargeReactor             | qty    1 | wt      14 | vol      10
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    HCB   | hugeCargoBay                   | qty    1 | wt     500 | vol     500
+    MFL   | mediumFtlTank                  | qty    1 | wt      24 | vol       4
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    BHP   | basicHullPlate                 | qty  157 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty  278 | wt       1 | vol       1
+    SRP   | specializedRadiationShielding  | qty  157 | wt     0.1 | vol     0.2
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQL   | crewQuarters                   | qty    1 | wt      75 | vol     150
+
+BP-IKDW-2041   HARD Hull Plate
+  totalVolume        = 6242
+  operatingEmptyMass = 2897.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    FSE   | fuelSavingEngine               | qty    1 | wt       6 | vol       3
+    HYR   | hyperPowerReactor              | qty    1 | wt      25 | vol      25
+    LFE   | largeEmitter                   | qty    5 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    HCB   | hugeCargoBay                   | qty    1 | wt     500 | vol     500
+    LFL   | largeFtlTank                   | qty    1 | wt      60 | vol      10
+    LSL   | largeStlTank                   | qty    1 | wt     125 | vol     100
+    BHP   | basicHullPlate                 | qty  164 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty  298 | wt       1 | vol       1
+    BR2   | commandBridge2                 | qty    1 | wt     280 | vol     400
+    CQL   | crewQuarters                   | qty    1 | wt      75 | vol     150
+
+BP-KHWP-1082   ADV Hull Plate
+  totalVolume        = 963
+  operatingEmptyMass = 827.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-QPTL-6486   BHP TESTER STD STL
+  totalVolume        = 963
+  operatingEmptyMass = 827.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-GYFG-1743   Hortus to Boucher Testing 1
+  totalVolume        = 963
+  operatingEmptyMass = 827.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-LAQG-6147   Hortus to Boucher Testing 2
+  totalVolume        = 963
+  operatingEmptyMass = 827.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-JRJA-4840   (no name)
+  totalVolume        = 5958
+  operatingEmptyMass = 1968.6
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    FSE   | fuelSavingEngine               | qty    1 | wt       6 | vol       3
+    HYR   | hyperPowerReactor              | qty    1 | wt      25 | vol      25
+    LFE   | largeEmitter                   | qty    5 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    2 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    HCB   | hugeCargoBay                   | qty    1 | wt     500 | vol     500
+    LFL   | largeFtlTank                   | qty    1 | wt      60 | vol      10
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    LHP   | lightweightHullPlate           | qty  159 | wt       4 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty  284 | wt       1 | vol       1
+    BR2   | commandBridge2                 | qty    1 | wt     280 | vol     400
+    CQL   | crewQuarters                   | qty    1 | wt      75 | vol     150
+
+BP-IDJK-1102   Vortex
+  totalVolume        = 963
+  operatingEmptyMass = 827.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-NVGM-1171   Big Hauler 3
+  totalVolume        = 5837
+  operatingEmptyMass = 1843.5
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    FSE   | fuelSavingEngine               | qty    1 | wt       6 | vol       3
+    LFE   | largeEmitter                   | qty    5 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    2 | wt     0.2 | vol     0.8
+    QCR   | quickChargeReactor             | qty    1 | wt      14 | vol      10
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    HCB   | hugeCargoBay                   | qty    1 | wt     500 | vol     500
+    LFL   | largeFtlTank                   | qty    1 | wt      60 | vol      10
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    LHP   | lightweightHullPlate           | qty  157 | wt       4 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty  278 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQL   | crewQuarters                   | qty    1 | wt      75 | vol     150
+
+BP-QATA-5745   (no name)
+  totalVolume        = 963
+  operatingEmptyMass = 827.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-CLNY-0000   (no name)
+  totalVolume        = 8532
+  operatingEmptyMass = 5893.6
+  components (ticker | name | qty | unitWeight | unitVolume):
+    STS   | stabilitySupportSystem         | qty    1 | wt     0.1 | vol     0.1
+    HTE   | hyperthrustEngine              | qty    1 | wt      16 | vol      10
+    VOE   | vortexEngine                   | qty    1 | wt      40 | vol      35
+    HCB   | hugeCargoBay                   | qty    1 | wt     500 | vol     500
+    LSL   | largeStlTank                   | qty    1 | wt     125 | vol     100
+    VFT   | vortexFuelTank                 | qty    1 | wt    1000 | vol    1000
+    AGS   | advancedHighgSeats             | qty    1 | wt      30 | vol       5
+    AHP   | advancedHullPlate              | qty  202 | wt      10 | vol      10
+    HAM   | habitationModule               | qty    1 | wt    1200 | vol    1200
+    SSC   | structuralSpacecraftComponent  | qty  407 | wt       1 | vol       1
+    APT   | advancedHeatShield             | qty  202 | wt    0.03 | vol     0.3
+    AWH   | advancedWhippleShielding       | qty  202 | wt    0.12 | vol       1
+    SRP   | specializedRadiationShielding  | qty  202 | wt     0.1 | vol     0.2
+    BR2   | commandBridge2                 | qty    1 | wt     280 | vol     400
+    CQL   | crewQuarters                   | qty    1 | wt      75 | vol     150
+    RDL   | largeShipRepairDroneUnit       | qty    1 | wt     150 | vol      30
+
+BP-IXZI-0433   Big Hauler 2
+  totalVolume        = 5837
+  operatingEmptyMass = 1843.5
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    FSE   | fuelSavingEngine               | qty    1 | wt       6 | vol       3
+    LFE   | largeEmitter                   | qty    5 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    2 | wt     0.2 | vol     0.8
+    QCR   | quickChargeReactor             | qty    1 | wt      14 | vol      10
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    HCB   | hugeCargoBay                   | qty    1 | wt     500 | vol     500
+    LFL   | largeFtlTank                   | qty    1 | wt      60 | vol      10
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    LHP   | lightweightHullPlate           | qty  157 | wt       4 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty  278 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQL   | crewQuarters                   | qty    1 | wt      75 | vol     150
+
+BP-HJRK-4575   (no name)
+  totalVolume        = 963
+  operatingEmptyMass = 827.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-JRAJ-3531   Big Hauler
+  totalVolume        = 5837
+  operatingEmptyMass = 1843.5
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    FSE   | fuelSavingEngine               | qty    1 | wt       6 | vol       3
+    LFE   | largeEmitter                   | qty    5 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    2 | wt     0.2 | vol     0.8
+    QCR   | quickChargeReactor             | qty    1 | wt      14 | vol      10
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    HCB   | hugeCargoBay                   | qty    1 | wt     500 | vol     500
+    LFL   | largeFtlTank                   | qty    1 | wt      60 | vol      10
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    LHP   | lightweightHullPlate           | qty  157 | wt       4 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty  278 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQL   | crewQuarters                   | qty    1 | wt      75 | vol     150
+
+BP-HBSU-1821   2t 2m Interplanet
+  totalVolume        = 2803
+  operatingEmptyMass = 2029.75
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    STS   | stabilitySupportSystem         | qty    1 | wt     0.1 | vol     0.1
+    HYR   | hyperPowerReactor              | qty    1 | wt      25 | vol      25
+    HTE   | hyperthrustEngine              | qty    1 | wt      16 | vol      10
+    LFE   | largeEmitter                   | qty    2 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    2 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    LCB   | largeCargoBay                  | qty    1 | wt     200 | vol     200
+    MFL   | mediumFtlTank                  | qty    1 | wt      24 | vol       4
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    AGS   | advancedHighgSeats             | qty    1 | wt      30 | vol       5
+    RHP   | reinforcedHullPlate            | qty   97 | wt      10 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty  134 | wt       1 | vol       1
+    APT   | advancedHeatShield             | qty   97 | wt    0.03 | vol     0.3
+    AWH   | advancedWhippleShielding       | qty   97 | wt    0.12 | vol       1
+    SRP   | specializedRadiationShielding  | qty   97 | wt     0.1 | vol     0.2
+    BR2   | commandBridge2                 | qty    1 | wt     280 | vol     400
+    CQL   | crewQuarters                   | qty    1 | wt      75 | vol     150
+    RDL   | largeShipRepairDroneUnit       | qty    1 | wt     150 | vol      30
+
+BP-HJQJ-2441   Base Hopper 2t 2t Copy
+  totalVolume        = 2664
+  operatingEmptyMass = 1682.4
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    STS   | stabilitySupportSystem         | qty    1 | wt     0.1 | vol     0.1
+    LFE   | largeEmitter                   | qty    2 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    2 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    LCB   | largeCargoBay                  | qty    1 | wt     200 | vol     200
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    BGS   | basicHighgSeats                | qty    1 | wt      20 | vol       3
+    RHP   | reinforcedHullPlate            | qty   93 | wt      10 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty  127 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQM   | crewQuartersMed                | qty    1 | wt      50 | vol     100
+    RDS   | smallShipRepairDroneUnit       | qty    1 | wt      50 | vol      10
+
+BP-TPKQ-3458   (no name)
+  totalVolume        = 963
+  operatingEmptyMass = 827.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-UMTS-3580   Base Hopper 2t 2t
+  totalVolume        = 2664
+  operatingEmptyMass = 1662.4
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    STS   | stabilitySupportSystem         | qty    1 | wt     0.1 | vol     0.1
+    LFE   | largeEmitter                   | qty    2 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    2 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    LCB   | largeCargoBay                  | qty    1 | wt     200 | vol     200
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    RHP   | reinforcedHullPlate            | qty   93 | wt      10 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty  127 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQM   | crewQuartersMed                | qty    1 | wt      50 | vol     100
+    RDS   | smallShipRepairDroneUnit       | qty    1 | wt      50 | vol      10
+
+BP-BYIP-7818   Base Hopper No High G Seats
+  totalVolume        = 1614
+  operatingEmptyMass = 1327
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    STS   | stabilitySupportSystem         | qty    1 | wt     0.1 | vol     0.1
+    LFE   | largeEmitter                   | qty    1 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    2 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    WCB   | highLoadCargoBay               | qty    1 | wt     200 | vol     200
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    RHP   | reinforcedHullPlate            | qty   67 | wt      10 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   77 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+    RDS   | smallShipRepairDroneUnit       | qty    1 | wt      50 | vol      10
+
+BP-BXYK-5103   Base Hopper
+  totalVolume        = 1614
+  operatingEmptyMass = 1347
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    STS   | stabilitySupportSystem         | qty    1 | wt     0.1 | vol     0.1
+    LFE   | largeEmitter                   | qty    1 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    2 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    WCB   | highLoadCargoBay               | qty    1 | wt     200 | vol     200
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    BGS   | basicHighgSeats                | qty    1 | wt      20 | vol       3
+    RHP   | reinforcedHullPlate            | qty   67 | wt      10 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   77 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+    RDS   | smallShipRepairDroneUnit       | qty    1 | wt      50 | vol      10
+
+BP-UJUA-7750   2k cargo only
+  totalVolume        = 2538
+  operatingEmptyMass = 1456.2
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    LFE   | largeEmitter                   | qty    2 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    1 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    LCB   | largeCargoBay                  | qty    1 | wt     200 | vol     200
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   90 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty  121 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQM   | crewQuartersMed                | qty    1 | wt      50 | vol     100
+
+BP-SSHF-7118   3k Cargo MED STL FTL tanks
+  totalVolume        = 3720
+  operatingEmptyMass = 1826.7
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    LFE   | largeEmitter                   | qty    3 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    2 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    VCB   | highVolumeCargoBay             | qty    1 | wt     200 | vol     200
+    MFL   | mediumFtlTank                  | qty    1 | wt      24 | vol       4
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    BHP   | basicHullPlate                 | qty  117 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty  178 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQL   | crewQuarters                   | qty    1 | wt      75 | vol     150
+
+BP-DTUV-4363   adv STIL FTL 3k cargo
+  totalVolume        = 1608
+  operatingEmptyMass = 1294.9
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    AEN   | advancedEngine                 | qty    1 | wt      14 | vol       7
+    HPR   | highPowerReactor               | qty    1 | wt      16 | vol      15
+    LFE   | largeEmitter                   | qty    1 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    2 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    WCB   | highLoadCargoBay               | qty    1 | wt     200 | vol     200
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   67 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   77 | wt       1 | vol       1
+    BR2   | commandBridge2                 | qty    1 | wt     280 | vol     400
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-STRT-0000   Starter Ship
+  totalVolume        = 963
+  operatingEmptyMass = 827.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-GCFD-1072   Base Hopper 2t STL  GLASS
+  totalVolume        = 962
+  operatingEmptyMass = 824.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    GEN   | glassEngine                    | qty    1 | wt       5 | vol       3
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-OCTM-8557   Base Hopper 2t STL Hyperthrust
+  totalVolume        = 970
+  operatingEmptyMass = 836.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    HTE   | hyperthrustEngine              | qty    1 | wt      16 | vol      10
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   47 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-BJKP-8817   Base Hopper 2t STL ADVANCED
+  totalVolume        = 966
+  operatingEmptyMass = 833.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    AEN   | advancedEngine                 | qty    1 | wt      14 | vol       7
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-CXVC-4221   Base Hopper 2t STL FUEL SAVER
+  totalVolume        = 962
+  operatingEmptyMass = 825.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    FSE   | fuelSavingEngine               | qty    1 | wt       6 | vol       3
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-JNZB-4277   (no name)
+  totalVolume        = 963
+  operatingEmptyMass = 857.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    AGS   | advancedHighgSeats             | qty    1 | wt      30 | vol       5
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-OWTS-7141   (no name)
+  totalVolume        = 963
+  operatingEmptyMass = 847.8000000000001
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BGS   | basicHighgSeats                | qty    1 | wt      20 | vol       3
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-AXRC-2155   (no name)
+  totalVolume        = 963
+  operatingEmptyMass = 977.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+    RDL   | largeShipRepairDroneUnit       | qty    1 | wt     150 | vol      30
+
+BP-QTAW-2541   (no name)
+  totalVolume        = 963
+  operatingEmptyMass = 877.8000000000001
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+    RDS   | smallShipRepairDroneUnit       | qty    1 | wt      50 | vol      10
+
+BP-VKJR-5302   (no name)
+  totalVolume        = 963
+  operatingEmptyMass = 832.6
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    SRP   | specializedRadiationShielding  | qty   48 | wt     0.1 | vol     0.2
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-MKMN-8547   (no name)
+  totalVolume        = 963
+  operatingEmptyMass = 829.72
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    ARP   | advancedRadiationShielding     | qty   48 | wt    0.04 | vol     0.2
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-NVBH-4203   (no name)
+  totalVolume        = 963
+  operatingEmptyMass = 829.24
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BRP   | basicRadiationShielding        | qty   48 | wt    0.03 | vol     0.2
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-BTJI-6635   (no name)
+  totalVolume        = 963
+  operatingEmptyMass = 827.9
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    STS   | stabilitySupportSystem         | qty    1 | wt     0.1 | vol     0.1
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-CFYJ-5156   (no name)
+  totalVolume        = 963
+  operatingEmptyMass = 833.56
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    AWH   | advancedWhippleShielding       | qty   48 | wt    0.12 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-ILEC-5060   (no name)
+  totalVolume        = 963
+  operatingEmptyMass = 832.6
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BWH   | basicWhippleShielding          | qty   48 | wt     0.1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-VYYQ-3022   (no name)
+  totalVolume        = 963
+  operatingEmptyMass = 829.24
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    APT   | advancedHeatShield             | qty   48 | wt    0.03 | vol     0.3
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-QNLF-0141   (no name)
+  totalVolume        = 963
+  operatingEmptyMass = 828.76
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BPT   | basicHeatShield                | qty   48 | wt    0.02 | vol     0.3
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-ZYRW-4882   (no name)
+  totalVolume        = 963
+  operatingEmptyMass = 875.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    AHP   | advancedHullPlate              | qty   48 | wt      10 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-JKZU-8825   (no name)
+  totalVolume        = 963
+  operatingEmptyMass = 875.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    HHP   | hardenedHullPlate              | qty   48 | wt      10 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-FQID-7560   (no name)
+  totalVolume        = 963
+  operatingEmptyMass = 875.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    HHP   | hardenedHullPlate              | qty   48 | wt      10 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-BUCN-5374   (no name)
+  totalVolume        = 963
+  operatingEmptyMass = 875.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    RHP   | reinforcedHullPlate            | qty   48 | wt      10 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-FPCF-6431   (no name)
+  totalVolume        = 963
+  operatingEmptyMass = 587.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    LHP   | lightweightHullPlate           | qty   48 | wt       4 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-PVIC-2346   (no name)
+  totalVolume        = 963
+  operatingEmptyMass = 827.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-AXDN-7712   (no name)
+  totalVolume        = 1488
+  operatingEmptyMass = 1146.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    LFE   | largeEmitter                   | qty    1 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    1 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    WCB   | highLoadCargoBay               | qty    1 | wt     200 | vol     200
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   64 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   71 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-HSVZ-4056   (no name)
+  totalVolume        = 3588
+  operatingEmptyMass = 1747.6000000000001
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    LFE   | largeEmitter                   | qty    3 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    1 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    VCB   | highVolumeCargoBay             | qty    1 | wt     200 | vol     200
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty  114 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty  171 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQL   | crewQuarters                   | qty    1 | wt      75 | vol     150
+
+BP-VAKC-0378   (no name)
+  totalVolume        = 5688
+  operatingEmptyMass = 2517.4
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    LFE   | largeEmitter                   | qty    5 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    1 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    HCB   | hugeCargoBay                   | qty    1 | wt     500 | vol     500
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty  155 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty  271 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQL   | crewQuarters                   | qty    1 | wt      75 | vol     150
+
+BP-KZHE-3277   (no name)
+  totalVolume        = 2538
+  operatingEmptyMass = 1456.2
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    LFE   | largeEmitter                   | qty    2 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    1 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    LCB   | largeCargoBay                  | qty    1 | wt     200 | vol     200
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   90 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty  121 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQM   | crewQuartersMed                | qty    1 | wt      50 | vol     100
+
+BP-QEQW-2455   (no name)
+  totalVolume        = 1488
+  operatingEmptyMass = 1046.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    LFE   | largeEmitter                   | qty    1 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    1 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    MCB   | mediumCargoBay                 | qty    1 | wt     100 | vol     100
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   64 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   71 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-SWRD-8221   (no name)
+  totalVolume        = 963
+  operatingEmptyMass = 827.8000000000001
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-UVUA-6284   (no name)
+  totalVolume        = 701
+  operatingEmptyMass = 707.1
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    2 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    VSC   | verySmallCargoBay              | qty    1 | wt      35 | vol      35
+    BHP   | basicHullPlate                 | qty   39 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   34 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQT   | crewQuartersTiny               | qty    1 | wt    12.5 | vol      25
+
+BP-WANU-1257   (no name)
+  totalVolume        = 543
+  operatingEmptyMass = 630
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    2 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    TCB   | tinyCargoBay                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   33 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   26 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQT   | crewQuartersTiny               | qty    1 | wt    12.5 | vol      25
+
+BP-GKUH-6184   (no name)
+  totalVolume        = 981
+  operatingEmptyMass = 879.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    LFL   | largeFtlTank                   | qty    1 | wt      60 | vol      10
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   47 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-HIWJ-4476   (no name)
+  totalVolume        = 969
+  operatingEmptyMass = 843.8000000000001
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    MFL   | mediumFtlTank                  | qty    1 | wt      24 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   47 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-KDTA-2565   (no name)
+  totalVolume        = 963
+  operatingEmptyMass = 827.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-LVAW-3661   (no name)
+  totalVolume        = 834
+  operatingEmptyMass = 667.5
+  components (ticker | name | qty | unitWeight | unitVolume):
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   43 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   40 | wt       1 | vol       1
+    BRS   | commandBridgeShort             | qty    1 | wt     150 | vol     200
+    CQT   | crewQuartersTiny               | qty    1 | wt    12.5 | vol      25
+
+BP-VUNR-1627   (no name)
+  totalVolume        = 1090
+  operatingEmptyMass = 987.5
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    HYR   | hyperPowerReactor              | qty    1 | wt      25 | vol      25
+    LFE   | largeEmitter                   | qty    1 | wt     0.4 | vol     1.6
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   52 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   52 | wt       1 | vol       1
+    BR2   | commandBridge2                 | qty    1 | wt     280 | vol     400
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-CJZI-6715   (no name)
+  totalVolume        = 1080
+  operatingEmptyMass = 969.5
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    HPR   | highPowerReactor               | qty    1 | wt      16 | vol      15
+    LFE   | largeEmitter                   | qty    1 | wt     0.4 | vol     1.6
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   51 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   52 | wt       1 | vol       1
+    BR2   | commandBridge2                 | qty    1 | wt     280 | vol     400
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-XURB-5377   (no name)
+  totalVolume        = 970
+  operatingEmptyMass = 835.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    QCR   | quickChargeReactor             | qty    1 | wt      14 | vol      10
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   47 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-ZOEF-1571   (no name)
+  totalVolume        = 963
+  operatingEmptyMass = 827.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-ZWNU-4008   (no name)
+  totalVolume        = 837
+  operatingEmptyMass = 676.5
+  components (ticker | name | qty | unitWeight | unitVolume):
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   43 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   40 | wt       1 | vol       1
+    BRS   | commandBridgeShort             | qty    1 | wt     150 | vol     200
+    CQT   | crewQuartersTiny               | qty    1 | wt    12.5 | vol      25
+
+BP-GLFR-5857   (no name)
+  totalVolume        = 1373
+  operatingEmptyMass = 1060.7
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    LFE   | largeEmitter                   | qty    1 | wt     0.4 | vol     1.6
+    MFE   | mediumEmitter                  | qty    1 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    LSL   | largeStlTank                   | qty    1 | wt     125 | vol     100
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    BHP   | basicHullPlate                 | qty   60 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   66 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-NXEY-5602   (no name)
+  totalVolume        = 1089
+  operatingEmptyMass = 899.5
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    LFE   | largeEmitter                   | qty    1 | wt     0.4 | vol     1.6
+    SFE   | smallEmitter                   | qty    1 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    MSL   | mediumStlTank                  | qty    1 | wt      50 | vol      50
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    BHP   | basicHullPlate                 | qty   52 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   52 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-MSVU-0618   (no name)
+  totalVolume        = 963
+  operatingEmptyMass = 827.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-FRVH-7208   (no name)
+  totalVolume        = 962
+  operatingEmptyMass = 824.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    GEN   | glassEngine                    | qty    1 | wt       5 | vol       3
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-MGPC-8017   (no name)
+  totalVolume        = 970
+  operatingEmptyMass = 836.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    HTE   | hyperthrustEngine              | qty    1 | wt      16 | vol      10
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   47 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-DFBW-1574   (no name)
+  totalVolume        = 966
+  operatingEmptyMass = 833.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    AEN   | advancedEngine                 | qty    1 | wt      14 | vol       7
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-YXTK-3382   (no name)
+  totalVolume        = 962
+  operatingEmptyMass = 825.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    FSE   | fuelSavingEngine               | qty    1 | wt       6 | vol       3
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50
+
+BP-CXHG-6746   (no name)
+  totalVolume        = 963
+  operatingEmptyMass = 827.8
+  components (ticker | name | qty | unitWeight | unitVolume):
+    FFC   | ftlFieldController             | qty    1 | wt      50 | vol      16
+    MFE   | mediumEmitter                  | qty    3 | wt     0.2 | vol     0.8
+    SFE   | smallEmitter                   | qty    2 | wt     0.1 | vol     0.4
+    ENG   | standardEngine                 | qty    1 | wt       8 | vol       4
+    RCT   | standardReactor                | qty    1 | wt       7 | vol       4
+    SCB   | smallCargoBay                  | qty    1 | wt      50 | vol      50
+    SFL   | smallFtlTank                   | qty    1 | wt       9 | vol     1.5
+    SSL   | smallStlTank                   | qty    1 | wt      20 | vol      20
+    BHP   | basicHullPlate                 | qty   48 | wt       9 | vol      10
+    SSC   | structuralSpacecraftComponent  | qty   46 | wt       1 | vol       1
+    BR1   | commandBridge1                 | qty    1 | wt     180 | vol     300
+    CQS   | crewQuartersSmall              | qty    1 | wt      25 | vol      50

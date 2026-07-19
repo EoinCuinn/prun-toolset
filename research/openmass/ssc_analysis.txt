@@ -1,0 +1,225 @@
+SSC (Structure) COUNT ANALYSIS — which of the 12 fields drive it
+==============================================================================
+Prior context: SSC count ≈ round(0.0478 × totalVolume). So "what affects SSC" == "what
+affects totalVolume". This tests that directly. 87 blueprints.
+
+##############################################################################
+STEP 1 — PER-BLUEPRINT (SSC, the 3 focus fields, and all other selections)
+##############################################################################
+  naturalId      SSC      V  STLtank FTLtank cargo     | STLeng FTLrct hull heat whip stab rad drone seats  (emit S/M/L)
+  BP-WANU-1257    26     543  SMALL    SMALL   TINY       | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (1/2/0)
+  BP-UVUA-6284    34     701  SMALL    SMALL   VERY_SMALL | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/2/0)
+  BP-LVAW-3661    40     834  SMALL    NONE    SMALL      | STANDARD NONE BASIC NONE NONE NONE NONE NONE NONE  (0/0/0)
+  BP-ZWNU-4008    40     837  SMALL    SMALL   SMALL      | STANDARD NONE BASIC NONE NONE NONE NONE NONE NONE  (0/0/0)
+  BP-RWDC-2551    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-KHWP-1082    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-QPTL-6486    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-GYFG-1743    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-LAQG-6147    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-IDJK-1102    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-QATA-5745    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-HJRK-4575    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-TPKQ-3458    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-STRT-0000    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-GCFD-1072    46     962  SMALL    SMALL   SMALL      | GLASS STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-BJKP-8817    46     966  SMALL    SMALL   SMALL      | ADVANCED STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-CXVC-4221    46     962  SMALL    SMALL   SMALL      | FUEL_SAVING STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-JNZB-4277    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE ADVANCED  (2/3/0)
+  BP-OWTS-7141    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE BASIC  (2/3/0)
+  BP-AXRC-2155    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC NONE NONE NONE NONE LARGE NONE  (2/3/0)
+  BP-QTAW-2541    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC NONE NONE NONE NONE SMALL NONE  (2/3/0)
+  BP-VKJR-5302    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC NONE NONE NONE SPECIALIZED NONE NONE  (2/3/0)
+  BP-MKMN-8547    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC NONE NONE NONE ADVANCED NONE NONE  (2/3/0)
+  BP-NVBH-4203    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC NONE NONE NONE BASIC NONE NONE  (2/3/0)
+  BP-BTJI-6635    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC NONE NONE BASIC NONE NONE NONE  (2/3/0)
+  BP-CFYJ-5156    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC NONE ADVANCED NONE NONE NONE NONE  (2/3/0)
+  BP-ILEC-5060    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC NONE BASIC NONE NONE NONE NONE  (2/3/0)
+  BP-VYYQ-3022    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC ADVANCED NONE NONE NONE NONE NONE  (2/3/0)
+  BP-QNLF-0141    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC BASIC NONE NONE NONE NONE NONE  (2/3/0)
+  BP-ZYRW-4882    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD ADVANCED NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-JKZU-8825    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD HARDENED NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-FQID-7560    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD HARDENED NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-BUCN-5374    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD REINFORCED NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-FPCF-6431    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD LIGHTWEIGHT NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-PVIC-2346    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-SWRD-8221    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-KDTA-2565    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-ZOEF-1571    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-MSVU-0618    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-FRVH-7208    46     962  SMALL    SMALL   SMALL      | GLASS STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-DFBW-1574    46     966  SMALL    SMALL   SMALL      | ADVANCED STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-YXTK-3382    46     962  SMALL    SMALL   SMALL      | FUEL_SAVING STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-CXHG-6746    46     963  SMALL    SMALL   SMALL      | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-OCTM-8557    47     970  SMALL    SMALL   SMALL      | HYPERTHRUST STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-GKUH-6184    47     981  SMALL    LARGE   SMALL      | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-HIWJ-4476    47     969  SMALL    MEDIUM  SMALL      | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-XURB-5377    47     970  SMALL    SMALL   SMALL      | STANDARD QUICK_CHARGE BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-MGPC-8017    47     970  SMALL    SMALL   SMALL      | HYPERTHRUST STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/3/0)
+  BP-VUNR-1627    52    1090  SMALL    SMALL   SMALL      | STANDARD HYPER_POWER BASIC NONE NONE NONE NONE NONE NONE  (1/0/1)
+  BP-CJZI-6715    52    1080  SMALL    SMALL   SMALL      | STANDARD HIGH_POWER BASIC NONE NONE NONE NONE NONE NONE  (1/0/1)
+  BP-NXEY-5602    52    1089  MEDIUM   SMALL   SMALL      | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (1/0/1)
+  BP-BTQI-7530    53    1095  MEDIUM   MEDIUM  SMALL      | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (1/0/1)
+  BP-OEFO-2864    53    1095  MEDIUM   MEDIUM  SMALL      | STANDARD STANDARD REINFORCED NONE NONE NONE NONE NONE NONE  (1/0/1)
+  BP-EGVM-6823    53    1095  MEDIUM   MEDIUM  SMALL      | STANDARD STANDARD LIGHTWEIGHT NONE NONE NONE NONE NONE NONE  (1/0/1)
+  BP-SQHH-0614    53    1095  MEDIUM   MEDIUM  SMALL      | STANDARD STANDARD BASIC BASIC NONE NONE NONE NONE NONE  (1/0/1)
+  BP-UOAL-4711    53    1095  MEDIUM   MEDIUM  SMALL      | STANDARD STANDARD BASIC NONE BASIC NONE NONE NONE NONE  (1/0/1)
+  BP-XTGD-7413    53    1095  MEDIUM   MEDIUM  SMALL      | STANDARD STANDARD BASIC NONE NONE NONE ADVANCED NONE NONE  (1/0/1)
+  BP-GHOV-0545    53    1095  MEDIUM   MEDIUM  SMALL      | STANDARD STANDARD BASIC NONE NONE NONE SPECIALIZED NONE NONE  (1/0/1)
+  BP-GLFR-5857    66    1373  LARGE    SMALL   SMALL      | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (1/1/1)
+  BP-AXDN-7712    71    1488  SMALL    SMALL   HIGH_LOAD  | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/1/1)
+  BP-QEQW-2455    71    1488  SMALL    SMALL   MEDIUM     | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/1/1)
+  BP-BYIP-7818    77    1614  MEDIUM   SMALL   HIGH_LOAD  | STANDARD STANDARD REINFORCED NONE NONE BASIC NONE SMALL NONE  (1/2/1)
+  BP-BXYK-5103    77    1614  MEDIUM   SMALL   HIGH_LOAD  | STANDARD STANDARD REINFORCED NONE NONE BASIC NONE SMALL BASIC  (1/2/1)
+  BP-DTUV-4363    77    1608  SMALL    SMALL   HIGH_LOAD  | ADVANCED HIGH_POWER BASIC NONE NONE NONE NONE NONE NONE  (1/2/1)
+  BP-UJUA-7750   121    2538  SMALL    SMALL   LARGE      | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/1/2)
+  BP-KZHE-3277   121    2538  SMALL    SMALL   LARGE      | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/1/2)
+  BP-EBKR-1418   127    2664  MEDIUM   SMALL   LARGE      | STANDARD STANDARD REINFORCED NONE NONE BASIC NONE SMALL BASIC  (1/2/2)
+  BP-LYAM-3006   127    2664  MEDIUM   SMALL   LARGE      | STANDARD STANDARD REINFORCED NONE NONE BASIC NONE SMALL BASIC  (1/2/2)
+  BP-MNWM-4454   127    2663  MEDIUM   SMALL   LARGE      | GLASS STANDARD REINFORCED NONE NONE BASIC NONE SMALL BASIC  (1/2/2)
+  BP-BOXD-6581   127    2667  MEDIUM   SMALL   LARGE      | ADVANCED STANDARD REINFORCED NONE NONE BASIC NONE SMALL BASIC  (1/2/2)
+  BP-MSWC-4866   127    2663  MEDIUM   SMALL   LARGE      | FUEL_SAVING STANDARD REINFORCED NONE NONE BASIC NONE SMALL BASIC  (1/2/2)
+  BP-HJQJ-2441   127    2664  MEDIUM   SMALL   LARGE      | STANDARD STANDARD REINFORCED NONE NONE BASIC NONE SMALL BASIC  (1/2/2)
+  BP-UMTS-3580   127    2664  MEDIUM   SMALL   LARGE      | STANDARD STANDARD REINFORCED NONE NONE BASIC NONE SMALL NONE  (1/2/2)
+  BP-ISFD-5728   128    2671  MEDIUM   SMALL   LARGE      | HYPERTHRUST STANDARD REINFORCED NONE NONE BASIC NONE SMALL BASIC  (1/2/2)
+  BP-HBSU-1821   134    2803  MEDIUM   MEDIUM  LARGE      | HYPERTHRUST HYPER_POWER REINFORCED ADVANCED ADVANCED BASIC SPECIALIZED LARGE ADVANCED  (2/2/2)
+  BP-HSVZ-4056   171    3588  SMALL    SMALL   HIGH_VOLUME| STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/1/3)
+  BP-SSHF-7118   178    3720  MEDIUM   MEDIUM  HIGH_VOLUME| STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (1/2/3)
+  BP-VAKC-0378   271    5688  SMALL    SMALL   HUGE       | STANDARD STANDARD BASIC NONE NONE NONE NONE NONE NONE  (2/1/5)
+  BP-WIYN-8444   278    5837  MEDIUM   LARGE   HUGE       | FUEL_SAVING QUICK_CHARGE LIGHTWEIGHT NONE NONE NONE NONE NONE NONE  (1/2/5)
+  BP-VWVB-2566   278    5820  MEDIUM   MEDIUM  HUGE       | STANDARD STANDARD BASIC ADVANCED ADVANCED BASIC NONE NONE NONE  (1/2/5)
+  BP-KURM-2554   278    5826  MEDIUM   MEDIUM  HUGE       | STANDARD QUICK_CHARGE BASIC NONE NONE NONE SPECIALIZED NONE NONE  (1/2/5)
+  BP-NVGM-1171   278    5837  MEDIUM   LARGE   HUGE       | FUEL_SAVING QUICK_CHARGE LIGHTWEIGHT NONE NONE NONE NONE NONE NONE  (1/2/5)
+  BP-IXZI-0433   278    5837  MEDIUM   LARGE   HUGE       | FUEL_SAVING QUICK_CHARGE LIGHTWEIGHT NONE NONE NONE NONE NONE NONE  (1/2/5)
+  BP-JRAJ-3531   278    5837  MEDIUM   LARGE   HUGE       | FUEL_SAVING QUICK_CHARGE LIGHTWEIGHT NONE NONE NONE NONE NONE NONE  (1/2/5)
+  BP-JRJA-4840   284    5958  MEDIUM   LARGE   HUGE       | FUEL_SAVING HYPER_POWER LIGHTWEIGHT NONE NONE NONE NONE NONE NONE  (2/2/5)
+  BP-IKDW-2041   298    6242  LARGE    LARGE   HUGE       | FUEL_SAVING HYPER_POWER BASIC NONE NONE NONE NONE NONE NONE  (2/3/5)
+  BP-CLNY-0000   407    8532  LARGE    NONE    HUGE       | HYPERTHRUST NONE ADVANCED ADVANCED ADVANCED BASIC SPECIALIZED LARGE ADVANCED  (0/0/0)
+
+##############################################################################
+STEP 2 — GROUP BY (STL tank + FTL tank + cargo): is SSC determined by these 3?
+##############################################################################
+  STLtank | FTLtank | cargo          #bp  SSC values (distinct)
+  SMALL | SMALL | SMALL               45  {40, 46, 47, 52}   <-- SSC VARIES within group
+  MEDIUM | SMALL | LARGE               8  {127, 128}   <-- SSC VARIES within group
+  MEDIUM | MEDIUM | SMALL              7  {53}
+  MEDIUM | LARGE | HUGE                5  {278, 284}   <-- SSC VARIES within group
+  SMALL | SMALL | HIGH_LOAD            2  {71, 77}   <-- SSC VARIES within group
+  MEDIUM | SMALL | HIGH_LOAD           2  {77}
+  SMALL | SMALL | LARGE                2  {121}
+  MEDIUM | MEDIUM | HUGE               2  {278}
+  SMALL | SMALL | TINY                 1  {26}
+  SMALL | SMALL | VERY_SMALL           1  {34}
+  SMALL | NONE | SMALL                 1  {40}
+  SMALL | LARGE | SMALL                1  {47}
+  SMALL | MEDIUM | SMALL               1  {47}
+  MEDIUM | SMALL | SMALL               1  {52}
+  LARGE | SMALL | SMALL                1  {66}
+  SMALL | SMALL | MEDIUM               1  {71}
+  MEDIUM | MEDIUM | LARGE              1  {134}
+  SMALL | SMALL | HIGH_VOLUME          1  {171}
+  MEDIUM | MEDIUM | HIGH_VOLUME        1  {178}
+  SMALL | SMALL | HUGE                 1  {271}
+  LARGE | LARGE | HUGE                 1  {298}
+  LARGE | NONE | HUGE                  1  {407}
+
+  distinct 3-field groups: 22   |  groups with >1 blueprint: 8   |  groups where SSC varies: 4
+  => SSC fully determined by (STL tank + FTL tank + cargo)? NO
+     At least 4 group(s) have the SAME 3 fields but DIFFERENT SSC → other fields matter.
+
+##############################################################################
+STEP 3 — WHICH OTHER FIELDS AFFECT SSC (single-field-difference pairs)
+##############################################################################
+Method: compare every pair of blueprints that differ in EXACTLY ONE of the 12 fields.
+If SSC differs, that field affects SSC (directly or via the auto-added parts it triggers).
+
+  field      1-field-diff pairs  SSC changed in   verdict
+  STLeng                    170              50   AFFECTS SSC
+  STLtank                    34              34   AFFECTS SSC
+  FTLrct                     74              73   AFFECTS SSC
+  FTLtank                    35              33   AFFECTS SSC
+  cargo                     160             159   AFFECTS SSC
+  hull                       92               0   no SSC change observed
+  heat                       34               0   no SSC change observed
+  whipple                    34               0   no SSC change observed
+  stability                  16               0   no SSC change observed
+  radiation                  54               0   no SSC change observed
+  drone                      33               0   no SSC change observed
+  seats                      37               0   no SSC change observed
+
+  Examples of isolated single-field changes and their SSC/V effect:
+   [STLeng] BP-RWDC-2551 (STANDARD, SSC 46, V 963)  vs  BP-GCFD-1072 (GLASS, SSC 46, V 962)
+   [STLtank] BP-RWDC-2551 (SMALL, SSC 46, V 963)  vs  BP-NXEY-5602 (MEDIUM, SSC 52, V 1089)
+   [FTLrct] BP-ZWNU-4008 (NONE, SSC 40, V 837)  vs  BP-RWDC-2551 (STANDARD, SSC 46, V 963)
+   [FTLtank] BP-RWDC-2551 (SMALL, SSC 46, V 963)  vs  BP-GKUH-6184 (LARGE, SSC 47, V 981)
+   [cargo] BP-WANU-1257 (TINY, SSC 26, V 543)  vs  BP-UVUA-6284 (VERY_SMALL, SSC 34, V 701)
+   [hull] BP-RWDC-2551 (BASIC, SSC 46, V 963)  vs  BP-ZYRW-4882 (ADVANCED, SSC 46, V 963)
+   [heat] BP-RWDC-2551 (NONE, SSC 46, V 963)  vs  BP-VYYQ-3022 (ADVANCED, SSC 46, V 963)
+   [whipple] BP-RWDC-2551 (NONE, SSC 46, V 963)  vs  BP-CFYJ-5156 (ADVANCED, SSC 46, V 963)
+   [stability] BP-RWDC-2551 (NONE, SSC 46, V 963)  vs  BP-BTJI-6635 (BASIC, SSC 46, V 963)
+   [radiation] BP-RWDC-2551 (NONE, SSC 46, V 963)  vs  BP-VKJR-5302 (SPECIALIZED, SSC 46, V 963)
+   [drone] BP-RWDC-2551 (NONE, SSC 46, V 963)  vs  BP-AXRC-2155 (LARGE, SSC 46, V 963)
+   [seats] BP-RWDC-2551 (NONE, SSC 46, V 963)  vs  BP-JNZB-4277 (ADVANCED, SSC 46, V 963)
+
+  SSC vs totalVolume: SSC == round(0.0478 × V) holds 68 / 87 (±1 otherwise).
+  Since SSC tracks V, ANY field that changes V changes SSC. The pair table above shows which
+  fields were actually observed to move it in this dataset.
+
+##############################################################################
+STEP 4 — CAPTURE GAPS (fields with no isolated 1-field-difference pair)
+##############################################################################
+  Every one of the 12 fields has at least one isolated single-field-difference pair, so each
+  field's effect on SSC is directly testable from existing data. No captures strictly needed
+  to answer "does field X affect SSC".
+
+  NOTE: SSC ultimately follows totalVolume, and totalVolume is the still-unsolved game rule.
+  Even a complete map of "which fields affect SSC" does not yield SSC for a NOVEL build without
+  knowing totalVolume. To pin the SSC rule as a clean formula you would additionally need
+  ladders that vary ONE volume-driving field across several sizes (e.g. cargo Small→Huge with
+  everything else fixed) to confirm SSC = round(0.0478 × V) and nail the exact rounding.
+##############################################################################
+STEP 3b — DO THE 5 AFFECTING FIELDS FULLY DETERMINE SSC?
+##############################################################################
+Group by (STL engine + STL fuel tank + FTL reactor + FTL fuel tank + cargo). If SSC is
+constant within each group, those 5 fields fully determine SSC.
+
+  distinct 5-field groups: 37  | groups with >1 bp: 10  | groups where SSC varies: 0
+  => SSC fully determined by these 5 fields? YES (within this dataset)
+##############################################################################
+CONCLUSION — the SSC rule
+##############################################################################
+
+WHICH FIELDS AFFECT SSC:  exactly 5 of the 12 —
+   1. STL Engine     2. STL fuel tank   3. FTL Reactor   4. FTL fuel tank   5. Cargo bay
+   (the volume-contributing modules).
+
+WHICH DO NOT (0 SSC change across many isolated single-field-difference pairs):
+   Hull plates (0/92), Heat (0/34), Whipple (0/34), Stability (0/16), Radiation (0/54),
+   Self-repair Drone Hub (0/33), High-G Seats (0/37). These add surface/skin mass but do
+   not change the internal hull-envelope volume, so they leave the Structure count untouched.
+
+DETERMINISM:
+   * (STL tank + FTL tank + cargo) — the 3 fields in the task hypothesis — do NOT determine
+     SSC (4 groups vary). The hypothesis was close but missing STL Engine and FTL Reactor.
+   * All 5 together DO fully determine SSC: 37 distinct 5-field combos, 0 with a varying SSC.
+
+THE RULE:
+   SSC = round(0.0478 × totalVolume)   (exact on 68/87, ±1 on the rest — rounding not fully
+   pinned). totalVolume is set by those same 5 volume modules (plus the FTL field emitters the
+   game auto-adds from the FTL reactor/controller — which is why the 5 fields alone suffice:
+   the emitters follow from the reactor selection and add no independent SSC variance here).
+
+STEP 4 — CAPTURE GAPS:
+   * To answer "which fields affect SSC": nothing more needed — every field already has
+     isolated single-field-difference pairs, and the answer is unambiguous (5 yes / 7 no).
+   * To PREDICT SSC for a novel build WITHOUT solving totalVolume: build a direct lookup
+     (STL engine, STL tank, FTL reactor, FTL tank, cargo) -> SSC. The option space is
+     5 x 3 x 5 x 4 x 8 = 800 reactorful combos (plus reactor/tank = NONE variants); only 37
+     are captured so far. Far smaller than all 12 fields, but still needs broad coverage of
+     those 5 dropdowns to be complete.
+   * To pin the exact rounding rule of SSC = round(k × V): capture SIZE LADDERS — sweep ONE
+     volume field across its range (e.g. cargo Small -> Huge) with the other 11 fields fixed,
+     at several sizes, and read SSC vs totalVolume. That isolates k and the rounding boundary.
+
+BOTTOM LINE: SSC depends on 5 fields, not 3; it is fully determined by them; and it equals
+round(0.0478 x totalVolume). The remaining unknown is the same one as always — totalVolume
+itself — but SSC can also be predicted by a direct 5-field lookup that sidesteps totalVolume.

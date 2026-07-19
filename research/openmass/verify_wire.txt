@@ -1,0 +1,3 @@
+SYNTAX OK
+round-trip: 87 / 87 blueprints resolve to their own OEM via the UI key
+Base Hopper key: ENG|MSL|RCT|SFL|LCB|RHP|NONE|NONE|STS|NONE|RDS|BGS -> lookup {"m":1682.4,"bp":"BP-EBKR-1418","n":3} (actual OEM 1682.4)

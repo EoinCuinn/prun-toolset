@@ -1,0 +1,261 @@
+================================================================================
+RIDGE totalVolume — reconstruction, cross-validation, conclusion
+================================================================================
+
+################################################################################
+STEP 1 — RIDGE SOLUTION (λ=1e-6) on all 87 blueprints
+################################################################################
+
+Blueprints: 87 | features: 60 (55 tickers + 5 hull one-hots)
+Design matrix column rank: 45 of 60  (15 collinear directions)
+
+In-sample R² (full fit): 1.00000000  (SSres=2.995e-1)
+
+Full coefficient vector:
+  feature         coefficient
+  AEN             65.488003
+  AGS             0.022519
+  AHP             31.642177
+  APT             -0.001551
+  ARP             0.000879
+  AWH             -0.001551
+  BGS             0.017263
+  BHP             -0.218724
+  BPT             0.000879
+  BR1             -24.534547
+  BR2             95.997436
+  BRP             0.000470
+  BRS             246.067658
+  BWH             0.000879
+  CQL             260.973861
+  CQM             257.688352
+  CQS             -126.610513
+  CQT             -74.521066
+  ENG             62.416364
+  FFC             -261.501856
+  FSE             61.436008
+  GEN             61.419931
+  HAM             332.964715
+  HCB             517.092986
+  HHP             9.396349
+  HPR             -123.601867
+  HTE             66.770465
+  HYR             -113.365436
+  LCB             -101.377721
+  LFE             711.365543
+  LFL             18.347009
+  LHP             -0.211203
+  LSL             159.306647
+  MCB             74.763743
+  MFE             177.844953
+  MFL             6.276154
+  MSL             89.417965
+  QCR             -10.025285
+  RCT             -14.509258
+  RDL             0.022519
+  RDS             -0.018925
+  RHP             -0.221885
+  SCB             -29.997254
+  SFE             87.949385
+  SFL             2.999668
+  SRP             0.005181
+  SSC             2.723417
+  SSL             68.806059
+  STS             -0.048810
+  TCB             -185.082154
+  VCB             102.946968
+  VFT             332.964716
+  VOE             332.964716
+  VSC             -135.506579
+  WCB             74.690570
+  HULL_BASIC      461.696742
+  HULL_LIGHTWEIGHT461.363878
+  HULL_REINFORCED 461.876849
+  HULL_ADVANCED   -1067.602581
+  HULL_HARDENED   0.195757
+
+################################################################################
+STEP 2 — 10-FOLD CROSS-VALIDATION (held-out prediction)
+################################################################################
+
+Seeded shuffle (mulberry32/20260718), K=10 folds. Each blueprint predicted by a model
+trained on the other ~90%.
+
+  naturalId       fold   actual   predicted     absErr   pctErr
+  BP-CLNY-0000       9     8532     1367.42   -7164.58  -83.973
+  BP-WANU-1257       0      543      812.11     269.11   49.560
+  BP-UVUA-6284       3      701      907.62     206.62   29.475
+  BP-VUNR-1627       9     1090     1243.03     153.03   14.039
+  BP-HBSU-1821       7     2803     3127.12     324.12   11.563
+  BP-ZWNU-4008       0      837      763.92     -73.08   -8.731
+  BP-AXRC-2155       9      963      910.27     -52.73   -5.476
+  BP-XURB-5377       2      970      989.91      19.91    2.053
+  BP-LVAW-3661       5      834      846.17      12.17    1.459
+  BP-JNZB-4277       5      963      950.37     -12.63   -1.311
+  BP-ZYRW-4882       2      963      970.27       7.27    0.755
+  BP-VAKC-0378       6     5688     5707.94      19.94    0.351
+  BP-VWVB-2566       6     5820     5839.94      19.94    0.343
+  BP-GKUH-6184       1      981      981.73       0.73    0.074
+  BP-QTAW-2541       0      963      962.54      -0.46   -0.048
+  BP-QEQW-2455       6     1488     1488.65       0.65    0.043
+  BP-VKJR-5302       0      963      963.38       0.38    0.039
+  BP-KURM-2554       7     5826     5823.78      -2.22   -0.038
+  BP-GLFR-5857       9     1373     1373.34       0.34    0.025
+  BP-VYYQ-3022       3      963      962.78      -0.22   -0.023
+  BP-HSVZ-4056       4     3588     3587.30      -0.70   -0.019
+  BP-BOXD-6581       4     2667     2666.50      -0.50   -0.019
+  BP-ISFD-5728       4     2671     2670.52      -0.48   -0.018
+  BP-HIWJ-4476       0      969      968.84      -0.16   -0.017
+  BP-AXDN-7712       8     1488     1487.76      -0.24   -0.016
+  BP-DTUV-4363       7     1608     1607.77      -0.23   -0.014
+  BP-SSHF-7118       1     3720     3720.44       0.44    0.012
+  BP-IKDW-2041       3     6242     6241.26      -0.74   -0.012
+  BP-CJZI-6715       9     1080     1079.91      -0.09   -0.009
+  BP-DFBW-1574       8      966      966.08       0.08    0.009
+  BP-FRVH-7208       7      962      961.93      -0.07   -0.007
+  BP-NXEY-5602       9     1089     1088.95      -0.05   -0.005
+  BP-XTGD-7413       8     1095     1094.95      -0.05   -0.005
+  BP-YXTK-3382       5      962      962.04       0.04    0.005
+  BP-UOAL-4711       5     1095     1094.95      -0.05   -0.004
+  BP-SQHH-0614       5     1095     1094.95      -0.05   -0.004
+  BP-EBKR-1418       7     2664     2664.11       0.11    0.004
+  BP-MSWC-4866       5     2663     2663.11       0.11    0.004
+  BP-ILEC-5060       3      963      963.03       0.03    0.004
+  BP-TPKQ-3458       3      963      962.97      -0.03   -0.004
+  BP-STRT-0000       3      963      962.97      -0.03   -0.004
+  BP-PVIC-2346       3      963      962.97      -0.03   -0.004
+  BP-KDTA-2565       3      963      962.97      -0.03   -0.004
+  BP-KHWP-1082       0      963      962.97      -0.03   -0.003
+  BP-IDJK-1102       0      963      962.97      -0.03   -0.003
+  BP-SWRD-8221       0      963      962.97      -0.03   -0.003
+  BP-MNWM-4454       8     2663     2663.08       0.08    0.003
+  BP-BUCN-5374       7      963      962.97      -0.03   -0.003
+  BP-RWDC-2551       7      963      962.97      -0.03   -0.003
+  BP-MSVU-0618       7      963      962.97      -0.03   -0.003
+  BP-QNLF-0141       1      963      963.03       0.03    0.003
+  BP-QATA-5745       8      963      962.97      -0.03   -0.003
+  BP-LAQG-6147       5      963      962.98      -0.02   -0.003
+  BP-NVBH-4203       5      963      962.98      -0.02   -0.003
+  BP-LYAM-3006       8     2664     2664.05       0.05    0.002
+  BP-OWTS-7141       4      963      962.98      -0.02   -0.002
+  BP-CXVC-4221       8      962      961.98      -0.02   -0.002
+  BP-ZOEF-1571       1      963      962.99      -0.01   -0.001
+  BP-CXHG-6746       1      963      962.99      -0.01   -0.001
+  BP-BYIP-7818       9     1614     1614.02       0.02    0.001
+  BP-UMTS-3580       1     2664     2664.03       0.03    0.001
+  BP-FPCF-6431       9      963      963.01       0.01    0.001
+  BP-KZHE-3277       1     2538     2538.02       0.02    0.001
+  BP-UJUA-7750       3     2538     2538.02       0.02    0.001
+  BP-EGVM-6823       4     1095     1095.01       0.01    0.001
+  BP-HJQJ-2441       4     2664     2663.99      -0.01   -0.001
+  BP-IXZI-0433       0     5837     5836.98      -0.02   -0.000
+  BP-GYFG-1743       4      963      963.00       0.00    0.000
+  BP-HJRK-4575       4      963      963.00       0.00    0.000
+  BP-JRJA-4840       6     5958     5958.00       0.00    0.000
+  BP-MGPC-8017       4      970      970.00      -0.00   -0.000
+  BP-GCFD-1072       8      962      962.00      -0.00   -0.000
+  BP-CFYJ-5156       2      963      963.00       0.00    0.000
+  BP-OCTM-8557       6      970      970.00      -0.00   -0.000
+  BP-BJKP-8817       2      966      966.00      -0.00   -0.000
+  BP-GHOV-0545       2     1095     1095.00      -0.00   -0.000
+  BP-NVGM-1171       1     5837     5837.00       0.00    0.000
+  BP-BXYK-5103       2     1614     1614.00      -0.00   -0.000
+  BP-BTQI-7530       6     1095     1095.00      -0.00   -0.000
+  BP-OEFO-2864       6     1095     1095.00       0.00    0.000
+  BP-MKMN-8547       6      963      963.00       0.00    0.000
+  BP-BTJI-6635       2      963      963.00      -0.00   -0.000
+  BP-JRAJ-3531       2     5837     5837.00      -0.00   -0.000
+  BP-QPTL-6486       2      963      963.00       0.00    0.000
+  BP-FQID-7560       5      963      963.00       0.00    0.000
+  BP-WIYN-8444       6     5837     5837.00      -0.00   -0.000
+  BP-JKZU-8825       1      963      963.00      -0.00   -0.000
+
+CROSS-VALIDATION SUMMARY:
+  mean absolute % error : 2.4095 %
+  max % error           : -83.9730 %  on BP-CLNY-0000 (actual 8532, predicted 1367.42)
+  held-out R²           : 0.793942
+  median absolute % err : 0.0032 %
+
+DECISION THRESHOLD: pass iff mean abs %err < 2% AND max %err < 5%.
+  mean abs %err < 2% : NO (2.410%)
+  max  abs %err < 5% : NO (83.973%)
+  => RESULT: FAIL — ridge solution does NOT generalise.
+################################################################################
+BLOCKED-PATH ANALYSIS — collinear structure & captures needed
+################################################################################
+
+Column rank 45 of 60 → 15 redundant (collinear) columns.
+Each redundant feature below is an EXACT linear combination of independent (pivot)
+features across all 87 blueprints, so its own coefficient cannot be identified — the fit
+can trade weight between it and its partners with zero training error but wrong held-out
+predictions (this is why CV fails, worst on the lone ADVANCED-hull BP-CLNY-0000).
+
+REDUNDANT FEATURE  =  linear combination of independent features:
+  CQT            = 1.000·BR1 + 1.000·BR2 + 1.000·BRS - 1.000·CQL - 1.000·CQM - 1.000·CQS
+  HAM            = 1.000·BR1 + 1.000·BR2 - 1.000·FFC
+  HTE            = - 1.000·AEN + 1.000·BR1 + 1.000·BR2 + 1.000·BRS - 1.000·ENG - 1.000·FSE - 1.000·GEN
+  HYR            = - 1.000·BR1 + 1.000·FFC - 1.000·HPR
+  RCT            = 1.000·BR1 - 1.000·QCR
+  SSL            = 1.000·BR1 + 1.000·BR2 + 1.000·BRS - 1.000·LSL - 1.000·MSL
+  TCB            = - 42.000·BR1 - 41.000·BR2 + 4.000·BRS + 22.000·CQL + 22.000·CQM + 6.000·CQS + 48.000·FFC + 16.000·HCB - 8.000·LCB - 8.000·LFE + 3.000·LSL - 2.000·MFE + 1.000·MSL - 4.000·SCB - 1.000·SFE
+  VCB            = 1.000·CQL + 1.000·CQM - 1.000·HCB - 1.000·LCB
+  VFT            = 1.000·BR1 + 1.000·BR2 - 1.000·FFC
+  VOE            = 1.000·BR1 + 1.000·BR2 - 1.000·FFC
+  VSC            = 43.000·BR1 + 42.000·BR2 - 4.000·BRS - 23.000·CQL - 23.000·CQM - 7.000·CQS - 48.000·FFC - 16.000·HCB + 8.000·LCB + 8.000·LFE - 3.000·LSL + 2.000·MFE - 1.000·MSL + 4.000·SCB + 1.000·SFE
+  WCB            = 1.000·BRS + 1.000·CQS - 1.000·MCB - 1.000·SCB
+  HULL_REINFORCED = - 0.021·AHP + 4.208·BR1 + 4.208·BR2 + 1.000·BRS - 3.208·FFC - 0.021·HHP - 1.000·HULL_BASIC - 1.000·HULL_LIGHTWEIGHT
+  HULL_ADVANCED  = 0.021·AHP - 3.208·BR1 - 3.208·BR2 + 3.208·FFC
+  HULL_HARDENED  = 0.021·HHP
+
+INTERPRETABLE COLLINEARITIES (exact, across all 87):
+  * Always-constant features (no variation to fit against): none
+  * Each HULL_<tier> one-hot is identical to the presence of its hull-plate ticker
+    (HULL_BASIC≡BHP>0, HULL_LIGHTWEIGHT≡LHP>0, HULL_REINFORCED≡RHP>0, HULL_ADVANCED≡AHP>0,
+    HULL_HARDENED≡HHP>0) → hull one-hots are redundant with the plate counts.
+  * Fixed co-occurrence ratios — these move together and never independently:
+      { FFC, BR1, SFE, MFE, LFE, STS }
+      { SSC, RHP }
+      { BR1, CQM }
+      { SFE, MFE, LFE }
+
+SPECIFIC CAPTURES NEEDED to break the collinearity (build these blueprints and re-fit):
+  1. FTL fittings independent of size: build ships that hold totalVolume ~constant but vary
+     FFC / command bridge / field-emitter counts one at a time (e.g. drop FFC, add a 2nd
+     bridge, swap SFE↔MFE↔LFE) — currently FFC/BR1/emitters always co-occur in one ratio.
+  2. Hull-tier coverage: the ADVANCED tier has 1 blueprint and HARDENED 2. Capture ≥5 each,
+     across a range of sizes, so a hull-tier coefficient is not pinned by a single point.
+  3. Crew quarters ladder: builds with CQS vs CQM vs CQL (and 0 / 2 quarters) at the same
+     hull size, to separate quarters mass from the rest of the structural bundle.
+  4. Structure/plate decoupling: builds where SSC count and hull-plate count do NOT scale
+     together (e.g. same plate count, different SSC) to separate the two dominant terms.
+  5. Single-component add/remove ladders generally: take one reference hull and produce a
+     series that changes exactly ONE component per step. This is the only clean way to
+     identify a per-component coefficient under otherwise-fixed ratios.
+
+Until such captures exist, totalVolume cannot be derived from a loadout by linear fit, and
+operatingEmptyMass (which needs plate+SSC counts, hence totalVolume) cannot be computed for
+an arbitrary hypothetical build. The manual totalVolume field is removed and rebuildHypo is
+reverted to its pre-workaround state (commit f6b4ebe, parent of 26da03a).
+################################################################################
+OUTCOME (blocked path executed)
+################################################################################
+
+Cross-validation FAILED (mean abs %err 2.41% > 2%, max %err -83.97% on BP-CLNY-0000
+>> 5%, held-out R² 0.79). The ridge minimum-norm solution does NOT generalise to
+held-out builds — it fits the 87 training rows exactly only because they share the same
+fixed component ratios; a build that breaks those ratios (or a thinly-sampled hull tier
+like the lone ADVANCED BP-CLNY-0000) is predicted badly.
+
+Actions taken per the blocked-path instructions:
+  * Collinear structure + required captures documented above.
+  * Manual totalVolume input field REMOVED from the UI (grep hypoVol = 0 matches).
+  * rebuildHypo reverted to its pre-workaround state — public/prun_flight_planner.html is
+    now byte-identical to commit f6b4ebe (parent of 26da03a). This also removes bomEmptyMass
+    and the STRUCT_COUNT reconstruction, since all three were introduced together in 26da03a
+    and the reconstruction cannot run without a totalVolume it can no longer obtain.
+  * Committed as: revert: remove manual totalVolume field — ridge solution does not generalise
+
+CONSEQUENCE (flagged): hypothetical-mode empty mass returns to the pre-26da03a fitted-mass
+estimate (~19% high on large-cargo builds). Re-doing the empty-mass fix properly is blocked
+on capturing the build variations listed above to break the collinearity and derive
+totalVolume from the loadout.

@@ -1,0 +1,202 @@
+SCALING COMPONENT CHECK
+======================================================================
+
+Per-component: correlation of quantity with totalVolume, #blueprints, qty range:
+  SSC   structuralSpacecraftComponent  corr= 1.000  bps= 87  qty 26..407  <<< SCALES with totalVolume
+  LHP   lightweightHullPlate           corr= 1.000  bps=  7  qty 48..159  <<< SCALES with totalVolume
+  RHP   reinforcedHullPlate            corr= 0.999  bps= 13  qty 48..97  <<< SCALES with totalVolume
+  BHP   basicHullPlate                 corr= 0.997  bps= 63  qty 33..164  <<< SCALES with totalVolume
+  SRP   specializedRadiationShielding  corr= 0.996  bps=  5  qty 48..202  <<< SCALES with totalVolume
+  APT   advancedHeatShield             corr= 0.996  bps=  4  qty 48..202  <<< SCALES with totalVolume
+  AWH   advancedWhippleShielding       corr= 0.996  bps=  4  qty 48..202  <<< SCALES with totalVolume
+  LFE   largeEmitter                   corr= 0.994  bps= 38  qty 1..5  <<< SCALES with totalVolume
+  SFE   smallEmitter                   corr=-0.367  bps= 84  qty 1..2
+  MFE   mediumEmitter                  corr=-0.538  bps= 74  qty 1..3
+  AEN   advancedEngine                 corr= n/a   bps=  4  qty 1..1
+  AGS   advancedHighgSeats             corr= n/a   bps=  3  qty 1..1
+  AHP   advancedHullPlate              corr= n/a   bps=  2  qty 48..202
+  ARP   advancedRadiationShielding     corr= n/a   bps=  2  qty 48..52
+  BGS   basicHighgSeats                corr= n/a   bps=  9  qty 1..1
+  BPT   basicHeatShield                corr= n/a   bps=  2  qty 48..52
+  BR1   commandBridge1                 corr= n/a   bps= 78  qty 1..1
+  BR2   commandBridge2                 corr= n/a   bps=  7  qty 1..1
+  BRP   basicRadiationShielding        corr= n/a   bps=  1  qty 48..48
+  BRS   commandBridgeShort             corr= n/a   bps=  2  qty 1..1
+  BWH   basicWhippleShielding          corr= n/a   bps=  2  qty 48..52
+  CQL   crewQuarters                   corr= n/a   bps= 13  qty 1..1
+  CQM   crewQuartersMed                corr= n/a   bps= 10  qty 1..1
+  CQS   crewQuartersSmall              corr= n/a   bps= 60  qty 1..1
+  CQT   crewQuartersTiny               corr= n/a   bps=  4  qty 1..1
+  ENG   standardEngine                 corr= n/a   bps= 66  qty 1..1
+  FFC   ftlFieldController             corr= n/a   bps= 84  qty 1..1
+  FSE   fuelSavingEngine               corr= n/a   bps=  9  qty 1..1
+  GEN   glassEngine                    corr= n/a   bps=  3  qty 1..1
+  HAM   habitationModule               corr= n/a   bps=  1  qty 1..1
+  HCB   hugeCargoBay                   corr= n/a   bps= 10  qty 1..1
+  HHP   hardenedHullPlate              corr= n/a   bps=  2  qty 48..48
+  HPR   highPowerReactor               corr= n/a   bps=  2  qty 1..1
+  HTE   hyperthrustEngine              corr= n/a   bps=  5  qty 1..1
+  HYR   hyperPowerReactor              corr= n/a   bps=  4  qty 1..1
+  LCB   largeCargoBay                  corr= n/a   bps= 11  qty 1..1
+  LFL   largeFtlTank                   corr= n/a   bps=  7  qty 1..1
+  LSL   largeStlTank                   corr= n/a   bps=  3  qty 1..1
+  MCB   mediumCargoBay                 corr= n/a   bps=  1  qty 1..1
+  MFL   mediumFtlTank                  corr= n/a   bps= 12  qty 1..1
+  MSL   mediumStlTank                  corr= n/a   bps= 27  qty 1..1
+  QCR   quickChargeReactor             corr= n/a   bps=  6  qty 1..1
+  RCT   standardReactor                corr= n/a   bps= 72  qty 1..1
+  RDL   largeShipRepairDroneUnit       corr= n/a   bps=  3  qty 1..1
+  RDS   smallShipRepairDroneUnit       corr= n/a   bps= 11  qty 1..1
+  SCB   smallCargoBay                  corr= n/a   bps= 57  qty 1..1
+  SFL   smallFtlTank                   corr= n/a   bps= 66  qty 1..1
+  SSL   smallStlTank                   corr= n/a   bps= 57  qty 1..1
+  STS   stabilitySupportSystem         corr= n/a   bps= 14  qty 1..1
+  TCB   tinyCargoBay                   corr= n/a   bps=  1  qty 1..1
+  VCB   highVolumeCargoBay             corr= n/a   bps=  2  qty 1..1
+  VFT   vortexFuelTank                 corr= n/a   bps=  1  qty 1..1
+  VOE   vortexEngine                   corr= n/a   bps=  1  qty 1..1
+  VSC   verySmallCargoBay              corr= n/a   bps=  1  qty 1..1
+  WCB   highLoadCargoBay               corr= n/a   bps=  4  qty 1..1
+
+The high-correlation, count-varying components ARE the two the task expects:
+  1) HULL PLATES (LHP/BHP/RHP/AHP/HHP — one type per ship, count varies with size)
+  2) SSC = structuralSpacecraftComponent
+  (Note: heat/whipple/radiation shield COATINGS also scale with plate count when present,
+   but only appear on a handful of ships; plates + SSC are on all 87.)
+
+######################################################################
+FORMULA VERIFICATION across all 87 blueprints
+######################################################################
+  plate_pred = round(0.535 * V^0.655)   |   ssc_pred = round(0.0478 * V)
+
+  naturalId            V plateAct platePred  ssсAct sscPred   plateOK sscOK
+  BP-EBKR-1418      2664       93        94     127     127      n      Y
+  BP-WIYN-8444      5837      157       157     278     279      Y      n
+  BP-LYAM-3006      2664       93        94     127     127      n      Y
+  BP-MNWM-4454      2663       93        94     127     127      n      Y
+  BP-ISFD-5728      2671       94        94     128     128      Y      Y
+  BP-BOXD-6581      2667       94        94     127     127      Y      Y
+  BP-MSWC-4866      2663       93        94     127     127      n      Y
+  BP-RWDC-2551       963       48        48      46      46      Y      Y
+  BP-BTQI-7530      1095       52        52      53      52      Y      n
+  BP-OEFO-2864      1095       52        52      53      52      Y      n
+  BP-EGVM-6823      1095       52        52      53      52      Y      n
+  BP-SQHH-0614      1095       52        52      53      52      Y      n
+  BP-UOAL-4711      1095       52        52      53      52      Y      n
+  BP-XTGD-7413      1095       52        52      53      52      Y      n
+  BP-GHOV-0545      1095       52        52      53      52      Y      n
+  BP-VWVB-2566      5820      157       156     278     278      n      Y
+  BP-KURM-2554      5826      157       157     278     278      Y      Y
+  BP-IKDW-2041      6242      164       164     298     298      Y      Y
+  BP-KHWP-1082       963       48        48      46      46      Y      Y
+  BP-QPTL-6486       963       48        48      46      46      Y      Y
+  BP-GYFG-1743       963       48        48      46      46      Y      Y
+  BP-LAQG-6147       963       48        48      46      46      Y      Y
+  BP-JRJA-4840      5958      159       159     284     285      Y      n
+  BP-IDJK-1102       963       48        48      46      46      Y      Y
+  BP-NVGM-1171      5837      157       157     278     279      Y      n
+  BP-QATA-5745       963       48        48      46      46      Y      Y
+  BP-CLNY-0000      8532      202       201     407     408      n      n
+  BP-IXZI-0433      5837      157       157     278     279      Y      n
+  BP-HJRK-4575       963       48        48      46      46      Y      Y
+  BP-JRAJ-3531      5837      157       157     278     279      Y      n
+  BP-HBSU-1821      2803       97        97     134     134      Y      Y
+  BP-HJQJ-2441      2664       93        94     127     127      n      Y
+  BP-TPKQ-3458       963       48        48      46      46      Y      Y
+  BP-UMTS-3580      2664       93        94     127     127      n      Y
+  BP-BYIP-7818      1614       67        68      77      77      n      Y
+  BP-BXYK-5103      1614       67        68      77      77      n      Y
+  BP-UJUA-7750      2538       90        91     121     121      n      Y
+  BP-SSHF-7118      3720      117       117     178     178      Y      Y
+  BP-DTUV-4363      1608       67        67      77      77      Y      Y
+  BP-STRT-0000       963       48        48      46      46      Y      Y
+  BP-GCFD-1072       962       48        48      46      46      Y      Y
+  BP-OCTM-8557       970       48        48      47      46      Y      n
+  BP-BJKP-8817       966       48        48      46      46      Y      Y
+  BP-CXVC-4221       962       48        48      46      46      Y      Y
+  BP-JNZB-4277       963       48        48      46      46      Y      Y
+  BP-OWTS-7141       963       48        48      46      46      Y      Y
+  BP-AXRC-2155       963       48        48      46      46      Y      Y
+  BP-QTAW-2541       963       48        48      46      46      Y      Y
+  BP-VKJR-5302       963       48        48      46      46      Y      Y
+  BP-MKMN-8547       963       48        48      46      46      Y      Y
+  BP-NVBH-4203       963       48        48      46      46      Y      Y
+  BP-BTJI-6635       963       48        48      46      46      Y      Y
+  BP-CFYJ-5156       963       48        48      46      46      Y      Y
+  BP-ILEC-5060       963       48        48      46      46      Y      Y
+  BP-VYYQ-3022       963       48        48      46      46      Y      Y
+  BP-QNLF-0141       963       48        48      46      46      Y      Y
+  BP-ZYRW-4882       963       48        48      46      46      Y      Y
+  BP-JKZU-8825       963       48        48      46      46      Y      Y
+  BP-FQID-7560       963       48        48      46      46      Y      Y
+  BP-BUCN-5374       963       48        48      46      46      Y      Y
+  BP-FPCF-6431       963       48        48      46      46      Y      Y
+  BP-PVIC-2346       963       48        48      46      46      Y      Y
+  BP-AXDN-7712      1488       64        64      71      71      Y      Y
+  BP-HSVZ-4056      3588      114       114     171     172      Y      n
+  BP-VAKC-0378      5688      155       154     271     272      n      n
+  BP-KZHE-3277      2538       90        91     121     121      n      Y
+  BP-QEQW-2455      1488       64        64      71      71      Y      Y
+  BP-SWRD-8221       963       48        48      46      46      Y      Y
+  BP-UVUA-6284       701       39        39      34      34      Y      Y
+  BP-WANU-1257       543       33        33      26      26      Y      Y
+  BP-GKUH-6184       981       48        49      47      47      n      Y
+  BP-HIWJ-4476       969       48        48      47      46      Y      n
+  BP-KDTA-2565       963       48        48      46      46      Y      Y
+  BP-LVAW-3661       834       43        44      40      40      n      Y
+  BP-VUNR-1627      1090       52        52      52      52      Y      Y
+  BP-CJZI-6715      1080       51        52      52      52      n      Y
+  BP-XURB-5377       970       48        48      47      46      Y      n
+  BP-ZOEF-1571       963       48        48      46      46      Y      Y
+  BP-ZWNU-4008       837       43        44      40      40      n      Y
+  BP-GLFR-5857      1373       60        61      66      66      n      Y
+  BP-NXEY-5602      1089       52        52      52      52      Y      Y
+  BP-MSVU-0618       963       48        48      46      46      Y      Y
+  BP-FRVH-7208       962       48        48      46      46      Y      Y
+  BP-MGPC-8017       970       48        48      47      46      Y      n
+  BP-DFBW-1574       966       48        48      46      46      Y      Y
+  BP-YXTK-3382       962       48        48      46      46      Y      Y
+  BP-CXHG-6746       963       48        48      46      46      Y      Y
+
+SUMMARY:
+  plate formula exact: 69 / 87
+  ssc  formula exact: 68 / 87
+  BOTH exact:         52 / 87
+  Hold across ALL 87? NO — approximate (±1), see mismatches below
+
+  Mismatches (rounding rule not exactly pinned):
+    BP-EBKR-1418   V=  2664 plate 93 vs 94 (Δ-1)   ssc 127 vs 127 (Δ0)
+    BP-WIYN-8444   V=  5837 plate 157 vs 157 (Δ0)   ssc 278 vs 279 (Δ-1)
+    BP-LYAM-3006   V=  2664 plate 93 vs 94 (Δ-1)   ssc 127 vs 127 (Δ0)
+    BP-MNWM-4454   V=  2663 plate 93 vs 94 (Δ-1)   ssc 127 vs 127 (Δ0)
+    BP-MSWC-4866   V=  2663 plate 93 vs 94 (Δ-1)   ssc 127 vs 127 (Δ0)
+    BP-BTQI-7530   V=  1095 plate 52 vs 52 (Δ0)   ssc 53 vs 52 (Δ1)
+    BP-OEFO-2864   V=  1095 plate 52 vs 52 (Δ0)   ssc 53 vs 52 (Δ1)
+    BP-EGVM-6823   V=  1095 plate 52 vs 52 (Δ0)   ssc 53 vs 52 (Δ1)
+    BP-SQHH-0614   V=  1095 plate 52 vs 52 (Δ0)   ssc 53 vs 52 (Δ1)
+    BP-UOAL-4711   V=  1095 plate 52 vs 52 (Δ0)   ssc 53 vs 52 (Δ1)
+    BP-XTGD-7413   V=  1095 plate 52 vs 52 (Δ0)   ssc 53 vs 52 (Δ1)
+    BP-GHOV-0545   V=  1095 plate 52 vs 52 (Δ0)   ssc 53 vs 52 (Δ1)
+    BP-VWVB-2566   V=  5820 plate 157 vs 156 (Δ1)   ssc 278 vs 278 (Δ0)
+    BP-JRJA-4840   V=  5958 plate 159 vs 159 (Δ0)   ssc 284 vs 285 (Δ-1)
+    BP-NVGM-1171   V=  5837 plate 157 vs 157 (Δ0)   ssc 278 vs 279 (Δ-1)
+    BP-CLNY-0000   V=  8532 plate 202 vs 201 (Δ1)   ssc 407 vs 408 (Δ-1)
+    BP-IXZI-0433   V=  5837 plate 157 vs 157 (Δ0)   ssc 278 vs 279 (Δ-1)
+    BP-JRAJ-3531   V=  5837 plate 157 vs 157 (Δ0)   ssc 278 vs 279 (Δ-1)
+    BP-HJQJ-2441   V=  2664 plate 93 vs 94 (Δ-1)   ssc 127 vs 127 (Δ0)
+    BP-UMTS-3580   V=  2664 plate 93 vs 94 (Δ-1)   ssc 127 vs 127 (Δ0)
+    BP-BYIP-7818   V=  1614 plate 67 vs 68 (Δ-1)   ssc 77 vs 77 (Δ0)
+    BP-BXYK-5103   V=  1614 plate 67 vs 68 (Δ-1)   ssc 77 vs 77 (Δ0)
+    BP-UJUA-7750   V=  2538 plate 90 vs 91 (Δ-1)   ssc 121 vs 121 (Δ0)
+    BP-OCTM-8557   V=   970 plate 48 vs 48 (Δ0)   ssc 47 vs 46 (Δ1)
+    BP-HSVZ-4056   V=  3588 plate 114 vs 114 (Δ0)   ssc 171 vs 172 (Δ-1)
+    BP-VAKC-0378   V=  5688 plate 155 vs 154 (Δ1)   ssc 271 vs 272 (Δ-1)
+    BP-KZHE-3277   V=  2538 plate 90 vs 91 (Δ-1)   ssc 121 vs 121 (Δ0)
+    BP-GKUH-6184   V=   981 plate 48 vs 49 (Δ-1)   ssc 47 vs 47 (Δ0)
+    BP-HIWJ-4476   V=   969 plate 48 vs 48 (Δ0)   ssc 47 vs 46 (Δ1)
+    BP-LVAW-3661   V=   834 plate 43 vs 44 (Δ-1)   ssc 40 vs 40 (Δ0)
+    BP-CJZI-6715   V=  1080 plate 51 vs 52 (Δ-1)   ssc 52 vs 52 (Δ0)
+    BP-XURB-5377   V=   970 plate 48 vs 48 (Δ0)   ssc 47 vs 46 (Δ1)
+    BP-ZWNU-4008   V=   837 plate 43 vs 44 (Δ-1)   ssc 40 vs 40 (Δ0)
+    BP-GLFR-5857   V=  1373 plate 60 vs 61 (Δ-1)   ssc 66 vs 66 (Δ0)
+    BP-MGPC-8017   V=   970 plate 48 vs 48 (Δ0)   ssc 47 vs 46 (Δ1)

@@ -1,0 +1,128 @@
+FORWARD PREDICTION of operatingEmptyMass
+======================================================================
+
+MODEL:
+  operatingEmptyMass = fixed_mass(12 selections)
+                     + plateCount(V) * plateUnitWeight(hull type)
+                     + sscCount(V)  * 1
+  where  plateCount(V) = round(0.535 * V^0.655)   [approximate]
+         sscCount(V)   = round(0.0478 * V)         [approximate]
+         V = totalVolume  (REQUIRED INPUT — still not derivable from the 12 selections)
+  fixed_mass is a fixed value per 12-selection combo (Step 3: 9/9 duplicate groups agree).
+
+SIZE-INDEPENDENCE of fixed_mass (duplicate 12-combos at DIFFERENT totalVolume):
+  => 0 duplicate groups span different sizes yet keep the SAME fixed_mass
+     (if >0, fixed_mass is confirmed size-independent AND selection-determined).
+
+######################################################################
+ACCURACY across all 87  (fixed_mass = actual per-combo value; counts from the FORMULAS)
+######################################################################
+  naturalId            V actualOEM   predOEM   absErr  pctErr
+  BP-EBKR-1418      2664    1682.4    1692.4     10.0    0.59
+  BP-LYAM-3006      2664    1682.4    1692.4     10.0    0.59
+  BP-MNWM-4454      2663    1679.4    1689.4     10.0    0.60
+  BP-MSWC-4866      2663    1680.4    1690.4     10.0    0.60
+  BP-HJQJ-2441      2664    1682.4    1692.4     10.0    0.59
+  BP-UMTS-3580      2664    1662.4    1672.4     10.0    0.60
+  BP-BYIP-7818      1614      1327    1337.0     10.0    0.75
+  BP-BXYK-5103      1614      1347    1357.0     10.0    0.74
+  BP-VWVB-2566      5820   2611.15    2602.2     -9.0   -0.34
+  BP-CLNY-0000      8532    5893.6    5884.6     -9.0   -0.15
+  BP-UJUA-7750      2538    1456.2    1465.2      9.0    0.62
+  BP-KZHE-3277      2538    1456.2    1465.2      9.0    0.62
+  BP-GKUH-6184       981     879.8     888.8      9.0    1.02
+  BP-LVAW-3661       834     667.5     676.5      9.0    1.35
+  BP-CJZI-6715      1080     969.5     978.5      9.0    0.93
+  BP-ZWNU-4008       837     676.5     685.5      9.0    1.33
+  BP-GLFR-5857      1373    1060.7    1069.7      9.0    0.85
+  BP-VAKC-0378      5688    2517.4    2509.4     -8.0   -0.32
+  BP-WIYN-8444      5837    1843.5    1844.5      1.0    0.05
+  BP-BTQI-7530      1095     915.5     914.5     -1.0   -0.11
+  BP-OEFO-2864      1095     967.5     966.5     -1.0   -0.10
+  BP-EGVM-6823      1095     655.5     654.5     -1.0   -0.15
+  BP-SQHH-0614      1095    916.54     915.5     -1.0   -0.11
+  BP-UOAL-4711      1095     920.7     919.7     -1.0   -0.11
+  BP-XTGD-7413      1095917.5799999999999     916.6     -1.0   -0.11
+  BP-GHOV-0545      1095     920.7     919.7     -1.0   -0.11
+  BP-JRJA-4840      5958    1968.6    1969.6      1.0    0.05
+  BP-NVGM-1171      5837    1843.5    1844.5      1.0    0.05
+  BP-IXZI-0433      5837    1843.5    1844.5      1.0    0.05
+  BP-JRAJ-3531      5837    1843.5    1844.5      1.0    0.05
+  BP-OCTM-8557       970     836.8     835.8     -1.0   -0.12
+  BP-HSVZ-4056      35881747.6000000000001    1748.6      1.0    0.06
+  BP-HIWJ-4476       969843.8000000000001     842.8     -1.0   -0.12
+  BP-XURB-5377       970     835.8     834.8     -1.0   -0.12
+  BP-MGPC-8017       970     836.8     835.8     -1.0   -0.12
+  BP-ISFD-5728      2671    1701.4    1701.4      0.0    0.00
+  BP-BOXD-6581      2667    1698.4    1698.4      0.0    0.00
+  BP-RWDC-2551       963     827.8     827.8      0.0    0.00
+  BP-KURM-2554      5826    2610.2    2610.2      0.0    0.00
+  BP-IKDW-2041      6242    2897.8    2897.8      0.0    0.00
+  BP-KHWP-1082       963     827.8     827.8      0.0    0.00
+  BP-QPTL-6486       963     827.8     827.8      0.0    0.00
+  BP-GYFG-1743       963     827.8     827.8      0.0    0.00
+  BP-LAQG-6147       963     827.8     827.8      0.0    0.00
+  BP-IDJK-1102       963     827.8     827.8      0.0    0.00
+  BP-QATA-5745       963     827.8     827.8      0.0    0.00
+  BP-HJRK-4575       963     827.8     827.8      0.0    0.00
+  BP-HBSU-1821      2803   2029.75    2029.8      0.0    0.00
+  BP-TPKQ-3458       963     827.8     827.8      0.0    0.00
+  BP-SSHF-7118      3720    1826.7    1826.7      0.0    0.00
+  BP-DTUV-4363      1608    1294.9    1294.9      0.0    0.00
+  BP-STRT-0000       963     827.8     827.8      0.0    0.00
+  BP-GCFD-1072       962     824.8     824.8      0.0    0.00
+  BP-BJKP-8817       966     833.8     833.8      0.0    0.00
+  BP-CXVC-4221       962     825.8     825.8      0.0    0.00
+  BP-JNZB-4277       963     857.8     857.8      0.0    0.00
+  BP-OWTS-7141       963847.8000000000001     847.8      0.0   -0.00
+  BP-AXRC-2155       963     977.8     977.8      0.0    0.00
+  BP-QTAW-2541       963877.8000000000001     877.8      0.0   -0.00
+  BP-VKJR-5302       963     832.6     832.6      0.0    0.00
+  BP-MKMN-8547       963    829.72     829.7      0.0    0.00
+  BP-NVBH-4203       963    829.24     829.2      0.0    0.00
+  BP-BTJI-6635       963     827.9     827.9      0.0    0.00
+  BP-CFYJ-5156       963    833.56     833.6      0.0    0.00
+  BP-ILEC-5060       963     832.6     832.6      0.0    0.00
+  BP-VYYQ-3022       963    829.24     829.2      0.0    0.00
+  BP-QNLF-0141       963    828.76     828.8      0.0    0.00
+  BP-ZYRW-4882       963     875.8     875.8      0.0    0.00
+  BP-JKZU-8825       963     875.8     875.8      0.0    0.00
+  BP-FQID-7560       963     875.8     875.8      0.0    0.00
+  BP-BUCN-5374       963     875.8     875.8      0.0    0.00
+  BP-FPCF-6431       963     587.8     587.8      0.0    0.00
+  BP-PVIC-2346       963     827.8     827.8      0.0    0.00
+  BP-AXDN-7712      1488    1146.8    1146.8      0.0    0.00
+  BP-QEQW-2455      1488    1046.8    1046.8      0.0    0.00
+  BP-SWRD-8221       963827.8000000000001     827.8      0.0   -0.00
+  BP-UVUA-6284       701     707.1     707.1      0.0    0.00
+  BP-WANU-1257       543       630     630.0      0.0    0.00
+  BP-KDTA-2565       963     827.8     827.8      0.0    0.00
+  BP-VUNR-1627      1090     987.5     987.5      0.0    0.00
+  BP-ZOEF-1571       963     827.8     827.8      0.0    0.00
+  BP-NXEY-5602      1089     899.5     899.5      0.0    0.00
+  BP-MSVU-0618       963     827.8     827.8      0.0    0.00
+  BP-FRVH-7208       962     824.8     824.8      0.0    0.00
+  BP-DFBW-1574       966     833.8     833.8      0.0    0.00
+  BP-YXTK-3382       962     825.8     825.8      0.0    0.00
+  BP-CXHG-6746       963     827.8     827.8      0.0    0.00
+
+SUMMARY (formula counts):
+  exact (|err|<0.5t): 52 / 87
+  mean |abs err| : 2.14 t
+  max  |abs err| : 10.00 t
+  mean |% err|   : 0.163 %
+  max  |% err|   : 1.348 %
+  ALL error here comes from the plate/ssc COUNT formulas being approximate (Step 2: 52/87
+  both-exact). With the ACTUAL counts, prediction = OEM exactly (fixed_mass + plate + ssc
+  is an identity by construction). So the mass model is exact; the residual is the count rule.
+
+CAVEATS for a genuinely hypothetical build:
+  1. totalVolume (V) is still required as an input — it is NOT derived from the 12 selections.
+  2. plate/ssc COUNT formulas are approximate (±1), giving the small errors above.
+  3. fixed_mass for a combo already in the 87 is a lookup; for a NOVEL 12-combo you must
+     reconstruct it from the selected parts PLUS the game-derived extras (bridge, crew
+     quarters, FTL controller, emitters). Step 3 shows those extras ARE determined by the 12,
+     but the explicit 12->extras rule still has to be built from the data (not done here).
+  4. 15 ships carry shield coatings whose count also scales with plates — for those, part of
+     fixed_mass scales with size too (a 3rd/4th scaling term), so treat shielded hypotheticals
+     with care.

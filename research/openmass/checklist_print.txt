@@ -1,0 +1,209 @@
+================================================================================
+CAPTURE CHECKLIST — builds needed to break the totalVolume collinearity
+Derived from prun-openmass/ridge_output.txt (rank 45/60, 15 redundant columns).
+Goal: after capturing these blueprints and re-pooling, the component-count matrix
+becomes full-rank enough that a fit can DERIVE totalVolume from a loadout — which is
+the prerequisite for computing hypothetical-mode empty mass without a manual field.
+================================================================================
+
+HOW TO READ THIS
+  * Each build is a ONE-CHANGE delta from a fixed REFERENCE ship (below) unless it
+    says otherwise. Change exactly what is listed; leave everything else identical.
+  * Quantities are the functional modules YOU select in the blueprint designer.
+  * Hull PLATES and SSC (structuralSpacecraftComponent) are AUTO-derived by the game
+    from the resulting totalVolume — you do NOT set them. You only pick the plate TYPE
+    (basic/reinforced/lightweight/advanced/hardened). They still get captured.
+  * After building each, open it so BLUEPRINT_BLUEPRINTS is captured (performance +
+    full bill of material), same as the existing 87.
+
+WHY ONE-CHANGE DELTAS: a component's coefficient is unidentifiable when its column is
+an exact linear combination of other columns across all 87 builds. Adding one build
+where that component takes a value the old relation does NOT predict makes its column
+linearly independent — so its own effect on totalVolume becomes measurable.
+
+--------------------------------------------------------------------------------
+REFERENCE SHIP  (= Base Hopper BP-EBKR-1418, already in the dataset; totalVolume 2664)
+  Hull plate type : REINFORCED (RHP)          [game auto-fills ~93 RHP + ~127 SSC]
+  Functional modules you select:
+    FFC ftlFieldController      x1
+    STS stabilitySupportSystem  x1   (gravity shield)
+    SFE smallEmitter            x1
+    MFE mediumEmitter           x2
+    LFE largeEmitter            x2
+    ENG standardEngine          x1
+    RCT standardReactor         x1
+    SFL smallFtlTank            x1
+    MSL mediumStlTank           x1
+    LCB largeCargoBay           x1
+    BGS basicHighgSeats         x1
+    BR1 commandBridge1          x1
+    CQM crewQuartersMed         x1
+    RDS smallShipRepairDroneUnit x1
+Every build below is "REFERENCE, except ..." — the delta is the whole point.
+
+================================================================================
+ROOT-CAUSE NOTE — decompose BP-CLNY-0000
+BP-CLNY-0000 is the ONLY blueprint containing HAM, VFT, VOE (and the sole carrier of
+several other exotics + full shield stacks). Because those parts occur together in
+exactly one ship, their coefficients are pinned by a single point — this is why
+cross-validation failed worst (-84%) on CLNY. Section A rebuilds each of those exotic
+parts into a SEPARATE ordinary ship so it stops being a one-point mystery.
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+SECTION A — SINGLE-BUILD EXOTICS (each currently appears in exactly 1 blueprint)
+Target: the redundant columns HAM, VFT, VOE, and the single-build cargo bays.
+Each build gives the exotic a SECOND, decoupled data point in a known-good hull.
+────────────────────────────────────────────────────────────────────────────────
+
+A1  Hull RHP.  REFERENCE, except engine ENG -> VOE (vortexEngine x1).
+    Targets: VOE  (redundant: VOE = BR1 + BR2 - FFC).
+    Breaks it: puts vortexEngine in a small standard FTL ship instead of only inside
+    CLNY's kitchen-sink, so VOE's column no longer equals that bridge/FFC combination.
+
+A2  Hull RHP.  REFERENCE, except FTL tank SFL -> VFT (vortexFuelTank x1).
+    Targets: VFT  (redundant: VFT = BR1 + BR2 - FFC).
+    Breaks it: VFT now co-occurs with a single bridge + FFC in a normal ship, a ratio
+    that contradicts the CLNY-only relation.
+
+A3  Hull RHP.  REFERENCE, PLUS add HAM (habitationModule x1).  Keep everything else.
+    Targets: HAM  (redundant: HAM = BR1 + BR2 - FFC).
+    Breaks it: HAM present with ONE bridge and an FFC (CLNY had two-bridge context),
+    giving a second, contradicting observation of HAM.
+
+A4  Hull RHP.  REFERENCE, except cargo LCB -> MCB (mediumCargoBay x1).
+    Targets: MCB (single-build).  Breaks the cargo slot-sum relation that hides MCB.
+
+A5  Hull RHP.  REFERENCE, except cargo LCB -> TCB (tinyCargoBay x1).
+    Targets: TCB (single-build, part of the big cargo linear relation).
+
+A6  Hull RHP.  REFERENCE, except cargo LCB -> VSC (verySmallCargoBay x1).
+    Targets: VSC (single-build, part of the big cargo linear relation).
+
+A7  Hull RHP.  REFERENCE, except cargo LCB -> VCB (highVolumeCargoBay x1).
+    Targets: VCB (redundant: VCB = CQL + CQM - HCB - LCB; only 2 builds today).
+
+A8  Hull RHP.  REFERENCE, except cargo LCB -> WCB (highLoadCargoBay x1).
+    Targets: WCB (redundant: WCB = BRS + CQS - MCB - SCB).
+
+A9  Hull RHP.  REFERENCE, PLUS add BRP (basicRadiationShielding x1).
+    Targets: BRP (single-build).  Second data point for basic-rad shielding mass.
+
+────────────────────────────────────────────────────────────────────────────────
+SECTION B — SLOT-SUM IDENTITIES (common parts made redundant by rigid ship structure)
+Every one of the 87 has exactly one bridge and exactly one of each slot, so e.g.
+"STL tank sum = bridge sum" holds identically and hides one option per slot. To break
+these you must (i) swap the slot type at fixed size, (ii) where the designer allows,
+put 0 or 2 of a slot, and (iii) capture a pure-STL ship (no FTL parts at all).
+────────────────────────────────────────────────────────────────────────────────
+
+B1  Hull BHP (basic).  PURE-STL ship: REFERENCE, but REMOVE all FTL parts —
+    remove FFC, SFE, MFE, LFE, STS, RCT (reactor) and SFL (FTL tank).
+    Keep: ENG x1, MSL x1, LCB x1, BGS x1, BR1 x1, CQM x1, RDS x1.
+    Targets: the FTL bundle {FFC,SFE,MFE,LFE,STS} AND reactor identity RCT = BR1 - QCR.
+    Breaks it: a ship with 1 bridge but 0 reactor and 0 FTL parts violates every
+    "FTL-part count == bridge count" relation at once. Capture 2-3 of these at
+    different cargo sizes (SCB, LCB, HCB) — pure-STL ships are the single most valuable
+    class here.
+
+B2  Hull RHP.  REFERENCE, except STL tank MSL -> SSL (smallStlTank x1).
+    Targets: SSL  (redundant: SSL = BR1 + BR2 + BRS - LSL - MSL).
+
+B3  Hull RHP.  REFERENCE, except STL tank MSL -> LSL (largeStlTank x1).
+    Targets: SSL/LSL identity (LSL only in 3 builds).  Strengthens the STL-tank slot.
+
+B4  Hull RHP.  REFERENCE, except STL tank MSL x2 (two medium STL tanks), IF the
+    designer permits multiple tanks.
+    Targets: SSL slot-sum.  Breaks it: STL-tank count = 2 while bridge count = 1
+    directly falsifies "STL sum == bridge sum". (Skip if two tanks are not allowed.)
+
+B5  Hull RHP.  REFERENCE, except crew quarters CQM -> CQT (crewQuartersTiny x1).
+    Targets: CQT (redundant: CQT = BR1 + BR2 + BRS - CQL - CQM - CQS).
+
+B6  Hull RHP.  REFERENCE, except crew quarters CQM -> CQS (crewQuartersSmall x1).
+B7  Hull RHP.  REFERENCE, except crew quarters CQM -> CQL (crewQuarters x1).
+    Targets B6/B7: full crew-quarters slot identifiability at fixed hull size.
+
+B8  Hull RHP.  REFERENCE, except bridge BR1 -> BR2 (commandBridge2 x1).
+B9  Hull RHP.  REFERENCE, except bridge BR1 -> BRS (commandBridgeShort x1).
+    Targets B8/B9: bridge slot {BR1,BR2,BRS}. Also breaks RCT = BR1 - QCR and
+    CQT/SSL relations, because the bridge count now pairs with the SAME reactor/quarters
+    as the reference — decoupling bridge choice from everything else.
+
+B10 Hull RHP.  REFERENCE, except reactor RCT -> QCR (quickChargeReactor x1).
+B11 Hull RHP.  REFERENCE, except reactor RCT -> HPR (highPowerReactor x1).
+B12 Hull RHP.  REFERENCE, except reactor RCT -> HYR (hyperPowerReactor x1).
+    Targets B10-B12: reactor slot {RCT,QCR,HPR,HYR}. HYR is redundant
+    (HYR = -BR1 + FFC - HPR); HPR/HYR have only 2/4 builds. Swapping reactor while
+    holding bridge fixed separates reactor mass from bridge mass.
+
+B13 Hull RHP.  REFERENCE, except engine ENG -> HTE (hyperthrustEngine x1).
+    Targets: HTE (redundant: HTE = -AEN + BR1 + BR2 + BRS - ENG - FSE - GEN).
+    Breaks it: HTE in a normal single-bridge ship contradicts that bridge/engine combo.
+
+B14 Hull RHP.  REFERENCE, except engine ENG x2 (two standard engines), IF permitted.
+    Targets: engine slot-sum. Engine count = 2 with bridge = 1 breaks the engine
+    accounting identity that ties HTE/VOE to the bridge columns. (Skip if not allowed.)
+
+────────────────────────────────────────────────────────────────────────────────
+SECTION C — HULL-TIER COVERAGE + SSC/PLATE DECOUPLING
+Targets: HULL_ADVANCED, HULL_HARDENED, HULL_REINFORCED redundancy, and the {SSC, plate}
+group. ADVANCED (AHP) and HARDENED (HHP) each have only 2 blueprints today; a single
+point cannot separate a hull-tier's effect from confounds (this is exactly why CLNY,
+the lone big ADVANCED ship, drove the worst CV error).
+NOTE: you cannot set plate/SSC counts directly — vary hull TYPE and overall SIZE. Across
+a size range the plate-count rule (~0.535*V^0.655) and the SSC rule (~0.0478*V) diverge,
+which is what separates the SSC column from the plate column.
+────────────────────────────────────────────────────────────────────────────────
+
+C1-C5  Five ADVANCED-hull (AHP) ships spanning small->large totalVolume. Use the
+       REFERENCE functional set but change cargo to sweep size:
+         C1  AHP hull, cargo SCB x1   (small)
+         C2  AHP hull, cargo LCB x1   (medium — like the reference)
+         C3  AHP hull, cargo HCB x1   (large)
+         C4  AHP hull, cargo LCB x2   (or MCB x2) — different size point
+         C5  AHP hull, cargo SCB x1 + no FTL parts (pure-STL advanced) — extra spread
+       Targets: HULL_ADVANCED (currently pinned by 1 real ship). Five spread points let
+       the advanced-plate coefficient be estimated instead of absorbing one ship's noise.
+
+C6-C10 Five HARDENED-hull (HHP) ships spanning small->large, same size sweep as C1-C5
+       (SCB, LCB, HCB, LCB x2, and one pure-STL). Targets: HULL_HARDENED (only 2 today).
+
+C11    (Optional) 2-3 extra LIGHTWEIGHT (LHP) ships at sizes not yet sampled, and a
+       couple more REINFORCED (RHP) at small sizes, to widen the plate-type x size grid
+       and further separate SSC from the plate columns.
+
+────────────────────────────────────────────────────────────────────────────────
+SECTION D — LOWER PRIORITY (robustness, not strictly required)
+────────────────────────────────────────────────────────────────────────────────
+D1  Hull RHP.  REFERENCE, except seat BGS -> AGS (advancedHighgSeats x1).  (AGS in 3.)
+D2  Hull RHP.  REFERENCE, except drone RDS -> RDL (largeShipRepairDroneUnit x1). (RDL in 3.)
+D3  Hull RHP.  REFERENCE, except FTL tank SFL -> MFL, and a second build -> LFL.
+    (FTL-tank slot already varies; these just thicken it.)
+D4  A couple of extreme emitter mixes at fixed size (e.g. SFE x3 / LFE-heavy). Emitters
+    already vary across 17 patterns, so this is optional.
+
+================================================================================
+SUMMARY OF WHAT EACH REDUNDANT COLUMN NEEDS (quick cross-check)
+  VOE ...... A1            VFT ...... A2            HAM ...... A3
+  MCB ...... A4            TCB ...... A5            VSC ...... A6
+  VCB ...... A7            WCB ...... A8            BRP ...... A9
+  SSL ...... B2 (+B1,B4)   CQT ...... B5 (+B6,B7)   RCT ...... B1,B8,B10
+  HYR ...... B12 (+B8)     HTE ...... B13 (+B14)
+  HULL_REINFORCED / HULL_ADVANCED / HULL_HARDENED ... Section C
+  (the three hull one-hots are also redundant with the plate-ticker columns by
+   construction — when re-fitting, DROP the hull one-hots OR the plate columns, do not
+   include both; then Section C only needs to cure the tier UNDERSAMPLING.)
+
+MINIMUM HIGH-VALUE SUBSET (if capturing all ~30 is too much, do these first):
+  B1 (pure-STL, x2-3 sizes), A1, A2, A3, C1-C10 (tier coverage).
+  These remove the single-point exotics and the lone-ADVANCED problem — the two things
+  that broke cross-validation hardest.
+
+CAVEAT: breaking the collinearity is NECESSARY but may not be SUFFICIENT. totalVolume is
+game-computed (a hull-envelope quantity) and the plates/SSC that dominate it are derived
+FROM it, so the relationship of totalVolume to the functional loadout could be non-linear.
+These captures make the linear fit IDENTIFIABLE; whether a linear model then predicts
+held-out totalVolume within the 2%/5% target must be re-tested with 10-fold CV after
+capture. If it still fails, the next step is a non-linear/functional model, not more data.
+================================================================================

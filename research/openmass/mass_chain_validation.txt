@@ -1,0 +1,6 @@
+MODE=actualAuto  (excluding the 1 vortex ship)
+   mean|%|=0.166  max|%|=1.35  within1%=83/86
+   worst: BP-LVAW-3661 1.3% | BP-ZWNU-4008 1.3% | BP-GKUH-6184 1.0% | BP-CJZI-6715 0.9% | BP-GLFR-5857 0.8%
+MODE=assumed  (excluding the 1 vortex ship)
+   mean|%|=0.199  max|%|=1.35  within1%=82/86
+   worst: BP-LVAW-3661 1.3% | BP-ZWNU-4008 1.3% | BP-GKUH-6184 1.1% | BP-CJZI-6715 1.0% | BP-GLFR-5857 0.9%

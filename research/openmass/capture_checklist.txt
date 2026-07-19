@@ -1,0 +1,104 @@
+================================================================================
+CAPTURE CHECKLIST v2 — targeted top-ups   (supersedes the v1 collinearity list)
+================================================================================
+
+WHY THIS IS NOW SHORT
+  The selections-only re-analysis (see selections_audit.txt) showed the earlier
+  "collinearity" was largely an ARTEFACT of the old feature matrix, which included
+  game-derived hull-plate/SSC counts that scale with totalVolume. Rebuilt from the
+  user-controlled dropdowns, the model already predicts totalVolume within 2% for
+  76 of 87 blueprints. The only real gap is UNDER-SAMPLED dropdown options: 18-19
+  options appear in <=3 blueprints today, so when one is held out in cross-validation
+  it has too little support and that prediction breaks.
+  Fix = simply build a few more of each. No pure-STL ships, no slot-swap
+  "collinearity-breaking" builds (v1 Section B) are needed.
+
+  Goal: bring every under-sampled option to >=5 blueprints total. That takes the 15
+  builds below. Each build is a normal ship; the table just tells you what to pick in
+  each dropdown of the blueprint designer. After building + opening all 15 (so they
+  get captured), re-pool and re-run the selections-only 10-fold CV.
+
+--------------------------------------------------------------------------------
+REFERENCE DEFAULTS  — leave these dropdowns at these values unless a row overrides them
+  Crew Quarters ............. Small
+  Gravity Shield ............ None
+  High-G Seats .............. None      (unless row shows Adv)
+  Repair Drones ............. None      (unless row shows Lg)
+  Heat / Whipple / Rad Shield None      (unless row shows B or A)
+  STANDARD-FTL builds:  FTL Field Controller = Yes | FTL Fuel Tank = Small
+                        FTL Field Emitters (Small/Med/Large) = 1 / 2 / 2
+  VORTEX builds:        Vortex Reactor = Standard | Vortex Fuel Tank = Standard
+                        FTL Reactor = None | FTL Fuel Tank = None | FTL Field Controller = No | Emitters = 0/0/0
+                        (Vortex is a self-contained FTL drive — it REPLACES the standard
+                         FTL reactor + fuel tank + field controller. The two vortex parts
+                         always go together, exactly as on the one existing vortex ship.)
+
+LEGEND
+  Drive STD=standard FTL  VTX=vortex drive
+  Hull  Rein=Reinforced  Adv=Advanced  Hard=Hardened            Eng  Std=Standard  Glass
+  STLtk (STL fuel tank)  Sm=Small  Lg=Large                     Rct  (FTL reactor) Std  HiP=High Power  —=n/a(vortex)
+  Cargo Tiny  VSm=Very Small  Med=Medium  HVol=High Volume      Brg  Mk1  Sht=Short
+  Seat  —=None  Adv=Advanced    Drn  —=None  Lg=Large           Heat/Whip  —=None  B=Basic
+  Rad   —=None  B=Basic  A=Advanced                             Hab  —=No  Y=Yes   Vtx  —=No  Y=Yes
+
+--------------------------------------------------------------------------------
+ #  Drive  Hull  Eng    STLtk Rct   Cargo  Brg  Seat  Drn  Heat  Whip  Rad  Hab  Vtx
+--- -----  ----  -----  ----- ----  -----  ---  ----  ---  ----  ----  ---  ---  ---
+ 1  STD    Rein  Std    Sm    Std   Tiny   Mk1   —     —    B     —     B    —    —
+ 2  STD    Rein  Std    Sm    HiP   VSm    Mk1   —     Lg   —     —     —    Y    —
+ 3  STD    Adv   Std    Sm    Std   Med    Mk1   —     —    —     —     —    —    —
+ 4  STD    Hard  Std    Sm    Std   VSm    Mk1   —     —    B     —     B    —    —
+ 5  STD    Rein  Std    Sm    HiP   Med    Sht   —     —    —     —     A    —    —
+ 6  STD    Hard  Std    Sm    Std   HVol   Mk1   —     —    —     B     —    —    —
+ 7  STD    Rein  Glass  Sm    Std   Med    Mk1   —     —    B     —     A    —    —
+ 8  STD    Rein  Std    Sm    HiP   HVol   Sht   —     —    —     —     B    Y    —
+ 9  STD    Adv   Std    Sm    Std   Tiny   Mk1   —     —    —     B     —    —    —
+10  STD    Rein  Glass  Lg    Std   HVol   Mk1   —     —    —     —     B    —    —
+11  STD    Rein  Std    Sm    Std   Tiny   Sht   —     —    —     —     —    Y    —
+12  VTX    Hard  Std    Sm    —     VSm    Mk1   Adv   —    —     B     —    —    Y
+13  VTX    Rein  Std    Lg    —     Tiny   Mk1   —     —    —     —     A    —    Y
+14  VTX    Rein  Std    Sm    —     VSm    Mk1   —     Lg   —     —     —    Y    Y
+15  VTX    Adv   Std    Sm    —     Med    Mk1   Adv   —    —     —     —    —    Y
+--------------------------------------------------------------------------------
+
+COVERAGE — every under-sampled option reaches 5 total after these 15 captures
+  option                       now  +new  = total    built in rows
+  HULL  Advanced                2    +3     5         3, 9, 15
+  HULL  Hardened                2    +3     5         4, 6, 12
+  ENGINE  Glass                 3    +2     5         7, 10
+  STL FUEL TANK  Large          3    +2     5         10, 13
+  FTL REACTOR  High Power       2    +3     5         2, 5, 8
+  CARGO  Tiny                   1    +4     5         1, 9, 11, 13
+  CARGO  Very Small             1    +4     5         2, 4, 12, 14
+  CARGO  Medium                 1    +4     5         3, 5, 7, 15
+  CARGO  High Volume            2    +3     5         6, 8, 10
+  COMMAND BRIDGE  Short         2    +3     5         5, 8, 11
+  HIGH-G SEATS  Advanced        3    +2     5         12, 15
+  REPAIR DRONES  Large          3    +2     5         2, 14
+  HEAT SHIELD  Basic            2    +3     5         1, 4, 7
+  WHIPPLE SHIELD  Basic         2    +3     5         6, 9, 12
+  RADIATION SHIELD  Basic       1    +4     5         1, 4, 8, 10
+  RADIATION SHIELD  Advanced    2    +3     5         5, 7, 13
+  HABITATION MODULE             1    +4     5         2, 8, 11, 14
+  VORTEX DRIVE (reactor+tank)   1    +4     5         12, 13, 14, 15
+
+  The rare options are deliberately spread across different rows (and different hull
+  sizes) so they don't all reappear bundled together — that would just recreate the
+  collinearity in a new place. No two rare options co-occur more than ~3 times.
+
+CAVEATS / NOTES
+  * Habitation module is a large "colony" part. If the designer won't place it on a
+    small ship (rows 2, 11, 14 use small cargo), raise that row's Cargo to Large or
+    Huge — the aim is to capture the habitat module; the cargo size is incidental.
+  * Sizes: because Cargo varies row-to-row, the two thin hull tiers (Advanced,
+    Hardened) get sampled at several sizes rather than one point — that is the fix for
+    the BP-CLNY-0000 lone-advanced-ship problem, so keep the cargo varied as shown.
+  * If the designer rejects any specific combination, adjust that row and note which
+    option still needs samples — every row's job is only to add one instance of its
+    rare picks; the common slots can be anything valid.
+  * After capturing all 15: re-pool to 102 blueprints and re-run the selections-only
+    ridge + 10-fold CV (the Step 2/3 method in selections_audit.txt). Expect it to pass
+    the 2% / 5% threshold once every option a build uses has >=5 examples. If a residual
+    non-linearity remains (watch the one common-option outlier BP-VUNR-1627), the next
+    step is a non-linear model, not more captures.
+================================================================================
