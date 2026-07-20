@@ -86,6 +86,11 @@ Note for anyone reproducing this: a regression over these fields is confounded a
 - `systemstars.json` — star luminosity and meteoroid density, sourced from [Taiyi Bureau's universe map](https://github.com/Taiyi-94/prun_universe_map) (MIT)
 - `ephemeris.json` — 4,199 planets. Supplied by Marcus Licinius Crassus.
 - `station_data.json` — HRT and ANT orbital parameters fitted from captured SYSTEM_TRAFFIC data
+- `prun_universe_data.json` — star systems with 3D coords and jump connections
+- `gateways.json` — gateway links, used alongside the above for BFS jump-distance routing
+- `material_data.json` — material ticker/ID mapping and item properties
+
+All live in `public/`. Read material properties from `material_data.json` rather than hardcoding them.
 
 ---
 
@@ -105,22 +110,35 @@ Each workstream ships the same doc set: a peer **SUMMARY**, a **findings_public*
 
 ## Other Tools
 
-| Tool | What it does |
-|------|-------------|
-| Planet Finder / Jump Planner | Visual star map, resource filters, system-to-system routing |
-| Planet Compare | Side-by-side planet comparison for production chain planning — COGC, resources, costs, worker requirements |
-| Ship Builder | Compare up to 3 ship builds side-by-side — stats, BOM, build time |
-| Fleet Status | Live fleet positions and status |
-| Fleet Repair | Aggregate repair materials across fleet → XIT ACT import |
-| Base Repair | Building conditions per base, shortfall vs inventory → XIT ACT import |
-| Infra Upkeep | Infrastructure upkeep and upgrade costs → XIT ACT import |
-| HQ Upgrade | HQ upgrade material planner |
-| Recipe Finder | Full recipe tree — what a ticker needs, what you can make with it, cross-linked |
-| Sell Finder | Best exchange for a ticker at current BID prices, fill simulation, jump distance from origin |
-| Corp Prices | Corp contract prices vs IC1 CX ask — discount badges, watchlist |
-| Price Converter | Google Sheets corp price schedule → PrUn Planner CX CSV |
-| Quick Orders | Fast XIT ACT import for ad-hoc material lists |
-| Flight Log | Passive flight recorder — detects completed flights, accumulates calibration data |
+| Tool | File | What it does |
+|------|------|-------------|
+| Star Map | `index.html` (React app) | Visual star map, resource and planet-condition filters, system-to-system routing |
+| Flight Planner | `public/prun_flight_planner.html` | Per-leg flight time, fuel, damage and shield recommendations — real fleet or hypothetical build |
+| Planet Compare | `public/prun_planet_compare.html` | Side-by-side planet comparison for production chain planning — COGC, resources, costs, worker requirements |
+| Ship Builder | `public/prun_ship_builder.html` | Compare up to 3 ship builds side-by-side — stats, BOM, build time |
+| Fleet Status | `public/prun_fleet_status.html` | Live fleet positions and status |
+| Fleet Repair | `public/prun_fleet_repair.html` | Aggregate repair materials across fleet → XIT ACT import |
+| Base Repair | `public/prun_base_repair.html` | Building conditions per base, shortfall vs inventory → XIT ACT import |
+| Infra Upkeep | `public/prun_infra_upkeep.html` | Infrastructure upkeep and upgrade costs → XIT ACT import |
+| HQ Upgrade | `public/prun_hq_upgrade.html` | HQ upgrade material planner |
+| Recipe Finder | `public/prun_recipe_finder.html` | Full recipe tree — what a ticker needs, what you can make with it, cross-linked |
+| Sell Finder | `public/prun_sell_finder.html` | Best exchange for a ticker at current BID prices, fill simulation, jump distance from origin |
+| Corp Prices | `public/prun_corp_prices.html` | Corp contract prices vs IC1 CX ask — discount badges, watchlist |
+| Price Converter | `public/prun_price_convert.html` | Google Sheets corp price schedule → PrUn Planner CX CSV |
+| Quick Orders | `public/prun_quick_orders.html` | Fast XIT ACT import for ad-hoc material lists |
+| Flight Log | `public/prun_flight_log.html` | Passive flight recorder — detects completed flights, accumulates calibration data |
+
+`public/home.html` is the dashboard that links to all of the above.
+
+---
+
+## Repo layout
+
+- `public/` — the standalone tool pages. Every one is self-contained vanilla HTML + JS with no build step; edit them directly.
+- `src/` — the React star map (Vite). `App.jsx` holds the data loading and state, `MapView.jsx` the D3 rendering, plus `Sidebar` / `SearchBar` / `FilterPanel` / `RoutePanel`. Route-finding is Dijkstra over `prun_universe_data.json` + `gateways.json`.
+- `research/` — reverse-engineering write-ups (see above).
+
+`npm run dev` serves the React app on `http://localhost:5173`; the tool pages are reachable under `/` from the same server.
 
 ---
 
@@ -128,11 +146,32 @@ Each workstream ships the same doc set: a peer **SUMMARY**, a **findings_public*
 
 No install. Open `home.html` in a browser (or run `npm run dev` for the React star map).
 
-Paste your FIO REST API key in the header on first load — it saves to `localStorage` and pre-fills on return visits. No keys are hardcoded or committed anywhere.
+Paste your FIO REST API key (`rest.fnar.net`) in the header on first load — it saves to `localStorage` as `prun_apikey` and pre-fills on return visits. Keys are shared across all tools via `localStorage`. No keys are hardcoded or committed anywhere, and there is no `config.js`.
 
 For flight planner real-fleet mode, a FIO Swagger API key (`api.fnar.net`) is also required — different from the REST key. Create one via `POST /auth/createapikey` after authenticating with your FIO password.
 
+For Planet Compare, a PrUn Planner API key (`api.prunplanner.org`) is required — it saves to `localStorage` as `prun_ppkey`. That API supplies buildings, recipes and planet search, including the pre-computed `active_cogc_program_type` field (no COGC epoch filtering needed) and per-resource `daily_extraction`.
+
 For the Flight Log tool, a PUNoted data token (`api.punoted.net`) is required — generate one from your PUNoted account and paste it into the header; it saves to `localStorage` (`prun_punoted_token`). Adding your FIO REST key alongside it is optional and unlocks ship specs (Volume, Condition, Blueprint) per flight.
+
+---
+
+## Implementation notes
+
+Non-obvious things that cost real time to work out, kept here so they aren't rediscovered.
+
+**XIT ACT JSON export** (Base Repair, Fleet Repair, Infra Upkeep, Quick Orders)
+- `type` must be `"CX Buy"` — with a space, not an underscore.
+- A top-level `global: { name: "..." }` field is mandatory. Without it PrUn imports the action as broken/red.
+- `groups[].materials` is an object `{ticker: amount}`, not an array.
+
+**FIO repair-material field names** — the nested fields are `RepairMaterials[].MaterialTicker` and `.MaterialAmount`, not `Ticker` / `Amount`. Storage matching is the other trap: `store.AddressableId` can be a SiteId UUID rather than a planet natural ID, so resolve SiteId → PlanetNaturalId from the sites list. Matching on `type === 'BASE'` matches every base at once and is wrong.
+
+**Plot capacity** — `cap = floor(208 + radius_km / 36.1)`, where `radius_km = planet.Radius / 1000` (FIO reports radius in metres). A planet with `site_count >= cap` is full for regular players; starter planets exceed the cap because new players bypass it.
+
+**Exchange system natural IDs** — IC1→VH-331, NC1→OT-580, NC2→UV-351, CI1→ZV-759, CI2→AM-783, AI1→ZV-307.
+
+**Star map planet-condition bands**, matching the in-game classification — gravity low <0.25g / high >2.5g; temperature low <−25°C / high >75°C; pressure low <0.25atm / high >2atm.
 
 ---
 
@@ -144,6 +183,7 @@ This project would not exist without:
 - **Taiyi Bureau** — takeoff/landing distance formulas, independent flight planner, universe map data (`systemstars.json`, MIT licensed). The landing-distance mean (`15k`) is their distance work; the ±13.3% band around it is the PRNG.
 - **Raylu** — [pruncalc](https://git.raylu.net/raylu/pruncalc) — take-off/landing pressure and radius handling, ship repair calculator.
 - **SAGANAKI** — FIO galaxy star/system data gathered and shared.
+- **Zillatron27** — [drydock](https://github.com/Zillatron27/drydock) — the ship component data the Ship Builder was originally built from.
 - **Aem | SR** — radiation damage formula, ~60-point landing damage dataset, KI-439 70-flight fuel log. Empirical backbone of the damage calibration arc.
 - **xflasar** (`xSupeFly` on Discord) — [PUNoted](https://github.com/xflasar), the live flight-data API (`api.punoted.net`) that powers the Flight Log tool — ships and in-progress flights with exact timestamps.
 ---
