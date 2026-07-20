@@ -1,4 +1,4 @@
-# prun-map — Project Context Snapshot
+# prun-toolset — Project Context Snapshot
 > Paste this into Claude chat to bring it up to speed on the project.
 
 ---
@@ -6,7 +6,7 @@
 ## What This Is
 A personal toolset for the browser game **Prosperous Universe (PrUn)** — a space trading/industry MMO. Built by **EoinCuinn** (in-game username).
 
-The project lives at `C:\prun-tools\prun-map` and is served via **Vite** (`npm run dev` → `http://localhost:5173`).
+The project lives at `C:\prun-tools\prun-toolset` and is served via **Vite** (`npm run dev` → `http://localhost:5173`).
 
 ---
 
@@ -258,7 +258,7 @@ For tools that export XIT ACT JSON:
 |-----------|------|------|--------|
 | VH-331a | Promitor | Organic Farming | Active — FULL (2164+ sites) |
 | VH-331g | Avalon | RAT / DW Production | Active |
-| OT-189a | Mayer | HAL Extraction | Active |
+| OZ-189a | Mayer | HAL Extraction | Active |
 | VH-192c | Shardonia | GL Production | Active |
 
 ---
@@ -268,4 +268,4 @@ For tools that export XIT ACT JSON:
 - All tool pages are self-contained HTML — edit directly in `/public`
 - React map app lives in `/src` — standard Vite/React workflow
 - FIO API docs: https://fio.fnar.net (community API, requires key)
-- GitHub: https://github.com/EoinCuinn/prun-command
+- GitHub: https://github.com/EoinCuinn/prun-toolset
