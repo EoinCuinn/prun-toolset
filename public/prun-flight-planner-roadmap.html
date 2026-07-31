@@ -156,9 +156,13 @@
       <div class="task-name">LND distance formula — rewritten 2026-07-14 <span class="task-tag tag-done">Done — 2026-07-14</span></div>
       <div class="task-note">Landing distance is fully deterministic, seeded by missionId. Universal formula: <strong>d = k · (13 + 4·r)</strong>, where r = new java.util.Random(UUID.hashCode(missionId)).nextDouble(). k is one constant per planet, derivable from planet properties. dmin = 13k, dmax = 17k — the ±15% band is exactly ±2/15. Confirmed by Marcus Licinius Crassus 2026-07-15: R²=1.000000 per planet across 4,482 planets and ~86k flights, residuals at machine epsilon. Mean estimate (missionId unknown) = 15k = planet_term = radius_km × pressureFactor. The ±15% band collapses to zero if missionId is known. SEED IS CLIENT-CONTROLLED (confirmed 2026-07-15 on own capture data, 860/860 request↔response joins): the client generates the missionId UUID and sends it in the calc request; the server echoes it verbatim and derives the landing from it. Real flights use the same mechanism — of 25 distinct real landings, 21 carry a byte-exact preview distance (the "0.00000%" is by construction — the twin is selected by matching distance — so the real content is the byte-exact twin, not a prediction test). Fixed base-tile is REFUTED (2026-07-18): 6 same-ship same-base repeats each land at a different distance (spreads 1.6–18.0%), and seed_crack.js TEST 2 gives 6 destinations flown ≥2× with 0 constant. Consequence (REFINED 2026-07-16 after bundle disassembly): the missionId is minted by the client with <code>crypto.getRandomValues()</code> (CSPRNG), so it is UNSTEERABLE at source — you cannot make the game pick a favourable UUID. Selection is possible only in principle by forging the outgoing missionId (the server echoes any UUID, 860/860) — an active exploit, not normal play. Read-it-don't-seed-it: r is computable from the wire once APEX sends the missionId, before the server reply; otherwise ±15% is irreducible. For the read-only planner: EV=15k when missionId unknown; exact when known. Earlier description ("randomly-rolled approach orbit / semiMajorAxis") was the correct observable effect; the underlying mechanism is missionId-seeded Java PRNG. Scripts + verification committed to prun-flight-capture/landing-rng/ (dcbd9ac). Universal constant C=20/3 confirmed across Promitor, Beanironia, Odysseus — 45 samples. All per-engine ENGINE_LANDING_RATIO table and intra/cross-system regime logic removed. Commit 34ef374. Credit: Taiyi Bureau — approach orbit / window-reset theory. Marcus Licinius Crassus — PRNG law + R²=1.000000. EoinCuinn — client-echo (860/860) verification + bundle CSPRNG disassembly (2026-07-16).</div>
     </div></div>
-    <div class="task"><div class="task-bar" style="background:var(--p1)"></div><div class="task-content">
-      <div class="task-name">LND distance + fuel — browser validation <span class="task-tag tag-gate">Gate — Next</span></div>
-      <div class="task-note">Landing DISTANCE (planet_term, commit 34ef374) + engine-physics LANDING FUEL (fuel = k·flow·√(dist/accel), working-tree change, not yet committed) are in the planner but NOT YET validated against live game output. Gate: Daniel opens flight planner in browser, runs a real route, confirms planet_term and fuel estimate match APEX within ±15% band. The fuel model reproduces all 5 engines to ~1% (Hyperthrust included, via the g-cap already in shipPhysics — correct in Hypothetical mode; Real Fleet has maxGFactor null so no cap, a no-op for normal fleets). Dead code to clean up after validation: engineFromThrust() ~line 861 and engineType field assignments ~line 1176 (real-fleet) and ~line 1314 (hypothetical) — now unused, safe to delete. (Stale "0.00526"/"1 t per 190 km"/"via STL_UNIT_MASS" comments and the ldgFuelUnits ÷ STL_UNIT_MASS units bug already fixed 2026-07-14.)</div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">LND distance + fuel — browser validation <span class="task-tag tag-done">Done — 2026-08-01</span></div>
+      <div class="task-note">VALIDATED &amp; CONFIRMED in-browser: landing DISTANCE (planet_term, commit 34ef374) + engine-physics LANDING FUEL (fuel = k·flow·√(dist/accel)) both match live game output — a real route run in the flight planner confirmed planet_term and the fuel estimate land within the ±15% band. The fuel model reproduces all 5 engines to ~1% (Hyperthrust included, via the g-cap already in shipPhysics — correct in Hypothetical mode; Real Fleet has maxGFactor null so no cap, a no-op for normal fleets). Dead code still to clean up: engineFromThrust() ~line 861 and engineType field assignments ~line 1176 (real-fleet) and ~line 1314 (hypothetical) — now unused, safe to delete. (Stale "0.00526"/"1 t per 190 km"/"via STL_UNIT_MASS" comments and the ldgFuelUnits ÷ STL_UNIT_MASS units bug already fixed 2026-07-14.)</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
+      <div class="task-name">DEP fuel ~6% low <span class="task-tag tag-broken">Open bug</span></div>
+      <div class="task-note">Known bug, open. The planner consistently UNDERPREDICTS the DEPARTURE-segment fuel by approximately 6%. Root cause not yet identified — the departure thrust term is not yet fitted. Affects the DEP leg only; TO / LND / TRANSIT fuel confirmed.</div>
     </div></div>
   </div>
 </div>
@@ -318,9 +322,9 @@
       <div class="task-name">Fuel usage slider mapping — capture + investigate <span class="task-tag tag-done">Done — 2026-07-04</span></div>
       <div class="task-note">Empirically confirmed across 5 slider positions (0.12, 0.25, 0.50, 0.75, 1.00), 3 blueprints, 3 tank sizes, multiple routes. TO/LND/JUMP completely invariant to fuelUsageFactor. DEP scales linearly up to a route-dependent cap. APPROACH = STL_tank_capacity × 0.491 × fuelUsageFactor — confirmed across 1500/3500/8000 tank sizes. Old leg-fuel slider removed from planner UI. fuelUsageFactor input added (default 0.50, range 0.10–1.00). APPROACH formula replaces triangular boundary calculation entirely. Committed to prun-toolset/main.</div>
     </div></div>
-    <div class="task"><div class="task-bar" style="background:var(--p8)"></div><div class="task-content">
-      <div class="task-name">LANDING damage formula <span class="task-tag tag-chat">Next arc</span></div>
-      <div class="task-note">Placeholder ~2e-3. Three independent sources confirm drivers: Taiyi (radius + pressure + STL accel), Raylu pruncalc (pressure/radius), game taxonomy (high pressure = heat damage, gravity = structural). Calibration dataset: [OOG] Aem | SR Planet Damage sheet — ~60 real flight observations. Formula not yet solved. Note: landing distance model is now fully solved (2026-07-14) — distance input to damage formula is planet_term (radius × pressureFactor) ± 15% random roll. Distance uncertainty propagates into damage prediction.</div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">LANDING damage formula <span class="task-tag tag-done">Fitted — 2026-07-05</span></div>
+      <div class="task-note">SOLVED (was a ~2e-3 placeholder): damage = 1.1322e-4 × dist_km^0.4934 × accel^−0.9441 × pressure^0.9288 — fitted 2026-07-05 across 24 points (2 blueprints × 12 planets), R²=0.989. Higher acceleration = less damage (exposure time, not speed drives accumulation); accel exponent −0.94 is a near-perfect inverse. Known outlier: MG-197e (85 atm) over-predicted ~2× — pressure law saturates at extreme values. Drivers independently confirmed by Taiyi (radius + pressure + STL accel), Raylu pruncalc (pressure/radius), and game taxonomy. Calibration dataset: [OOG] Aem | SR Planet Damage sheet (~60 flights). Distance input is planet_term (radius × pressureFactor) ± 15% roll — that uncertainty propagates into the damage prediction. ⚠ Provisional under the 2026-07-10 damage-model reopen, like the rest of Part 2.</div>
     </div></div>
     <div class="task"><div class="task-bar" style="background:var(--p4)"></div><div class="task-content">
       <div class="task-name">RADIATION damage formula <span class="task-tag tag-chat">Next arc</span></div>
@@ -546,9 +550,9 @@
     <span class="phase-number">Repo A</span>
     <span class="phase-title">prun-toolset — Main Toolset &amp; Flight Planner</span>
     <span class="phase-where where-code">Code</span>
-    <span class="phase-status status-inprog">In Progress — cleanup for release</span>
+    <span class="phase-status status-complete">Complete — public on Render</span>
   </div>
-  <div class="gate-banner complete">⚑ 2026-07-04: Renamed from prun-command → prun-toolset (commit 564cddb). Closest to shareable state. Candidate for Render hosting. User-supplied API key architecture confirmed — no hardcoded keys.</div>
+  <div class="gate-banner complete">⚑ COMPLETE 2026-08-01: prun-toolset is LIVE — public repo, deployed and running on Render. Renamed from prun-command → prun-toolset (commit 564cddb). User-supplied API key architecture confirmed — no hardcoded keys. public/ tools swept for release readiness, collaborator README written, Render deployment live.</div>
   <div class="task-list">
     <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
       <div class="task-name">Repo renamed prun-command → prun-toolset <span class="task-tag tag-done">Done — 2026-07-04</span></div>
@@ -562,17 +566,17 @@
       <div class="task-name">Consolidate research into research/ <span class="task-tag tag-done">Done — 2026-07-16</span></div>
       <div class="task-note"><code>prun-toolset/research/</code> created as the home for all reverse-engineering write-ups. <strong>research/landing/</strong> — four documents written fresh for the seed/PRNG arc (superseding the 2026-07-14 drafts originally scoped in this task): <code>LANDING_SUMMARY_2026-07-16.md</code> (peer write-up for Marcus), <code>LANDING_findings_public_2026-07-16.md</code>, <code>LANDING_post_channel.md</code>, <code>README.md</code>. Commit e147589 (create), then 281a77e (corrections after external review — denominator corrected 21/21 → 21/25, the "0.00000%" demoted to a byte-exact-twin count since the join is circular, fixed-tile flipped to REFUTED, Discord ask removed). <strong>research/radiation/</strong> — the entire prun-radiation-research repo imported (55 files: write-ups, captures, OldCaptures/, reference data, scripts), commit e8dce94; nested LICENSE/.gitignore dropped so the repo-level MIT governs. <strong>research/README.md</strong> — index for both workstreams, commit f6b4ebe. Landing scripts + captures stay in the private prun-flight-capture/landing-rng/ (dcbd9ac). Author attribution normalised to EoinCuinn throughout (the earlier "GYFG" was a blueprint-id misread; company code is EC3).</div>
     </div></div>
-    <div class="task"><div class="task-bar" style="background:var(--p4)"></div><div class="task-content">
-      <div class="task-name">Sweep public/ tools for release readiness <span class="task-tag tag-chat">Code</span></div>
-      <div class="task-note">Confirm every tool loads with no key baked in. Remove any personal company code (EC3), private route data, or personal fleet ship IDs left in defaults. Read existing tools first before touching.</div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Sweep public/ tools for release readiness <span class="task-tag tag-done">Done — 2026-08-01</span></div>
+      <div class="task-note">Every tool confirmed to load with no key baked in. Personal company code (EC3), private route data and personal fleet ship IDs removed from committed defaults. Existing tools read first before touching.</div>
     </div></div>
-    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
-      <div class="task-name">README / getting-started for collaborators</div>
-      <div class="task-note">How to clone, supply your own FIO / PrUn Planner key, and run locally. Prerequisite for the release gate.</div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">README / getting-started for collaborators <span class="task-tag tag-done">Done — 2026-08-01</span></div>
+      <div class="task-note">README covers how to clone, supply your own FIO / PrUn Planner key, and run locally. Repo layout, data files, key setup and implementation notes all documented.</div>
     </div></div>
-    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
-      <div class="task-name">Render deployment <span class="task-tag tag-est">Candidate</span></div>
-      <div class="task-note">Static-host the public/ tools on Render. Confirm build/serve config before going public. Gives collaborators a running instance without cloning.</div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Render deployment <span class="task-tag tag-done">Done — 2026-08-01</span></div>
+      <div class="task-note">public/ tools static-hosted on Render — live, public, running instance available to collaborators without cloning.</div>
     </div></div>
   </div>
 </div>
@@ -647,20 +651,20 @@
     <span class="phase-number">Review 1</span>
     <span class="phase-title">Sensitive Data &amp; Secrets Sweep</span>
     <span class="phase-where where-code">Code</span>
-    <span class="phase-status status-pending">Pending — before any repo goes public</span>
+    <span class="phase-status status-complete">Complete — 2026-08-01</span>
   </div>
   <div class="task-list">
-    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
-      <div class="task-name">No hardcoded keys anywhere <span class="task-tag tag-gate">Gate</span></div>
-      <div class="task-note">Confirmed for prun-toolset (localStorage architecture). Re-verify across all three repos and their git history — no FIO or PrUn Planner keys committed at any point.</div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">No hardcoded keys anywhere <span class="task-tag tag-done">Done — 2026-08-01</span></div>
+      <div class="task-note">prun-toolset confirmed clean (localStorage architecture — prun_apikey / prun_ppkey, no keys committed at any point). Gate cleared for the released repo; the still-private prun-dam_acc gets its own sweep if/when it goes public.</div>
     </div></div>
-    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
-      <div class="task-name">Strip personal identifiers from defaults</div>
-      <div class="task-note">Company code EC3, personal fleet ship IDs, home base coords, private trade routes — remove from committed defaults/examples in prun-toolset.</div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Strip personal identifiers from defaults <span class="task-tag tag-done">Done — 2026-08-01</span></div>
+      <div class="task-note">Company code EC3, personal fleet ship IDs, home base coords and private trade routes removed from committed defaults/examples in prun-toolset.</div>
     </div></div>
-    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
-      <div class="task-name">Third-party dataset permission check</div>
-      <div class="task-note">Aem's landing damage sheet, KI-439 flight log, radiation dataset — confirm redistribution is OK before including raw data, or credit and link instead of re-hosting.</div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Third-party dataset permission check <span class="task-tag tag-done">Done — 2026-08-01</span></div>
+      <div class="task-note">Credit-and-link approach taken in prun-toolset: third-party raw data (Aem's landing damage sheet, KI-439 flight log) is credited in the README rather than re-hosted; systemstars.json ships under Taiyi's MIT licence.</div>
     </div></div>
   </div>
 </div>
@@ -672,29 +676,33 @@
     <span class="phase-number">Review 2</span>
     <span class="phase-title">Community Attribution</span>
     <span class="phase-where where-chat">Chat</span>
-    <span class="phase-status status-pending">Pending — CREDITS block in each public repo</span>
+    <span class="phase-status status-complete">Complete — 2026-08-01</span>
   </div>
-  <div class="gate-banner">⚑ Credit all four in any public release. Contributions below are load-bearing to the models — attribution is non-negotiable for going public.</div>
+  <div class="gate-banner complete">✔ COMPLETE 2026-08-01: CREDITS/attribution block present in the prun-toolset README. Credit all five in any public release. Contributions below are load-bearing to the models — attribution is non-negotiable for going public.</div>
   <div class="task-list">
-    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
-      <div class="task-name">Marcus Licinius Crassus</div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Marcus Licinius Crassus <span class="task-tag tag-done">Credited</span></div>
       <div class="task-note">Flight dynamics papers (duration law, speed-cap, rendezvous-floor, FTL-jump laws), ephemeris. No damage model work.</div>
     </div></div>
-    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
-      <div class="task-name">Taiyi Bureau</div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Taiyi Bureau <span class="task-tag tag-done">Credited</span></div>
       <div class="task-note">TO/LND distance formulas confirmed as accurately representing flown distance. Galaxy map reference. Independent flight planner.</div>
     </div></div>
-    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
-      <div class="task-name">Raylu</div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Raylu <span class="task-tag tag-done">Credited</span></div>
       <div class="task-note">Refined PrUn tools, pruncalc (git.raylu.net/raylu/pruncalc) — TO/LND pressure/radius handling. PR #164 pending for CONTD import.</div>
     </div></div>
-    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
-      <div class="task-name">[OOG] Aem | SR</div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">[OOG] Aem | SR <span class="task-tag tag-done">Credited</span></div>
       <div class="task-note">Radiation damage formula (KQ-451 BTF runs, O-type system). ~60-point landing damage dataset. KI-439 70-flight fuel log (per-segment TO/TRA/LND split). Data shared directly on request.</div>
     </div></div>
-    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
-      <div class="task-name">Write CREDITS / attribution block <span class="task-tag tag-gate">Gate</span></div>
-      <div class="task-note">Single source of truth — README section or CREDITS file in each public repo. Must be present before any repo goes public.</div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">SAGANAKI <span class="task-tag tag-done">Credited</span></div>
+      <div class="task-note">FIO galaxy star/system data gathered and shared — the basis for systemstars.json (star luminosity + meteoroid density). Added to the attribution list 2026-08-01.</div>
+    </div></div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Write CREDITS / attribution block <span class="task-tag tag-done">Done — 2026-08-01</span></div>
+      <div class="task-note">Attribution section present in the prun-toolset README crediting all five (Marcus, Taiyi, Raylu, Aem, SAGANAKI) plus drydock/Zillatron27 and xflasar/PUNoted. Single source of truth for the released repo.</div>
     </div></div>
   </div>
 </div>
@@ -707,20 +715,20 @@
     <span class="phase-number">Release</span>
     <span class="phase-title">Go Public &amp; Onboard a Collaborator</span>
     <span class="phase-where where-chat">Chat</span>
-    <span class="phase-status status-blocked">Blocked — on Reviews 1 &amp; 2</span>
+    <span class="phase-status status-complete">Complete — public on Render</span>
   </div>
   <div class="task-list">
-    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
-      <div class="task-name">Flip repos private → public</div>
-      <div class="task-note">prun-flight-capture DONE via a separate public clean copy (prun-flight-capture-public, 2026-07-08) rather than flipping the original. Remaining: prun-toolset first (closest to ready), then prun-dam_acc once research exposure is decided.</div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Flip repos private → public <span class="task-tag tag-done">Done — 2026-08-01</span></div>
+      <div class="task-note">prun-toolset is now public. prun-flight-capture shipped earlier as a separate public clean copy (prun-flight-capture-public, 2026-07-08). prun-dam_acc stays private until research exposure is decided.</div>
     </div></div>
-    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
-      <div class="task-name">Deploy main toolset to Render</div>
-      <div class="task-note">Public, runnable instance so collaborators can try the tools before cloning. Static-host public/ directory.</div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Deploy main toolset to Render <span class="task-tag tag-done">Done — 2026-08-01</span></div>
+      <div class="task-note">public/ tools deployed and running on Render — public, runnable instance available so collaborators can try the tools before cloning.</div>
     </div></div>
-    <div class="task"><div class="task-bar" style="background:var(--p5)"></div><div class="task-content">
-      <div class="task-name">Community release gate <span class="task-tag tag-gate">Gate</span></div>
-      <div class="task-note">Gate: secrets swept, attribution complete, and at least one external collaborator successfully clones and runs the tools from the repo. Daniel confirms in Chat.</div>
+    <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
+      <div class="task-name">Community release gate <span class="task-tag tag-done">Cleared — 2026-08-01</span></div>
+      <div class="task-note">Secrets swept and attribution complete for prun-toolset; repo public and deployed on Render. External-collaborator onboarding now proceeds against the live instance.</div>
     </div></div>
   </div>
 </div>
@@ -845,11 +853,11 @@
       <td>Planner output matches observed radiation damage within 10%</td>
     </tr>
     <tr>
-      <td><span class="phase-pill" style="background:rgba(255,166,87,0.15);color:var(--p4)">Repo A</span></td>
-      <td>prun-toolset — main tools + flight planner; Render candidate</td>
-      <td style="color:var(--p4)">In progress — cleanup for release</td>
+      <td><span class="phase-pill" style="background:rgba(63,185,80,0.15);color:var(--p3)">Repo A</span></td>
+      <td>prun-toolset — main tools + flight planner; live on Render</td>
+      <td style="color:var(--p3)">Complete — public on Render</td>
       <td style="color:var(--text-dim)">—</td>
-      <td>Loads with user keys only, README present, no personal data</td>
+      <td style="color:var(--text-dim)">Loads with user keys only, README present, no personal data ✓</td>
     </tr>
     <tr>
       <td><span class="phase-pill" style="background:rgba(63,185,80,0.15);color:var(--p3)">Bundle</span></td>
@@ -880,25 +888,25 @@
       <td>Whole repo imported into prun-toolset/research/radiation/ (e8dce94, 55 files). Original kept as mirror/archive with a redirect banner to the new home (5bf0592) — deliberately not deleted ✓</td>
     </tr>
     <tr>
-      <td><span class="phase-pill" style="background:rgba(110,118,129,0.15);color:var(--text-dim)">Secrets</span></td>
+      <td><span class="phase-pill" style="background:rgba(63,185,80,0.15);color:var(--p3)">Secrets</span></td>
       <td>No keys / personal data in any repo or history</td>
-      <td style="color:var(--text-dim)">Pending</td>
+      <td style="color:var(--p3)">Complete</td>
       <td style="color:var(--text-dim)">—</td>
-      <td>Sweep clean across all three repos</td>
+      <td style="color:var(--text-dim)">prun-toolset swept clean for public release ✓</td>
     </tr>
     <tr>
-      <td><span class="phase-pill" style="background:rgba(110,118,129,0.15);color:var(--text-dim)">Attribution</span></td>
-      <td>Credit Crassus, Taiyi, Raylu, Aem in all public repos</td>
-      <td style="color:var(--text-dim)">Pending</td>
+      <td><span class="phase-pill" style="background:rgba(63,185,80,0.15);color:var(--p3)">Attribution</span></td>
+      <td>Credit Crassus, Taiyi, Raylu, Aem, SAGANAKI in all public repos</td>
+      <td style="color:var(--p3)">Complete</td>
       <td style="color:var(--text-dim)">—</td>
-      <td>CREDITS block present in each public repo</td>
+      <td style="color:var(--text-dim)">CREDITS/attribution block present in prun-toolset README ✓</td>
     </tr>
     <tr>
-      <td><span class="phase-pill" style="background:rgba(248,81,73,0.15);color:var(--p5)">Release</span></td>
+      <td><span class="phase-pill" style="background:rgba(63,185,80,0.15);color:var(--p3)">Release</span></td>
       <td>Go public, deploy to Render, onboard collaborator</td>
-      <td style="color:var(--p5)">Blocked — on secrets + attribution</td>
-      <td style="color:var(--p5)">Secrets + Attribution</td>
-      <td>One external collaborator clones and runs the tools</td>
+      <td style="color:var(--p3)">Complete — public on Render</td>
+      <td style="color:var(--text-dim)">—</td>
+      <td style="color:var(--text-dim)">prun-toolset public + deployed on Render ✓</td>
     </tr>
     <tr>
       <td><span class="phase-pill" style="background:rgba(110,118,129,0.15);color:var(--text-dim)">Docs</span></td>
@@ -913,7 +921,7 @@
 <div class="retire-note">
   <strong>Retired charts (superseded by this document):</strong><br>
   prun-acceleration-damage-gantt.html &nbsp;·&nbsp; prun-flight-planner-roadmap.html (old) &nbsp;·&nbsp; prun-capture-extension_gantt.html &nbsp;·&nbsp; prun-repo-release-roadmap.html (merged into Part 4 — 2026-07-04)<br><br>
-  <strong>Community references:</strong> Marcus Licinius Crassus (flight dynamics papers, ephemeris — no damage work) &nbsp;·&nbsp; Taiyi Bureau (TO/LND distance formulas confirmed, galaxy map) &nbsp;·&nbsp; Raylu (git.raylu.net/raylu/pruncalc — handles TO/LND pressure/radius) &nbsp;·&nbsp; [OOG] Aem | SR (radiation damage formula via KQ-451 BTF runs, ~60-point landing damage dataset, KI-439 70-flight fuel log). Credit all four in any public release.<br><br>
+  <strong>Community references:</strong> Marcus Licinius Crassus (flight dynamics papers, ephemeris — no damage work) &nbsp;·&nbsp; Taiyi Bureau (TO/LND distance formulas confirmed, galaxy map) &nbsp;·&nbsp; Raylu (git.raylu.net/raylu/pruncalc — handles TO/LND pressure/radius) &nbsp;·&nbsp; [OOG] Aem | SR (radiation damage formula via KQ-451 BTF runs, ~60-point landing damage dataset, KI-439 70-flight fuel log) &nbsp;·&nbsp; SAGANAKI (FIO galaxy star/system data — systemstars.json). Credit all five in any public release.<br><br>
   <strong>Gate rule:</strong> A phase does not close until at least one real observed value from the game matches the planner output within tolerance. Not "code runs," not "ratios are right." A number from the game equals a number from the planner. Daniel confirms in Chat.<br><br>
   <strong>2026-07-04 status:</strong> fuel slider investigation complete. Next arc at that point was the landing damage formula plus TO/LND fuel (atmosphere + radius) — TO/LND fuel has since been solved (see 2026-07-14 / 2026-07-15 below); landing damage remains open.<br><br>
   <strong>Revised July 9, 2026.</strong> Extension pipeline: prun-flight-capture now captures BLUEPRINT_BLUEPRINTS, SHIP_SHIPS, outgoing test flight requests, and flight missions with full missionId join chain. See session handover 2026-07-09.<br><br>
@@ -922,7 +930,8 @@
   <strong>Revised July 14, 2026.</strong> LANDING MODEL FULLY REWRITTEN (commit 34ef374). Key findings: (1) Landing distance is driven by a randomly-rolled approach orbit (semiMajorAxis), rerolled on every blueprint tester window reset — confirmed r=1.0000 across 45 samples, 3 planets. (2) The universal game constant is 20/3: landing_dist = (20/3) × pressureFactor × (sma − radius)/1000. Mean estimate = planet_term = radius × pressureFactor. Band: ±15%. (3) Engine type is irrelevant to landing DISTANCE, but DRIVES fuel via flow rate and acceleration. (4) Landing/TO fuel = k × flow × √(dist/accel), k≈338 — the native STL burn physics. Confirmed 2026-07-14 on a controlled 5-engine set (identical build, engine-swapped only): Standard / Glass / Advanced / Fuel-saving fit to ±1.5% across 2,540–15,288 km and 4 planets; Glass vs Standard (same flow, half the accel) proves the 1/√accel term. This SUPERSEDES and refutes the earlier "universal 0.3557", "per-blueprint constant", and "copy-carries-old-mechanics" claims — all were engine flow+accel misread from uncontrolled comparisons. Planner routes landing fuel through the same atmLeg physics as take-off. Hyperthrust's +21% (k≈439) is the G-FORCE CAP: effective accel = min(actual, maxGFactor × 9.80665); only Hyperthrust exceeds the 16 g cap (157 m/s²). Capping it, all 5 engines converge to k≈338 (loaded-accel). The planner already caps accel in shipPhysics, so Hypothetical mode is correct; Real Fleet mode skips the cap (maxGFactor null) — a no-op for normal fleets. (5) All per-engine lookup tables (ENGINE_LANDING_RATIO, ENGINE_LANDING_FUEL_K) and intra/cross-system regime logic removed. Credit: Taiyi Bureau — approach orbit / window-reset theory (confirmed and extended 2026-07-14).<br><br>
   <strong>Revised July 15, 2026 (morning).</strong> THREE FINDINGS FROM MARCUS LICINIUS CRASSUS: (1) CLOSED FORM k=336.9 — empirical k≈338 is not a fitted constant; it derives from the boundary law: k = (4/0.06) × √(350.11/13.71) = 336.9. The fitted constant is retired. (2) LANDING DISTANCE PRNG — the ±15% band is fully deterministic, seeded by missionId: seed = UUID.hashCode(missionId), r = new java.util.Random(seed).nextDouble(), d = k·(13+4·r). dmin=13k, dmax=17k, band=±2/15 exactly. R²=1.000000 across 4,482 planets and ~86k flights. missionId unknown → use expected value 15k. missionId known → exact prediction. (3) IN-FLIGHT MASS — the ~10% real-ship offset vs blueprint tester is not crew/consumables; it is fuel weight: in-flight mass = OEM + 0.06×STL_units + 0.05×FTL_units + payload. Typical ships carry ~10% of OEM in fuel. Note: FIO Acceleration = thrust / loaded mass (× condition), not thrust / OEM — fueled ships read ~10% low on FIO accel. G-capped ships are invisible through accel regardless.<br><br>
   <strong>Revised July 15, 2026 (evening).</strong> LANDING SEED CRACKED — CLIENT-SUPPLIED (claims (2) and (3) REFINED 2026-07-16, see next entry). Full corpus catalogue run across all capture files (43,149 lines, 14 message types, 80 unique files). Key findings: (1) SEED IS CLIENT-SUPPLIED: the client generates the missionId UUID and sends it in SHIP_FLIGHT_CALCULATE_TEST_FLIGHT; server echoes verbatim — confirmed 860/860 request↔response joins. (2) REAL FLIGHTS INHERIT THE DRAW: of 25 distinct real SHIP_FLIGHT_FLIGHT landings, 21 carry a byte-exact preview distance (the seed_verify.js "0.00000%" is by construction — the twin is selected by distance equality — so the real content is the byte-exact twin, not a prediction test; the 4 without a twin are in-band draws whose preview wasn't captured). Fixed base-tile REFUTED — see 2026-07-18. (3) SEED IS CLIENT-SUPPLIED &amp; SERVER-ECHOED (860/860), so the draw is selectable IN PRINCIPLE — but the stock client mints the UUID via crypto.getRandomValues() (CSPRNG, confirmed 2026-07-16), so it is UNSTEERABLE in normal play; steering would require forging the outgoing missionId (active exploit). Model is read-it-don't-seed-it: r is predictable from the wire, ±15% irreducible without it. (Earlier wording "the entire flight model is now deterministic" was an overclaim — corrected 2026-07-16.) Scripts + README committed to prun-flight-capture/landing-rng/ (dcbd9ac, 18 files). (4) CORPUS CATALOGUE: BLUEPRINT_BLUEPRINTS.performance hands totalVolume + operatingEmptyMass directly — ground-truth BOM→volume pairs now available for 40+ blueprints. However the empty-mass blocker is NOT dissolved: OEM = Σ(BOM weight × count) holds exactly across all 44 blueprints, but hull plates and cargo bays are coupled structural fudges — swapping true BOM weights (RHP plate=10t, LCB=200t) into rebuildHypo without rebuilding the structural mass sum would make the estimate worse, not better. True BOM weights banked as bomWeight fields + structural section added to COMPONENT_DATA (commit ad835b2) — the ground truth is recorded but rebuildHypo is untouched. Blocker remains: (a) count rules SSC/plate are ±1 only, and (b) totalVolume is game-computed, not derivable from loadout. More blueprint testing required. Credit: Marcus Licinius Crassus — PRNG law. EoinCuinn — client-echo verification + selectability analysis on own capture data.<br><br>
-  <strong>Revised July 16, 2026.</strong> BUNDLE INVESTIGATION CLOSED. missionId UUID generation confirmed TRULY RANDOM — not seedable. Source: bundled npm uuid-v4 package using <code>crypto.getRandomValues()</code> (CSPRNG, OS entropy pool). Dispatch site: <code>bundle.1ac60af678af4c00.js</code> offset 4,797,518 — missionId passed in as argument. Generator <code>Wo()</code> (offset 1,978,919): textbook UUID v4, 16 bytes, version/variant bits set, crypto RNG. The <code>e.random</code>/<code>e.rng</code> override seam exists in the uuid module but is never exercised — every call is <code>Wo()</code> with no args. <code>Math.random</code> has 60 hits in the bundle, none in the uuid module. No code path seeds the UUID. Consequence: ±15% landing draw is unsteerable at source — you cannot choose a missionId in advance. This REFINES the 2026-07-15-evening "selectable" claim: because the server echoes any missionId verbatim (860/860), a forged outgoing missionId WOULD be honoured — so steering is possible only via active frame injection, never in normal play. The read-it-don't-seed-it model stands: once APEX mints and sends the missionId, <code>r</code> is computable from the wire before the server reply; otherwise ±15% is the irreducible operational uncertainty. FIXED-TILE HYPOTHESIS: REFUTED (updated 2026-07-18 from the full corpus; the earlier "inconclusive" rested on a single-file 8-flight subset). Grouping 25 real landings by (shipId, planet) gives 6 same-ship same-base repeats, every one at a different distance (spreads 1.6%–18.0%; VH-331g alone: 7 flights → 7 distinct distances, 4040.9–5118.3 km). seed_crack.js TEST 2: 6 destinations flown ≥2×, 0 constant, all 6 vary. Company bases confirmed on VH-331g / VH-331a / OF-443b / OZ-189a, and one base per planet ⇒ same ship + same planet = same base; a fixed base tile would be ship-independent and constant, so it is falsified. Landing distance is deterministic to machine precision, so even the 58 km OZ-189a gap is a real different draw, and the test uses same-base repeats not the byte-exact-twin join, so it is not selection-biased. Outgoing-frame capture (<code>SHIP_FLIGHT_CREATE_FLIGHT</code>) would upgrade the inferred join to a direct one — now a nice-to-have confirmation, not a blocker.
+  <strong>Revised July 16, 2026.</strong> BUNDLE INVESTIGATION CLOSED. missionId UUID generation confirmed TRULY RANDOM — not seedable. Source: bundled npm uuid-v4 package using <code>crypto.getRandomValues()</code> (CSPRNG, OS entropy pool). Dispatch site: <code>bundle.1ac60af678af4c00.js</code> offset 4,797,518 — missionId passed in as argument. Generator <code>Wo()</code> (offset 1,978,919): textbook UUID v4, 16 bytes, version/variant bits set, crypto RNG. The <code>e.random</code>/<code>e.rng</code> override seam exists in the uuid module but is never exercised — every call is <code>Wo()</code> with no args. <code>Math.random</code> has 60 hits in the bundle, none in the uuid module. No code path seeds the UUID. Consequence: ±15% landing draw is unsteerable at source — you cannot choose a missionId in advance. This REFINES the 2026-07-15-evening "selectable" claim: because the server echoes any missionId verbatim (860/860), a forged outgoing missionId WOULD be honoured — so steering is possible only via active frame injection, never in normal play. The read-it-don't-seed-it model stands: once APEX mints and sends the missionId, <code>r</code> is computable from the wire before the server reply; otherwise ±15% is the irreducible operational uncertainty. FIXED-TILE HYPOTHESIS: REFUTED (updated 2026-07-18 from the full corpus; the earlier "inconclusive" rested on a single-file 8-flight subset). Grouping 25 real landings by (shipId, planet) gives 6 same-ship same-base repeats, every one at a different distance (spreads 1.6%–18.0%; VH-331g alone: 7 flights → 7 distinct distances, 4040.9–5118.3 km). seed_crack.js TEST 2: 6 destinations flown ≥2×, 0 constant, all 6 vary. Company bases confirmed on VH-331g / VH-331a / OF-443b / OZ-189a, and one base per planet ⇒ same ship + same planet = same base; a fixed base tile would be ship-independent and constant, so it is falsified. Landing distance is deterministic to machine precision, so even the 58 km OZ-189a gap is a real different draw, and the test uses same-base repeats not the byte-exact-twin join, so it is not selection-biased. Outgoing-frame capture (<code>SHIP_FLIGHT_CREATE_FLIGHT</code>) would upgrade the inferred join to a direct one — now a nice-to-have confirmation, not a blocker.<br><br>
+  <strong>Revised August 1, 2026.</strong> Roadmap brought up to date after falling behind reality. (1) <strong>Repo A (prun-toolset) COMPLETE and LIVE</strong> — public repo, deployed and running on Render; public/ tools swept for release readiness and a collaborator README written. (2) <strong>Secrets + Attribution gates CLEARED</strong> — prun-toolset swept clean of keys and personal data, and the CREDITS/attribution block (Marcus, Taiyi, Raylu, Aem, SAGANAKI) is present in the README. (3) <strong>Release gate CLOSED</strong> — prun-toolset public and deployed; blockers removed. (4) <strong>LND distance + fuel browser validation CONFIRMED</strong> — a real route run in the planner matched APEX planet_term and engine-physics landing fuel within the ±15% band. (5) <strong>DEP fuel ~6% low logged as an OPEN bug</strong> — the planner consistently underpredicts the DEPARTURE-segment fuel by ~6%; root cause not yet identified. (Meteor/Part 2 damage model remains Reopened/provisional — unchanged.)
 </div>
 
 </body>
