@@ -21,6 +21,7 @@
   .header h1::before { content: ''; display: inline-block; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
   .key-input { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text2); padding: 5px 10px; font-size: 12px; font-family: var(--mono); width: 260px; }
   .key-input::placeholder { color: var(--text3); }
+  .field-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); }
   .btn-sm { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text2); padding: 5px 14px; font-size: 12px; cursor: pointer; transition: all 0.15s; }
   .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
   .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); }
@@ -28,7 +29,7 @@
   .status-dot.err { background: var(--red); }
 
   /* ── Layout ── */
-  .planner { display: grid; grid-template-columns: 300px 1fr; gap: 1.25rem; align-items: start; }
+  .planner { display: grid; grid-template-columns: 360px 1fr; gap: 1.25rem; align-items: start; }
   @media (max-width: 760px) { .planner { grid-template-columns: 1fr; } }
 
   /* ── Panels ── */
@@ -74,12 +75,9 @@
   .mode-btn:not(.active):hover { color: var(--text); }
 
   /* ── Component selector ── */
-  .comp-row { display: grid; grid-template-columns: 74px 1fr 46px; gap: 6px; align-items: center; margin-bottom: 5px; }
+  .comp-row { display: grid; grid-template-columns: 74px 1fr; gap: 6px; align-items: center; margin-bottom: 5px; }
   .comp-lbl { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; }
   .comp-sel { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); padding: 4px 6px; font-size: 11px; outline: none; }
-  .comp-qty { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); padding: 4px 4px; font-size: 11px; text-align: center; outline: none; }
-  .comp-dmg { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 4px; }
-  .comp-dmg label { font-size: 10px; color: var(--text2); display: inline-flex; align-items: center; gap: 3px; cursor: pointer; }
 
   /* ── Loadout rows ── */
   .load-row { display: grid; grid-template-columns: 56px 1fr 68px; gap: 8px; align-items: center; margin-bottom: 5px; }
@@ -137,7 +135,9 @@
     <button id="modeReal" class="mode-btn active" onclick="setMode('real')">Real Fleet</button>
     <button id="modeHypo" class="mode-btn" onclick="setMode('hypo')">Hypothetical</button>
   </div>
+  <span class="field-label">Swagger API</span>
   <input id="fioKey" class="key-input" placeholder="FIO API key (read-only)" autocomplete="off">
+  <span class="field-label">FIO username</span>
   <input id="fioUser" class="key-input" placeholder="FIO username" autocomplete="off">
   <button class="btn-sm" onclick="loadShips()">Load Fleet</button>
   <div id="shipDot" class="status-dot"></div>
@@ -426,20 +426,19 @@ function computeEmptyMass(s) {
   if (s.reactor) mass += C.structural.FFC.mass + AUTO_EMITTER_MASS;  // FTL controller + emitters
   return { mass: mass, totalVolume: v, plateCount: pc, sscCount: sc, bridge: brg, quarters: qtr };
 }
-// Read the 12 user selections out of the hypo UI (7 dropdowns + damage/repair checkboxes).
+// Read the 12 user selections out of the hypo UI (all dropdowns — 7 build slots plus the
+// 5 damage/repair shielding rows). Each shielding dropdown value is '' (none) or a ticker.
 function hypoSelections() {
   const gv = id => document.getElementById(id)?.value || '';
-  const checked = new Set([...document.querySelectorAll('.dmg-cb:checked')].map(cb => cb.value));
-  const pick = arr => arr.find(t => checked.has(t)) || '';
   return {
     engine:  gv('engSel'),   stlTank: gv('stlTkSel'), reactor: gv('reactorSel'),
     ftlTank: gv('ftlTkSel'), cargo:   gv('cargoSel'), hull:    gv('hullSel'),
     seat:    gv('seatSel'),
-    heat:      pick(['BPT','APT']),
-    whipple:   pick(['BWH','AWH']),
-    stability: pick(['STS']),
-    radiation: pick(['BRP','ARP','SRP']),
-    drone:     pick(['RDS','RDL']),
+    heat:      gv('heatSel'),
+    whipple:   gv('whipSel'),
+    stability: gv('stabSel'),
+    radiation: gv('radSel'),
+    drone:     gv('droneSel'),
   };
 }
 // FTL reactor ticker → ReactorPower (keys of FTL_REACTORS). From spec §3 reactor comments.
@@ -1001,7 +1000,7 @@ const BLUEPRINT_SHIELDING = {
   'BP-JRAJ-3531': { general: -0.10, heat: 0, whipple: 0, radiation: 0, gravity: 0 },
 };
 // Per-component shielding factors (spec §3a). General is additive (hull plate + drones).
-// Hull plates are picked in the hull selector; drones/other shields in the damage checkboxes.
+// Hull plates are picked in the hull selector; drones/other shields in the damage dropdowns.
 const SHIELDING_FACTORS = {
   LHP: { general: -0.10 }, BHP: { general: 0.00 }, RHP: { general: 0.10 },
   HHP: { general: 0.15 },  AHP: { general: 0.30 },
@@ -1396,11 +1395,10 @@ function setMode(mode) {
 // Exact reproduction of captured empty mass — no interpolation; a loadout not among the 61
 // combos returns no match (the UI says so). Component quantities are ignored (presence only).
 const LOOKUP_MASS = {"ENG|MSL|RCT|SFL|LCB|RHP|NONE|NONE|STS|NONE|RDS|BGS":{"m":1682.4,"bp":"BP-EBKR-1418","n":3},"FSE|MSL|QCR|LFL|HCB|LHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":1843.5,"bp":"BP-WIYN-8444","n":4},"GEN|MSL|RCT|SFL|LCB|RHP|NONE|NONE|STS|NONE|RDS|BGS":{"m":1679.4,"bp":"BP-MNWM-4454","n":1},"HTE|MSL|RCT|SFL|LCB|RHP|NONE|NONE|STS|NONE|RDS|BGS":{"m":1701.4,"bp":"BP-ISFD-5728","n":1},"AEN|MSL|RCT|SFL|LCB|RHP|NONE|NONE|STS|NONE|RDS|BGS":{"m":1698.4,"bp":"BP-BOXD-6581","n":1},"FSE|MSL|RCT|SFL|LCB|RHP|NONE|NONE|STS|NONE|RDS|BGS":{"m":1680.4,"bp":"BP-MSWC-4866","n":1},"ENG|SSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":827.8,"bp":"BP-RWDC-2551","n":16},"ENG|MSL|RCT|MFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":915.5,"bp":"BP-BTQI-7530","n":1},"ENG|MSL|RCT|MFL|SCB|RHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":967.5,"bp":"BP-OEFO-2864","n":1},"ENG|MSL|RCT|MFL|SCB|LHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":655.5,"bp":"BP-EGVM-6823","n":1},"ENG|MSL|RCT|MFL|SCB|BHP|BPT|NONE|NONE|NONE|NONE|NONE":{"m":916.54,"bp":"BP-SQHH-0614","n":1},"ENG|MSL|RCT|MFL|SCB|BHP|NONE|BWH|NONE|NONE|NONE|NONE":{"m":920.7,"bp":"BP-UOAL-4711","n":1},"ENG|MSL|RCT|MFL|SCB|BHP|NONE|NONE|NONE|ARP|NONE|NONE":{"m":917.58,"bp":"BP-XTGD-7413","n":1},"ENG|MSL|RCT|MFL|SCB|BHP|NONE|NONE|NONE|SRP|NONE|NONE":{"m":920.7,"bp":"BP-GHOV-0545","n":1},"ENG|MSL|RCT|MFL|HCB|BHP|APT|AWH|STS|NONE|NONE|NONE":{"m":2611.15,"bp":"BP-VWVB-2566","n":1},"ENG|MSL|QCR|MFL|HCB|BHP|NONE|NONE|NONE|SRP|NONE|NONE":{"m":2610.2,"bp":"BP-KURM-2554","n":1},"FSE|LSL|HYR|LFL|HCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":2897.8,"bp":"BP-IKDW-2041","n":1},"FSE|MSL|HYR|LFL|HCB|LHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":1968.6,"bp":"BP-JRJA-4840","n":1},"HTE|LSL|NONE|NONE|HCB|AHP|APT|AWH|STS|SRP|RDL|AGS":{"m":5893.6,"bp":"BP-CLNY-0000","n":1},"HTE|MSL|HYR|MFL|LCB|RHP|APT|AWH|STS|SRP|RDL|AGS":{"m":2029.75,"bp":"BP-HBSU-1821","n":1},"ENG|MSL|RCT|SFL|LCB|RHP|NONE|NONE|STS|NONE|RDS|NONE":{"m":1662.4,"bp":"BP-UMTS-3580","n":1},"ENG|MSL|RCT|SFL|WCB|RHP|NONE|NONE|STS|NONE|RDS|NONE":{"m":1327,"bp":"BP-BYIP-7818","n":1},"ENG|MSL|RCT|SFL|WCB|RHP|NONE|NONE|STS|NONE|RDS|BGS":{"m":1347,"bp":"BP-BXYK-5103","n":1},"ENG|SSL|RCT|SFL|LCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":1456.2,"bp":"BP-UJUA-7750","n":2},"ENG|MSL|RCT|MFL|VCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":1826.7,"bp":"BP-SSHF-7118","n":1},"AEN|SSL|HPR|SFL|WCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":1294.9,"bp":"BP-DTUV-4363","n":1},"GEN|SSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":824.8,"bp":"BP-GCFD-1072","n":2},"HTE|SSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":836.8,"bp":"BP-OCTM-8557","n":2},"AEN|SSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":833.8,"bp":"BP-BJKP-8817","n":2},"FSE|SSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":825.8,"bp":"BP-CXVC-4221","n":2},"ENG|SSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|AGS":{"m":857.8,"bp":"BP-JNZB-4277","n":1},"ENG|SSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|BGS":{"m":847.8,"bp":"BP-OWTS-7141","n":1},"ENG|SSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|NONE|RDL|NONE":{"m":977.8,"bp":"BP-AXRC-2155","n":1},"ENG|SSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|NONE|RDS|NONE":{"m":877.8,"bp":"BP-QTAW-2541","n":1},"ENG|SSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|SRP|NONE|NONE":{"m":832.6,"bp":"BP-VKJR-5302","n":1},"ENG|SSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|ARP|NONE|NONE":{"m":829.72,"bp":"BP-MKMN-8547","n":1},"ENG|SSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|BRP|NONE|NONE":{"m":829.24,"bp":"BP-NVBH-4203","n":1},"ENG|SSL|RCT|SFL|SCB|BHP|NONE|NONE|STS|NONE|NONE|NONE":{"m":827.9,"bp":"BP-BTJI-6635","n":1},"ENG|SSL|RCT|SFL|SCB|BHP|NONE|AWH|NONE|NONE|NONE|NONE":{"m":833.56,"bp":"BP-CFYJ-5156","n":1},"ENG|SSL|RCT|SFL|SCB|BHP|NONE|BWH|NONE|NONE|NONE|NONE":{"m":832.6,"bp":"BP-ILEC-5060","n":1},"ENG|SSL|RCT|SFL|SCB|BHP|APT|NONE|NONE|NONE|NONE|NONE":{"m":829.24,"bp":"BP-VYYQ-3022","n":1},"ENG|SSL|RCT|SFL|SCB|BHP|BPT|NONE|NONE|NONE|NONE|NONE":{"m":828.76,"bp":"BP-QNLF-0141","n":1},"ENG|SSL|RCT|SFL|SCB|AHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":875.8,"bp":"BP-ZYRW-4882","n":1},"ENG|SSL|RCT|SFL|SCB|HHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":875.8,"bp":"BP-JKZU-8825","n":2},"ENG|SSL|RCT|SFL|SCB|RHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":875.8,"bp":"BP-BUCN-5374","n":1},"ENG|SSL|RCT|SFL|SCB|LHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":587.8,"bp":"BP-FPCF-6431","n":1},"ENG|SSL|RCT|SFL|WCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":1146.8,"bp":"BP-AXDN-7712","n":1},"ENG|SSL|RCT|SFL|VCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":1747.6,"bp":"BP-HSVZ-4056","n":1},"ENG|SSL|RCT|SFL|HCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":2517.4,"bp":"BP-VAKC-0378","n":1},"ENG|SSL|RCT|SFL|MCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":1046.8,"bp":"BP-QEQW-2455","n":1},"ENG|SSL|RCT|SFL|VSC|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":707.1,"bp":"BP-UVUA-6284","n":1},"ENG|SSL|RCT|SFL|TCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":630,"bp":"BP-WANU-1257","n":1},"ENG|SSL|RCT|LFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":879.8,"bp":"BP-GKUH-6184","n":1},"ENG|SSL|RCT|MFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":843.8,"bp":"BP-HIWJ-4476","n":1},"ENG|SSL|NONE|NONE|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":667.5,"bp":"BP-LVAW-3661","n":1},"ENG|SSL|HYR|SFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":987.5,"bp":"BP-VUNR-1627","n":1},"ENG|SSL|HPR|SFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":969.5,"bp":"BP-CJZI-6715","n":1},"ENG|SSL|QCR|SFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":835.8,"bp":"BP-XURB-5377","n":1},"ENG|SSL|NONE|SFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":676.5,"bp":"BP-ZWNU-4008","n":1},"ENG|LSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":1060.7,"bp":"BP-GLFR-5857","n":1},"ENG|MSL|RCT|SFL|SCB|BHP|NONE|NONE|NONE|NONE|NONE|NONE":{"m":899.5,"bp":"BP-NXEY-5602","n":1}};
-// Build the 12-selection key from the current hypo UI (7 dropdowns + damage/repair checkboxes).
+// Build the 12-selection key from the current hypo UI (all dropdowns — 7 build slots plus
+// the 5 damage/repair shielding rows). Each shielding dropdown value is a ticker or '' → NONE.
 function hypoLookupKey() {
   const gv = id => document.getElementById(id)?.value || '';
-  const checked = new Set([...document.querySelectorAll('.dmg-cb:checked')].map(cb => cb.value));
-  const pick = arr => arr.find(t => checked.has(t)) || 'NONE';
   return [
     gv('engSel')     || 'NONE',
     gv('stlTkSel')   || 'NONE',
@@ -1408,11 +1406,11 @@ function hypoLookupKey() {
     gv('ftlTkSel')   || 'NONE',
     gv('cargoSel')   || 'NONE',
     gv('hullSel')    || 'NONE',
-    pick(['BPT','APT']),        // heat shielding
-    pick(['BWH','AWH']),        // whipple shielding
-    pick(['STS']),              // stability system
-    pick(['BRP','ARP','SRP']),  // radiation shielding
-    pick(['RDS','RDL']),        // self-repair drone hub
+    gv('heatSel')    || 'NONE',  // heat shielding
+    gv('whipSel')    || 'NONE',  // whipple shielding
+    gv('stabSel')    || 'NONE',  // stability system
+    gv('radSel')     || 'NONE',  // radiation shielding
+    gv('droneSel')   || 'NONE',  // self-repair drone hub
     gv('seatSel')    || 'NONE',
   ].join('|');
 }
@@ -1420,37 +1418,49 @@ function hypoLookupKey() {
 function buildComponentSelectors() {
   const wrap = document.getElementById('componentSelectors');
   const opt = (tick, c) => `<option value="${tick}">${tick} · ${c.name}</option>`;
-  const row = (id, label, cat, noneOk, qty) => {
+  const row = (id, label, cat, noneOk) => {
     const opts = (noneOk ? '<option value="">— none —</option>' : '') +
       Object.entries(COMPONENT_DATA[cat]).map(([t, c]) => opt(t, c)).join('');
-    const qtyHtml = qty ? `<input id="${id}Qty" class="comp-qty" type="number" min="0" value="1" oninput="rebuildHypo()">` : '<span></span>';
     return `<div class="comp-row"><span class="comp-lbl">${label}</span>
-      <select id="${id}" class="comp-sel" onchange="rebuildHypo()">${opts}</select>${qtyHtml}</div>`;
+      <select id="${id}" class="comp-sel" onchange="rebuildHypo()">${opts}</select></div>`;
   };
-  const dmg = Object.entries(COMPONENT_DATA.damage)
-    .map(([t, c]) => `<label title="${c.name} · ${c.mass}t"><input type="checkbox" class="dmg-cb" value="${t}" onchange="rebuildHypo()">${t}</label>`).join('');
+  // Damage / repair shielding: five mutually-exclusive dropdowns (one component per row).
+  // Non-none options are ordered by ascending capability — the tickers below are listed
+  // low→high on that row's SHIELDING_FACTORS magnitude (drone row: general factor). Option
+  // text is the full component name with the ticker kept in parentheses.
+  const humanize = n => n.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, c => c.toUpperCase());
+  const shieldRow = (id, label, tickers) => {
+    const opts = '<option value="">— none —</option>' +
+      tickers.map(t => `<option value="${t}">${humanize(COMPONENT_DATA.damage[t].name)} (${t})</option>`).join('');
+    return `<div class="comp-row"><span class="comp-lbl">${label}</span>
+      <select id="${id}" class="comp-sel" onchange="rebuildHypo()">${opts}</select></div>`;
+  };
   wrap.innerHTML =
-    row('hullSel',   'Hull',    'hull',      false, false) +
-    row('engSel',    'Engine',  'engine',    false, true ) +
-    row('stlTkSel',  'STL tank','stlTank',   true,  true ) +
-    row('reactorSel','Reactor', 'ftlReactor',true,  false) +
-    row('ftlTkSel',  'FTL tank','ftlTank',   true,  true ) +
-    row('cargoSel',  'Cargo',   'cargo',     true,  true ) +
-    row('seatSel',   'Seats',   'seat',      true,  false) +
-    `<div class="comp-lbl" style="margin-top:6px">Damage / repair</div><div class="comp-dmg">${dmg}</div>`;
+    row('hullSel',   'Hull',      'hull') +
+    row('engSel',    'STL engine','engine') +
+    row('stlTkSel',  'STL tank',  'stlTank',   true) +
+    row('reactorSel','FTL reactor','ftlReactor',true) +
+    row('ftlTkSel',  'FTL tank',  'ftlTank',   true) +
+    row('cargoSel',  'Cargo',     'cargo',     true) +
+    row('seatSel',   'Seats',     'seat',      true) +
+    `<div class="comp-lbl" style="margin-top:16px;margin-bottom:6px;font-size:11px;font-weight:700">Damage / repair</div>` +
+    shieldRow('heatSel',  'Heat shielding',        ['BPT','APT']) +
+    shieldRow('whipSel',  'Whipple shielding',     ['BWH','AWH']) +
+    shieldRow('stabSel',  'Stability system',      ['STS']) +
+    shieldRow('radSel',   'Radiation shielding',   ['BRP','ARP','SRP']) +
+    shieldRow('droneSel', 'Self-repair drone hub', ['RDS','RDL']);
   // Sensible defaults: basic hull + standard engine
   document.getElementById('hullSel').value = 'BHP';
   document.getElementById('engSel').value  = 'ENG';
 }
 
 function rebuildHypo() {
-  const qty = id => { const el = document.getElementById(id); return el ? Math.max(0, +el.value || 0) : 0; };
   const val = id => document.getElementById(id)?.value || '';
   const C = COMPONENT_DATA;
 
   const hull = C.hull[val('hullSel')];
   const eng  = C.engine[val('engSel')];
-  const engQty = qty('engSelQty');
+  const engQty = 1;   // one of each part — no count selectors (multiples not modelled)
   if (!hull || !eng) { _currentShip = null; document.getElementById('hypoMeta').innerHTML = 'Select at least a hull and engine.'; updateFuelSlider(); onLoadoutChange(); return; }
 
   // PRIMARY: derive totalVolume from the selections, then the full part list, then the mass.
@@ -1465,19 +1475,19 @@ function rebuildHypo() {
 
   const reactor = C.ftlReactor[val('reactorSel')];
   const cargoC = C.cargo[val('cargoSel')];
-  const cargoCap = cargoC ? cargoC.capT * qty('cargoSelQty') : 0;
+  const cargoCap = cargoC ? cargoC.capT : 0;
 
   // Shielding: general = hull plate + drones (additive); heat/whipple/radiation/gravity
   // from the checked damage components (spec §3a).
   const sh = { general: SHIELDING_FACTORS[val('hullSel')]?.general || 0, heat: 0, whipple: 0, radiation: 0, gravity: 0 };
-  document.querySelectorAll('.dmg-cb:checked').forEach(cb => {
-    const f = SHIELDING_FACTORS[cb.value] || {};
+  ['heatSel', 'whipSel', 'stabSel', 'radSel', 'droneSel'].forEach(id => {
+    const f = SHIELDING_FACTORS[val(id)] || {};
     for (const k of ['general', 'heat', 'whipple', 'radiation', 'gravity']) if (f[k]) sh[k] += f[k];
   });
 
   _currentShip = {
     source: 'hypo',
-    label: `${val('hullSel')}+${engQty}×${val('engSel')}`,
+    label: `${val('hullSel')}+${val('engSel')}`,
     blueprintId: 'HYPOTHETICAL',
     condition: 1,
     engineType: eng.name,             // e.g. 'standardEngine' → drives landingDistKm() per-engine ratio
@@ -1494,7 +1504,7 @@ function rebuildHypo() {
     maxGFactor: hull.maxGFactor + (seat ? seat.gBonus : 0),
     reactorPower: reactor ? REACTOR_POWER[val('reactorSel')] : null,
     chargeFactor: null,
-    stlFlowRate: eng.flow * engQty,   // real per selected engine × count — drives TO/LND fuel + Fix 1 guard
+    stlFlowRate: eng.flow * engQty,   // single engine (engQty=1) — drives TO/LND fuel + Fix 1 guard
     cargoCap,
     shielding: sh,
   };
