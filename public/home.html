@@ -415,14 +415,7 @@
   <!-- LEFT COLUMN -->
   <div class="left-col">
 
-    <!-- Empire Stats Row -->
-    <div class="empire-stats">
-      <div class="stat-box">
-        <div class="stat-label">Bases</div>
-        <div class="stat-value accent" id="stat-bases">—</div>
-        <div class="stat-sub" id="stat-bases-sub">loading...</div>
-      </div>
-      <!-- Session (moved up beside Bases) -->
+    <!-- Session -->
     <div class="panel">
       <div class="panel-header">
         <span class="panel-title">Session</span>
@@ -438,47 +431,15 @@
         </div>
       </div>
     </div>
-    </div>
-
-    <!-- Bases Panel -->
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">Empire Bases</span>
-        <span class="panel-badge" id="bases-count">LOADING</span>
-      </div>
-      <div class="panel-body" style="padding:0">
-        <table class="bases-table">
-          <thead>
-            <tr>
-              <th>Planet</th>
-              <th>System</th>
-              <th>Role</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="bases-tbody">
-            <tr><td colspan="4" style="padding:20px;color:var(--text-dim);font-size:11px">
-              <div class="skeleton" style="width:60%;margin-bottom:8px"></div>
-              <div class="skeleton" style="width:40%"></div>
-            </td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
 
     <!-- Tool Launcher -->
     <div class="panel">
       <div class="panel-header">
         <span class="panel-title">Tools</span>
-        <span class="panel-badge">14 ACTIVE</span>
+        <span class="panel-badge">13 ACTIVE</span>
       </div>
       <div class="panel-body">
         <div class="tool-grid">
-          <a class="tool-card" href="prun_construction_checker.html">
-            <div class="tool-icon">🏗️</div>
-            <div class="tool-name">Construction<br>Checker</div>
-            <div class="tool-desc">Paste XIT JSON → Buy + Transfer lists vs inventory</div>
-          </a>
           <a class="tool-card" href="prun_fleet_repair.html">
             <div class="tool-icon">🔧</div>
             <div class="tool-name">Fleet<br>Repair</div>
@@ -494,20 +455,10 @@
             <div class="tool-name">Planet<br>Finder</div>
             <div class="tool-desc">Visual map, jump routing, resource filters</div>
           </a>
-          <a class="tool-card" href="prun_fleet_status.html">
-            <div class="tool-icon">🚀</div>
-            <div class="tool-name">Fleet<br>Status</div>
-            <div class="tool-desc">Live tracker, fuel bars, ETAs, route planner</div>
-          </a>
           <a class="tool-card" href="prun_hq_upgrade.html">
             <div class="tool-icon">🏛️</div>
             <div class="tool-name">HQ<br>Upgrade</div>
             <div class="tool-desc">Pre-loaded RBH×16 RSE×12 RTA×6 materials</div>
-          </a>
-          <a class="tool-card" href="prun_base_repair.html">
-            <div class="tool-icon">⚒️</div>
-            <div class="tool-name">Base<br>Repair</div>
-            <div class="tool-desc">Building condition · repair materials · inventory diff</div>
           </a>
           <a class="tool-card" href="prun_infra_upkeep.html">
             <div class="tool-icon">🏛</div>
@@ -566,14 +517,6 @@ function getUsername() { return localStorage.getItem('prun_fiouser') || ''; }
 function getApiKey() { return localStorage.getItem('prun_apikey') || ''; }
 const BASE = 'https://rest.fnar.net';
 
-// Known base info (manual overlay since FIO sites endpoint varies)
-const BASE_META = {
-  'VH-331a': { name: 'Promitor', role: 'Organic Farming', tags: ['tag-green'], status: 'green' },
-  'VH-331g': { name: 'Avalon',   role: 'RAT / DW Prod', tags: ['tag-blue'], status: 'green' },
-  'OT-189a': { name: 'Mayer',    role: 'HAL Extraction', tags: ['tag-amber'], status: 'amber' },
-  'VH-192c': { name: 'Shardonia', role: 'GL Production', tags: ['tag-red'], status: 'amber' },
-};
-
 async function fio(path) {
   const r = await fetch(`${BASE}${path}`, {
     headers: { 'Authorization': getApiKey() }
@@ -614,52 +557,6 @@ function updateClock() {
 updateClock();
 setInterval(updateClock, 1000);
 
-// ── SITES (bases) ──
-async function loadSites() {
-  try {
-    if (!getApiKey() || !getUsername()) {
-      document.getElementById('bases-count').textContent = '—';
-      document.getElementById('bases-tbody').innerHTML =
-        `<tr><td colspan="4" style="padding:16px"><span style="color:var(--text-dim)">Enter your FIO key + username below to load bases</span></td></tr>`;
-      return;
-    }
-    const sites = await fio(`/sites/${getUsername()}`);
-    const count = sites.length;
-    document.getElementById('bases-count').textContent = `${count} BASE${count !== 1 ? 'S' : ''}`;
-    document.getElementById('stat-bases').textContent = count;
-    document.getElementById('stat-bases-sub').textContent = 'active bases';
-
-    const tbody = document.getElementById('bases-tbody');
-    tbody.innerHTML = '';
-
-    sites.forEach(site => {
-      const pid = site.PlanetNaturalId || site.PlanetId || '???';
-      const meta = BASE_META[pid] || {};
-      const pname = meta.name || site.PlanetName || pid;
-      const role = meta.role || 'Unknown';
-      const tagClass = (meta.tags || ['tag-blue'])[0];
-      const dotClass = meta.status === 'amber' ? 'dot-amber' : 'dot-green';
-      const statusTxt = meta.status === 'amber' ? 'BUILDING' : 'ACTIVE';
-
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>
-          <div class="planet-name">${pname}</div>
-          <div class="planet-id">${pid}</div>
-        </td>
-        <td style="color:var(--text-mid);font-size:11px">${site.PlanetName || '—'}</td>
-        <td><span class="tag ${tagClass}">${role}</span></td>
-        <td><span class="status-dot ${dotClass}"></span>${statusTxt}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  } catch(e) {
-    document.getElementById('bases-tbody').innerHTML =
-      `<tr><td colspan="4" style="padding:16px"><span class="error-text">⚠ ${e.message}</span></td></tr>`;
-    document.getElementById('bases-count').textContent = 'ERROR';
-  }
-}
-
 // ── API STATUS ──
 async function checkApiStatus() {
   try {
@@ -691,7 +588,7 @@ if (_homeKey) document.getElementById('homeApiKey').value = _homeKey;
 const _homeUser = localStorage.getItem('prun_fiouser') || '';
 if (_homeUser) document.getElementById('homeUser').value = _homeUser;
 document.getElementById('playerName').textContent = _homeUser || '—';
-Promise.all([loadSites(), checkApiStatus()]);
+checkApiStatus();
 </script>
 </body>
 </html>
