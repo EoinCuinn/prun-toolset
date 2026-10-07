@@ -11,8 +11,8 @@
     --bg3: #1e2333;
     --border: #2a3045;
     --text: #e2e8f0;
-    --text2: #8892a4;
-    --text3: #555f72;
+    --text2: #ffffff;
+    --text3: #ffffff;
     --accent: #4f8ef7;
     --green: #4ade80;
     --orange: #fb923c;
@@ -30,7 +30,7 @@
     font-size: 14px;
     line-height: 1.5;
     padding: 1.5rem;
-    max-width: 960px;
+    max-width: 1500px;
     margin: 0 auto;
   }
 
@@ -178,6 +178,15 @@
     color: var(--text3);
   }
 
+  /* Ship selection */
+  .ship-select-label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+  .ship-select { accent-color: var(--accent); cursor: pointer; width: 14px; height: 14px; flex-shrink: 0; }
+  .ship-card.deselected { opacity: 0.45; }
+  .ship-reg { font-size: 10px; font-family: var(--mono); color: var(--text2); margin-top: 2px; }
+  .sel-controls { float: right; font-size: 10px; font-weight: 400; letter-spacing: 0.04em; text-transform: none; color: var(--text2); }
+  .sel-controls a { color: var(--accent); text-decoration: none; }
+  .sel-controls a:hover { text-decoration: underline; }
+
   /* Shopping grid */
   .shopping-grid {
     display: grid;
@@ -289,6 +298,17 @@
   .export-actions { display: flex; align-items: center; gap: 8px; }
   .copy-success { font-size: 12px; color: var(--green); font-family: var(--mono); }
 
+  /* Two-column layout: main content (left) + XIT sidebar (right) */
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 1.25rem; align-items: start; }
+  #xitPanel { position: sticky; top: 4rem; }
+  #xitPanel .export-section { margin-top: 0; }
+  #xitPanel .section-head { margin-top: 0; }
+  #xitPanel .export-output { max-height: 360px; }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    #xitPanel { position: static; }
+  }
+
   /* Summary strip */
   .summary {
     display: flex;
@@ -330,7 +350,10 @@
 </div>
 <div class="status" id="status">Enter your FIO API key and username to load fleet data.</div>
 <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:1rem;">⚿ API key and username are saved in your browser only — never sent anywhere except FIO.</div>
-<div id="results"></div>
+<div class="layout">
+  <div id="results"></div>
+  <aside id="xitPanel"></aside>
+</div>
 
 <script>
 function buildActJson(materials) {
@@ -344,17 +367,104 @@ function buildActJson(materials) {
   };
 }
 
+// Fleet + inventory kept after load so ship selection can recompute without re-fetching
+let _shipData = [];
+let _inventory = {};
+
+function recompute() {
+  const selected = new Set([...document.querySelectorAll('.ship-select:checked')].map(cb => +cb.dataset.idx));
+  document.querySelectorAll('.ship-card[data-idx]').forEach(card => {
+    const cb = card.querySelector('.ship-select');
+    if (cb) card.classList.toggle('deselected', !cb.checked);
+  });
+  const aggregate = {};
+  _shipData.forEach(s => {
+    if (!s.hasRepairs || !selected.has(s.idx)) return;
+    s.repairs.forEach(r => { aggregate[r.ticker] = (aggregate[r.ticker] || 0) + r.qty; });
+  });
+  renderShopping(aggregate);
+}
+
+function renderShopping(aggregate) {
+  const shoppingSection = document.getElementById('shoppingSection');
+  const xitPanel = document.getElementById('xitPanel');
+  if (!shoppingSection) return;
+  const keys = Object.keys(aggregate).sort();
+
+  if (keys.length === 0) {
+    const anyRepairable = _shipData.some(s => s.hasRepairs);
+    shoppingSection.innerHTML = '<div class="section-head">Shopping list</div><div class="status">' +
+      (anyRepairable ? 'No ships selected — tick ships above to build a shopping list.' : 'No repairs needed across fleet ✓') + '</div>';
+    xitPanel.innerHTML = '';
+    return;
+  }
+
+  const toBuyMaterials = {};
+  let html = '<div class="section-head">Shopping list — have vs need</div><div class="shopping-grid">';
+  keys.forEach(ticker => {
+    const needed = aggregate[ticker];
+    const inv = _inventory[ticker] || { total: 0, locations: [] };
+    const have = inv.total;
+    const toBuy = Math.max(0, needed - have);
+    const cls = toBuy === 0 ? 'covered' : (have > 0 ? 'partial' : 'missing');
+    const colCls = toBuy === 0 ? 'col-green' : (have > 0 ? 'col-orange' : 'col-red');
+    const buyText = toBuy === 0 ? '✓ covered' : `buy ${toBuy}`;
+    if (toBuy > 0) toBuyMaterials[ticker] = toBuy;
+
+    html += `<div class="shopping-item ${cls}">`;
+    html += `<div class="shopping-ticker">${ticker}</div>`;
+    html += `<div class="shopping-row"><span>Need</span><span>${needed}</span></div>`;
+    html += `<div class="shopping-row"><span>Have</span><span>${have}</span></div>`;
+    html += `<div class="buy-row"><span>To buy</span><span class="${colCls}">${buyText}</span></div>`;
+    if (inv.locations.length > 0) {
+      html += '<div class="locations">';
+      html += '<div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-bottom:3px;margin-top:6px;">In storage</div>';
+      inv.locations.slice().sort((a,b) => b.qty - a.qty).forEach(l => {
+        html += `<div class="location-row"><span class="location-name">${l.name}</span><span class="location-qty">${l.qty}</span></div>`;
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+  shoppingSection.innerHTML = html;
+
+  const hasBuyItems = Object.keys(toBuyMaterials).length > 0;
+  const xitStr = JSON.stringify(buildActJson(toBuyMaterials));
+  xitPanel.innerHTML = `<div class="export-section">
+      <div class="export-card">
+        <div class="export-card-head">Buy + Transfer</div>
+        <div class="export-card-desc">CX Buy missing repair materials at IC1, then MTRA from Hortus Station Warehouse → ship (configure on execution). ${hasBuyItems ? Object.keys(toBuyMaterials).length + ' item(s) to buy.' : 'Nothing to buy — all covered.'}</div>
+        <div class="export-output" id="xitOut">${xitStr}</div>
+        <div class="export-actions">
+          <button id="copyXit">Copy to clipboard</button>
+          <span class="copy-success" id="copyXitOk" style="display:none">✓ Copied!</span>
+        </div>
+      </div>
+    </div>`;
+  const copyBtn = document.getElementById('copyXit');
+  if (copyBtn) copyBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(xitStr).then(() => {
+      const s = document.getElementById('copyXitOk');
+      s.style.display = 'inline';
+      setTimeout(() => s.style.display = 'none', 2000);
+    });
+  });
+}
+
 async function loadAll() {
   const apikey = document.getElementById('apikey').value.trim();
   const username = document.getElementById('username').value.trim();
   const status = document.getElementById('status');
   const results = document.getElementById('results');
+  const xitPanel = document.getElementById('xitPanel');
 
   if (!apikey || !username) { status.textContent = 'Please enter both fields.'; return; }
   localStorage.setItem('prun_apikey', apikey);
   localStorage.setItem('prun_username', username);
   status.textContent = 'Fetching data...';
   results.innerHTML = '';
+  xitPanel.innerHTML = '';
 
   try {
     const [shipsRes, storageRes, sitesRes] = await Promise.all([
@@ -400,135 +510,80 @@ async function loadAll() {
 
     status.textContent = `Loaded ${ships.length} ship${ships.length !== 1 ? 's' : ''}.`;
 
-    // Aggregate repair needs across fleet
-    const aggregate = {};
-    let shipsGood = 0, shipsWarn = 0, shipsBad = 0;
+    _inventory = inventory;
 
-    // Fleet condition section
-    let shipsHtml = '<div class="section-head">Fleet condition</div><div class="ship-grid">';
-
-    ships.forEach(ship => {
-      const transponder = ship.Transponder || ship.Registration || ship.Name || '?';
+    // Per-ship repair data — kept so ship selection can recompute without re-fetching
+    _shipData = ships.map((ship, idx) => {
+      const reg = ship.Registration || ship.Transponder || '';
+      const custom = (ship.Name && String(ship.Name).trim()) ? String(ship.Name).trim() : '';
+      const name = custom || reg || '?';
       const condition = ship.Condition != null ? Math.round(ship.Condition * 100) : null;
-      const repairs = ship.RepairMaterials || ship.Needs || [];
-      const hasRepairs = repairs.length > 0;
-
-      let condClass = 'condition-good';
-      let cardClass = 'good';
-      if (condition != null && condition < 85) {
-        condClass = 'condition-bad'; cardClass = 'critical'; shipsBad++;
-      } else if (condition != null && condition < 95) {
-        condClass = 'condition-warn'; cardClass = 'needs-repair'; shipsWarn++;
-      } else {
-        shipsGood++;
-      }
-
-      shipsHtml += `<div class="ship-card ${cardClass}">`;
-      shipsHtml += `<div class="ship-header">
-        <span class="ship-name">${transponder}</span>
-        <span class="ship-condition ${condClass}">${condition != null ? condition + '%' : '?'}</span>
-      </div>`;
-
-      if (hasRepairs) {
-        shipsHtml += '<div class="repair-items">';
-        repairs.forEach(mat => {
-          const ticker = mat.MaterialTicker || mat.Ticker || '?';
-          const qty = mat.MaterialAmount || mat.Amount || 1;
-          shipsHtml += `<span class="mat-pill">${qty}× ${ticker}</span>`;
-          if (!aggregate[ticker]) aggregate[ticker] = 0;
-          aggregate[ticker] += qty;
-        });
-        shipsHtml += '</div>';
-      } else {
-        shipsHtml += '<div class="no-repairs">No repairs needed ✓</div>';
-      }
-      shipsHtml += '</div>';
+      const repairsRaw = ship.RepairMaterials || ship.Needs || [];
+      const repairs = repairsRaw.map(mat => ({
+        ticker: mat.MaterialTicker || mat.Ticker || '?',
+        qty: mat.MaterialAmount || mat.Amount || 1
+      }));
+      return { idx, name, reg, condition, repairs, hasRepairs: repairs.length > 0 };
     });
-    shipsHtml += '</div>';
 
-    // Summary strip
-    const totalShips = ships.length;
+    // Fleet-wide condition summary (independent of selection)
+    let shipsGood = 0, shipsWarn = 0, shipsBad = 0;
+    _shipData.forEach(s => {
+      if (s.condition != null && s.condition < 80) shipsBad++;
+      else if (s.condition != null && s.condition < 90) shipsWarn++;
+      else shipsGood++;
+    });
+
     let html = `<div class="summary">
       <div class="summary-stat stat-green"><strong>${shipsGood}</strong><span>Good</span></div>
       <div class="summary-stat stat-orange"><strong>${shipsWarn}</strong><span>Warn</span></div>
       <div class="summary-stat stat-red"><strong>${shipsBad}</strong><span>Critical</span></div>
-      <div class="summary-stat"><strong>${totalShips}</strong><span>Total</span></div>
+      <div class="summary-stat"><strong>${_shipData.length}</strong><span>Total</span></div>
     </div>`;
 
-    html += shipsHtml;
+    // Fleet condition — ships needing repair carry a selection checkbox
+    const repairCount = _shipData.filter(s => s.hasRepairs).length;
+    html += `<div class="section-head">Fleet condition<span class="sel-controls">${repairCount} repairable · <a href="#" id="selAll">all</a> / <a href="#" id="selNone">none</a></span></div><div class="ship-grid">`;
 
-    const keys = Object.keys(aggregate).sort();
+    _shipData.forEach(s => {
+      let condClass = 'condition-good', cardClass = 'good';
+      if (s.condition != null && s.condition < 80) { condClass = 'condition-bad'; cardClass = 'critical'; }
+      else if (s.condition != null && s.condition < 90) { condClass = 'condition-warn'; cardClass = 'needs-repair'; }
+      const condTxt = s.condition != null ? s.condition + '%' : '?';
 
-    if (keys.length === 0) {
-      html += '<div class="section-head">Shopping list</div><div class="status">No repairs needed across fleet ✓</div>';
-      results.innerHTML = html;
-      return;
-    }
-
-    // Shopping list
-    let covered = 0, partial = 0, missing = 0;
-    const toBuyMaterials = {};
-
-    html += '<div class="section-head">Shopping list — have vs need</div><div class="shopping-grid">';
-    keys.forEach(ticker => {
-      const needed = aggregate[ticker];
-      const inv = inventory[ticker] || { total: 0, locations: [] };
-      const have = inv.total;
-      const toBuy = Math.max(0, needed - have);
-      const cls = toBuy === 0 ? 'covered' : (have > 0 ? 'partial' : 'missing');
-      const colCls = toBuy === 0 ? 'col-green' : (have > 0 ? 'col-orange' : 'col-red');
-      const buyText = toBuy === 0 ? '✓ covered' : `buy ${toBuy}`;
-
-      if (toBuy === 0) covered++;
-      else if (have > 0) partial++;
-      else missing++;
-
-      if (toBuy > 0) toBuyMaterials[ticker] = toBuy;
-
-      html += `<div class="shopping-item ${cls}">`;
-      html += `<div class="shopping-ticker">${ticker}</div>`;
-      html += `<div class="shopping-row"><span>Need</span><span>${needed}</span></div>`;
-      html += `<div class="shopping-row"><span>Have</span><span>${have}</span></div>`;
-      html += `<div class="buy-row"><span>To buy</span><span class="${colCls}">${buyText}</span></div>`;
-      if (inv.locations.length > 0) {
-        html += '<div class="locations">';
-        html += '<div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-bottom:3px;margin-top:6px;">In storage</div>';
-        inv.locations.sort((a,b) => b.qty - a.qty).forEach(l => {
-          html += `<div class="location-row"><span class="location-name">${l.name}</span><span class="location-qty">${l.qty}</span></div>`;
-        });
+      const regLine = (s.reg && s.reg !== s.name) ? `<div class="ship-reg">${s.reg}</div>` : '';
+      html += `<div class="ship-card ${cardClass}" data-idx="${s.idx}">`;
+      if (s.hasRepairs) {
+        html += `<div class="ship-header">
+          <label class="ship-select-label"><input type="checkbox" class="ship-select" data-idx="${s.idx}" checked><span class="ship-name">${s.name}</span></label>
+          <span class="ship-condition ${condClass}">${condTxt}</span>
+        </div>`;
+        html += regLine;
+        html += '<div class="repair-items">';
+        s.repairs.forEach(r => { html += `<span class="mat-pill">${r.qty}× ${r.ticker}</span>`; });
         html += '</div>';
+      } else {
+        html += `<div class="ship-header">
+          <span class="ship-name">${s.name}</span>
+          <span class="ship-condition ${condClass}">${condTxt}</span>
+        </div>`;
+        html += regLine;
+        html += '<div class="no-repairs">No repairs needed ✓</div>';
       }
       html += '</div>';
     });
-    html += '</div>';
-
-    // XIT Export
-    const hasBuyItems = Object.keys(toBuyMaterials).length > 0;
-    const xit = buildActJson(toBuyMaterials);
-    const xitStr = JSON.stringify(xit);
-
-    html += `<div class="export-section">
-      <div class="section-head">XIT Export</div>
-      <div class="export-card">
-        <div class="export-card-head">Buy + Transfer</div>
-        <div class="export-card-desc">CX Buy missing repair materials at IC1, then MTRA from Hortus Station Warehouse → ship (configure on execution). ${hasBuyItems ? Object.keys(toBuyMaterials).length + ' item(s) to buy.' : 'Nothing to buy — all covered.'}</div>
-        <div class="export-output" id="xitOut">${xitStr}</div>
-        <div class="export-actions">
-          <button id="copyXit">Copy to clipboard</button>
-          <span class="copy-success" id="copyXitOk" style="display:none">✓ Copied!</span>
-        </div>
-      </div>
-    </div>`;
+    html += '</div><div id="shoppingSection"></div>';
 
     results.innerHTML = html;
 
-    document.getElementById('copyXit').addEventListener('click', () => {
-      navigator.clipboard.writeText(xitStr).then(() => {
-        const s = document.getElementById('copyXitOk');
-        s.style.display = 'inline';
-        setTimeout(() => s.style.display = 'none', 2000);
-      });
-    });
+    // Wire ship selection → live recompute of shopping list + XIT
+    results.querySelectorAll('.ship-select').forEach(cb => cb.addEventListener('change', recompute));
+    const selAllEl = document.getElementById('selAll');
+    const selNoneEl = document.getElementById('selNone');
+    if (selAllEl) selAllEl.addEventListener('click', e => { e.preventDefault(); results.querySelectorAll('.ship-select').forEach(cb => cb.checked = true); recompute(); });
+    if (selNoneEl) selNoneEl.addEventListener('click', e => { e.preventDefault(); results.querySelectorAll('.ship-select').forEach(cb => cb.checked = false); recompute(); });
+
+    recompute();
 
   } catch(e) {
     status.textContent = 'Error: ' + e.message;
