@@ -127,18 +127,18 @@
   <div class="break"></div>
   <div id="burnCtrls" class="burn-row">
     <div class="ctrl"><label>FIO username</label><input id="fioUser" class="in-user" type="text" placeholder="PrUn username" autocomplete="off" spellcheck="false" /></div>
-    <div class="ctrl"><label>FIO API key</label><input id="fioKey" class="in-key" type="text" placeholder="paste FIO API key" autocomplete="off" spellcheck="false" /></div>
+    <div class="ctrl"><label>FIO Swagger key</label><input id="fioKey" class="in-key" type="text" placeholder="paste FIO Swagger key" autocomplete="off" spellcheck="false" /></div>
     <button class="primary" id="burnBtn">Load burn ↻</button>
     <label class="burn-check"><input type="checkbox" id="burnOnly" disabled /> Only materials I burn</label>
     <div class="break"></div>
-    <span class="burn-status" id="burnStatus">One FIO API key for everything — the same key Fleet Repair and your other tools use. There is no separate REST vs Swagger key; this tool just sends it to FIO's Swagger API for burn. Generate it at <a href="https://fio.fnar.net" target="_blank" rel="noopener">fio.fnar.net</a> → API Keys (not your game password). Resale mode needs no key.</span>
+    <span class="burn-status" id="burnStatus">Needs your <strong>FIO Swagger key</strong> (the same one Flight Planner uses) — <strong>not</strong> your REST key; the REST tools use a different key. Manage keys at <a href="https://fio.fnar.net" target="_blank" rel="noopener">fio.fnar.net</a>. Resale mode needs no key.</span>
   </div>
 </div>
 <div class="status" id="status">Loading live exchange data…</div>
 
 <div id="results"></div>
 
-<div class="credit">Live prices from FIO — public exchange + material feed (rest.fnar.net). The Bring-back burn filter uses your FIO key via the Swagger API (api.fnar.net); the key is stored only in your browser.</div>
+<div class="credit">Live prices from FIO — public exchange + material feed (rest.fnar.net). The Bring-back burn filter uses your FIO Swagger key via the Swagger API (api.fnar.net); the key is stored only in your browser.</div>
 
 <script>
 // Exchange code → { name, system, currency }. Currency follows the code prefix
@@ -577,8 +577,8 @@ async function loadBurn() {
   const bs = document.getElementById('burnStatus');
   const chk = document.getElementById('burnOnly');
   if (!key || !user) { bs.textContent = 'Enter your FIO username and API key first.'; return; }
-  localStorage.setItem('prun_apikey', key);
-  localStorage.setItem('prun_username', user);
+  localStorage.setItem('prun_swaggerkey', key);
+  localStorage.setItem('prun_fiouser', user);
   bs.textContent = 'Loading burn…';
   try {
     const res = await fetch(`${SWAGGER}/data/burn?username=${encodeURIComponent(user)}`, { headers: { Authorization: 'FIOAPIKey ' + key } });
@@ -611,8 +611,8 @@ function applyModeUI() {
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 fillExchanges();
-document.getElementById('fioKey').value = localStorage.getItem('prun_apikey') || '';
-document.getElementById('fioUser').value = localStorage.getItem('prun_username') || localStorage.getItem('prun_fiouser') || '';
+document.getElementById('fioKey').value = localStorage.getItem('prun_swaggerkey') || '';
+document.getElementById('fioUser').value = localStorage.getItem('prun_fiouser') || localStorage.getItem('prun_username') || '';
 document.getElementById('burnBtn').addEventListener('click', loadBurn);
 document.getElementById('burnOnly').addEventListener('change', recompute);
 applyModeUI();

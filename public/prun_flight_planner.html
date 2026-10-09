@@ -244,8 +244,8 @@
 const SWAGGER_SHIPS = 'https://api.fnar.net/ships';
 // Ship fuel stores — resolve StorageId → WeightLoad/WeightCapacity to prefill the loadout.
 // The /storage URL is built per-request from the user's FIO username (see loadShips).
-const FIO_KEY       = 'prun_apikey';    // localStorage key for the FIO API key
-const FIO_USER      = 'prun_fiouser';   // localStorage key for the FIO username
+const FIO_KEY       = 'prun_swaggerkey'; // localStorage slot for the FIO Swagger key (api.fnar.net, FIOAPIKey header) — kept separate from the REST key in prun_apikey
+const FIO_USER      = 'prun_fiouser';    // localStorage key for the FIO username
 const FP_SCALE   = 12.0;     // coordinate units per parsec — paper §12.5: exactly 12
 
 // FTL reactor physics — paper §12.1–12.3 and §13.5
