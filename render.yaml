@@ -1,0 +1,10 @@
+# Render Blueprint — deploys the toolset as a free Static Site (no server).
+# Vite builds the MAP (React) app and copies every tool in public/ into dist/.
+# Render serves dist/ from its CDN at the root of the site URL.
+services:
+  - type: web
+    name: prun-toolset
+    runtime: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    autoDeploy: true   # rebuild automatically on every push to the connected branch
