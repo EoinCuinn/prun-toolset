@@ -65,8 +65,8 @@ Run the existing meteor damage formula against the WX-827a TRANSIT: distance **3
 - Never deduplicate on `missionId` alone — each unique `stlFuelConsumption` is a distinct slider capture
 - Planet always from `segment.destination.lines[type=PLANET].entity.naturalId` — never from filename
 - Shield state from filename only
-- **Done means Daniel confirmed it** — not "code ran clean"
-- All script output to `.txt` files — console output disappears on his machines
+- **Done means EoinCuinn confirmed it** — not "code ran clean"
+- All script output to `.txt` files — console output disappears on their machines
 - **Node.js only** for all scripting
 
 ## What is confirmed and solid
