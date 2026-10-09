@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PrUn CX Arbitrage</title>
+<style>
+  :root {
+    --bg: #0f1117; --bg2: #181c27; --bg3: #1e2333;
+    --border: #2a3045; --border2: #3a4460;
+    --text: #e2e8f0; --text2: #8892a4; --text3: #555f72; --dim: #555f72;
+    --accent: #4f8ef7; --green: #4ade80; --orange: #fb923c; --red: #f87171;
+    --mono: 'Courier New', monospace; --radius: 6px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; line-height: 1.5; padding: 1.5rem; max-width: 1500px; margin: 0 auto; }
+
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.25rem; gap: 12px; }
+  .header-left { display: flex; flex-direction: column; gap: 2px; }
+  .title { font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text2); display: flex; align-items: center; gap: 8px; }
+  .title::before { content: ''; display: inline-block; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
+  .subtitle { font-family: var(--mono); font-size: 11px; color: var(--dim); letter-spacing: 0.05em; }
+  .home-link { font-family: var(--mono); font-size: 11px; color: var(--dim); text-decoration: none; letter-spacing: 0.05em; border: 1px solid var(--border); padding: 5px 10px; border-radius: 3px; transition: color 0.15s, border-color 0.15s; white-space: nowrap; }
+  .home-link:hover { color: var(--text); border-color: var(--border2); }
+
+  .controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 14px; margin-bottom: 0.75rem; }
+  .ctrl { display: flex; flex-direction: column; gap: 4px; }
+  .ctrl label { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); }
+  select, input[type="text"], input[type="number"] { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); padding: 7px 10px; font-size: 13px; font-family: var(--mono); outline: none; transition: border-color 0.15s; }
+  select:focus, input:focus { border-color: var(--accent); }
+  select.ex { width: 190px; } input.num { width: 110px; }
+  .mode-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .mode-btn { background: var(--bg2); border: none; color: var(--text2); padding: 7px 14px; font-size: 13px; cursor: pointer; transition: all 0.15s; }
+  .mode-btn.active { background: #1e3a5f; color: var(--accent); }
+  .mode-btn:not(.active):hover { color: var(--text); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; border: 1px solid var(--accent); border-radius: var(--radius); padding: 8px 16px; font-size: 13px; cursor: pointer; }
+  button.primary:hover { background: #6aa0f9; }
+  .status { font-size: 12px; color: var(--text2); margin: 0.25rem 0 1rem; min-height: 16px; font-family: var(--mono); }
+
+  .summary { display: flex; gap: 1px; margin-bottom: 1.25rem; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); flex-wrap: wrap; }
+  .summary-stat { flex: 1; min-width: 120px; padding: 0.75rem 1rem; background: var(--bg2); text-align: center; }
+  .summary-stat strong { display: block; font-size: 20px; font-weight: 700; font-family: var(--mono); margin-bottom: 2px; }
+  .summary-stat span { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; }
+  .stat-accent strong { color: var(--accent); } .stat-green strong { color: var(--green); } .stat-orange strong { color: var(--orange); }
+
+  .section-head { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); border-bottom: 1px solid var(--border); padding-bottom: 6px; margin: 1.5rem 0 0.75rem; }
+  .note { font-size: 11px; color: var(--text3); margin: 0.25rem 0 0.75rem; line-height: 1.5; }
+
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { text-align: right; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text3); padding: 6px 10px; border-bottom: 1px solid var(--border); font-weight: 600; white-space: nowrap; }
+  th.l, td.l { text-align: left; }
+  td { padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); text-align: right; font-family: var(--mono); white-space: nowrap; }
+  tr:hover td { background: var(--accent-dim, rgba(79,142,247,0.06)); }
+  tr.in-haul td { background: rgba(74,222,128,0.07); }
+  .tk { font-weight: 700; color: var(--text); letter-spacing: 0.04em; }
+  .mname { color: var(--text3); font-size: 11px; font-family: 'Segoe UI', sans-serif; }
+  .cur { color: var(--text3); font-size: 10px; }
+  .pos { color: var(--green); } .neg { color: var(--red); }
+  .muted { color: var(--text2); }
+  .empty { color: var(--text3); font-size: 13px; padding: 1rem 0; }
+  .credit { margin-top: 1.5rem; font-size: 11px; color: var(--text3); font-family: var(--mono); }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="header-left">
+    <div class="title">CX Arbitrage</div>
+    <div class="subtitle">buy low on one exchange · use or resell on another</div>
+  </div>
+  <a href="/home.html" class="home-link">⌂ HOME</a>
+</div>
+
+<div class="controls">
+  <div class="ctrl"><label>Buy at (ship is here)</label><select id="fromEx" class="ex"></select></div>
+  <div class="ctrl"><label>Use / sell at (home)</label><select id="toEx" class="ex"></select></div>
+  <div class="ctrl"><label>Mode</label>
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="modeUse" data-mode="use">Bring back &amp; use</button>
+      <button class="mode-btn" id="modeSell" data-mode="sell">Buy &amp; resell</button>
+    </div>
+  </div>
+  <div class="ctrl"><label id="rateLabel">Rate</label><input id="rate" class="num" type="number" min="0" step="0.0001" value="1" /></div>
+  <div class="ctrl"><label>Cargo weight (t)</label><input id="capW" class="num" type="number" min="0" step="1" placeholder="e.g. 500" /></div>
+  <div class="ctrl"><label>Cargo volume (m³)</label><input id="capV" class="num" type="number" min="0" step="1" placeholder="e.g. 500" /></div>
+  <div class="ctrl"><label>Budget (buy cur, optional)</label><input id="budget" class="num" type="number" min="0" step="1" placeholder="∞" /></div>
+  <div class="ctrl"><label>Min units liquidity</label><input id="minUnits" class="num" type="number" min="0" step="1" value="1" /></div>
+  <button class="primary" id="refreshBtn">Refresh prices ↻</button>
+</div>
+<div class="status" id="status">Loading live exchange data…</div>
+
+<div id="results"></div>
+
+<div class="credit">Live data from FIO (rest.fnar.net) — public exchange + material endpoints. No API key used.</div>
+
+<script>
+// Exchange code → { name, system, currency }. Currency follows the code prefix
+// (AI→AIC, CI→CIS, IC→ICA, NC→NCC); AI1/IC1 confirmed against FIO's per-ticker endpoint.
+const EX = {
+  AI1: { name: 'Antares Station', sys: 'ZV-307', cur: 'AIC' },
+  CI1: { name: 'Antares II',      sys: 'ZV-759', cur: 'CIS' },
+  CI2: { name: 'Arclight',        sys: 'AM-783', cur: 'CIS' },
+  IC1: { name: 'Hortus Station',  sys: 'VH-331', cur: 'ICA' },
+  NC1: { name: 'Moria Station',   sys: 'OT-580', cur: 'NCC' },
+  NC2: { name: 'Benten / Katoa',  sys: 'UV-351', cur: 'NCC' },
+};
+const BASE = 'https://rest.fnar.net';
+
+let _px = {};    // `${ticker}|${ex}` -> { Ask, Bid, Supply, Demand }
+let _mat = {};   // ticker -> { weight, volume, name, cat }
+let _loaded = false;
+let _mode = 'use';
+
+const num = (v, d = 2) => (v == null || isNaN(v)) ? '—' : (+v).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: d });
+const intf = v => (v == null || isNaN(v)) ? '—' : Math.round(v).toLocaleString('en-US');
+
+function fillExchanges() {
+  const f = document.getElementById('fromEx'), t = document.getElementById('toEx');
+  for (const code in EX) {
+    const label = `${code} · ${EX[code].name} (${EX[code].cur})`;
+    f.insertAdjacentHTML('beforeend', `<option value="${code}">${label}</option>`);
+    t.insertAdjacentHTML('beforeend', `<option value="${code}">${label}</option>`);
+  }
+  f.value = 'AI1'; t.value = 'IC1';
+}
+
+async function loadData() {
+  const status = document.getElementById('status');
+  status.textContent = 'Loading live exchange data…';
+  try {
+    const [exRes, matRes] = await Promise.all([
+      fetch(`${BASE}/exchange/all`),
+      fetch(`${BASE}/material/allmaterials`)
+    ]);
+    const ex = await exRes.json();
+    const mat = await matRes.json();
+    _px = {};
+    ex.forEach(e => { _px[`${e.MaterialTicker}|${e.ExchangeCode}`] = { Ask: e.Ask, Bid: e.Bid, Supply: e.Supply, Demand: e.Demand }; });
+    _mat = {};
+    mat.forEach(m => { _mat[m.Ticker] = { weight: m.Weight, volume: m.Volume, name: m.Name, cat: m.CategoryName }; });
+    _loaded = true;
+    recompute();
+  } catch (e) {
+    status.textContent = 'Error loading FIO data: ' + e.message;
+  }
+}
+
+function recompute() {
+  if (!_loaded) return;
+  const fromEx = document.getElementById('fromEx').value;
+  const toEx   = document.getElementById('toEx').value;
+  const rate   = Math.max(0, +document.getElementById('rate').value || 0);
+  const capW   = +document.getElementById('capW').value || 0;
+  const capV   = +document.getElementById('capV').value || 0;
+  const budget = +document.getElementById('budget').value || 0;
+  const minU   = Math.max(0, +document.getElementById('minUnits').value || 0);
+  const fromCur = EX[fromEx].cur, toCur = EX[toEx].cur;
+  const status = document.getElementById('status');
+
+  document.getElementById('rateLabel').textContent = `${fromCur} → ${toCur} rate`;
+
+  if (fromEx === toEx) {
+    document.getElementById('results').innerHTML = '<div class="empty">Pick two different exchanges.</div>';
+    status.textContent = 'Buy and sell exchange are the same.';
+    return;
+  }
+
+  // Build candidate opportunities.
+  const cands = [];
+  for (const ticker in _mat) {
+    const buy = _px[`${ticker}|${fromEx}`];
+    const ref = _px[`${ticker}|${toEx}`];
+    if (!buy || buy.Ask == null || buy.Ask <= 0) continue;        // must be buyable at source
+    const buyConv = buy.Ask * rate;                                // source price in home currency
+    let refPrice, maxQty, demandOk = true;
+    if (_mode === 'use') {
+      if (!ref || ref.Ask == null || ref.Ask <= 0) continue;       // need a home buy price to compare against
+      refPrice = ref.Ask;
+      maxQty = buy.Supply || 0;                                    // limited by what's for sale at source
+    } else {
+      if (!ref || ref.Bid == null || ref.Bid <= 0) continue;       // need buyers at home
+      refPrice = ref.Bid;
+      maxQty = Math.min(buy.Supply || 0, ref.Demand || 0);         // buy what's offered, sell what's wanted
+    }
+    const metric = refPrice - buyConv;                             // saving (use) or profit (sell) per unit, in home cur
+    if (metric <= 0) continue;
+    if (maxQty < minU) continue;
+    const m = _mat[ticker];
+    cands.push({
+      ticker, name: m.name, weight: m.weight || 0, volume: m.volume || 0,
+      buyAsk: buy.Ask, buyConv, refPrice, metric, maxQty,
+      supply: buy.Supply || 0, demand: ref.Demand || 0,
+      perT: m.weight > 0 ? metric / m.weight : null,
+      perM3: m.volume > 0 ? metric / m.volume : null,
+    });
+  }
+  cands.sort((a, b) => b.metric - a.metric);
+
+  // Greedy cargo fill (2-constraint): rank by profit per fraction of hold consumed.
+  let haul = null;
+  if (capW > 0 || capV > 0) {
+    const W = capW > 0 ? capW : Infinity, V = capV > 0 ? capV : Infinity, B = budget > 0 ? budget : Infinity;
+    const scored = cands.filter(c => (c.weight > 0 || c.volume > 0)).map(c => {
+      const frac = (c.weight > 0 && capW > 0 ? c.weight / capW : 0) + (c.volume > 0 && capV > 0 ? c.volume / capV : 0);
+      return { c, score: frac > 0 ? c.metric / frac : c.metric };
+    }).sort((a, b) => b.score - a.score);
+    let remW = W, remV = V, remB = B;
+    const picked = [];
+    for (const { c } of scored) {
+      let qty = c.maxQty;
+      if (c.weight > 0) qty = Math.min(qty, Math.floor(remW / c.weight));
+      if (c.volume > 0) qty = Math.min(qty, Math.floor(remV / c.volume));
+      if (c.buyAsk > 0 && isFinite(remB)) qty = Math.min(qty, Math.floor(remB / c.buyAsk));
+      if (qty <= 0) continue;
+      picked.push({ ...c, qty, totMetric: qty * c.metric, totW: qty * c.weight, totV: qty * c.volume, totSpend: qty * c.buyAsk });
+      remW -= qty * c.weight; remV -= qty * c.volume; remB -= qty * c.buyAsk;
+    }
+    haul = {
+      picked,
+      usedW: isFinite(W) ? W - remW : picked.reduce((s, p) => s + p.totW, 0),
+      usedV: isFinite(V) ? V - remV : picked.reduce((s, p) => s + p.totV, 0),
+      spend: picked.reduce((s, p) => s + p.totSpend, 0),
+      profit: picked.reduce((s, p) => s + p.totMetric, 0),
+    };
+  }
+
+  render(cands, haul, { fromEx, toEx, fromCur, toCur, capW, capV });
+  const metricWord = _mode === 'use' ? 'cheaper to buy here' : 'resale spread';
+  status.textContent = `${cands.length} material${cands.length !== 1 ? 's' : ''} ${metricWord} at ${fromEx} vs ${toEx}.`;
+}
+
+function render(cands, haul, ctx) {
+  const { fromEx, toEx, fromCur, toCur, capW, capV } = ctx;
+  const results = document.getElementById('results');
+  const metricLabel = _mode === 'use' ? 'Save/u' : 'Profit/u';
+  const refLabel = _mode === 'use' ? `${toEx} Ask` : `${toEx} Bid`;
+  const haulProfitLabel = _mode === 'use' ? 'Haul saving' : 'Haul profit';
+  const inHaul = {}; if (haul) haul.picked.forEach(p => inHaul[p.ticker] = p.qty);
+
+  let html = `<div class="summary">
+    <div class="summary-stat stat-accent"><strong>${cands.length}</strong><span>Opportunities</span></div>`;
+  if (haul) {
+    html += `
+    <div class="summary-stat stat-green"><strong>${intf(haul.profit)}</strong><span>${haulProfitLabel} (${toCur})</span></div>
+    <div class="summary-stat"><strong>${intf(haul.spend)}</strong><span>Spend (${fromCur})</span></div>
+    <div class="summary-stat stat-orange"><strong>${intf(haul.usedW)}${capW > 0 ? '/' + intf(capW) : ''}</strong><span>Weight t</span></div>
+    <div class="summary-stat stat-orange"><strong>${intf(haul.usedV)}${capV > 0 ? '/' + intf(capV) : ''}</strong><span>Volume m³</span></div>`;
+  }
+  html += '</div>';
+
+  // Suggested haul
+  if (haul) {
+    if (haul.picked.length === 0) {
+      html += '<div class="section-head">Suggested haul</div><div class="empty">Nothing fits / no positive opportunities for the given capacity.</div>';
+    } else {
+      html += `<div class="section-head">Suggested haul — fills your ship by profit density</div>`;
+      html += `<div class="table-wrap"><table><thead><tr>
+        <th class="l">Material</th><th>Qty</th><th>Buy @${fromEx}</th><th>${metricLabel}</th>
+        <th>Total (${toCur})</th><th>Weight t</th><th>Volume m³</th><th>Spend (${fromCur})</th></tr></thead><tbody>`;
+      haul.picked.forEach(p => {
+        html += `<tr class="in-haul">
+          <td class="l"><span class="tk">${p.ticker}</span> <span class="mname">${p.name}</span></td>
+          <td>${intf(p.qty)}</td>
+          <td>${num(p.buyAsk)} <span class="cur">${fromCur}</span></td>
+          <td class="pos">${num(p.metric)}</td>
+          <td class="pos">${intf(p.totMetric)}</td>
+          <td>${num(p.totW, 1)}</td>
+          <td>${num(p.totV, 1)}</td>
+          <td>${intf(p.totSpend)}</td></tr>`;
+      });
+      html += '</tbody></table></div>';
+    }
+  } else {
+    html += '<div class="note">Enter your ship’s cargo weight &amp; volume above to get a suggested haul that fills the hold by profit density.</div>';
+  }
+
+  // All opportunities
+  html += `<div class="section-head">All opportunities — ${fromEx} (${fromCur}) → ${toEx} (${toCur})</div>`;
+  if (cands.length === 0) {
+    html += '<div class="empty">No materials are cheaper at ' + fromEx + ' for this mode.</div>';
+  } else {
+    html += `<div class="table-wrap"><table><thead><tr>
+      <th class="l">Material</th><th>Buy @${fromEx}</th><th>→ ${toCur}</th><th>${refLabel}</th>
+      <th>${metricLabel}</th><th>/ m³</th><th>/ t</th><th>Max qty</th><th>In haul</th></tr></thead><tbody>`;
+    cands.forEach(c => {
+      const hq = inHaul[c.ticker];
+      html += `<tr${hq ? ' class="in-haul"' : ''}>
+        <td class="l"><span class="tk">${c.ticker}</span> <span class="mname">${c.name}</span></td>
+        <td>${num(c.buyAsk)} <span class="cur">${fromCur}</span></td>
+        <td class="muted">${num(c.buyConv)}</td>
+        <td>${num(c.refPrice)} <span class="cur">${toCur}</span></td>
+        <td class="pos">${num(c.metric)}</td>
+        <td>${c.perM3 != null ? num(c.perM3) : '—'}</td>
+        <td>${c.perT != null ? num(c.perT) : '—'}</td>
+        <td>${intf(c.maxQty)}</td>
+        <td>${hq ? '<span class="pos">' + intf(hq) + '</span>' : '<span class="cur">—</span>'}</td></tr>`;
+    });
+    html += '</tbody></table></div>';
+  }
+  results.innerHTML = html;
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+fillExchanges();
+document.querySelectorAll('.mode-btn').forEach(b => b.addEventListener('click', () => {
+  _mode = b.dataset.mode;
+  document.querySelectorAll('.mode-btn').forEach(x => x.classList.toggle('active', x === b));
+  recompute();
+}));
+['fromEx', 'toEx', 'rate', 'capW', 'capV', 'budget', 'minUnits'].forEach(id =>
+  document.getElementById(id).addEventListener('input', recompute));
+document.getElementById('refreshBtn').addEventListener('click', loadData);
+loadData();
+</script>
+</body>
+</html>
