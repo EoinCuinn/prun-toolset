@@ -19,47 +19,72 @@
   .header-left { display: flex; flex-direction: column; gap: 2px; }
   .title { font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text2); display: flex; align-items: center; gap: 8px; }
   .title::before { content: ''; display: inline-block; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
-  .subtitle { font-family: var(--mono); font-size: 11px; color: var(--dim); letter-spacing: 0.05em; }
+  .subtitle { font-family: var(--mono); font-size: 12px; color: var(--text2); letter-spacing: 0.05em; }
   .home-link { font-family: var(--mono); font-size: 11px; color: var(--dim); text-decoration: none; letter-spacing: 0.05em; border: 1px solid var(--border); padding: 5px 10px; border-radius: 3px; transition: color 0.15s, border-color 0.15s; white-space: nowrap; }
   .home-link:hover { color: var(--text); border-color: var(--border2); }
 
   .controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 14px; margin-bottom: 0.75rem; }
   .ctrl { display: flex; flex-direction: column; gap: 4px; }
-  .ctrl label { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); }
-  select, input[type="text"], input[type="number"] { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); padding: 7px 10px; font-size: 13px; font-family: var(--mono); outline: none; transition: border-color 0.15s; }
+  .ctrl label { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text2); }
+  select, input[type="text"], input[type="number"] { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); padding: 8px 10px; font-size: 14px; font-family: var(--mono); outline: none; transition: border-color 0.15s; }
   select:focus, input:focus { border-color: var(--accent); }
   select.ex { width: 190px; } input.num { width: 110px; }
   .mode-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-  .mode-btn { background: var(--bg2); border: none; color: var(--text2); padding: 7px 14px; font-size: 13px; cursor: pointer; transition: all 0.15s; }
+  .mode-btn { background: var(--bg2); border: none; color: var(--text2); padding: 8px 14px; font-size: 14px; cursor: pointer; transition: all 0.15s; }
   .mode-btn.active { background: #1e3a5f; color: var(--accent); }
   .mode-btn:not(.active):hover { color: var(--text); }
-  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; border: 1px solid var(--accent); border-radius: var(--radius); padding: 8px 16px; font-size: 13px; cursor: pointer; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; border: 1px solid var(--accent); border-radius: var(--radius); padding: 9px 16px; font-size: 14px; cursor: pointer; }
   button.primary:hover { background: #6aa0f9; }
-  .status { font-size: 12px; color: var(--text2); margin: 0.25rem 0 1rem; min-height: 16px; font-family: var(--mono); }
+  .status { font-size: 13px; color: var(--text2); margin: 0.25rem 0 1rem; min-height: 16px; font-family: var(--mono); }
 
   .summary { display: flex; gap: 1px; margin-bottom: 1.25rem; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); flex-wrap: wrap; }
   .summary-stat { flex: 1; min-width: 120px; padding: 0.75rem 1rem; background: var(--bg2); text-align: center; }
-  .summary-stat strong { display: block; font-size: 20px; font-weight: 700; font-family: var(--mono); margin-bottom: 2px; }
-  .summary-stat span { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; }
+  .summary-stat strong { display: block; font-size: 22px; font-weight: 700; font-family: var(--mono); margin-bottom: 3px; }
+  .summary-stat span { font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; }
   .stat-accent strong { color: var(--accent); } .stat-green strong { color: var(--green); } .stat-orange strong { color: var(--orange); }
 
-  .section-head { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); border-bottom: 1px solid var(--border); padding-bottom: 6px; margin: 1.5rem 0 0.75rem; }
-  .note { font-size: 11px; color: var(--text3); margin: 0.25rem 0 0.75rem; line-height: 1.5; }
+  .section-head { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text2); border-bottom: 1px solid var(--border); padding-bottom: 7px; margin: 1.5rem 0 0.75rem; }
+  .note { font-size: 12px; color: var(--text2); margin: 0.25rem 0 0.75rem; line-height: 1.55; }
 
   .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  th { text-align: right; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text3); padding: 6px 10px; border-bottom: 1px solid var(--border); font-weight: 600; white-space: nowrap; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: right; font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text2); padding: 8px 10px; border-bottom: 1px solid var(--border); font-weight: 600; white-space: nowrap; }
   th.l, td.l { text-align: left; }
-  td { padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); text-align: right; font-family: var(--mono); white-space: nowrap; }
+  td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); text-align: right; font-family: var(--mono); white-space: nowrap; }
   tr:hover td { background: var(--accent-dim, rgba(79,142,247,0.06)); }
   tr.in-haul td { background: rgba(74,222,128,0.07); }
   .tk { font-weight: 700; color: var(--text); letter-spacing: 0.04em; }
-  .mname { color: var(--text3); font-size: 11px; font-family: 'Segoe UI', sans-serif; }
-  .cur { color: var(--text3); font-size: 10px; }
+  .mname { color: var(--text2); font-size: 12px; font-family: 'Segoe UI', sans-serif; }
+  .cur { color: var(--text2); font-size: 12px; }
   .pos { color: var(--green); } .neg { color: var(--red); }
   .muted { color: var(--text2); }
   .empty { color: var(--text3); font-size: 13px; padding: 1rem 0; }
-  .credit { margin-top: 1.5rem; font-size: 11px; color: var(--text3); font-family: var(--mono); }
+  .credit { margin-top: 1.5rem; font-size: 12px; color: var(--text2); font-family: var(--mono); }
+
+  .break { flex-basis: 100%; height: 0; }
+  .input-x { display: inline-flex; align-items: stretch; }
+  .input-x input { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+  .xbtn { background: var(--bg3); border: 1px solid var(--border); border-left: none; border-top-right-radius: var(--radius); border-bottom-right-radius: var(--radius); color: var(--text2); padding: 0 10px; font-size: 16px; line-height: 1; cursor: pointer; }
+  .xbtn:hover { color: var(--red); border-color: var(--border2); }
+  .qty-input { width: 74px; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); padding: 4px 6px; font-size: 13px; font-family: var(--mono); text-align: right; outline: none; }
+  .qty-input:focus { border-color: var(--accent); }
+  .qty-input.over { border-color: var(--red); color: var(--red); }
+  .mini-btn { float: right; font-size: 11px; font-weight: 600; letter-spacing: 0.03em; text-transform: none; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text2); padding: 3px 10px; cursor: pointer; }
+  .mini-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .calc-toggle-row { display: flex; align-items: center; gap: 10px; margin-bottom: 0.5rem; }
+  .calc-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text2); }
+  .summary-stat.over-cap strong { color: var(--red); }
+  .xit-btn { margin-left: auto; font-size: 13px; font-weight: 600; background: #1e3a5f; border: 1px solid var(--accent); border-radius: var(--radius); color: var(--accent); padding: 7px 14px; cursor: pointer; }
+  .xit-btn:hover { background: #26487a; }
+  #xitOut { margin: 0.5rem 0 1rem; }
+  .export-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; }
+  .export-card-head { font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .export-card-desc { font-size: 12px; color: var(--text2); margin-bottom: 0.75rem; }
+  .export-output { font-size: 12px; font-family: var(--mono); background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; white-space: pre-wrap; word-break: break-all; max-height: 160px; overflow-y: auto; color: var(--text2); margin-bottom: 8px; }
+  .export-actions { display: flex; align-items: center; gap: 8px; }
+  .export-actions button { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); padding: 7px 14px; font-size: 13px; cursor: pointer; }
+  .export-actions button:hover { border-color: var(--accent); }
+  .copy-success { font-size: 12px; color: var(--green); font-family: var(--mono); }
 </style>
 </head>
 <body>
@@ -77,13 +102,15 @@
   <div class="ctrl"><label>Use / sell at (home)</label><select id="toEx" class="ex"></select></div>
   <div class="ctrl"><label>Mode</label>
     <div class="mode-toggle">
-      <button class="mode-btn active" id="modeUse" data-mode="use">Bring back &amp; use</button>
-      <button class="mode-btn" id="modeSell" data-mode="sell">Buy &amp; resell</button>
+      <button class="mode-btn active" id="modeSell" data-mode="sell">Buy &amp; resell</button>
+      <button class="mode-btn" id="modeUse" data-mode="use">Bring back &amp; use</button>
     </div>
   </div>
+  <div class="break"></div>
   <div class="ctrl"><label id="rateLabel">Rate</label><input id="rate" class="num" type="number" min="0" step="0.0001" value="1" /></div>
-  <div class="ctrl"><label>Cargo weight (t)</label><input id="capW" class="num" type="number" min="0" step="1" placeholder="e.g. 500" /></div>
-  <div class="ctrl"><label>Cargo volume (m³)</label><input id="capV" class="num" type="number" min="0" step="1" placeholder="e.g. 500" /></div>
+  <div class="ctrl"><label>Available weight (t)</label><div class="input-x"><input id="capW" class="num" type="number" min="0" step="1" /><button class="xbtn" data-clear="capW" title="Clear">×</button></div></div>
+  <div class="ctrl"><label>Available space (m³)</label><div class="input-x"><input id="capV" class="num" type="number" min="0" step="1" /><button class="xbtn" data-clear="capV" title="Clear">×</button></div></div>
+  <div class="ctrl"><label>Show top</label><input id="topN" class="num" type="number" min="1" step="1" value="10" /></div>
   <div class="ctrl"><label>Budget (buy cur, optional)</label><input id="budget" class="num" type="number" min="0" step="1" placeholder="∞" /></div>
   <div class="ctrl"><label>Min units liquidity</label><input id="minUnits" class="num" type="number" min="0" step="1" value="1" /></div>
   <button class="primary" id="refreshBtn">Refresh prices ↻</button>
@@ -110,7 +137,12 @@ const BASE = 'https://rest.fnar.net';
 let _px = {};    // `${ticker}|${ex}` -> { Ask, Bid, Supply, Demand }
 let _mat = {};   // ticker -> { weight, volume, name, cat }
 let _loaded = false;
-let _mode = 'use';
+let _mode = 'sell';
+let _qty = {};     // ticker -> quantity entered in the opportunities table
+let _candMap = {}; // ticker -> candidate, for live qty recompute
+let _calcMode = 'suggested'; // top box totals: 'suggested' (auto haul) or 'manual' (your quantities)
+let _lastHaul = null, _lastCtx = null;
+let _xitOpen = false; // has the user opened the XIT buy box? keep it live once shown
 
 const num = (v, d = 2) => (v == null || isNaN(v)) ? '—' : (+v).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: d });
 const intf = v => (v == null || isNaN(v)) ? '—' : Math.round(v).toLocaleString('en-US');
@@ -155,6 +187,8 @@ function recompute() {
   const capV   = +document.getElementById('capV').value || 0;
   const budget = +document.getElementById('budget').value || 0;
   const minU   = Math.max(0, +document.getElementById('minUnits').value || 0);
+  const topNRaw = +document.getElementById('topN').value;
+  const topN   = topNRaw > 0 ? topNRaw : Infinity;
   const fromCur = EX[fromEx].cur, toCur = EX[toEx].cur;
   const status = document.getElementById('status');
 
@@ -196,6 +230,7 @@ function recompute() {
     });
   }
   cands.sort((a, b) => b.metric - a.metric);
+  _candMap = {}; cands.forEach(c => { _candMap[c.ticker] = c; });
 
   // Greedy cargo fill (2-constraint): rank by profit per fraction of hold consumed.
   let haul = null;
@@ -215,6 +250,7 @@ function recompute() {
       if (qty <= 0) continue;
       picked.push({ ...c, qty, totMetric: qty * c.metric, totW: qty * c.weight, totV: qty * c.volume, totSpend: qty * c.buyAsk });
       remW -= qty * c.weight; remV -= qty * c.volume; remB -= qty * c.buyAsk;
+      if (picked.length >= topN) break;
     }
     haul = {
       picked,
@@ -235,26 +271,31 @@ function render(cands, haul, ctx) {
   const results = document.getElementById('results');
   const metricLabel = _mode === 'use' ? 'Save/u' : 'Profit/u';
   const refLabel = _mode === 'use' ? `${toEx} Ask` : `${toEx} Bid`;
-  const haulProfitLabel = _mode === 'use' ? 'Haul saving' : 'Haul profit';
-  const inHaul = {}; if (haul) haul.picked.forEach(p => inHaul[p.ticker] = p.qty);
+  _lastHaul = haul; _lastCtx = ctx;
 
-  let html = `<div class="summary">
-    <div class="summary-stat stat-accent"><strong>${cands.length}</strong><span>Opportunities</span></div>`;
-  if (haul) {
-    html += `
-    <div class="summary-stat stat-green"><strong>${intf(haul.profit)}</strong><span>${haulProfitLabel} (${toCur})</span></div>
-    <div class="summary-stat"><strong>${intf(haul.spend)}</strong><span>Spend (${fromCur})</span></div>
-    <div class="summary-stat stat-orange"><strong>${intf(haul.usedW)}${capW > 0 ? '/' + intf(capW) : ''}</strong><span>Weight t</span></div>
-    <div class="summary-stat stat-orange"><strong>${intf(haul.usedV)}${capV > 0 ? '/' + intf(capV) : ''}</strong><span>Volume m³</span></div>`;
-  }
-  html += '</div>';
+  let html = `<div class="calc-toggle-row">
+    <span class="calc-label">Top totals</span>
+    <div class="mode-toggle">
+      <button class="mode-btn calc-btn ${_calcMode === 'suggested' ? 'active' : ''}" data-calc="suggested">Suggested</button>
+      <button class="mode-btn calc-btn ${_calcMode === 'manual' ? 'active' : ''}" data-calc="manual">Manual</button>
+    </div>
+    <button id="xitBtn" class="xit-btn">⇩ XIT · Buy all</button>
+  </div>
+  <div class="summary" id="summaryBox">
+    <div class="summary-stat stat-accent"><strong id="sOpps">—</strong><span>Opportunities</span></div>
+    <div class="summary-stat stat-green"><strong id="sProfit">—</strong><span id="sProfitLbl">Profit</span></div>
+    <div class="summary-stat"><strong id="sSpend">—</strong><span id="sSpendLbl">Spend</span></div>
+    <div class="summary-stat stat-orange"><strong id="sWeight">—</strong><span>Weight t</span></div>
+    <div class="summary-stat stat-orange"><strong id="sSpace">—</strong><span>Space m³</span></div>
+  </div>
+  <div id="xitOut"></div>`;
 
   // Suggested haul
   if (haul) {
     if (haul.picked.length === 0) {
       html += '<div class="section-head">Suggested haul</div><div class="empty">Nothing fits / no positive opportunities for the given capacity.</div>';
     } else {
-      html += `<div class="section-head">Suggested haul — fills your ship by profit density</div>`;
+      html += `<div class="section-head">Suggested haul — best items to fill your ship</div>`;
       html += `<div class="table-wrap"><table><thead><tr>
         <th class="l">Material</th><th>Qty</th><th>Buy @${fromEx}</th><th>${metricLabel}</th>
         <th>Total (${toCur})</th><th>Weight t</th><th>Volume m³</th><th>Spend (${fromCur})</th></tr></thead><tbody>`;
@@ -272,33 +313,131 @@ function render(cands, haul, ctx) {
       html += '</tbody></table></div>';
     }
   } else {
-    html += '<div class="note">Enter your ship’s cargo weight &amp; volume above to get a suggested haul that fills the hold by profit density.</div>';
+    html += '<div class="note">Enter your ship’s available weight &amp; space above — the tool suggests the best items to fill it, most profitable first (capped at "Show top").</div>';
   }
 
-  // All opportunities
-  html += `<div class="section-head">All opportunities — ${fromEx} (${fromCur}) → ${toEx} (${toCur})</div>`;
+  // All opportunities — enter a quantity per row; totals scale live.
+  html += `<div class="section-head">All opportunities — ${fromEx} (${fromCur}) → ${toEx} (${toCur})<button id="resetQty" class="mini-btn">Reset qty → 0</button></div>`;
   if (cands.length === 0) {
     html += '<div class="empty">No materials are cheaper at ' + fromEx + ' for this mode.</div>';
   } else {
     html += `<div class="table-wrap"><table><thead><tr>
-      <th class="l">Material</th><th>Buy @${fromEx}</th><th>→ ${toCur}</th><th>${refLabel}</th>
-      <th>${metricLabel}</th><th>/ m³</th><th>/ t</th><th>Max qty</th><th>In haul</th></tr></thead><tbody>`;
+      <th class="l">Material</th><th>Buy @${fromEx}</th><th>${refLabel}</th><th>${metricLabel}</th>
+      <th>Qty</th><th>Total (${toCur})</th><th>Weight t</th><th>Volume m³</th><th>Spend (${fromCur})</th><th>Max</th></tr></thead><tbody>`;
     cands.forEach(c => {
-      const hq = inHaul[c.ticker];
-      html += `<tr${hq ? ' class="in-haul"' : ''}>
+      const q = _qty[c.ticker] != null ? _qty[c.ticker] : 0;
+      const over = q > c.maxQty ? ' over' : '';
+      html += `<tr data-ticker="${c.ticker}">
         <td class="l"><span class="tk">${c.ticker}</span> <span class="mname">${c.name}</span></td>
         <td>${num(c.buyAsk)} <span class="cur">${fromCur}</span></td>
-        <td class="muted">${num(c.buyConv)}</td>
         <td>${num(c.refPrice)} <span class="cur">${toCur}</span></td>
         <td class="pos">${num(c.metric)}</td>
-        <td>${c.perM3 != null ? num(c.perM3) : '—'}</td>
-        <td>${c.perT != null ? num(c.perT) : '—'}</td>
-        <td>${intf(c.maxQty)}</td>
-        <td>${hq ? '<span class="pos">' + intf(hq) + '</span>' : '<span class="cur">—</span>'}</td></tr>`;
+        <td><input type="number" min="0" class="qty-input${over}" data-ticker="${c.ticker}" value="${q}"></td>
+        <td class="pos total-cell">${intf(c.metric * q)}</td>
+        <td class="muted wt-cell">${num(c.weight * q, 2)}</td>
+        <td class="muted vol-cell">${num(c.volume * q, 2)}</td>
+        <td class="spend-cell">${intf(c.buyAsk * q)}</td>
+        <td class="muted">${intf(c.maxQty)}</td></tr>`;
     });
     html += '</tbody></table></div>';
   }
   results.innerHTML = html;
+
+  results.querySelectorAll('.qty-input').forEach(inp => inp.addEventListener('input', () => {
+    _qty[inp.dataset.ticker] = Math.max(0, +inp.value || 0);
+    updateOppRow(inp.dataset.ticker);
+  }));
+  const rq = document.getElementById('resetQty');
+  if (rq) rq.addEventListener('click', () => {
+    results.querySelectorAll('.qty-input').forEach(inp => { _qty[inp.dataset.ticker] = 0; inp.value = 0; updateOppRow(inp.dataset.ticker); });
+  });
+  results.querySelectorAll('.calc-btn').forEach(b => b.addEventListener('click', () => {
+    _calcMode = b.dataset.calc;
+    results.querySelectorAll('.calc-btn').forEach(x => x.classList.toggle('active', x === b));
+    renderSummaryBox();
+    if (_xitOpen) renderXit();
+  }));
+  const xb = document.getElementById('xitBtn'); if (xb) xb.addEventListener('click', renderXit);
+  renderSummaryBox();
+  if (_xitOpen) renderXit();
+}
+
+// Build an XIT "CX Buy" cart for the current selection (suggested haul or manual quantities).
+function renderXit() {
+  _xitOpen = true;
+  const ctx = _lastCtx; if (!ctx) return;
+  const out = document.getElementById('xitOut'); if (!out) return;
+  const fromEx = ctx.fromEx;
+  const mats = {};
+  if (_calcMode === 'manual') {
+    Object.keys(_qty).forEach(t => { if (_qty[t] > 0 && _candMap[t]) mats[t] = _qty[t]; });
+  } else if (_lastHaul) {
+    _lastHaul.picked.forEach(p => { mats[p.ticker] = p.qty; });
+  }
+  const n = Object.keys(mats).length;
+  if (n === 0) {
+    out.innerHTML = '<div class="note">Nothing to buy yet — set quantities (Manual) or a ship capacity (Suggested), then click XIT again.</div>';
+    return;
+  }
+  const cart = {
+    actions: [{ group: "A1", exchange: fromEx, priceLimits: {}, buyPartial: false, useCXInv: true, name: "BuyItems", type: "CX Buy" }],
+    global: { name: "CX Arbitrage — " + fromEx + " buy" },
+    groups: [{ type: "Manual", name: "A1", materials: mats }]
+  };
+  const str = JSON.stringify(cart);
+  out.innerHTML = `<div class="export-card">
+    <div class="export-card-head">XIT · CX Buy at ${fromEx} — ${n} material${n !== 1 ? 's' : ''} (${_calcMode})</div>
+    <div class="export-card-desc">Paste into an in-game XIT buffer to buy these at ${fromEx}. Review the cost in-game before executing.</div>
+    <div class="export-output" id="xitJson"></div>
+    <div class="export-actions"><button id="xitCopy">Copy to clipboard</button><span class="copy-success" id="xitCopyOk" style="display:none">✓ Copied!</span></div>
+  </div>`;
+  document.getElementById('xitJson').textContent = str;
+  document.getElementById('xitCopy').addEventListener('click', () => {
+    navigator.clipboard.writeText(str).then(() => { const s = document.getElementById('xitCopyOk'); s.style.display = 'inline'; setTimeout(() => s.style.display = 'none', 2000); });
+  });
+}
+
+// Fill the top summary box from either the suggested haul or the manual quantities.
+function renderSummaryBox() {
+  const ctx = _lastCtx; if (!ctx) return;
+  const g = id => document.getElementById(id);
+  if (!g('summaryBox')) return;
+  const { fromCur, toCur, capW, capV } = ctx;
+  g('sOpps').textContent = Object.keys(_candMap).length;
+  g('sSpendLbl').textContent = 'Spend (' + fromCur + ')';
+
+  let profit = 0, spend = 0, weight = 0, volume = 0, have = false;
+  if (_calcMode === 'manual') {
+    Object.keys(_candMap).forEach(t => {
+      const c = _candMap[t], q = _qty[t] != null ? _qty[t] : 0;
+      profit += c.metric * q; spend += c.buyAsk * q; weight += c.weight * q; volume += c.volume * q;
+    });
+    have = true;
+    g('sProfitLbl').textContent = (_mode === 'use' ? 'Manual saving' : 'Manual profit') + ' (' + toCur + ')';
+  } else {
+    if (_lastHaul) { profit = _lastHaul.profit; spend = _lastHaul.spend; weight = _lastHaul.usedW; volume = _lastHaul.usedV; have = true; }
+    g('sProfitLbl').textContent = (_mode === 'use' ? 'Haul saving' : 'Haul profit') + ' (' + toCur + ')';
+  }
+  g('sProfit').textContent = have ? intf(profit) : '—';
+  g('sSpend').textContent  = have ? intf(spend)  : '—';
+  g('sWeight').textContent = have ? (intf(weight) + (capW > 0 ? '/' + intf(capW) : '')) : '—';
+  g('sSpace').textContent  = have ? (intf(volume) + (capV > 0 ? '/' + intf(capV) : '')) : '—';
+  g('sWeight').parentElement.classList.toggle('over-cap', capW > 0 && weight > capW);
+  g('sSpace').parentElement.classList.toggle('over-cap', capV > 0 && volume > capV);
+}
+
+// Live-update one opportunity row's scaling cells from its quantity.
+function updateOppRow(t) {
+  const c = _candMap[t]; if (!c) return;
+  const q = _qty[t] != null ? _qty[t] : 0;
+  const row = document.querySelector(`tr[data-ticker="${t}"]`); if (!row) return;
+  row.querySelector('.total-cell').textContent = intf(c.metric * q);
+  row.querySelector('.wt-cell').textContent = num(c.weight * q, 2);
+  row.querySelector('.vol-cell').textContent = num(c.volume * q, 2);
+  row.querySelector('.spend-cell').textContent = intf(c.buyAsk * q);
+  const inp = row.querySelector('.qty-input'); if (inp) inp.classList.toggle('over', q > c.maxQty);
+  renderSummaryBox();
+  if (_xitOpen) renderXit();
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
@@ -308,8 +447,11 @@ document.querySelectorAll('.mode-btn').forEach(b => b.addEventListener('click', 
   document.querySelectorAll('.mode-btn').forEach(x => x.classList.toggle('active', x === b));
   recompute();
 }));
-['fromEx', 'toEx', 'rate', 'capW', 'capV', 'budget', 'minUnits'].forEach(id =>
+['fromEx', 'toEx', 'rate', 'capW', 'capV', 'topN', 'budget', 'minUnits'].forEach(id =>
   document.getElementById(id).addEventListener('input', recompute));
+document.querySelectorAll('.xbtn').forEach(b => b.addEventListener('click', () => {
+  document.getElementById(b.dataset.clear).value = ''; recompute();
+}));
 document.getElementById('refreshBtn').addEventListener('click', loadData);
 loadData();
 </script>
