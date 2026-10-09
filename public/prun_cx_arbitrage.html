@@ -124,13 +124,15 @@
 <script>
 // Exchange code → { name, system, currency }. Currency follows the code prefix
 // (AI→AIC, CI→CIS, IC→ICA, NC→NCC); AI1/IC1 confirmed against FIO's per-ticker endpoint.
+// Exchange code → { display name, currency, warehouse name (for XIT transfer origin) }.
+// Warehouse names + codes confirmed against PRUNplanner's xitConstants.
 const EX = {
-  AI1: { name: 'Antares Station', sys: 'ZV-307', cur: 'AIC' },
-  CI1: { name: 'Antares II',      sys: 'ZV-759', cur: 'CIS' },
-  CI2: { name: 'Arclight',        sys: 'AM-783', cur: 'CIS' },
-  IC1: { name: 'Hortus Station',  sys: 'VH-331', cur: 'ICA' },
-  NC1: { name: 'Moria Station',   sys: 'OT-580', cur: 'NCC' },
-  NC2: { name: 'Benten / Katoa',  sys: 'UV-351', cur: 'NCC' },
+  AI1: { name: 'Antares Station',  cur: 'AIC', wh: 'Antares Station Warehouse' },
+  CI1: { name: 'Benten Station',   cur: 'CIS', wh: 'Benten Station Warehouse' },
+  CI2: { name: 'Arclight Station', cur: 'CIS', wh: 'Arclight Station Warehouse' },
+  IC1: { name: 'Hortus Station',   cur: 'ICA', wh: 'Hortus Station Warehouse' },
+  NC1: { name: 'Moria Station',    cur: 'NCC', wh: 'Moria Station Warehouse' },
+  NC2: { name: 'Hubur Station',    cur: 'NCC', wh: 'Hubur Station Warehouse' },
 };
 const BASE = 'https://rest.fnar.net';
 
@@ -143,9 +145,68 @@ let _candMap = {}; // ticker -> candidate, for live qty recompute
 let _calcMode = 'suggested'; // top box totals: 'suggested' (auto haul) or 'manual' (your quantities)
 let _lastHaul = null, _lastCtx = null;
 let _xitOpen = false; // has the user opened the XIT buy box? keep it live once shown
+let _book = {};   // `${ticker}|${ex}` -> { asks:[{c,p}] asc, bids:[{c,p}] desc } order-book depth
+const AUTO_DEPTH = 60; // auto-load order books when the candidate list is this small
 
 const num = (v, d = 2) => (v == null || isNaN(v)) ? '—' : (+v).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: d });
 const intf = v => (v == null || isNaN(v)) ? '—' : Math.round(v).toLocaleString('en-US');
+
+// ── Order-book depth ──────────────────────────────────────────────────────────
+// asks = SellingOrders (you buy, cheapest first); bids = BuyingOrders (you sell into, highest first).
+async function ensureBooks(pairs) {
+  const missing = pairs.filter(([t, e]) => !_book[`${t}|${e}`]);
+  if (!missing.length) return false;
+  await Promise.all(missing.map(async ([t, e]) => {
+    try {
+      const j = await (await fetch(`${BASE}/exchange/${t}.${e}`)).json();
+      const mk = arr => (arr || []).filter(o => o.ItemCount != null && o.ItemCost != null).map(o => ({ c: o.ItemCount, p: o.ItemCost }));
+      _book[`${t}|${e}`] = { asks: mk(j.SellingOrders).sort((a, b) => a.p - b.p), bids: mk(j.BuyingOrders).sort((a, b) => b.p - a.p) };
+    } catch (err) { _book[`${t}|${e}`] = { asks: [], bids: [] }; }
+  }));
+  return true;
+}
+// Cost/revenue to fill n units by walking a price ladder.
+function walk(ladder, n) {
+  let rem = n, tot = 0;
+  for (const o of ladder) { if (rem <= 0) break; const take = Math.min(rem, o.c); tot += take * o.p; rem -= take; }
+  return tot;
+}
+// Units that stay profitable: take while the next sell price beats the next buy price × rate.
+function profitableQty(cost, value, rate) {
+  let qty = 0, ci = 0, vi = 0, cRem = cost[0] ? cost[0].c : 0, vRem = value[0] ? value[0].c : 0;
+  while (ci < cost.length && vi < value.length) {
+    if (value[vi].p <= cost[ci].p * rate) break;
+    const take = Math.min(cRem, vRem);
+    qty += take; cRem -= take; vRem -= take;
+    if (cRem <= 0) { ci++; cRem = cost[ci] ? cost[ci].c : 0; }
+    if (vRem <= 0) { vi++; vRem = value[vi] ? value[vi].c : 0; }
+  }
+  return qty;
+}
+// Max units buyable for a budget by walking the ask ladder.
+function maxQtyForBudget(c, budget) {
+  if (!isFinite(budget)) return Infinity;
+  if (!c.hasBook) return c.buyAsk > 0 ? Math.floor(budget / c.buyAsk) : Infinity;
+  let rem = budget, qty = 0;
+  for (const o of c.costLadder) { if (rem <= 0) break; const take = Math.min(o.c, Math.floor(rem / o.p)); qty += take; rem -= take * o.p; if (take < o.c) break; }
+  return qty;
+}
+// Attach depth (ladders, profitable qty) to a candidate from the book cache.
+function attachDepth(c, fromEx, toEx, rate) {
+  const sb = _book[`${c.ticker}|${fromEx}`], db = _book[`${c.ticker}|${toEx}`];
+  if (sb && db) {
+    c.hasBook = true;
+    c.costLadder = sb.asks;
+    c.valueLadder = _mode === 'sell' ? db.bids : db.asks;
+    c.profQty = profitableQty(c.costLadder, c.valueLadder, rate);
+  } else {
+    c.hasBook = false; c.costLadder = null; c.valueLadder = null; c.profQty = c.maxQty;
+  }
+}
+// True spend / value / profit for n units — walked when a book is loaded, else naive top-of-book.
+function costOf(c, n)         { return c.hasBook ? walk(c.costLadder, n)  : n * c.buyAsk; }
+function valueOf(c, n)        { return c.hasBook ? walk(c.valueLadder, n) : n * c.refPrice; }
+function profitOf(c, n, rate) { return valueOf(c, n) - costOf(c, n) * rate; }
 
 function fillExchanges() {
   const f = document.getElementById('fromEx'), t = document.getElementById('toEx');
@@ -171,6 +232,7 @@ async function loadData() {
     ex.forEach(e => { _px[`${e.MaterialTicker}|${e.ExchangeCode}`] = { Ask: e.Ask, Bid: e.Bid, Supply: e.Supply, Demand: e.Demand }; });
     _mat = {};
     mat.forEach(m => { _mat[m.Ticker] = { weight: m.Weight, volume: m.Volume, name: m.Name, cat: m.CategoryName }; });
+    _book = {};
     _loaded = true;
     recompute();
   } catch (e) {
@@ -200,56 +262,60 @@ function recompute() {
     return;
   }
 
-  // Build candidate opportunities.
+  // Scan: top-of-book candidates from the aggregate feed.
   const cands = [];
   for (const ticker in _mat) {
     const buy = _px[`${ticker}|${fromEx}`];
     const ref = _px[`${ticker}|${toEx}`];
-    if (!buy || buy.Ask == null || buy.Ask <= 0) continue;        // must be buyable at source
-    const buyConv = buy.Ask * rate;                                // source price in home currency
-    let refPrice, maxQty, demandOk = true;
+    if (!buy || buy.Ask == null || buy.Ask <= 0) continue;
+    const buyConv = buy.Ask * rate;
+    let refPrice, maxQty;
     if (_mode === 'use') {
-      if (!ref || ref.Ask == null || ref.Ask <= 0) continue;       // need a home buy price to compare against
-      refPrice = ref.Ask;
-      maxQty = buy.Supply || 0;                                    // limited by what's for sale at source
+      if (!ref || ref.Ask == null || ref.Ask <= 0) continue;
+      refPrice = ref.Ask; maxQty = buy.Supply || 0;
     } else {
-      if (!ref || ref.Bid == null || ref.Bid <= 0) continue;       // need buyers at home
-      refPrice = ref.Bid;
-      maxQty = Math.min(buy.Supply || 0, ref.Demand || 0);         // buy what's offered, sell what's wanted
+      if (!ref || ref.Bid == null || ref.Bid <= 0) continue;
+      refPrice = ref.Bid; maxQty = Math.min(buy.Supply || 0, ref.Demand || 0);
     }
-    const metric = refPrice - buyConv;                             // saving (use) or profit (sell) per unit, in home cur
+    const metric = refPrice - buyConv;            // top-of-book per-unit spread (indicative)
     if (metric <= 0) continue;
     if (maxQty < minU) continue;
     const m = _mat[ticker];
-    cands.push({
+    const c = {
       ticker, name: m.name, weight: m.weight || 0, volume: m.volume || 0,
       buyAsk: buy.Ask, buyConv, refPrice, metric, maxQty,
       supply: buy.Supply || 0, demand: ref.Demand || 0,
-      perT: m.weight > 0 ? metric / m.weight : null,
-      perM3: m.volume > 0 ? metric / m.volume : null,
-    });
+    };
+    attachDepth(c, fromEx, toEx, rate);           // true depth if the book is cached
+    cands.push(c);
   }
   cands.sort((a, b) => b.metric - a.metric);
   _candMap = {}; cands.forEach(c => { _candMap[c.ticker] = c; });
 
-  // Greedy cargo fill (2-constraint): rank by profit per fraction of hold consumed.
+  // Suggested haul — depth-aware greedy: each material up to its profitable qty,
+  // ranked by true profit per fraction of hold consumed.
   let haul = null;
   if (capW > 0 || capV > 0) {
     const W = capW > 0 ? capW : Infinity, V = capV > 0 ? capV : Infinity, B = budget > 0 ? budget : Infinity;
-    const scored = cands.filter(c => (c.weight > 0 || c.volume > 0)).map(c => {
-      const frac = (c.weight > 0 && capW > 0 ? c.weight / capW : 0) + (c.volume > 0 && capV > 0 ? c.volume / capV : 0);
-      return { c, score: frac > 0 ? c.metric / frac : c.metric };
-    }).sort((a, b) => b.score - a.score);
+    const scored = cands.map(c => {
+      const cap = c.hasBook ? c.profQty : c.maxQty;
+      if (cap <= 0) return null;
+      const frac = (c.weight > 0 && capW > 0 ? cap * c.weight / capW : 0) + (c.volume > 0 && capV > 0 ? cap * c.volume / capV : 0);
+      const prof = profitOf(c, cap, rate);
+      return { c, cap, score: frac > 0 ? prof / frac : prof };
+    }).filter(Boolean).sort((a, b) => b.score - a.score);
     let remW = W, remV = V, remB = B;
     const picked = [];
-    for (const { c } of scored) {
-      let qty = c.maxQty;
+    for (const { c, cap } of scored) {
+      let qty = cap;
       if (c.weight > 0) qty = Math.min(qty, Math.floor(remW / c.weight));
       if (c.volume > 0) qty = Math.min(qty, Math.floor(remV / c.volume));
-      if (c.buyAsk > 0 && isFinite(remB)) qty = Math.min(qty, Math.floor(remB / c.buyAsk));
+      qty = Math.min(qty, maxQtyForBudget(c, remB));
       if (qty <= 0) continue;
-      picked.push({ ...c, qty, totMetric: qty * c.metric, totW: qty * c.weight, totV: qty * c.volume, totSpend: qty * c.buyAsk });
-      remW -= qty * c.weight; remV -= qty * c.volume; remB -= qty * c.buyAsk;
+      const prof = profitOf(c, qty, rate); if (prof <= 0) continue;
+      const spend = costOf(c, qty);
+      picked.push({ ...c, qty, totMetric: prof, totW: qty * c.weight, totV: qty * c.volume, totSpend: spend });
+      remW -= qty * c.weight; remV -= qty * c.volume; remB -= spend;
       if (picked.length >= topN) break;
     }
     haul = {
@@ -261,15 +327,23 @@ function recompute() {
     };
   }
 
-  render(cands, haul, { fromEx, toEx, fromCur, toCur, capW, capV });
+  render(cands, haul, { fromEx, toEx, fromCur, toCur, capW, capV, rate });
+  const depthN = cands.filter(c => c.hasBook).length;
   const metricWord = _mode === 'use' ? 'cheaper to buy here' : 'resale spread';
-  status.textContent = `${cands.length} material${cands.length !== 1 ? 's' : ''} ${metricWord} at ${fromEx} vs ${toEx}.`;
+  status.textContent = `${cands.length} material${cands.length !== 1 ? 's' : ''} ${metricWord} at ${fromEx} vs ${toEx}` +
+    (cands.length ? ` · order-book depth ${depthN}/${cands.length}` : '') + '.';
+
+  // Auto-load order books when the candidate list is small (e.g. resell mode).
+  if (cands.length > 0 && cands.length <= AUTO_DEPTH) {
+    const pairs = [];
+    cands.forEach(c => { pairs.push([c.ticker, fromEx]); pairs.push([c.ticker, toEx]); });
+    if (pairs.some(([t, e]) => !_book[`${t}|${e}`])) ensureBooks(pairs).then(f => { if (f) recompute(); });
+  }
 }
 
 function render(cands, haul, ctx) {
-  const { fromEx, toEx, fromCur, toCur, capW, capV } = ctx;
+  const { fromEx, toEx, fromCur, toCur, capW, capV, rate } = ctx;
   const results = document.getElementById('results');
-  const metricLabel = _mode === 'use' ? 'Save/u' : 'Profit/u';
   const refLabel = _mode === 'use' ? `${toEx} Ask` : `${toEx} Bid`;
   _lastHaul = haul; _lastCtx = ctx;
 
@@ -295,16 +369,15 @@ function render(cands, haul, ctx) {
     if (haul.picked.length === 0) {
       html += '<div class="section-head">Suggested haul</div><div class="empty">Nothing fits / no positive opportunities for the given capacity.</div>';
     } else {
-      html += `<div class="section-head">Suggested haul — best items to fill your ship</div>`;
+      html += `<div class="section-head">Suggested haul — best items to fill your ship (profitable qty only)</div>`;
       html += `<div class="table-wrap"><table><thead><tr>
-        <th class="l">Material</th><th>Qty</th><th>Buy @${fromEx}</th><th>${metricLabel}</th>
+        <th class="l">Material</th><th>Qty</th><th>Buy @${fromEx}</th>
         <th>Total (${toCur})</th><th>Weight t</th><th>Volume m³</th><th>Spend (${fromCur})</th></tr></thead><tbody>`;
       haul.picked.forEach(p => {
         html += `<tr class="in-haul">
           <td class="l"><span class="tk">${p.ticker}</span> <span class="mname">${p.name}</span></td>
           <td>${intf(p.qty)}</td>
           <td>${num(p.buyAsk)} <span class="cur">${fromCur}</span></td>
-          <td class="pos">${num(p.metric)}</td>
           <td class="pos">${intf(p.totMetric)}</td>
           <td>${num(p.totW, 1)}</td>
           <td>${num(p.totV, 1)}</td>
@@ -316,36 +389,48 @@ function render(cands, haul, ctx) {
     html += '<div class="note">Enter your ship’s available weight &amp; space above — the tool suggests the best items to fill it, most profitable first (capped at "Show top").</div>';
   }
 
-  // All opportunities — enter a quantity per row; totals scale live.
+  // All opportunities — enter a quantity per row; Total/Spend walk the real order book.
   html += `<div class="section-head">All opportunities — ${fromEx} (${fromCur}) → ${toEx} (${toCur})<button id="resetQty" class="mini-btn">Reset qty → 0</button></div>`;
   if (cands.length === 0) {
     html += '<div class="empty">No materials are cheaper at ' + fromEx + ' for this mode.</div>';
   } else {
+    html += `<div class="note">Prices and Spread/u are top-of-book (first unit). <strong>Total</strong> and <strong>Spend</strong> walk the real order book for your Qty; <strong>Worth up to</strong> is the quantity that stays profitable.</div>`;
     html += `<div class="table-wrap"><table><thead><tr>
-      <th class="l">Material</th><th>Buy @${fromEx}</th><th>${refLabel}</th><th>${metricLabel}</th>
-      <th>Qty</th><th>Total (${toCur})</th><th>Weight t</th><th>Volume m³</th><th>Spend (${fromCur})</th><th>Max</th></tr></thead><tbody>`;
+      <th class="l">Material</th><th>Buy @${fromEx}</th><th>${refLabel}</th><th>Spread/u</th>
+      <th>Qty</th><th>Total (${toCur})</th><th>Weight t</th><th>Volume m³</th><th>Spend (${fromCur})</th><th>Worth up to</th></tr></thead><tbody>`;
     cands.forEach(c => {
       const q = _qty[c.ticker] != null ? _qty[c.ticker] : 0;
-      const over = q > c.maxQty ? ' over' : '';
+      const prof = profitOf(c, q, rate);
+      const over = q > c.profQty ? ' over' : '';
       html += `<tr data-ticker="${c.ticker}">
         <td class="l"><span class="tk">${c.ticker}</span> <span class="mname">${c.name}</span></td>
         <td>${num(c.buyAsk)} <span class="cur">${fromCur}</span></td>
         <td>${num(c.refPrice)} <span class="cur">${toCur}</span></td>
         <td class="pos">${num(c.metric)}</td>
         <td><input type="number" min="0" class="qty-input${over}" data-ticker="${c.ticker}" value="${q}"></td>
-        <td class="pos total-cell">${intf(c.metric * q)}</td>
+        <td class="total-cell ${prof < 0 ? 'neg' : 'pos'}">${intf(prof)}</td>
         <td class="muted wt-cell">${num(c.weight * q, 2)}</td>
         <td class="muted vol-cell">${num(c.volume * q, 2)}</td>
-        <td class="spend-cell">${intf(c.buyAsk * q)}</td>
-        <td class="muted">${intf(c.maxQty)}</td></tr>`;
+        <td class="spend-cell">${intf(costOf(c, q))}</td>
+        <td class="prof-cell ${c.hasBook ? '' : 'muted'}">${intf(c.profQty)}${c.hasBook ? '' : ' ~'}</td></tr>`;
     });
     html += '</tbody></table></div>';
   }
   results.innerHTML = html;
 
   results.querySelectorAll('.qty-input').forEach(inp => inp.addEventListener('input', () => {
-    _qty[inp.dataset.ticker] = Math.max(0, +inp.value || 0);
-    updateOppRow(inp.dataset.ticker);
+    const t = inp.dataset.ticker;
+    _qty[t] = Math.max(0, +inp.value || 0);
+    const c = _candMap[t];
+    if (c && !c.hasBook && _lastCtx) {
+      ensureBooks([[t, _lastCtx.fromEx], [t, _lastCtx.toEx]]).then(() => {
+        attachDepth(c, _lastCtx.fromEx, _lastCtx.toEx, _lastCtx.rate);
+        const pc = document.querySelector(`tr[data-ticker="${t}"] .prof-cell`);
+        if (pc) { pc.textContent = intf(c.profQty); pc.classList.remove('muted'); }
+        updateOppRow(t);
+      });
+    }
+    updateOppRow(t);
   }));
   const rq = document.getElementById('resetQty');
   if (rq) rq.addEventListener('click', () => {
@@ -379,9 +464,14 @@ function renderXit() {
     out.innerHTML = '<div class="note">Nothing to buy yet — set quantities (Manual) or a ship capacity (Suggested), then click XIT again.</div>';
     return;
   }
+  // Mirrors PRUNplanner's working XIT ACT package: a CX Buy at the source exchange
+  // plus the mandatory MTRA transfer (origin = that station's warehouse, dest set on execution).
   const cart = {
-    actions: [{ group: "A1", exchange: fromEx, priceLimits: {}, buyPartial: false, useCXInv: true, name: "BuyItems", type: "CX Buy" }],
-    global: { name: "CX Arbitrage — " + fromEx + " buy" },
+    actions: [
+      { group: "A1", exchange: fromEx, priceLimits: {}, buyPartial: false, useCXInv: true, name: "BuyItems", type: "CX Buy" },
+      { type: "MTRA", name: "TransferAction", group: "A1", origin: EX[fromEx].wh, dest: "Configure on Execution" }
+    ],
+    global: { name: "CX Arbitrage " + fromEx },
     groups: [{ type: "Manual", name: "A1", materials: mats }]
   };
   const str = JSON.stringify(cart);
@@ -402,7 +492,7 @@ function renderSummaryBox() {
   const ctx = _lastCtx; if (!ctx) return;
   const g = id => document.getElementById(id);
   if (!g('summaryBox')) return;
-  const { fromCur, toCur, capW, capV } = ctx;
+  const { fromCur, toCur, capW, capV, rate } = ctx;
   g('sOpps').textContent = Object.keys(_candMap).length;
   g('sSpendLbl').textContent = 'Spend (' + fromCur + ')';
 
@@ -410,7 +500,7 @@ function renderSummaryBox() {
   if (_calcMode === 'manual') {
     Object.keys(_candMap).forEach(t => {
       const c = _candMap[t], q = _qty[t] != null ? _qty[t] : 0;
-      profit += c.metric * q; spend += c.buyAsk * q; weight += c.weight * q; volume += c.volume * q;
+      if (q > 0) { profit += profitOf(c, q, rate); spend += costOf(c, q); weight += c.weight * q; volume += c.volume * q; }
     });
     have = true;
     g('sProfitLbl').textContent = (_mode === 'use' ? 'Manual saving' : 'Manual profit') + ' (' + toCur + ')';
@@ -424,18 +514,23 @@ function renderSummaryBox() {
   g('sSpace').textContent  = have ? (intf(volume) + (capV > 0 ? '/' + intf(capV) : '')) : '—';
   g('sWeight').parentElement.classList.toggle('over-cap', capW > 0 && weight > capW);
   g('sSpace').parentElement.classList.toggle('over-cap', capV > 0 && volume > capV);
+  g('sProfit').parentElement.classList.toggle('over-cap', have && profit < 0);
 }
 
 // Live-update one opportunity row's scaling cells from its quantity.
 function updateOppRow(t) {
   const c = _candMap[t]; if (!c) return;
   const q = _qty[t] != null ? _qty[t] : 0;
+  const rate = _lastCtx ? _lastCtx.rate : 1;
   const row = document.querySelector(`tr[data-ticker="${t}"]`); if (!row) return;
-  row.querySelector('.total-cell').textContent = intf(c.metric * q);
+  const prof = profitOf(c, q, rate);
+  const tc = row.querySelector('.total-cell');
+  tc.textContent = intf(prof);
+  tc.classList.toggle('pos', prof >= 0); tc.classList.toggle('neg', prof < 0);
   row.querySelector('.wt-cell').textContent = num(c.weight * q, 2);
   row.querySelector('.vol-cell').textContent = num(c.volume * q, 2);
-  row.querySelector('.spend-cell').textContent = intf(c.buyAsk * q);
-  const inp = row.querySelector('.qty-input'); if (inp) inp.classList.toggle('over', q > c.maxQty);
+  row.querySelector('.spend-cell').textContent = intf(costOf(c, q));
+  const inp = row.querySelector('.qty-input'); if (inp) inp.classList.toggle('over', q > c.profQty);
   renderSummaryBox();
   if (_xitOpen) renderXit();
 }
