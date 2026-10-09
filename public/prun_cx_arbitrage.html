@@ -85,6 +85,12 @@
   .export-actions button { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); padding: 7px 14px; font-size: 13px; cursor: pointer; }
   .export-actions button:hover { border-color: var(--accent); }
   .copy-success { font-size: 12px; color: var(--green); font-family: var(--mono); }
+
+  .burn-row { display: none; align-items: flex-end; flex-wrap: wrap; gap: 12px 14px; flex-basis: 100%; padding-top: 2px; }
+  .burn-check { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text); cursor: pointer; white-space: nowrap; align-self: center; }
+  .burn-check input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+  .burn-check input:disabled { cursor: default; }
+  .burn-status { font-family: var(--mono); font-size: 12px; color: var(--text2); align-self: center; }
 </style>
 </head>
 <body>
@@ -114,12 +120,20 @@
   <div class="ctrl"><label>Budget (buy cur, optional)</label><input id="budget" class="num" type="number" min="0" step="1" placeholder="∞" /></div>
   <div class="ctrl"><label>Min units liquidity</label><input id="minUnits" class="num" type="number" min="0" step="1" value="1" /></div>
   <button class="primary" id="refreshBtn">Refresh prices ↻</button>
+  <div class="break"></div>
+  <div id="burnCtrls" class="burn-row">
+    <div class="ctrl"><label>FIO username</label><input id="fioUser" class="num" type="text" placeholder="username" autocomplete="off" /></div>
+    <div class="ctrl"><label>FIO API key</label><input id="fioKey" class="num" type="password" placeholder="FIO key" autocomplete="off" /></div>
+    <button class="primary" id="burnBtn">Load burn ↻</button>
+    <label class="burn-check"><input type="checkbox" id="burnOnly" disabled /> Only materials I burn</label>
+    <span class="burn-status" id="burnStatus">Load your burn to filter to what you actually consume.</span>
+  </div>
 </div>
 <div class="status" id="status">Loading live exchange data…</div>
 
 <div id="results"></div>
 
-<div class="credit">Live data from FIO (rest.fnar.net) — public exchange + material endpoints. No API key used.</div>
+<div class="credit">Live prices from FIO — public exchange + material feed (rest.fnar.net). The Bring-back burn filter uses your FIO key via the Swagger API (api.fnar.net); the key is stored only in your browser.</div>
 
 <script>
 // Exchange code → { name, system, currency }. Currency follows the code prefix
@@ -135,8 +149,11 @@ const EX = {
   NC2: { name: 'Hubur Station',    cur: 'NCC', wh: 'Hubur Station Warehouse' },
 };
 const BASE = 'https://rest.fnar.net';
+const SWAGGER = 'https://api.fnar.net';
 
 let _px = {};    // `${ticker}|${ex}` -> { Ask, Bid, Supply, Demand }
+let _burn = {};  // ticker -> units consumed per day (net), across all the user's bases
+let _burnLoaded = false;
 let _mat = {};   // ticker -> { weight, volume, name, cat }
 let _loaded = false;
 let _mode = 'sell';
@@ -252,6 +269,8 @@ function recompute() {
   const topNRaw = +document.getElementById('topN').value;
   const topN   = topNRaw > 0 ? topNRaw : Infinity;
   const fromCur = EX[fromEx].cur, toCur = EX[toEx].cur;
+  const burnChk = document.getElementById('burnOnly');
+  const burnOnly = _mode === 'use' && _burnLoaded && burnChk && burnChk.checked;
   const status = document.getElementById('status');
 
   document.getElementById('rateLabel').textContent = `${fromCur} → ${toCur} rate`;
@@ -265,6 +284,7 @@ function recompute() {
   // Scan: top-of-book candidates from the aggregate feed.
   const cands = [];
   for (const ticker in _mat) {
+    if (burnOnly && !_burn[ticker]) continue;   // keep only materials the user net-consumes
     const buy = _px[`${ticker}|${fromEx}`];
     const ref = _px[`${ticker}|${toEx}`];
     if (!buy || buy.Ask == null || buy.Ask <= 0) continue;
@@ -331,7 +351,8 @@ function recompute() {
   const depthN = cands.filter(c => c.hasBook).length;
   const metricWord = _mode === 'use' ? 'cheaper to buy here' : 'resale spread';
   status.textContent = `${cands.length} material${cands.length !== 1 ? 's' : ''} ${metricWord} at ${fromEx} vs ${toEx}` +
-    (cands.length ? ` · order-book depth ${depthN}/${cands.length}` : '') + '.';
+    (cands.length ? ` · order-book depth ${depthN}/${cands.length}` : '') +
+    (burnOnly ? ' · burn filter on' : '') + '.';
 
   // Auto-load order books when the candidate list is small (e.g. resell mode).
   if (cands.length > 0 && cands.length <= AUTO_DEPTH) {
@@ -345,6 +366,7 @@ function render(cands, haul, ctx) {
   const { fromEx, toEx, fromCur, toCur, capW, capV, rate } = ctx;
   const results = document.getElementById('results');
   const refLabel = _mode === 'use' ? `${toEx} Ask` : `${toEx} Bid`;
+  const useMode = _mode === 'use' && _burnLoaded;   // show Burn/day + Days once burn is loaded
   _lastHaul = haul; _lastCtx = ctx;
 
   let html = `<div class="calc-toggle-row">
@@ -372,13 +394,15 @@ function render(cands, haul, ctx) {
       html += `<div class="section-head">Suggested haul — best items to fill your ship (profitable qty only)</div>`;
       html += `<div class="table-wrap"><table><thead><tr>
         <th class="l">Material</th><th>Qty</th><th>Buy @${fromEx}</th>
-        <th>Total (${toCur})</th><th>Weight t</th><th>Volume m³</th><th>Spend (${fromCur})</th></tr></thead><tbody>`;
+        <th>Total (${toCur})</th>${useMode ? '<th>Burn/day</th><th>Days</th>' : ''}<th>Weight t</th><th>Volume m³</th><th>Spend (${fromCur})</th></tr></thead><tbody>`;
       haul.picked.forEach(p => {
+        const b = _burn[p.ticker];
         html += `<tr class="in-haul">
           <td class="l"><span class="tk">${p.ticker}</span> <span class="mname">${p.name}</span></td>
           <td>${intf(p.qty)}</td>
           <td>${num(p.buyAsk)} <span class="cur">${fromCur}</span></td>
           <td class="pos">${intf(p.totMetric)}</td>
+          ${useMode ? `<td class="muted">${b ? num(b, 1) : '—'}</td><td class="muted">${b ? num(p.qty / b, 0) : '—'}</td>` : ''}
           <td>${num(p.totW, 1)}</td>
           <td>${num(p.totV, 1)}</td>
           <td>${intf(p.totSpend)}</td></tr>`;
@@ -394,14 +418,15 @@ function render(cands, haul, ctx) {
   if (cands.length === 0) {
     html += '<div class="empty">No materials are cheaper at ' + fromEx + ' for this mode.</div>';
   } else {
-    html += `<div class="note">Prices and Spread/u are top-of-book (first unit). <strong>Total</strong> and <strong>Spend</strong> walk the real order book for your Qty; <strong>Worth up to</strong> is the quantity that stays profitable.</div>`;
+    html += `<div class="note">Prices and Spread/u are top-of-book (first unit). <strong>Total</strong> and <strong>Spend</strong> walk the real order book for your Qty; <strong>Worth up to</strong> is the quantity that stays profitable.${useMode ? ' <strong>Days</strong> = how long your Qty lasts at your burn rate.' : ''}</div>`;
     html += `<div class="table-wrap"><table><thead><tr>
       <th class="l">Material</th><th>Buy @${fromEx}</th><th>${refLabel}</th><th>Spread/u</th>
-      <th>Qty</th><th>Total (${toCur})</th><th>Weight t</th><th>Volume m³</th><th>Spend (${fromCur})</th><th>Worth up to</th></tr></thead><tbody>`;
+      <th>Qty</th><th>Total (${toCur})</th>${useMode ? '<th>Burn/day</th><th>Days</th>' : ''}<th>Weight t</th><th>Volume m³</th><th>Spend (${fromCur})</th><th>Worth up to</th></tr></thead><tbody>`;
     cands.forEach(c => {
       const q = _qty[c.ticker] != null ? _qty[c.ticker] : 0;
       const prof = profitOf(c, q, rate);
       const over = q > c.profQty ? ' over' : '';
+      const b = _burn[c.ticker];
       html += `<tr data-ticker="${c.ticker}">
         <td class="l"><span class="tk">${c.ticker}</span> <span class="mname">${c.name}</span></td>
         <td>${num(c.buyAsk)} <span class="cur">${fromCur}</span></td>
@@ -409,6 +434,7 @@ function render(cands, haul, ctx) {
         <td class="pos">${num(c.metric)}</td>
         <td><input type="number" min="0" class="qty-input${over}" data-ticker="${c.ticker}" value="${q}"></td>
         <td class="total-cell ${prof < 0 ? 'neg' : 'pos'}">${intf(prof)}</td>
+        ${useMode ? `<td class="muted burn-cell">${b ? num(b, 1) : '—'}</td><td class="muted days-cell">${b ? num(q / b, 0) : '—'}</td>` : ''}
         <td class="muted wt-cell">${num(c.weight * q, 2)}</td>
         <td class="muted vol-cell">${num(c.volume * q, 2)}</td>
         <td class="spend-cell">${intf(costOf(c, q))}</td>
@@ -530,16 +556,65 @@ function updateOppRow(t) {
   row.querySelector('.wt-cell').textContent = num(c.weight * q, 2);
   row.querySelector('.vol-cell').textContent = num(c.volume * q, 2);
   row.querySelector('.spend-cell').textContent = intf(costOf(c, q));
+  const dc = row.querySelector('.days-cell');
+  if (dc) { const b = _burn[t]; dc.textContent = b ? num(q / b, 0) : '—'; }
   const inp = row.querySelector('.qty-input'); if (inp) inp.classList.toggle('over', q > c.profQty);
   renderSummaryBox();
   if (_xitOpen) renderXit();
 }
 
+// ── Burn (FIO Swagger) ──────────────────────────────────────────────────────────
+// GET api.fnar.net/data/burn?username=<user> with "Authorization: FIOAPIKey <key>".
+// Sum OverallDelta per ticker across every base; negative = net-consumed → burn/day.
+async function loadBurn() {
+  const key = document.getElementById('fioKey').value.trim();
+  const user = document.getElementById('fioUser').value.trim();
+  const bs = document.getElementById('burnStatus');
+  const chk = document.getElementById('burnOnly');
+  if (!key || !user) { bs.textContent = 'Enter your FIO username and API key first.'; return; }
+  localStorage.setItem('prun_apikey', key);
+  localStorage.setItem('prun_username', user);
+  bs.textContent = 'Loading burn…';
+  try {
+    const res = await fetch(`${SWAGGER}/data/burn?username=${encodeURIComponent(user)}`, { headers: { Authorization: 'FIOAPIKey ' + key } });
+    if (!res.ok) { bs.textContent = `Burn load failed (HTTP ${res.status}${res.status === 401 ? ' — check your API key' : ''}).`; return; }
+    const j = await res.json();
+    const u2d = j.UserNameToData || {};
+    let block = null;
+    for (const k in u2d) { if (k.toLowerCase() === user.toLowerCase()) { block = u2d[k]; break; } }
+    if (!block) block = Object.values(u2d)[0] || null;
+    if (block && block.Errors && block.Errors.length) { bs.textContent = 'FIO: ' + block.Errors.join('; '); return; }
+    const data = (block && block.Data) || [];
+    const delta = {};
+    let bases = 0;
+    data.forEach(pl => { bases++; (pl.Inventory || []).forEach(it => {
+      if (it.MaterialTicker != null && it.OverallDelta != null) delta[it.MaterialTicker] = (delta[it.MaterialTicker] || 0) + it.OverallDelta;
+    }); });
+    _burn = {};
+    for (const t in delta) { if (delta[t] < -1e-9) _burn[t] = -delta[t]; }
+    _burnLoaded = true;
+    const n = Object.keys(_burn).length;
+    bs.textContent = `Burn loaded — ${n} material${n !== 1 ? 's' : ''} consumed across ${bases} base${bases !== 1 ? 's' : ''}.`;
+    chk.disabled = false;
+    recompute();
+  } catch (e) { bs.textContent = 'Burn error: ' + e.message; }
+}
+
+function applyModeUI() {
+  document.getElementById('burnCtrls').style.display = _mode === 'use' ? 'flex' : 'none';
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 fillExchanges();
-document.querySelectorAll('.mode-btn').forEach(b => b.addEventListener('click', () => {
+document.getElementById('fioKey').value = localStorage.getItem('prun_apikey') || '';
+document.getElementById('fioUser').value = localStorage.getItem('prun_username') || localStorage.getItem('prun_fiouser') || '';
+document.getElementById('burnBtn').addEventListener('click', loadBurn);
+document.getElementById('burnOnly').addEventListener('change', recompute);
+applyModeUI();
+document.querySelectorAll('.mode-btn[data-mode]').forEach(b => b.addEventListener('click', () => {
   _mode = b.dataset.mode;
-  document.querySelectorAll('.mode-btn').forEach(x => x.classList.toggle('active', x === b));
+  document.querySelectorAll('.mode-btn[data-mode]').forEach(x => x.classList.toggle('active', x === b));
+  applyModeUI();
   recompute();
 }));
 ['fromEx', 'toEx', 'rate', 'capW', 'capV', 'topN', 'budget', 'minUnits'].forEach(id =>
