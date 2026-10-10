@@ -4,6 +4,8 @@ A browser-based toolsuite for [Prosperous Universe](https://prosperousuniverse.c
 
 Static site — no backend, no server. Drop it in a browser, paste your FIO API key, and go.
 
+**Live at [prun-toolset.onrender.com](https://prun-toolset.onrender.com)** — free static hosting on Render, auto-deployed from `main`. The tool launcher is at [`/home.html`](https://prun-toolset.onrender.com/home.html).
+
 ---
 
 ## Flight Planner
@@ -108,27 +110,33 @@ Each workstream ships the same doc set: a peer **SUMMARY**, a **findings_public*
 
 ---
 
-## Other Tools
+## Tools
+
+The launcher (`public/home.html`) links the **8 tools curated for sharing**:
 
 | Tool | File | What it does |
 |------|------|-------------|
-| Star Map | `index.html` (React app) | Visual star map, resource and planet-condition filters, system-to-system routing |
-| Flight Planner | `public/prun_flight_planner.html` | Per-leg flight time, fuel, damage and shield recommendations — real fleet or hypothetical build |
-| Planet Compare | `public/prun_planet_compare.html` | Side-by-side planet comparison for production chain planning — COGC, resources, costs, worker requirements |
-| Ship Builder | `public/prun_ship_builder.html` | Compare up to 3 ship builds side-by-side — stats, BOM, build time |
-| Fleet Status | `public/prun_fleet_status.html` | Live fleet positions and status |
-| Fleet Repair | `public/prun_fleet_repair.html` | Aggregate repair materials across fleet → XIT ACT import |
-| Base Repair | `public/prun_base_repair.html` | Building conditions per base, shortfall vs inventory → XIT ACT import |
-| Infra Upkeep | `public/prun_infra_upkeep.html` | Infrastructure upkeep and upgrade costs → XIT ACT import |
-| HQ Upgrade | `public/prun_hq_upgrade.html` | HQ upgrade material planner |
-| Recipe Finder | `public/prun_recipe_finder.html` | Full recipe tree — what a ticker needs, what you can make with it, cross-linked |
-| Sell Finder | `public/prun_sell_finder.html` | Best exchange for a ticker at current BID prices, fill simulation, jump distance from origin |
-| Corp Prices | `public/prun_corp_prices.html` | Corp contract prices vs IC1 CX ask — discount badges, watchlist |
-| Price Converter | `public/prun_price_convert.html` | Google Sheets corp price schedule → PrUn Planner CX CSV |
+| Map & Planet Finder | `index.html` (React app) | Visual galaxy map, resource and planet-condition filters, system-to-system routing |
+| Flight Planner | `public/prun_flight_planner.html` | Per-leg flight time, fuel, damage and shield recommendations — real fleet or hypothetical build (see above) |
+| CX Arbitrage | `public/prun_cx_arbitrage.html` | Cross-exchange price gaps, order-book-depth-aware profit, cargo-fit haul, burn filter (bring-back mode), XIT buy export |
+| HQ Upgrade | `public/prun_hq_upgrade.html` | From/to HQ level material cost vs your storage by location → XIT export |
+| Fleet Repair | `public/prun_fleet_repair.html` | Aggregate repair materials across selected ships vs base/warehouse inventory → XIT Buy + Transfer |
+| Recipe Finder | `public/prun_recipe_finder.html` | Drill down & across any material — recipes, inputs and outputs, cross-linked |
 | Quick Orders | `public/prun_quick_orders.html` | Fast XIT ACT import for ad-hoc material lists |
-| Flight Log | `public/prun_flight_log.html` | Passive flight recorder — detects completed flights, accumulates calibration data |
+| Sell Finder | `public/prun_sell_finder.html` | Best exchange for a ticker at current BID prices, fill simulation, jump distance from origin |
 
-`public/home.html` is the dashboard that links to all of the above.
+Also in the repo but **not linked** from the launcher — kept for refinement, reachable by direct URL:
+
+| Tool | File | Status |
+|------|------|--------|
+| Planet Compare | `public/prun_planet_compare.html` | Side-by-side planet comparison (COGC, resources, costs); needs a review pass |
+| Ship Builder | `public/prun_ship_builder.html` | Compare up to 3 ship builds; WIP — will tie into Flight Planner |
+| Infra Upkeep | `public/prun_infra_upkeep.html` | Infrastructure upkeep/upgrade costs → XIT; under review |
+| Price Converter | `public/prun_price_convert.html` | Corp price schedule → PrUn Planner CX CSV; niche |
+| Corp Prices | `public/prun_corp_prices.html` | Corp contract prices vs IC1 CX ask; needs UI changes |
+| Fleet Status | `public/prun_fleet_status.html` | Live fleet positions; largely covered by Refined PrUn now |
+| Base Repair | `public/prun_base_repair.html` | Building conditions vs inventory → XIT; largely covered by Refined PrUn |
+| Flight Log | `public/prun_flight_log.html` | Passive flight recorder — accumulates calibration data |
 
 ---
 
@@ -146,9 +154,12 @@ Each workstream ships the same doc set: a peer **SUMMARY**, a **findings_public*
 
 No install. Open `home.html` in a browser (or run `npm run dev` for the React star map).
 
-Paste your FIO REST API key (`rest.fnar.net`) in the header on first load — it saves to `localStorage` as `prun_apikey` and pre-fills on return visits. Keys are shared across all tools via `localStorage`. No keys are hardcoded or committed anywhere, and there is no `config.js`.
+There are **two different FIO API keys** and they are **not interchangeable** — each tool asks for the one it needs:
 
-For flight planner real-fleet mode, a FIO Swagger API key (`api.fnar.net`) is also required — different from the REST key. Create one via `POST /auth/createapikey` after authenticating with your FIO password.
+- **FIO REST key** (`rest.fnar.net`, raw `Authorization: <key>` header) — saved to `localStorage` as `prun_apikey`, shared across all the REST tools (Fleet Repair, HQ Upgrade, Sell Finder, Corp Prices, …) and pre-filled on return visits.
+- **FIO Swagger key** (`api.fnar.net`, `Authorization: FIOAPIKey <key>` header) — a separate key, stored in its own slot `prun_swaggerkey` so it never overwrites the REST key. Used by the Flight Planner (real-fleet mode: `/ships`, `/storage`) and by CX Arbitrage's burn filter (`/data/burn`).
+
+No keys are hardcoded or committed anywhere, and there is no `config.js`.
 
 For Planet Compare, a PrUn Planner API key (`api.prunplanner.org`) is required — it saves to `localStorage` as `prun_ppkey`. That API supplies buildings, recipes and planet search, including the pre-computed `active_cogc_program_type` field (no COGC epoch filtering needed) and per-resource `daily_extraction`.
 
@@ -160,10 +171,11 @@ For the Flight Log tool, a PUNoted data token (`api.punoted.net`) is required �
 
 Non-obvious things that cost real time to work out, kept here so they aren't rediscovered.
 
-**XIT ACT JSON export** (Base Repair, Fleet Repair, Infra Upkeep, Quick Orders)
+**XIT ACT JSON export** (Base Repair, Fleet Repair, Infra Upkeep, Quick Orders, HQ Upgrade, CX Arbitrage)
 - `type` must be `"CX Buy"` — with a space, not an underscore.
 - A top-level `global: { name: "..." }` field is mandatory. Without it PrUn imports the action as broken/red.
 - `groups[].materials` is an object `{ticker: amount}`, not an array.
+- A buy-only package won't import — the game needs the matching `MTRA` transfer action alongside the `CX Buy` (`origin` = the source station's warehouse, `dest` = `"Configure on Execution"`). This mirrors PRUNplanner's working `useXITAction` export; confirmed in-game.
 
 **FIO repair-material field names** — the nested fields are `RepairMaterials[].MaterialTicker` and `.MaterialAmount`, not `Ticker` / `Amount`. Storage matching is the other trap: `store.AddressableId` can be a SiteId UUID rather than a planet natural ID, so resolve SiteId → PlanetNaturalId from the sites list. Matching on `type === 'BASE'` matches every base at once and is wrong.
 

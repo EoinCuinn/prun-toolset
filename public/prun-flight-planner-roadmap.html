@@ -88,6 +88,15 @@
   <div class="goal"><strong>End goal:</strong> Enter origin, destination, and ship → get exact flight time, exact fuel cost, accurate damage projection, and condition alert. Works for any route in the galaxy. Real fleet or hypothetical build.</div>
 </header>
 
+<div class="resolved-box" style="border-color:rgba(79,142,247,0.35);background:rgba(79,142,247,0.06);">
+  <div class="resolved-title" style="color:#6aa0f9;">● Current status — 2026-10-10</div>
+  The whole toolset is now <strong>deployed live</strong> as a free static site on Render — <strong>prun-toolset.onrender.com</strong> — auto-deployed from <code>main</code>. The Flight Planner is one of <strong>8 tools curated for sharing</strong> on the launcher (<code>/home.html</code>).
+  <br><br>
+  <strong>Flight Planner physics — calibrated &amp; validated in-browser:</strong> flight time; take-off / landing / transit fuel (<code>fuel = 336.9 × flow × √(dist/accel_eff)</code> — derived, not fitted); landing distance (missionId-seeded PRNG, planet_term ± 15%); meteor damage (R²=0.9989); ship empty mass (exact BOM) &amp; hull volume (86/87 within 1%).
+  <br><br>
+  <strong>Still open:</strong> DEP-segment fuel ~6% low (departure thrust term unfitted); radiation damage confirmed real but implementation parked (path-integration + non-O-class calibration); FTL / Gateway routing (Phase 6) not yet started.
+</div>
+
 <div class="legend">
   <div class="legend-item"><div class="legend-dot" style="background:var(--p3)"></div> Complete</div>
   <div class="legend-item"><div class="legend-dot" style="background:var(--p4)"></div> In Progress</div>
