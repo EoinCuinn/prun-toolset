@@ -71,16 +71,17 @@
   .home-link {
     font-family: var(--mono);
     font-size: 11px;
-    color: var(--dim);
+    color: var(--accent);
+    background: #1e3a5f;
     text-decoration: none;
     letter-spacing: 0.05em;
-    border: 1px solid var(--border);
+    border: 1px solid var(--accent);
     padding: 5px 10px;
     border-radius: 3px;
-    transition: color 0.15s, border-color 0.15s;
+    transition: background 0.15s;
     white-space: nowrap;
   }
-  .home-link:hover { color: var(--text); border-color: var(--border2); }
+  .home-link:hover { background: #26487a; }
 
   /* ── Search ── */
   .input-row {
