@@ -55,9 +55,24 @@
 
   .config-row {
     display: flex;
-    gap: 8px;
+    gap: 8px 10px;
     margin-bottom: 0.75rem;
     flex-wrap: wrap;
+    align-items: flex-end;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 160px;
+  }
+  .field label {
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text2);
+    font-family: var(--mono);
   }
 
   input[type="text"] {
@@ -73,6 +88,7 @@
     outline: none;
     transition: border-color 0.15s;
   }
+  .field input[type="text"] { flex: none; width: 100%; min-width: 0; }
   input[type="text"]:focus { border-color: var(--accent); }
 
   button {
@@ -344,11 +360,17 @@
 <h1>Fleet Repair</h1>
 
 <div class="config-row">
-  <input id="username" type="text" placeholder="PrUn username..." />
-  <input id="apikey" type="text" placeholder="FIO API key (same key as all tools)..." />
+  <div class="field">
+    <label for="username">PrUn Username</label>
+    <input id="username" type="text" placeholder="PrUn username..." />
+  </div>
+  <div class="field">
+    <label for="apikey">FIO REST API Key</label>
+    <input id="apikey" type="text" placeholder="FIO REST API key..." />
+  </div>
   <button class="primary" id="loadBtn">Load fleet ↗</button>
 </div>
-<div class="status" id="status">Enter your PrUn username and FIO API key to load fleet data.</div>
+<div class="status" id="status">Enter your PrUn username and FIO REST API key to load fleet data.</div>
 <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:1rem;">⚿ API key and username are saved in your browser only — never sent anywhere except FIO.</div>
 <div class="layout">
   <div id="results"></div>
