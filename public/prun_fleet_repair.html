@@ -371,7 +371,7 @@
   <button class="primary" id="loadBtn">Load fleet ↗</button>
 </div>
 <div class="status" id="status">Enter your PrUn username and FIO REST API key to load fleet data.</div>
-<div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:1rem;">⚿ API key and username are saved in your browser only — never sent anywhere except FIO.</div>
+<div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:1rem;">⚿ API key and username are saved in your browser only — never sent anywhere except FIO.<br>Inventory counts base &amp; warehouse storage only — ship cargo holds are excluded (can't repair from a ship's own hold, and FIO ship data is often stale).</div>
 <div class="layout">
   <div id="results"></div>
   <aside id="xitPanel"></aside>
@@ -507,16 +507,26 @@ async function loadAll() {
       sites.forEach(s => { if (s.SiteId && s.PlanetName) siteMap[s.SiteId] = s.PlanetName; });
     }
 
+    // Ship cargo holds must NOT count as available repair inventory: repairs draw from
+    // base/warehouse storage, and FIO ship-hold data is frequently stale (materials long
+    // since consumed can still show). Collect ship names/registrations so we can skip them.
+    const shipStoreNames = new Set();
+    ships.forEach(sh => {
+      if (sh.Registration) shipStoreNames.add(String(sh.Registration).trim());
+      if (sh.Name) shipStoreNames.add(String(sh.Name).trim());
+    });
+
     // Inventory map
     const inventory = {};
     if (storageRes.ok) {
       const storageData = await storageRes.json();
       storageData.forEach(loc => {
-        if (loc.Type === 'STL_FUEL_STORE' || loc.Type === 'FTL_FUEL_STORE') return;
+        if (loc.Type === 'STL_FUEL_STORE' || loc.Type === 'FTL_FUEL_STORE' || loc.Type === 'SHIP_STORE') return;
         let locName = loc.Name;
         if (!locName && loc.AddressableId && siteMap[loc.AddressableId]) locName = siteMap[loc.AddressableId];
         if (!locName && loc.StorageId && siteMap[loc.StorageId]) locName = siteMap[loc.StorageId];
         if (!locName) locName = loc.Type === 'WAREHOUSE_STORE' ? 'Warehouse' : 'Unknown';
+        if (shipStoreNames.has(locName)) return;   // belt-and-suspenders: skip any ship hold
         (loc.StorageItems || []).forEach(item => {
           const ticker = item.MaterialTicker || '?';
           const qty = item.MaterialAmount || 0;
