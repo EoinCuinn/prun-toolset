@@ -460,7 +460,7 @@ function pillWithTooltip(ticker, qty, cssClass) {
   } else {
     tooltipHtml = producers.slice(0, 3).map(p => {
       const bInfo = buildingMap[p.building] || {};
-      const exp   = bInfo.expertise ? ' <span style="color:var(--green);font-size:10px">· ' + bInfo.expertise + '</span>' : '';
+      const exp   = bInfo.expertise ? ' <span style="color:var(--green);font-size:11px">· ' + bInfo.expertise + '</span>' : '';
       const wf    = [];
       if (bInfo.pioneers)    wf.push(bInfo.pioneers    + ' PI');
       if (bInfo.settlers)    wf.push(bInfo.settlers    + ' SE');
