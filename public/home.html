@@ -416,23 +416,6 @@
   <!-- LEFT COLUMN -->
   <div class="left-col">
 
-    <!-- Session -->
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">Session</span>
-      </div>
-      <div class="panel-body" style="font-size:10px;color:var(--text-dim);line-height:2">
-        <div>Player: <span id="playerName" style="color:var(--accent)">—</span></div>
-        <div>Playstyle: <span style="color:var(--text-mid)">Casual · ~20 min/day</span></div>
-        <div id="api-status">FIO: <span style="color:var(--text-dim)">checking...</span></div>
-        <div style="margin-top:8px">
-          <input id="homeUser" type="text" placeholder="FIO username" autocomplete="off" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:11px;padding:4px 8px;border-radius:3px;outline:none;width:100%;margin-bottom:6px" oninput="saveHomeUser()" />
-          <input id="homeApiKey" type="password" placeholder="FIO REST API key" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:11px;padding:4px 8px;border-radius:3px;outline:none;width:100%" oninput="saveHomeKey()" />
-          <div style="font-size:9px;color:var(--text-dim);margin-top:5px;line-height:1.5">Uses your FIO <span style="color:var(--text-mid)">REST</span> API key &middot; <span style="color:var(--text-mid)">rest.fnar.net</span></div>
-        </div>
-      </div>
-    </div>
-
     <!-- Tool Launcher -->
     <div class="panel">
       <div class="panel-header">
@@ -489,40 +472,7 @@
 </div>
 
 <script>
-function getUsername() { return localStorage.getItem('prun_fiouser') || ''; }
-function getApiKey() { return localStorage.getItem('prun_apikey') || ''; }
-const BASE = 'https://rest.fnar.net';
-
-async function fio(path) {
-  const r = await fetch(`${BASE}${path}`, {
-    headers: { 'Authorization': getApiKey() }
-  });
-  if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
-  return r.json();
-}
-
-function fmtNum(n) {
-  if (n === null || n === undefined) return '—';
-  return Math.round(n).toLocaleString();
-}
-
-function fmtPct(n) {
-  return Math.round(n) + '%';
-}
-
-function fmtETA(isoStr) {
-  if (!isoStr) return '—';
-  const d = new Date(isoStr);
-  const now = new Date();
-  const diff = d - now;
-  if (diff < 0) return 'Arrived';
-  const h = Math.floor(diff / 3600000);
-  const m = Math.floor((diff % 3600000) / 60000);
-  if (h > 48) return `${Math.floor(h/24)}d ${h%24}h`;
-  return `${h}h ${m}m`;
-}
-
-// Clock
+// Header clock
 function updateClock() {
   const now = new Date();
   document.getElementById('header-time').textContent =
@@ -532,39 +482,6 @@ function updateClock() {
 }
 updateClock();
 setInterval(updateClock, 1000);
-
-// ── API STATUS ──
-async function checkApiStatus() {
-  try {
-    if (!getApiKey()) throw new Error('no key — enter FIO API key below');
-    if (!getUsername()) throw new Error('no username — enter FIO username below');
-    await fio(`/sites/${getUsername()}`);
-    document.getElementById('api-status').innerHTML =
-      'FIO: <span style="color:var(--green)">Connected ✓</span>';
-  } catch(e) {
-    document.getElementById('api-status').innerHTML =
-      'FIO: <span style="color:var(--red)">' + e.message + '</span>';
-  }
-}
-
-function saveHomeKey() {
-  const key = document.getElementById('homeApiKey')?.value?.trim();
-  if (key) localStorage.setItem('prun_apikey', key);
-}
-
-function saveHomeUser() {
-  const user = document.getElementById('homeUser')?.value?.trim();
-  if (user) localStorage.setItem('prun_fiouser', user);
-  document.getElementById('playerName').textContent = user || '—';
-}
-
-// ── INIT ──
-const _homeKey = localStorage.getItem('prun_apikey') || '';
-if (_homeKey) document.getElementById('homeApiKey').value = _homeKey;
-const _homeUser = localStorage.getItem('prun_fiouser') || '';
-if (_homeUser) document.getElementById('homeUser').value = _homeUser;
-document.getElementById('playerName').textContent = _homeUser || '—';
-checkApiStatus();
 </script>
 </body>
 </html>
