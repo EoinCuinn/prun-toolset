@@ -234,7 +234,7 @@ function App() {
           display: 'inline-block',
         }}
       >
-        ⌂ HOME
+        ⌂ Tools
       </a>
 
       <div style={{
