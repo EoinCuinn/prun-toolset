@@ -296,12 +296,12 @@
 <div class="add-form">
   <div class="ticker-wrap">
     <span class="add-label-text">Ticker</span>
-    <input type="text" id="newTicker" placeholder="SF" maxlength="6" style="text-transform:uppercase;width:90px" autocomplete="off" />
+    <input type="text" id="newTicker" placeholder="Ticker" maxlength="6" style="text-transform:uppercase;width:90px" autocomplete="off" />
     <div class="autocomplete-list" id="acList" style="display:none"></div>
   </div>
   <label class="add-label">
     Quantity
-    <input type="number" id="newQty" placeholder="10000" min="1" />
+    <input type="number" id="newQty" placeholder="Qty" min="1" />
   </label>
   <label class="add-label">
     Exchange
@@ -526,15 +526,6 @@ document.getElementById('addBtn').addEventListener('click', () => {
 document.getElementById('newQty').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('addBtn').click();
 });
-
-// Seed defaults if empty
-const existing = loadOrders();
-if (existing.length === 0) {
-  saveOrders([
-    { ticker: 'SF', qty: 10000, exchange: 'IC1' },
-    { ticker: 'H2O', qty: 20000, exchange: 'IC1' },
-  ]);
-}
 
 document.getElementById('copyAllBtn').addEventListener('click', () => {
   const orders = loadOrders();
