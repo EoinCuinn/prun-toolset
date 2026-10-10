@@ -337,7 +337,6 @@
     <input type="text" id="ticker" placeholder="e.g. HAL, FEO, GL, W..." maxlength="8" autocomplete="off" />
     <div class="autocomplete-list" id="acList" style="display:none"></div>
   </div>
-  <button class="primary" id="searchBtn">Look up ↗</button>
 </div>
 <div class="status" id="status">Loading all recipes from FIO...</div>
 <div class="breadcrumb" id="breadcrumb"></div>
@@ -544,7 +543,6 @@ async function loadRecipes() {
 
     document.getElementById('status').textContent = allRecipes.length.toLocaleString() + ' recipes loaded. Enter a ticker to search.';
     document.getElementById('ticker').disabled = false;
-    document.getElementById('searchBtn').disabled = false;
   } catch(e) {
     document.getElementById('status').textContent = 'Could not reach FIO API. Check your connection.';
   }
@@ -670,8 +668,6 @@ function search() {
 }
 
 document.getElementById('ticker').disabled = true;
-document.getElementById('searchBtn').disabled = true;
-document.getElementById('searchBtn').addEventListener('click', search);
 
 loadRecipes();
 </script>
