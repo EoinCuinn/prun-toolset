@@ -455,7 +455,7 @@ function renderShopping(aggregate) {
   const xitStr = JSON.stringify(buildActJson(toBuyMaterials));
   xitPanel.innerHTML = `<div class="export-section">
       <div class="export-card">
-        <div class="export-card-head">Buy + Transfer</div>
+        <div class="export-card-head">XIT Buy + Transfer</div>
         <div class="export-card-desc">CX Buy missing repair materials at IC1, then MTRA from Hortus Station Warehouse → ship (configure on execution). ${hasBuyItems ? Object.keys(toBuyMaterials).length + ' item(s) to buy.' : 'Nothing to buy — all covered.'}</div>
         <div class="export-output" id="xitOut">${xitStr}</div>
         <div class="export-actions">

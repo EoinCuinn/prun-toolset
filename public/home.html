@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PrUn Command</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
-
   :root {
     --bg: #0f1117;
     --bg2: #13161f;
@@ -25,8 +23,8 @@
     --text-dim: #5a6278;
     --text-mid: #8892a4;
     --border: rgba(79,142,247,0.18);
-    --mono: 'Share Tech Mono', monospace;
-    --display: 'Orbitron', monospace;
+    --mono: 'Courier New', monospace;
+    --display: 'Segoe UI', system-ui, sans-serif;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -34,7 +32,7 @@
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: var(--mono);
+    font-family: 'Segoe UI', system-ui, sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
   }
@@ -439,7 +437,7 @@
     <div class="panel">
       <div class="panel-header">
         <span class="panel-title">Tools</span>
-        <span class="panel-badge">13 ACTIVE</span>
+        <span class="panel-badge">8 ACTIVE</span>
       </div>
       <div class="panel-body">
         <div class="tool-grid">
@@ -451,7 +449,7 @@
           <a class="tool-card" href="prun_recipe_finder.html">
             <div class="tool-icon">⚗️</div>
             <div class="tool-name">Recipe<br>Finder</div>
-            <div class="tool-desc">Look up any ticker, browse all recipes</div>
+            <div class="tool-desc">Drill down &amp; across any material — its recipes, inputs &amp; outputs</div>
           </a>
           <a class="tool-card" href="/">
             <div class="tool-icon">🌐</div>
@@ -463,35 +461,15 @@
             <div class="tool-name">HQ<br>Upgrade</div>
             <div class="tool-desc">From/To HQ level cost vs your storage by location · XIT</div>
           </a>
-          <a class="tool-card" href="prun_infra_upkeep.html">
-            <div class="tool-icon">🏛</div>
-            <div class="tool-name">Infra<br>Upkeep</div>
-            <div class="tool-desc">Planetary infrastructure upkeep & upgrade costs vs inventory</div>
-          </a>
           <a class="tool-card" href="prun_quick_orders.html">
             <div class="tool-icon">🛒</div>
             <div class="tool-name">Quick<br>Orders</div>
             <div class="tool-desc">Standing buy order templates · XIT ACT JSON · localStorage</div>
           </a>
-          <a class="tool-card" href="prun_price_convert.html">
-            <div class="tool-icon">💱</div>
-            <div class="tool-name">Price<br>Converter</div>
-            <div class="tool-desc">Fetch Empire price schedule · convert to PrunPlanner CX CSV</div>
-          </a>
           <a class="tool-card" href="prun_sell_finder.html">
             <div class="tool-icon">📈</div>
             <div class="tool-name">Sell<br>Finder</div>
             <div class="tool-desc">Best exchange to sell a material · live order book · fill simulation</div>
-          </a>
-          <a class="tool-card" href="prun_ship_builder.html">
-            <div class="tool-icon">🛸</div>
-            <div class="tool-name">Ship<br>Builder</div>
-            <div class="tool-desc">Configure & compare up to 3 ships · stats · BOM · build time</div>
-          </a>
-          <a class="tool-card" href="prun_corp_prices.html">
-            <div class="tool-icon">🏷️</div>
-            <div class="tool-name">Corp<br>Prices</div>
-            <div class="tool-desc">Corp contract prices vs IC1 CX ask · discount badges · watchlist</div>
           </a>
           <a class="tool-card" href="prun_cx_arbitrage.html">
             <div class="tool-icon">⚖️</div>
@@ -502,11 +480,6 @@
             <div class="tool-icon">🗺️</div>
             <div class="tool-name">Flight<br>Planner</div>
             <div class="tool-desc">Flight time · hull damage · fuel · per-leg breakdown · shield recommendations</div>
-          </a>
-          <a class="tool-card" href="prun_planet_compare.html">
-            <div class="tool-icon">🪐</div>
-            <div class="tool-name">Planet<br>Compare</div>
-            <div class="tool-desc">Compare planets for a production chain · COGC · resources · costs</div>
           </a>
         </div>
       </div>
