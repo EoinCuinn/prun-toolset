@@ -2155,5 +2155,17 @@ function primePlanetInSys(sysId) {
   await loadShips();        // auto-load the fleet (read-only key)
 })();
 </script>
+
+<footer style="margin-top:2rem;padding-top:1rem;border-top:1px solid var(--border);font-size:12px;color:var(--text2);line-height:1.6;">
+  <div style="color:var(--text);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:6px;">Status &amp; accuracy — work in progress</div>
+  Actively calibrated against real game data. Treat outputs as close estimates, not gospel.
+  <ul style="margin:6px 0 0;padding-left:18px;">
+    <li>Flight time ~1% · take-off / landing / transit fuel ~1% · meteor damage R²=0.9989 · ship mass &amp; volume 86/87 within 1%.</li>
+    <li>Landing distance is a deterministic ±15% band (exact only if the mission seed is known) — the planner shows the mean.</li>
+    <li>Known gaps: departure-segment fuel ~6% low; radiation damage not yet modelled; FTL / gateway routing not yet included.</li>
+  </ul>
+  <div style="margin-top:10px;color:var(--text);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Credits</div>
+  <div style="margin-top:4px;">The flight physics stands on the work of <strong>Marcus Licinius Crassus</strong> (flight-dynamics papers, landing-distance PRNG law, the derived fuel constant), <strong>Taiyi Bureau</strong> (take-off/landing distance formulas, universe map), <strong>Aem</strong> (radiation &amp; landing-damage datasets), and the <strong>FIO</strong> community. Full write-ups &amp; credits: <a href="https://github.com/EoinCuinn/prun-toolset" target="_blank" rel="noopener" style="color:var(--accent);">the repo</a>.</div>
+</footer>
 </body>
 </html>
