@@ -6,6 +6,8 @@ A browser-based toolset for [Prosperous Universe](https://prosperousuniverse.com
 
 No install, no accounts, no backend. Every tool runs entirely in your browser — open a link, paste your FIO API key, and go. Your key is stored only in your browser and talks straight to FIO; it never touches a server of mine. Built to be **fast and easy** — the tools load instantly and get out of your way.
 
+> **Built with Claude.** I'm not a developer — the research and validation here are mine, the code is AI-assisted. Expect rough edges; bug reports and feedback are very welcome.
+
 ---
 
 ## The tools
