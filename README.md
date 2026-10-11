@@ -35,7 +35,11 @@ Eight single-purpose tools. Click to open:
 - **FIO REST key** (`rest.fnar.net`) — used by most tools (Fleet Repair, HQ Upgrade, Sell Finder, …). Saved as `prun_apikey`.
 - **FIO Swagger key** (`api.fnar.net`) — a separate key, used by the Flight Planner (real-fleet mode) and CX Arbitrage's burn filter. Saved separately as `prun_swaggerkey`, so entering one never overwrites the other.
 
-Get both from [fio.fnar.net](https://fio.fnar.net) (log in → API Keys). They are **not** your game password, and no keys are ever hardcoded or committed. (Planet Compare additionally uses a PrunPlanner API key; the Flight Log uses a PUNoted token — see those tools.)
+**Getting the REST key** — from [fio.fnar.net](https://fio.fnar.net) (log in → API Keys).
+
+**Getting the Swagger key** — there is no web UI for this one; you mint it by calling the API itself. `POST https://api.fnar.net/auth/login` with `{"UserName","Password"}` returns a JWT, then `POST /auth/createapikey` with that `Authorization: Bearer <jwt>` and a body of `{"UserName","Password","ApplicationName","AllowWrites": false}` returns the key. `GET /auth/listapikeys` (with `Authorization: FIOAPIKey <key>`) lists any you already have. Endpoints are browsable at [api.fnar.net/swagger/v1/swagger.json](https://api.fnar.net/swagger/v1/swagger.json). Every tool here is read-only, so `AllowWrites: false` is correct.
+
+These are **FIO account** credentials — not your Prosperous Universe game password — and no keys are ever hardcoded or committed. (Planet Compare additionally uses a PrunPlanner API key; the Flight Log uses a PUNoted token — see those tools.)
 
 ---
 
