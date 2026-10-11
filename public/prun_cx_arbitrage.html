@@ -131,7 +131,7 @@
     <button class="primary" id="burnBtn">Load burn ↻</button>
     <label class="burn-check"><input type="checkbox" id="burnOnly" disabled /> Only materials I burn</label>
     <div class="break"></div>
-    <span class="burn-status" id="burnStatus">Needs your <strong>FIO Swagger key</strong> (the same one Flight Planner uses) — <strong>not</strong> your REST key; the REST tools use a different key. Manage keys at <a href="https://fio.fnar.net" target="_blank" rel="noopener">fio.fnar.net</a>. Resale mode needs no key.</span>
+    <span class="burn-status" id="burnStatus">Needs your <strong>FIO Swagger key</strong> (the same one Flight Planner uses) — <strong>not</strong> your REST key; the REST tools use a different key. The Swagger key is not issued by the fio.fnar.net site — mint it from the API: <code>POST api.fnar.net/auth/login</code> for a JWT, then <code>POST /auth/createapikey</code> with that bearer token (<code>AllowWrites: false</code>). See the <a href="https://github.com/EoinCuinn/prun-toolset#quick-start" target="_blank" rel="noopener">README</a>. Resale mode needs no key.</span>
   </div>
 </div>
 <div class="status" id="status">Loading live exchange data…</div>
