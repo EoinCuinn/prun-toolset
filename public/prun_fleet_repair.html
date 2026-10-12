@@ -315,6 +315,14 @@
   .copy-success { font-size: 12px; color: var(--green); font-family: var(--mono); }
   .ignore-store { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text2); cursor: pointer; font-family: var(--mono); white-space: nowrap; }
   .ignore-store input { accent-color: var(--accent); cursor: pointer; width: 14px; height: 14px; }
+  .bill-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .bill-label { font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--mono); white-space: nowrap; }
+  .bill-select { flex: 1; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); padding: 6px 8px; font-size: 13px; font-family: var(--mono); outline: none; }
+  .bill-select:focus { border-color: var(--accent); }
+  .bill-figure { font-family: var(--mono); margin: 4px 0 2px; }
+  .bill-figure strong { font-size: 22px; font-weight: 700; color: var(--green); }
+  .bill-cur { font-size: 12px; color: var(--text2); }
+  .bill-note { font-size: 11px; color: var(--text2); font-family: var(--mono); line-height: 1.5; }
 
   /* Two-column layout: main content (left) + XIT sidebar (right) */
   .layout { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 1.25rem; align-items: start; }
@@ -380,11 +388,22 @@
 </div>
 
 <script>
-function buildActJson(materials) {
+// Exchange code -> { name, currency, warehouse (for the MTRA transfer origin) }.
+const EXCHANGES = {
+  AI1: { name: 'Antares',  cur: 'AIC', wh: 'Antares Station Warehouse' },
+  CI1: { name: 'Benten',   cur: 'CIS', wh: 'Benten Station Warehouse' },
+  CI2: { name: 'Arclight', cur: 'CIS', wh: 'Arclight Station Warehouse' },
+  IC1: { name: 'Hortus',   cur: 'ICA', wh: 'Hortus Station Warehouse' },
+  NC1: { name: 'Moria',    cur: 'NCC', wh: 'Moria Station Warehouse' },
+  NC2: { name: 'Hubur',    cur: 'NCC', wh: 'Hubur Station Warehouse' },
+};
+
+function buildActJson(materials, exchange) {
+  const ex = EXCHANGES[exchange] ? exchange : 'IC1';
   return {
     actions: [
-      { group: "A1", exchange: "IC1", priceLimits: {}, buyPartial: false, useCXInv: true, name: "BuyItems", type: "CX Buy" },
-      { type: "MTRA", name: "TransferAction", group: "A1", origin: "Hortus Station Warehouse", dest: "Configure on Execution" }
+      { group: "A1", exchange: ex, priceLimits: {}, buyPartial: false, useCXInv: true, name: "BuyItems", type: "CX Buy" },
+      { type: "MTRA", name: "TransferAction", group: "A1", origin: EXCHANGES[ex].wh, dest: "Configure on Execution" }
     ],
     global: { name: "Fleet Repair" },
     groups: [{ type: "Manual", name: "A1", materials }]
@@ -395,6 +414,8 @@ function buildActJson(materials) {
 let _shipData = [];
 let _inventory = {};
 let _ignoreStorage = false;   // when true, ignore inventory entirely — buy the full amount needed
+let _prices = null;           // `${ticker}|${ex}` -> Ask price, from /exchange/all (public, no key)
+let _exchange = localStorage.getItem('prun_fr_exchange') || 'IC1';   // exchange to cost + buy at
 
 function recompute() {
   const selected = new Set([...document.querySelectorAll('.ship-select:checked')].map(cb => +cb.dataset.idx));
@@ -457,11 +478,35 @@ function renderShopping(aggregate) {
   shoppingSection.innerHTML = html;
 
   const hasBuyItems = Object.keys(toBuyMaterials).length > 0;
-  const xitStr = JSON.stringify(buildActJson(toBuyMaterials));
+  const ex = EXCHANGES[_exchange] ? _exchange : 'IC1';
+  const exInfo = EXCHANGES[ex];
+  const xitStr = JSON.stringify(buildActJson(toBuyMaterials, ex));
+
+  // Repair bill: each to-buy material × its current ask at the chosen exchange.
+  let billTotal = 0; const billMissing = [];
+  Object.entries(toBuyMaterials).forEach(([t, q]) => {
+    const ask = _prices ? _prices[`${t}|${ex}`] : null;
+    if (ask != null) billTotal += ask * q; else billMissing.push(t);
+  });
+  const exOptions = Object.keys(EXCHANGES).map(code =>
+    `<option value="${code}"${code === ex ? ' selected' : ''}>${code} · ${EXCHANGES[code].name}</option>`).join('');
+  let billBody;
+  if (!hasBuyItems) billBody = '<div class="bill-note">Nothing to buy — all covered ✓</div>';
+  else if (_prices === null) billBody = '<div class="bill-note">Fetching prices…</div>';
+  else billBody = `<div class="bill-figure"><strong>${Math.round(billTotal).toLocaleString()}</strong> <span class="bill-cur">${exInfo.cur}</span></div>
+        <div class="bill-note">${billMissing.length
+          ? billMissing.length + ' material(s) have no ask at ' + ex + ' — not in total (' + billMissing.join(', ') + ')'
+          : 'at current ask · ' + Object.keys(toBuyMaterials).length + ' material(s)'}</div>`;
+
   xitPanel.innerHTML = `<div class="export-section">
       <div class="export-card">
+        <div class="export-card-head">Repair bill</div>
+        <div class="bill-row"><span class="bill-label">Buy at</span><select id="xitExchange" class="bill-select">${exOptions}</select></div>
+        ${billBody}
+      </div>
+      <div class="export-card">
         <div class="export-card-head">XIT Buy + Transfer</div>
-        <div class="export-card-desc">CX Buy missing repair materials at IC1, then MTRA from Hortus Station Warehouse → ship (configure on execution). ${hasBuyItems ? Object.keys(toBuyMaterials).length + ' item(s) to buy.' : 'Nothing to buy — all covered.'}</div>
+        <div class="export-card-desc">CX Buy missing repair materials at ${ex} (${exInfo.name}), then MTRA from ${exInfo.wh} → ship (configure on execution). ${hasBuyItems ? Object.keys(toBuyMaterials).length + ' item(s) to buy.' : 'Nothing to buy — all covered.'}</div>
         <div class="export-output" id="xitOut">${xitStr}</div>
         <div class="export-actions">
           <button id="copyXit">Copy to clipboard</button>
@@ -470,6 +515,8 @@ function renderShopping(aggregate) {
         </div>
       </div>
     </div>`;
+  const exSel = document.getElementById('xitExchange');
+  if (exSel) exSel.addEventListener('change', () => { _exchange = exSel.value; localStorage.setItem('prun_fr_exchange', _exchange); recompute(); });
   const copyBtn = document.getElementById('copyXit');
   if (copyBtn) copyBtn.addEventListener('click', () => {
     navigator.clipboard.writeText(xitStr).then(() => {
@@ -632,6 +679,13 @@ async function loadAll() {
 
 document.getElementById('loadBtn').addEventListener('click', loadAll);
 document.getElementById('username').addEventListener('keydown', e => { if (e.key === 'Enter') loadAll(); });
+
+// Live CX ask prices for the repair-bill estimate — public endpoint, no key needed.
+fetch('https://rest.fnar.net/exchange/all').then(r => r.json()).then(data => {
+  _prices = {};
+  data.forEach(e => { if (e.Ask != null) _prices[`${e.MaterialTicker}|${e.ExchangeCode}`] = e.Ask; });
+  if (_shipData.length) recompute();   // refresh the bill once prices arrive
+}).catch(() => { _prices = {}; });
 
 // Restore saved values from localStorage
 const savedKey = localStorage.getItem('prun_apikey');
