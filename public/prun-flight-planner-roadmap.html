@@ -89,12 +89,14 @@
 </header>
 
 <div class="resolved-box" style="border-color:rgba(79,142,247,0.35);background:rgba(79,142,247,0.06);">
-  <div class="resolved-title" style="color:#6aa0f9;">● Current status — 2026-10-10</div>
-  The whole toolset is now <strong>deployed live</strong> as a free static site on Render — <strong>prun-toolset.onrender.com</strong> — auto-deployed from <code>main</code>. The Flight Planner is one of <strong>8 tools curated for sharing</strong> on the launcher (<code>/home.html</code>).
+  <div class="resolved-title" style="color:#6aa0f9;">● Current status — 2026-10-12</div>
+  <strong>Launched.</strong> The toolset is public and live on Render — <strong>prun-toolset.onrender.com</strong> — announced on the COSM Discord. The Flight Planner is one of 8 launcher tools.
   <br><br>
-  <strong>Flight Planner physics — calibrated &amp; validated in-browser:</strong> flight time; take-off / landing / transit fuel (<code>fuel = 336.9 × flow × √(dist/accel_eff)</code> — derived, not fitted); landing distance (missionId-seeded PRNG, planet_term ± 15%); meteor damage (R²=0.9989); ship empty mass (exact BOM) &amp; hull volume (86/87 within 1%).
+  <strong>Physics review by Marcus Licinius Crassus (2026-10-12):</strong> the structure is validated (ellipse rendezvous, A·e^(−βρ) jumps, (3/8)·E/f charges, 3 pc/h gateways, fitted ephemeris, landing PRNG all correct). The errors are in <em>constants</em> and a few fitted proxies that have closed forms, so the fixes are surgical. His pass <strong>reopens three phases marked "complete"</strong> below (see the ⚠ banners): <strong>Phase 1</strong> (G-cap known but not applied in real-fleet mode, ~8%), <strong>Phase 3</strong> (STL leg timing ignores the fuel slider, 14–32% short), and <strong>Open Mass</strong> (plate formula misses 6/160; component volumes fractional). It also gives <strong>Phase 5</strong> its full closing spec — including a <strong>jump-damage constant that was 35× too high</strong> — and <strong>fully specifies Phase 6 (FTL)</strong>. Full item list &amp; priority order: <code>BACKLOG.md</code>.
   <br><br>
-  <strong>Still open:</strong> DEP-segment fuel ~6% low (departure thrust term unfitted); radiation damage confirmed real but implementation parked (path-integration + non-O-class calibration); FTL / Gateway routing (Phase 6) not yet started.
+  <strong>Routing — decision locked:</strong> the game routes by fewest jumps, so the map router's uniform-weight Dijkstra is <em>correct</em>; distance weighting would diverge from the game and will NOT be added (confirmed by Marcus — supersedes the earlier "add distances" note). Only the equal-hop tie-break is open.
+  <br><br>
+  <strong>Still open:</strong> DEP-segment fuel ~6% low (likely subsumed by the leg-timing fix); radiation damage (the DEP/APP/TRANSIT flux term in Marcus's model); FTL / Gateway routing (Phase 6, now specified); plate/volume ship-builder fixes (desktop-only data); ephemeris 13/459 planets.
 </div>
 
 <div class="legend">
@@ -125,8 +127,9 @@
     <span class="phase-number">Phase 1</span>
     <span class="phase-title">Physics Discovery &amp; Flight Time Validation</span>
     <span class="phase-where where-both">Code + Chat</span>
-    <span class="phase-status status-complete">Complete</span>
+    <span class="phase-status status-inprog">Reopened — 2026-10-12</span>
   </div>
+  <div class="gate-banner broken">⚠ REOPENED 2026-10-12 (Marcus review): the G-cap <em>formula</em> is correct but it is <strong>not applied in real-fleet mode</strong> (maxGFactor null) — every clamped ship runs ~8% fast and ~8% low on TO/LND fuel. Check FIO's <code>Acceleration</code> field first; it may already clamp. See BACKLOG.md B1.</div>
   <div class="gate-banner complete">⚑ COMPLETE 2026-07-01: G-cap formula confirmed. Component mass schema locked. Full planner validated end-to-end against 16 real flights — 1.2% meanAbs / 8.3% max across 23 STL legs. Leverage residual resolved. Fix 1 (fuel-starved departure) implemented. Commit 12126e5.</div>
   <div class="task-list">
     <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
@@ -207,8 +210,9 @@
     <span class="phase-number">Phase 3</span>
     <span class="phase-title">Acceleration Integration — prun_flight_planner.html</span>
     <span class="phase-where where-code">Code</span>
-    <span class="phase-status status-complete">Complete — 2026-07-02 · commit 12126e5</span>
+    <span class="phase-status status-inprog">Reopened — 2026-10-12 (was complete 2026-07-02 · 12126e5)</span>
   </div>
+  <div class="gate-banner broken">⚠ REOPENED 2026-10-12 (Marcus review): <strong>STL leg timing ignores the fuel slider</strong> — every leg is timed at the saturated tier M=√(d/4a). The game allocates fuel first, then times the leg; DEP/APP run 14–32% short on the H1 anchor. Recalibrate on real flights, not CALCULATE_TEST_FLIGHT previews. See BACKLOG.md B2/B3.</div>
   <div class="gate-banner complete">⚑ GATE PASSED 2026-07-02: HRT→Promitor, AVI-0655A (full fuel, 0 cargo, totalMass 2153.5t). Transit: tool 42m 49s vs in-game 42m 25s = 0.9% ✓. Fuel: 1741 units exact ✓. Real fleet + hypothetical modes both live.</div>
   <div class="task-list">
     <div class="task"><div class="task-bar" style="background:var(--p3)"></div><div class="task-content">
@@ -389,8 +393,9 @@
     <span class="phase-number">Open Mass</span>
     <span class="phase-title">Empty Mass &amp; totalVolume — Derived from the Blueprint Dropdowns</span>
     <span class="phase-where where-both">Code + Chat</span>
-    <span class="phase-status status-complete">Complete — 2026-07-18 · commit 7c74e80</span>
+    <span class="phase-status status-inprog">Reopened — 2026-10-12 (was complete 2026-07-18 · 7c74e80)</span>
   </div>
+  <div class="gate-banner broken">⚠ REOPENED 2026-10-12 (Marcus review): the <strong>hull-plate formula misses 6/160</strong> — use ⌈(36π)^(1/3)·V^(2/3)/10⌉ — and component volumes are <strong>fractional</strong> (QCR 6–7, HPR 116–117, MFL 5–6, MSL 125.8–126.2). With A6/A7/A8 the empty-mass chain is perfect 160/160. Desktop-only (needs the openmass data). See BACKLOG.md A6–A8 / F.</div>
   <div class="gate-banner">✔ Hypothetical mode now derives operatingEmptyMass from the twelve selectable components instead of a fitted aggregate. Empty mass turned out to be exactly the bill of material; the real blocker was totalVolume, which is now computed from the loadout. Shipped accuracy: volume 86/86 within 1% (mean 0.002%), mass 82/86 within 1% (mean 0.199%). Full write-up: research/openmass/.</div>
   <div class="task-list">
     <div class="task"><div class="task-bar" style="background:var(--p1)"></div><div class="task-content">
