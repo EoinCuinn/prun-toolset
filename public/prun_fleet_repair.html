@@ -544,10 +544,11 @@ async function loadAll() {
   xitPanel.innerHTML = '';
 
   try {
-    const [shipsRes, storageRes, sitesRes] = await Promise.all([
+    const [shipsRes, storageRes, sitesRes, warehousesRes] = await Promise.all([
       fetch(`https://rest.fnar.net/ship/ships/${username}`, { headers: { 'Authorization': apikey } }),
       fetch(`https://rest.fnar.net/storage/${username}`, { headers: { 'Authorization': apikey } }),
-      fetch(`https://rest.fnar.net/sites/${username}`, { headers: { 'Authorization': apikey } })
+      fetch(`https://rest.fnar.net/sites/${username}`, { headers: { 'Authorization': apikey } }),
+      fetch(`https://rest.fnar.net/sites/warehouses/${username}`, { headers: { 'Authorization': apikey } })
     ]);
 
     if (shipsRes.status === 401) { status.textContent = 'Auth failed — check API key.'; return; }
@@ -560,6 +561,15 @@ async function loadAll() {
     if (sitesRes.ok) {
       const sites = await sitesRes.json();
       sites.forEach(s => { if (s.SiteId && s.PlanetName) siteMap[s.SiteId] = s.PlanetName; });
+    }
+
+    // CX warehouses report Name:null in /storage, so they all fall back to the generic
+    // "Warehouse". Resolve each to its real station via /sites/warehouses (StoreId → LocationName)
+    // so e.g. Hortus Station and Antares Station are shown separately instead of one blob.
+    const whMap = {};
+    if (warehousesRes.ok) {
+      const whs = await warehousesRes.json();
+      (whs || []).forEach(w => { if (w.StoreId && w.LocationName) whMap[w.StoreId] = w.LocationName; });
     }
 
     // Ship cargo holds must NOT count as available repair inventory: repairs draw from
@@ -578,6 +588,7 @@ async function loadAll() {
       storageData.forEach(loc => {
         if (loc.Type === 'STL_FUEL_STORE' || loc.Type === 'FTL_FUEL_STORE' || loc.Type === 'SHIP_STORE') return;
         let locName = loc.Name;
+        if (!locName && loc.StorageId && whMap[loc.StorageId]) locName = whMap[loc.StorageId];
         if (!locName && loc.AddressableId && siteMap[loc.AddressableId]) locName = siteMap[loc.AddressableId];
         if (!locName && loc.StorageId && siteMap[loc.StorageId]) locName = siteMap[loc.StorageId];
         if (!locName) locName = loc.Type === 'WAREHOUSE_STORE' ? 'Warehouse' : 'Unknown';
