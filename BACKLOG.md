@@ -55,6 +55,15 @@ proxies that have closed forms. His suggested order is reflected below.
 
 ---
 
+## Launcher / home page
+
+- 🟡 **Info / "About" modal** (ⓘ button on home). Higher leverage than a changelog — orients first-time visitors. Consolidate: what this is, unofficial / not Simulogics, the two-key REST-vs-Swagger explainer, credits, GitHub link. Currently scattered in the footer.
+- 🟢 **"What's new" → GitHub commits/releases.** Link it straight at the repo's commit history (not a hand-maintained on-site list) — always current, zero maintenance, gives the "it's alive" signal for free.
+- 🟢 Optional honesty stamp: a quiet "Updated <date>" in the footer; later wire to the latest build/file date so it never goes stale.
+- ⏸️ **Hand-maintained on-site changelog — deliberately deferred.** Revisit once ship cadence slows and the audience grows; tie entries to git tags so it's semi-automatic. A stale changelog reads as abandoned — worse than none.
+
+---
+
 ## Infra / repo / docs / community
 
 - 🟡 **Host Marcus's review in `research/`** with his name (paper-grade, repo is public + MIT; currently only a Discord message + laptop drive).
