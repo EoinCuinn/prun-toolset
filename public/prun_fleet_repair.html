@@ -264,7 +264,11 @@
   }
   .location-row:last-child { border-bottom: none; }
   .location-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px; }
-  .location-qty { font-family: var(--mono); color: var(--text); }
+  .location-right { display: flex; align-items: baseline; gap: 8px; flex-shrink: 0; }
+  .location-age { font-family: var(--mono); font-size: 10px; color: var(--text3); cursor: default; }
+  .location-age.age-old { color: #d6a435; }
+  .location-age.age-stale { color: #d66; }
+  .location-qty { font-family: var(--mono); color: var(--text); min-width: 3.2em; text-align: right; }
 
   /* Export */
   .export-section {
@@ -417,6 +421,19 @@ let _ignoreStorage = false;   // when true, ignore inventory entirely — buy th
 let _prices = null;           // `${ticker}|${ex}` -> Ask price, from /exchange/all (public, no key)
 let _exchange = localStorage.getItem('prun_fr_exchange') || 'IC1';   // exchange to cost + buy at
 
+// Format how long ago FIO captured a store's snapshot. FIO data is crowd-sourced by the
+// browser extension and only refreshes when you view that screen in-game, so an old age
+// = treat the quantity with suspicion. amber ≥ 24h, red ≥ 7d.
+function fmtAge(ts) {
+  if (!ts) return { text: '—', cls: 'age-unknown' };
+  const diff = Date.now() - new Date(ts).getTime();
+  if (isNaN(diff) || diff < 0) return { text: 'now', cls: '' };
+  const m = Math.floor(diff / 60000), h = Math.floor(m / 60), d = Math.floor(h / 24);
+  const text = m < 1 ? 'now' : m < 60 ? m + 'm' : h < 24 ? h + 'h' : d + 'd';
+  const cls = d >= 7 ? 'age-stale' : h >= 24 ? 'age-old' : '';
+  return { text, cls };
+}
+
 function recompute() {
   const selected = new Set([...document.querySelectorAll('.ship-select:checked')].map(cb => +cb.dataset.idx));
   document.querySelectorAll('.ship-card[data-idx]').forEach(card => {
@@ -468,7 +485,11 @@ function renderShopping(aggregate) {
       html += '<div class="locations">';
       html += '<div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-bottom:3px;margin-top:6px;">In storage</div>';
       inv.locations.slice().sort((a,b) => b.qty - a.qty).forEach(l => {
-        html += `<div class="location-row"><span class="location-name">${l.name}</span><span class="location-qty">${l.qty}</span></div>`;
+        const age = fmtAge(l.ts);
+        const title = l.ts ? `FIO last captured this store ${new Date(l.ts).toLocaleString()}` : 'No capture time from FIO';
+        html += `<div class="location-row"><span class="location-name">${l.name}</span>` +
+          `<span class="location-right"><span class="location-age ${age.cls}" title="${title}">${age.text}</span>` +
+          `<span class="location-qty">${l.qty}</span></span></div>`;
       });
       html += '</div>';
     }
@@ -593,6 +614,7 @@ async function loadAll() {
         if (!locName && loc.StorageId && siteMap[loc.StorageId]) locName = siteMap[loc.StorageId];
         if (!locName) locName = loc.Type === 'WAREHOUSE_STORE' ? 'Warehouse' : 'Unknown';
         if (shipStoreNames.has(locName)) return;   // belt-and-suspenders: skip any ship hold
+        const locTs = loc.Timestamp || null;   // FIO capture time for this store (ISO/UTC)
         (loc.StorageItems || []).forEach(item => {
           const ticker = item.MaterialTicker || '?';
           const qty = item.MaterialAmount || 0;
@@ -600,8 +622,8 @@ async function loadAll() {
           if (!inventory[ticker]) inventory[ticker] = { total: 0, locations: [] };
           inventory[ticker].total += qty;
           const existing = inventory[ticker].locations.find(l => l.name === locName);
-          if (existing) existing.qty += qty;
-          else inventory[ticker].locations.push({ name: locName, qty });
+          if (existing) { existing.qty += qty; if (locTs && (!existing.ts || locTs < existing.ts)) existing.ts = locTs; }
+          else inventory[ticker].locations.push({ name: locName, qty, ts: locTs });
         });
       });
     }
