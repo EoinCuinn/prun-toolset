@@ -500,11 +500,6 @@ function renderShopping(aggregate) {
 
   xitPanel.innerHTML = `<div class="export-section">
       <div class="export-card">
-        <div class="export-card-head">Repair bill</div>
-        <div class="bill-row"><span class="bill-label">Buy at</span><select id="xitExchange" class="bill-select">${exOptions}</select></div>
-        ${billBody}
-      </div>
-      <div class="export-card">
         <div class="export-card-head">XIT Buy + Transfer</div>
         <div class="export-card-desc">CX Buy missing repair materials at ${ex} (${exInfo.name}), then MTRA from ${exInfo.wh} → ship (configure on execution). ${hasBuyItems ? Object.keys(toBuyMaterials).length + ' item(s) to buy.' : 'Nothing to buy — all covered.'}</div>
         <div class="export-output" id="xitOut">${xitStr}</div>
@@ -513,6 +508,11 @@ function renderShopping(aggregate) {
           <label class="ignore-store" title="Ignore your stored inventory and buy the full amount each selected ship needs"><input type="checkbox" id="ignoreStore" ${_ignoreStorage ? 'checked' : ''}> Exclude storage</label>
           <span class="copy-success" id="copyXitOk" style="display:none">✓ Copied!</span>
         </div>
+      </div>
+      <div class="export-card">
+        <div class="export-card-head">Repair bill</div>
+        <div class="bill-row"><span class="bill-label">Buy at</span><select id="xitExchange" class="bill-select">${exOptions}</select></div>
+        ${billBody}
       </div>
     </div>`;
   const exSel = document.getElementById('xitExchange');
