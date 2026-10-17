@@ -66,7 +66,7 @@ proxies that have closed forms. His suggested order is reflected below.
 
 ## Infra / repo / docs / community
 
-- 🟡 **Host Marcus's review in `research/`** with his name (paper-grade, repo is public + MIT; currently only a Discord message + laptop drive).
+- 🟡 **Host Marcus's review in `research/`** with his name (paper-grade). ⚠️ **GATED ON MARCUS'S EXPLICIT PERMISSION** — the repo is public + MIT, so this publishes his work; do NOT commit it until he agrees. (Using the findings to fix the code is fine; publishing the document is not.) Source lives only in the Discord chat + EoinCuinn's USB/laptop — not in this repo.
 - 🟡 **Capture extension — verify what's actually loaded on the desktop.** Laptop copies hook incoming messages only; the roadmap claims outgoing test-flight capture (BLUEPRINT_BLUEPRINTS / SHIP_SHIPS). Confirm before trusting. [Capture Ext]
 - 🟢 **SAGANAKI attribution** — may be FIO's developer ("Saganaki, FNAR Industries"). If so the current credit undersells them. Ask the community.
 - 🟢 Stale laptop repos cleanup (`prun-flight-capture`, `prun-map`, `prun-command` — last two point at the old `prun-command.git` remote).
