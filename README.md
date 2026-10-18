@@ -144,6 +144,7 @@ Reverse-engineering write-ups behind the planner's physics — game flight quant
 | [`research/landing/`](research/landing/) | Take-off/landing distance — the `missionId`-seeded PRNG law, client-controlled seed, CSPRNG (unsteerable), fixed-tile hypothesis refuted |
 | [`research/radiation/`](research/radiation/) | Radiation damage — real and ~inverse-square near hot stars, but the Specialised Anti-Radiation Plate shows no measurable effect (the open paradox). Includes captures, derived analyses, and scripts |
 | [`research/openmass/`](research/openmass/) | Ship empty mass and hull volume — empty mass is exactly the BOM sum; `totalVolume` derived from the twelve selectable fields (cargo m³ capacity dominant), and the confounded-regression trap that hid it |
+| [`research/MARCUS_REVIEW_2026-10-12.md`](research/MARCUS_REVIEW_2026-10-12.md) | Full flight-planner correction pass — constants, timing, FTL, damage, routing |
 
 Each workstream ships the same doc set: a peer **SUMMARY**, a **findings_public** technical write-up, and a short **post_channel** version for Discord.
 

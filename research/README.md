@@ -23,6 +23,10 @@ Radiation-like damage is real on sublight legs near a hot star, rising as ~inver
 - [OPENMASS_SUMMARY_2026-07-18.md](openmass/OPENMASS_SUMMARY_2026-07-18.md) · [findings_public](openmass/OPENMASS_findings_public_2026-07-18.md) · [post_channel](openmass/OPENMASS_post_channel.md)
 - Blueprint corpus, scripts and outputs: `prun-openmass/` (not included here).
 
+## [Marcus review — 2026-10-12](MARCUS_REVIEW_2026-10-12.md)
+
+Marcus Licinius Crassus's full correction pass on the flight planner after public launch: the closed-form corrections (A1–A8), the structural timing/G-cap/ephemeris fixes (B1–B5), the FTL charge-fuel/reactor laws (C1–C6), the complete damage model (D), the min-hop routing confirmation (E), and the ship-builder volume chain (F). Hosted with his permission; where it conflicts with the earlier workstream write-ups, it is the current authority for the correction work.
+
 ## Credits
 
 **Marcus Licinius Crassus** (flight-dynamics/ephemeris papers, landing PRNG law, in-flight mass composition), **Taiyi Bureau** (landing-distance formula, approach-orbit theory), **Raylu** (`git.raylu.net/raylu/pruncalc`), **Aem** (radiation formula), **SAGANAKI** (FIO galaxy data). Capture analysis by EoinCuinn with Claude Code.
