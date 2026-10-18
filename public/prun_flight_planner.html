@@ -1807,6 +1807,16 @@ async function calculate() {
   // TO & LND fuel are needed up-front by the same-system TRANSIT fuel formula (tank − TO − LND);
   // hoisted to function scope. ldgFuelUnits is computed early (below) and reused by the LDG leg.
   let toFuelUnits = 0, ldgFuelUnits = 0;
+  // STL fuel context shared by DEP (fuel = M × flow/0.015), APPROACH (loaded
+  // units × 0.491 × fuf) and same-system TRANSIT (capacity − wells).
+  const stlFlowRate = _currentShip?.stlFlowRate ?? 0.015;
+  const stlTankCapacity = _currentShip?.stlFuelCap != null
+    ? _currentShip.stlFuelCap / STL_UNIT_MASS
+    : (+document.getElementById('stlMassSlider').max || 0);
+  const stlLoadedUnits = _currentShip?.stlFuelLoad != null
+    ? _currentShip.stlFuelLoad / STL_UNIT_MASS
+    : stlTankCapacity;
+  let stlFuelApproach = null;
 
   // ── TO leg ──
   let toTimeRealS = 0;
@@ -1844,18 +1854,12 @@ async function calculate() {
         ? Math.floor(onboardMassT().stl / _currentShip.stlFlowRate) : null;
       const dep = departureLegCalc(base, gate, vel, phys.accel, depBudgetM);
       if (dep) {
-        // ⚠ UNVALIDATED against a real in-game multi-system flight. Marcus's departure
-        // budget: M_dep = min(√(d/(4a)), 13.34·fuf·stlFuel_t/accel); the /STL_UNIT_MASS
-        // tonnes→units step is our addition and is NOT confirmed. The earlier "HRT→Promitor
-        // = 3474 u" test was mis-specified: that route is SAME-SYSTEM (TRA+LND, ~1766 u,
-        // no DEP leg) and already matches in-game — it never exercised this block. TODO:
-        // capture a true cross-system flight (with an actual jump gate) to validate/fit this.
-        const stlFuel_t = _currentShip?.stlFuelCap ?? 0;
-        const depFuelTonnes = Math.min(
-          Math.sqrt(dep.chargedKm / (4 * phys.accel)),
-          13.34 * fuf * stlFuel_t / phys.accel
-        );
-        const depFuel = depFuelTonnes / STL_UNIT_MASS;
+        // B2/B3: the game allocates fuel first, then times the leg. For the
+        // departure, fuel = M × (flow/0.015); at the reference flow 0.015 this is
+        // just M, and at this ship's 0.03 it is 2M. Captured Test4/6/7: M=152 →
+        // 304 units, M=168 → 336, M=152 → 303-304. The old preview-derived
+        // 13.34·fuf·stlFuel/a cap is retired.
+        const depFuel = dep.M * (stlFlowRate / 0.015);
         totalRealMin += dep.tReal / 60;
         totalFuelStl += depFuel;
         t += dep.tReal;
@@ -2039,13 +2043,16 @@ async function calculate() {
       const destPosAtGate = getDestPos(stlDestPl, t); // station closure ignores first arg
       const gateApp = destPosAtGate ? gatePositionM(destPosAtGate, _dest.sysId, path[path.length - 2], !!destStation) : null;
       if (gateApp) {
-        // NOTE: APPROACH *fuel* is no longer taken from approachComputedMax — it is now the
-        // tank-capacity formula (see display block below). We still call it purely to obtain the
-        // rendezvous (rendez), which drives the leg's DISTANCE, meteoroid DAMAGE, and flight TIME
-        // — all of which must stay unchanged. stlComputedMax is intentionally left null here.
-        const appMax = approachComputedMax(gateApp, stlDestPl, stlGM, phys.accel, t,
-                          destStation ? getDestPos : null);
-        if (appMax) rendez = appMax.rendez;
+        // B2/B3: allocate APPROACH fuel first, then time the rendezvous at that
+        // fuel's M. APPROACH fuel = loaded STL units × 0.491 × fuf. The old
+        // approachComputedMax used the saturated boundary M, which made short
+        // approaches time as triangular and run too fast (Test7: 20m25s vs game
+        // 21m38s). Loaded units = WeightLoad / STL_UNIT_MASS; the tank capacity
+        // is only the fallback for a build with no load field.
+        stlFuelApproach = stlLoadedUnits * 0.491 * fuf;
+        const appM = Math.max(1, Math.round(stlFuelApproach / (stlFlowRate / 0.015)));
+        rendez = stlRendezvousFromGate(gateApp, stlDestPl, stlGM, phys.accel, appM, t,
+                        destStation ? getDestPos : null);
       }
     }
     stlLegLabel = stlDestLabel ? `jump gate → ${stlDestLabel}` : `approach in ${destSys?.NaturalId}`;
@@ -2074,21 +2081,11 @@ async function calculate() {
       stlRows.push(['Distance', `<span class="approx">${fmtDist(stlDistMinKm)} – ${fmtDist(stlDistKm)}</span> <small style="color:var(--text3)">(best–worst phase)</small>`]);
     }
 
-    // APPROACH fuel (multi-system) = STL tank capacity × 0.491 × fuel usage factor. Empirically
-    // confirmed across 3 ships / 3 tank sizes / multiple routes — independent of distance, accel,
-    // and orbital geometry. Tank capacity (units) = stlFuelCap[t] / STL_UNIT_MASS, falling back to
-    // the loadout slider max for hypothetical builds that carry no capacity field.
-    // Same-system direct transit keeps the physics boundary-M × fuf derivation.
-    const stlTankCapacity = _currentShip?.stlFuelCap != null
-      ? _currentShip.stlFuelCap / STL_UNIT_MASS
-      : (+document.getElementById('stlMassSlider').max || 0);
-    // Same-system TRANSIT fuel = (tank − TO − LND) × fuf. Confirmed across two tank sizes and two
-    // routes (2026-07-11). Kept separate from stlComputedMax, which remains the physics boundary-M
-    // driving the flight time / rendezvous (unchanged). Multi-system APPROACH is untouched.
+    // APPROACH fuel (multi-system) was computed before the rendezvous so the
+    // leg could be timed at its fuel-derived M (B2/B3), above. Same-system
+    // direct transit keeps the physics boundary-M × fuf derivation.
     const stlTransitFuel = phys ? Math.max(0, Math.round((stlTankCapacity - toFuelUnits - ldgFuelUnits) * fuf)) : null;
-    const stlFuel = !sameSys
-      ? stlTankCapacity * 0.491 * fuf
-      : stlTransitFuel;
+    const stlFuel = !sameSys ? stlFuelApproach : stlTransitFuel;
     if (rendez) {
       totalRealMin += rendez.tReal / 60;
       if (stlFuel != null) totalFuelStl += stlFuel;
