@@ -113,15 +113,17 @@ trapezoidal time are the exact game form. The g-force cap clamps `accel` to
 **Departure and approach fuel** — B2/B3, validated 2026-10-18
 ```
 DEP fuel      = M_dep × stlFlowRate / 0.015
-APPROACH fuel = loaded_STL_units × 0.491 × fuelUsageFactor
+APPROACH fuel = (loaded_STL_units − TO fuel) × 0.491 × fuelUsageFactor
 APPROACH M    = APPROACH fuel / (stlFlowRate / 0.015)
 ```
 `loaded_STL_units` is the **flight loadout slider**, not FIO storage and not tank
-capacity: the ship may store 2,130 units but fly with 1,750. DEP uses the integer `M`
-from the departure transfer; APPROACH is timed with its fuel-derived `M`, not the
-saturated boundary. Test11: DEP 304 vs 304; APP 429.6 vs 430; ETA +2s; total STL
-779.6 vs 779. The full `committed` split for arbitrary fuel-load/usage combinations
-is still open.
+capacity: the ship may store 2,130 units but fly with 1,750. The take-off burn is
+subtracted first (wells first); station origins have TO=0 and are unchanged. DEP uses
+the integer `M` from the departure transfer; APPROACH is timed with its fuel-derived
+`M`, not the saturated boundary. Test11: DEP 304 vs 304; APP 429.6 vs 430; ETA +2s;
+total STL 779.6 vs 779. Big Hauler config (2,989 t cargo): APP 588.1 vs 583, total
+STL 1159.6 vs 1156, ETA +0.64%. The full `committed` split for arbitrary
+fuel-load/usage combinations is still open.
 
 **FTL speed, charge time and fuel** — blueprint-anchored (C, 2026-10-18)
 ```

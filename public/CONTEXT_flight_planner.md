@@ -19,7 +19,8 @@ hull-damage projection with condition alerts.
   and not the straight-line chord. Matches 39 captured departures to 0.03–0.55% on most
   cases (worst MOR 3.7%).
 - **Fuel:** well-leg TO/LND exact (A3/B3/A4). **DEP fuel = `M × flow/0.015`; APPROACH
-  fuel = loaded loadout units × 0.491 × fuf; APPROACH is timed at its fuel-derived M.**
+  fuel = (loaded loadout units − TO fuel) × 0.491 × fuf; APPROACH is timed at its
+  fuel-derived M.**
   Test11: 779.6 vs game 779 STL, ETA 6h20m57s vs 6h20m55s. Full `committed` split for
   arbitrary loads/fuf is still open.
 - **FTL (C, 2026-10-18):** blueprint-anchored `J(1)`; measured β; emitter-based charge
@@ -102,11 +103,14 @@ Duration: `t [real-s] = d / (2·accel·M) + 2·M` (paper §6, already wall-clock
   flow 0.015 this is just `M`; at the BFT's 0.03 it is `2M`. Validated: Test4 M=168 → 336;
   Test6/7 M=152 → 303–304; Test11 304 vs game 304. The old preview-derived
   `13.34·fuf·stlFuel/a` cap is retired.
-- **APPROACH fuel (B2/B3, 2026-10-18):** `loaded_STL_units (loadout slider) × 0.491 × fuf`.
-  Use the **flight loadout slider**, not FIO storage and not tank capacity. Test8: storage
-  2,130 u, slider 1,750 u; game burns 430 = 1,750 × 0.491 × 0.5. The old tank-capacity form
-  gave exactly 2×. APPROACH is timed at `M_app = appFuel / (stlFlowRate/0.015)` using
-  `t = d/(2·a·M) + 2M` when `d > 4aM²`; Test11 21m42s vs game 21m38s.
+- **APPROACH fuel (B2/B3, 2026-10-18):** `(loaded_STL_units − TO fuel) × 0.491 × fuf`.
+  Use the **flight loadout slider**, not FIO storage and not tank capacity. Subtract the
+  take-off burn first (wells first); station origins have TO=0 and are unchanged. Test8:
+  storage 2,130 u, slider 1,750 u; no TO; game burns 430 = 1,750 × 0.491 × 0.5. The old
+  tank-capacity form gave exactly 2×. Big Hauler config (2,989 t cargo, TO 39): APP
+  588.1 vs game 583; total STL 1159.6 vs 1156. APPROACH is timed at
+  `M_app = appFuel / (stlFlowRate/0.015)` using `t = d/(2·a·M) + 2M` when `d > 4aM²`;
+  Test11 21m42s vs game 21m38s.
 - **Fuel usage slider:** TO / LND / JUMP are invariant to `fuelUsageFactor`; DEP and APPROACH
   use the laws above. Old per-leg fuel slider removed; `fuelUsageFactor` input added
   (default 0.50, range 0.10–1.00).
@@ -201,8 +205,9 @@ transits).
 - **±13.3% landing band is irreducible** for a read-only tool (CSPRNG missionId). Fixed base-tile
   hypothesis REFUTED (same ship + same base repeats land at different distances).
 - **Fuel is allocated first, then timed:** DEP fuel = `M × flow/0.015`; APPROACH fuel =
-  `loaded loadout units × 0.491 × fuf`; APPROACH M = `appFuel / (flow/0.015)`. Test11:
-  6h20m57s vs game 6h20m55s; 779.6 vs 779 STL.
+  `(loaded loadout units − TO fuel) × 0.491 × fuf`; APPROACH M = `appFuel / (flow/0.015)`.
+  Test11: 6h20m57s vs game 6h20m55s; 779.6 vs 779 STL. Big Hauler config (2,989 t cargo):
+  ETA +0.64%, STL 1159.6 vs 1156.
 - **The game bills z=0 charged distance, not the 3-D arc or chord:** departure endpoints
   are projected to z=0 and `calculateSltDistance3D().chargedKm` is used. Station gates are
   0.15 AU; planet gates 0.5 AU.

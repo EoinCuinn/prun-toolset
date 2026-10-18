@@ -2057,12 +2057,12 @@ async function calculate() {
       const gateApp = destPosAtGate ? gatePositionM(destPosAtGate, _dest.sysId, path[path.length - 2], !!destStation) : null;
       if (gateApp) {
         // B2/B3: allocate APPROACH fuel first, then time the rendezvous at that
-        // fuel's M. APPROACH fuel = loaded STL units × 0.491 × fuf. The old
-        // approachComputedMax used the saturated boundary M, which made short
-        // approaches time as triangular and run too fast (Test7: 20m25s vs game
-        // 21m38s). Loaded units = WeightLoad / STL_UNIT_MASS; the tank capacity
-        // is only the fallback for a build with no load field.
-        stlFuelApproach = stlLoadedUnits * 0.491 * fuf;
+        // fuel's M. APPROACH fuel = STL units left after TAKE-OFF × 0.491 × fuf.
+        // Subtract the take-off burn (wells first): Test8 Big Hauler config,
+        // loaded 1,750, TO 39, fuf .7 — full-load form 601.5 vs game 583;
+        // after-TO form 588.1. Station origins have TO=0 and are unchanged.
+        // stlLoadedUnits is the loadout slider, not FIO storage or tank capacity.
+        stlFuelApproach = Math.max(0, stlLoadedUnits - toFuelUnits) * 0.491 * fuf;
         const appM = Math.max(1, Math.round(stlFuelApproach / (stlFlowRate / 0.015)));
         rendez = stlRendezvousFromGate(gateApp, stlDestPl, stlGM, phys.accel, appM, t,
                         destStation ? getDestPos : null);
