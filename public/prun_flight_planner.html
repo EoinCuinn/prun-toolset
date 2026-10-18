@@ -65,8 +65,10 @@
 
   /* ── Ship select ── */
   .ship-select { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); padding: 6px 10px; font-size: 12px; outline: none; }
-  .ship-meta { margin-top: 6px; font-size: 12px; color: var(--text); line-height: 1.65; font-family: var(--mono); }
-  .ship-meta span { color: var(--text2); }
+  .ship-meta { margin-top: 6px; font-size: 12px; color: var(--text); line-height: 1.5; font-family: var(--mono); }
+  .meta-grid { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 12px; row-gap: 3px; align-items: baseline; font-variant-numeric: tabular-nums; }
+  .meta-grid .mk { color: var(--text2); white-space: nowrap; }
+  .meta-grid .mv { color: var(--text); overflow-wrap: anywhere; }
 
   /* ── Mode toggle ── */
   .mode-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
@@ -1570,26 +1572,34 @@ function rebuildHypo() {
   onRufChange();
 }
 
+function metaGrid(rows) {
+  return `<div class="meta-grid">${rows.map(([k, v]) => `<span class="mk">${k}</span><span class="mv">${v}</span>`).join('')}</div>`;
+}
+
 function renderHypoMeta() {
   const el = document.getElementById('hypoMeta');
   const s = _currentShip;
   if (!s || s.source !== 'hypo') { el.innerHTML = ''; return; }
-  el.innerHTML = `
-    <span>Empty mass:</span> ${s.operatingEmptyMass.toFixed(1)}t &nbsp;
-    <span>Thrust:</span> ${s.thrust.toLocaleString()}N<br>
-    <span>maxG:</span> ${s.maxGFactor} → cap ${(s.maxGFactor * G0).toFixed(1)} &nbsp;
-    ${s.reactorPower ? `<span>reactor P:</span> ${s.reactorPower}` : '<span style="color:var(--yellow)">no FTL reactor</span>'}
-    ${s.cargoCap ? `<br><span>cargo cap:</span> ${s.cargoCap}t` : ''}
-    <br><span>totalVolume:</span> ${s.totalVolume.toFixed(0)} &nbsp;
-    <span>plates:</span> ${s.plateCount}×${s.autoBridge ? '' : ''}${document.getElementById('hullSel')?.value || ''} &nbsp;
-    <span>SSC:</span> ${s.sscCount} &nbsp;
-    <span>bridge:</span> ${s.autoBridge} &nbsp;
-    <span>quarters:</span> ${s.autoQuarters}
-    ${s.lookupMass == null
-      ? `<br><span style="color:var(--yellow)">no captured blueprint matches this loadout — formula only</span>`
-      : (Math.abs(s.lookupDeltaPct) > 1
-          ? `<br><span style="color:#e53935">⚠ formula vs captured blueprint ${s.lookupMatch}: ${s.lookupMass.toFixed(1)}t (${s.lookupDeltaPct >= 0 ? '+' : ''}${s.lookupDeltaPct.toFixed(2)}%) — DISAGREE >1%</span>`
-          : `<br><span style="color:#4caf50">✓ agrees with captured blueprint ${s.lookupMatch} (${s.lookupDeltaPct >= 0 ? '+' : ''}${s.lookupDeltaPct.toFixed(2)}%)</span>`)}`;
+  const rows = [
+    ['Empty mass', `${s.operatingEmptyMass.toFixed(1)} t`],
+    ['Thrust', `${s.thrust.toLocaleString()} N`],
+    ['maxG', `${s.maxGFactor} → ${(s.maxGFactor * G0).toFixed(1)} m/s²`],
+    ['Reactor P', s.reactorPower ? `${s.reactorPower} GW` : '<span style="color:var(--yellow)">none</span>'],
+  ];
+  if (s.cargoCap) rows.push(['Cargo cap', `${s.cargoCap} t`]);
+  rows.push(
+    ['totalVolume', `${s.totalVolume.toFixed(0)} m³`],
+    ['Plates', `${s.plateCount} × ${document.getElementById('hullSel')?.value || ''}`],
+    ['SSC', `${s.sscCount}`],
+    ['Bridge', `${s.autoBridge}`],
+    ['Quarters', `${s.autoQuarters}`],
+  );
+  const check = s.lookupMass == null
+    ? '<div class="note" style="color:var(--yellow)">no captured blueprint matches this loadout — formula only</div>'
+    : (Math.abs(s.lookupDeltaPct) > 1
+        ? `<div class="note" style="color:var(--red)">⚠ formula vs captured blueprint ${s.lookupMatch}: ${s.lookupMass.toFixed(1)} t (${s.lookupDeltaPct >= 0 ? '+' : ''}${s.lookupDeltaPct.toFixed(2)}%) — DISAGREE &gt;1%</div>`
+        : `<div class="note" style="color:var(--green)">✓ agrees with captured blueprint ${s.lookupMatch} (${s.lookupDeltaPct >= 0 ? '+' : ''}${s.lookupDeltaPct.toFixed(2)}%)</div>`);
+  el.innerHTML = metaGrid(rows) + check;
 }
 
 // ── Loadout (onboard mass) ──────────────────────────────────────────────────────
@@ -1653,16 +1663,25 @@ function renderShipMeta() {
   if (!_currentShip || _currentShip.source !== 'real') { el.innerHTML = ''; return; }
   const s = _currentShip;
   const ftl = ftlPhysics(s);
-  el.innerHTML = `
-    <span>Hull:</span> ${s.blueprintId || '?'} &nbsp;
-    <span>Cond:</span> ${Math.round((s.condition || 1) * 100)}%
-    ${s.location ? `&nbsp; <span>at:</span> ${s.location}${s.inFlight ? ' <span style="color:var(--yellow)">(in flight)</span>' : ''}` : ''}<br>
-    <span>Thrust:</span> ${s.thrust.toLocaleString()}N &nbsp;
-    <span>Empty:</span> ${s.operatingEmptyMass.toFixed(1)}t &nbsp;
-    <span>STL flow:</span> ${s.stlFlowRate}<br>
-    <span>G-cap:</span> ${s.maxGFactor ? `${s.maxGFactor}g (${(s.maxGFactor * G0).toFixed(1)} m/s²)` : '<span style="color:var(--yellow)">unknown — blueprint not in corpus</span>'}
-    ${ftl ? `<br><span>reactor P:</span> ${s.reactorPower}${ftl.c != null ? ` &nbsp;<span>charge:</span> ${Math.round(ftl.c)}s` : ''}${ftl.minUsage != null ? ` &nbsp;<span>min use:</span> ${(ftl.minUsage * 100).toFixed(1)}%` : ''}${ftl.vmax != null ? ` &nbsp;<span>vmax:</span> ${ftl.vmax.toFixed(2)} pc/h` : ''}${ftl.estimated ? ' <span style="color:var(--yellow)">(est)</span>' : ''}` : ''}
-  `;
+  const rows = [
+    ['Hull', s.blueprintId || '?'],
+    ['Cond', `${Math.round((s.condition || 1) * 100)}%`],
+  ];
+  if (s.location) rows.push(['At', `${s.location}${s.inFlight ? ' <span style="color:var(--yellow)">(in flight)</span>' : ''}`]);
+  rows.push(
+    ['Thrust', `${s.thrust.toLocaleString()} N`],
+    ['Empty', `${s.operatingEmptyMass.toFixed(1)} t`],
+    ['STL flow', `${s.stlFlowRate ?? '—'} t/M`],
+    ['G-cap', s.maxGFactor ? `${s.maxGFactor}g (${(s.maxGFactor * G0).toFixed(1)} m/s²)` : '<span style="color:var(--yellow)">unknown</span>'],
+  );
+  if (ftl) {
+    rows.push(['Reactor P', `${s.reactorPower} GW`]);
+    if (ftl.c != null) rows.push(['Charge', `${Math.round(ftl.c)} s`]);
+    if (ftl.minUsage != null) rows.push(['Min use', `${(ftl.minUsage * 100).toFixed(1)} %`]);
+    if (ftl.vmax != null) rows.push(['Vmax', `${ftl.vmax.toFixed(2)} pc/h`]);
+    if (ftl.estimated) rows.push(['FTL anchor', '<span style="color:var(--yellow)">estimated</span>']);
+  }
+  el.innerHTML = metaGrid(rows);
   onRufChange();
 }
 
