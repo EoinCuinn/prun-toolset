@@ -51,6 +51,13 @@ proxies that have closed forms. His suggested order is reflected below.
 - 🟡 **Generalisation** — the next tests are the same model on other ships and routes.
   Watch: per-blueprint `j1` (panel vmax may be rounded), FIO `stlFuelLoad` vs loadout
   slider (`STL_UNIT_MASS=0.06`), and the B5 approach/transit z=0 projection.
+- ✅ **Capture replay validator** — built at `prun-flight-capture/validator` (jsdom).
+  It joins captured test-flight requests/responses, injects the captured ship, route,
+  loadout and settings into the real planner page, freezes the clock to the captured
+  departure timestamp, runs `calculate()`, and prints a leg-by-leg comparison. The
+  latest Test11 capture passes (ETA +0.01%, STL +0.08%, FTL exact); `--all` also exposes
+  the older low-`fuelUsageFactor` flights that still need the full B2/B3 `committed` split.
+  Local/private tool; `--ship` or `blueprint_map.json` handles custom blueprint hashes.
 
 **Next-test checklist:** for each ship/route, record the blueprint, **loadout slider units**,
 `fuelUsageFactor`, and route. Compare TO/DEP/APP/LND/FTL fuel and time leg-by-leg. If the FTL
