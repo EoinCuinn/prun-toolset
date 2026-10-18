@@ -783,8 +783,10 @@ function departureLegCalc(base, gate, vel, accel, maxM) {
   if (!slt) return null;
   const arc0 = slt.arcKm;
   let arc = arc0, M = Math.sqrt(arc0 / (K_DEPARTURE * accel));
+  let deficitKm = 0;
   for (let i = 0; i < 4; i++) {
     const def = vel ? Math.max(0, departureDeficit(arc0, M, accel, base, gate, vel)) : 0;
+    deficitKm = def;
     arc = Math.max(arc0 - def, 0.05 * arc0);
     M = Math.sqrt(arc / (K_DEPARTURE * accel));
   }
@@ -792,7 +794,19 @@ function departureLegCalc(base, gate, vel, accel, maxM) {
   let starved = false;
   if (maxM != null && maxM > 0 && maxM < Mfinal) { Mfinal = maxM; starved = true; }
   const tReal = stlTimeReal(arc, Mfinal, accel);
-  return { arcKm: arc0, chargedKm: arc, M: Mfinal, tReal, starved };
+  return {
+    arcKm: arc0, chargedKm: arc, M: Mfinal, tReal, starved,
+    debug: {
+      sltArcKm: slt.arcKm,
+      sltChargedKm: slt.chargedKm,
+      isReduced: slt.isReduced,
+      deficitKm,
+      chordKm: Math.hypot(gate.x - base.x, gate.y - base.y, gate.z - base.z) / 1000,
+      baseRKm: Math.hypot(base.x, base.y, base.z) / 1000,
+      gateRKm: Math.hypot(gate.x, gate.y, gate.z) / 1000,
+      vel: vel ? { vx: vel.vx, vy: vel.vy } : null,
+    },
+  };
 }
 
 // Approach rendezvous from a fixed gate position (metres) to a moving planet.
@@ -1864,10 +1878,13 @@ async function calculate() {
         const depDmg = dep.chargedKm ? transitDmg(dep.chargedKm, depDensity, depLum, base, gate, h) : 0;
         totalDmg += depDmg;
         const depLabel = originStation?.name ?? depOriginPl?.PlanetName ?? depOriginPl?.PlanetNaturalId;
-        const depNote = dep.starved
+        const depNoteBase = dep.starved
           ? `⚠ Fuel-starved departure — M capped at ${dep.M.toFixed(1)} by STL fuel budget (${onboardMassT().stl.toFixed(1)} t)`
           : (!originStation && !originInEph) ? '⚠ Origin not in fitted ephemeris — gate position estimated'
           : '⚠ DEP fuel allocation still uses the preview-derived cap (B2 outstanding)';
+        const dbg = dep.debug || {};
+        const depDebug = `DEBUG (temporary) · arc ${fmtDist(dbg.sltArcKm ?? 0)} · charged ${fmtDist(dbg.sltChargedKm ?? 0)} · reduced ${dbg.isReduced} · chord ${fmtDist(dbg.chordKm ?? 0)}<br>baseR ${fmtDist(dbg.baseRKm ?? 0)} · gateR ${fmtDist(dbg.gateRKm ?? 0)} · deficit ${fmtDist(dbg.deficitKm ?? 0)} · M ${dep.M} · v ${dbg.vel ? Math.hypot(dbg.vel.vx, dbg.vel.vy).toFixed(2) + ' km/s' : '—'}`;
+        const depNote = `${depNoteBase}<br><span style="font-family:var(--mono);font-size:11px;color:var(--text3)">${depDebug}</span>`;
         html += legHtml('DEP', `${depLabel} → jump gate`, [
           ['Distance', fmtDist(dep.chargedKm)],
           ['Time (real)', fmtRealTime(dep.tReal)],
