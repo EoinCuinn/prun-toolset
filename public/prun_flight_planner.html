@@ -752,19 +752,6 @@ function leverageDeficit(O, P, vbody, T) {
   return vbm * (rho * rho - 1) * Math.cos(th) * T;
 }
 
-// Departure deficit (km) — origin planet's orbital motion reduces departure arc.
-// arc/accel in km, M in real-s. O/P in metres, vbody in km/s.
-function departureDeficit(arc, M, accel, O, P, vbody) {
-  const rO = Math.hypot(O.x, O.y), rP = Math.hypot(P.x, P.y);
-  if (!rO || !rP) return 0;
-  const rho = Math.max(rO, rP) / Math.min(rO, rP);
-  const vbm = Math.hypot(vbody.vx, vbody.vy);
-  const th = progradeAngoff(P, O, vbody);
-  if (!(th > 0 && th < Math.PI / 2)) return 0;
-  const w0 = vbm * (rho * rho - 1) * Math.cos(th);
-  return Math.min(2 * M * w0 - w0 * w0 / (2 * accel), 0.95 * arc);
-}
-
 // Gate position in metres. Planet gates are 0.5 AU from the planet; station gates
 // are 0.15 AU from the station (captured 2026-10-18). Direction is toward the
 // neighboring system in the system-map frame.
@@ -780,35 +767,28 @@ function gatePositionM(base, originSysId, neighborSysId, stationGate) {
   return { x: base.x + d*vx/n, y: base.y + d*vy/n, z: base.z + d*vz/n };
 }
 
-// Departure leg: body → jump gate. The gate is a fixed point, so the game bills
-// the straight-line chord minus the departure deficit — NOT the longer focal
-// transfer-ellipse arc. (Captured 2026-10-18: game DEP is always ≤ chord; for a
-// 0.15 AU station gate the ellipse arc is ~38% too long.) M is set to
-// sqrt(arc/(K_DEP·a)) so the ship is at the triangular boundary. base/gate in
-// metres, vel in km/s, accel in m/s². maxM (optional) = STL-fuel budget for the
-// departure; when the boundary M exceeds what the tank supports, cap M there →
-// slower (trapezoidal) departure.
+// Departure leg: body → jump gate. The game builds the transfer ellipse in the
+// z=0 plane and bills its charged (rank-one reduced) distance, not the 3-D
+// geometric arc. Captured 2026-10-18: with z=0 projection, chargedKm matches
+// every departure capture to ~0.03–0.55% (the old 3-D arc was up to 48% long on
+// near-radial station gates). base/gate in metres, accel in m/s². maxM
+// (optional) = STL-fuel budget for the departure; when the boundary M exceeds
+// what the tank supports, cap M there → slower (trapezoidal) departure.
 function departureLegCalc(base, gate, vel, accel, maxM) {
-  const chordKm = Math.hypot(gate.x - base.x, gate.y - base.y, gate.z - base.z) / 1000;
-  if (!(chordKm > 0)) return null;
-  const arc0 = chordKm;
-  let arc = arc0, M = Math.sqrt(arc0 / (K_DEPARTURE * accel));
-  let deficitKm = 0;
-  for (let i = 0; i < 4; i++) {
-    const def = vel ? Math.max(0, departureDeficit(arc0, M, accel, base, gate, vel)) : 0;
-    deficitKm = def;
-    arc = Math.max(arc0 - def, 0.05 * arc0);
-    M = Math.sqrt(arc / (K_DEPARTURE * accel));
-  }
-  let Mfinal = Math.max(1, Math.ceil(M));
+  const slt = calculateSltDistance3D(base.x, base.y, 0, gate.x, gate.y, 0);
+  if (!slt || !(slt.chargedKm > 0)) return null;
+  const arc0 = slt.chargedKm; // game-billed distance
+  let Mfinal = Math.max(1, Math.ceil(Math.sqrt(arc0 / (K_DEPARTURE * accel))));
   let starved = false;
   if (maxM != null && maxM > 0 && maxM < Mfinal) { Mfinal = maxM; starved = true; }
-  const tReal = stlTimeReal(arc, Mfinal, accel);
+  const tReal = stlTimeReal(arc0, Mfinal, accel);
   return {
-    arcKm: arc0, chargedKm: arc, M: Mfinal, tReal, starved,
+    arcKm: slt.arcKm, chargedKm: arc0, M: Mfinal, tReal, starved,
     debug: {
-      deficitKm,
-      chordKm,
+      sltArcKm: slt.arcKm,
+      sltChargedKm: slt.chargedKm,
+      isReduced: slt.isReduced,
+      chordKm: Math.hypot(gate.x - base.x, gate.y - base.y, gate.z - base.z) / 1000,
       baseRKm: Math.hypot(base.x, base.y, base.z) / 1000,
       gateRKm: Math.hypot(gate.x, gate.y, gate.z) / 1000,
       vel: vel ? { vx: vel.vx, vy: vel.vy } : null,
@@ -1890,7 +1870,7 @@ async function calculate() {
           : (!originStation && !originInEph) ? '⚠ Origin not in fitted ephemeris — gate position estimated'
           : '⚠ DEP fuel allocation still uses the preview-derived cap (B2 outstanding)';
         const dbg = dep.debug || {};
-        const depDebug = `DEBUG (temporary) · chord ${fmtDist(dbg.chordKm ?? 0)} · deficit ${fmtDist(dbg.deficitKm ?? 0)} · net ${fmtDist(dep.chargedKm)}<br>baseR ${fmtDist(dbg.baseRKm ?? 0)} · gateR ${fmtDist(dbg.gateRKm ?? 0)} · M ${dep.M} · v ${dbg.vel ? Math.hypot(dbg.vel.vx, dbg.vel.vy).toFixed(2) + ' km/s' : '—'}`;
+        const depDebug = `DEBUG (temporary) · arc ${fmtDist(dbg.sltArcKm ?? 0)} · charged ${fmtDist(dbg.sltChargedKm ?? 0)} · reduced ${dbg.isReduced} · chord ${fmtDist(dbg.chordKm ?? 0)}<br>baseR ${fmtDist(dbg.baseRKm ?? 0)} · gateR ${fmtDist(dbg.gateRKm ?? 0)} · M ${dep.M} · v ${dbg.vel ? Math.hypot(dbg.vel.vx, dbg.vel.vy).toFixed(2) + ' km/s' : '—'}`;
         const depNote = `${depNoteBase}<br><span style="font-family:var(--mono);font-size:11px;color:var(--text3)">${depDebug}</span>`;
         html += legHtml('DEP', `${depLabel} → jump gate`, [
           ['Distance', fmtDist(dep.chargedKm)],
