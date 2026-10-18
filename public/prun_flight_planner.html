@@ -780,14 +780,18 @@ function gatePositionM(base, originSysId, neighborSysId, stationGate) {
   return { x: base.x + d*vx/n, y: base.y + d*vy/n, z: base.z + d*vz/n };
 }
 
-// Departure leg: planet → jump gate. M set to sqrt(arc/(K_DEP·a)) so ship is at triangular boundary.
-// Iterates 4× to apply departure deficit and recompute M. base/gate in metres, vel in km/s, accel in km/s².
-// maxM (optional) = STL-fuel budget for the departure (Fix 1). When the boundary M the
-// ship wants exceeds what the tank supports, cap M there → slower (trapezoidal) departure.
+// Departure leg: body → jump gate. The gate is a fixed point, so the game bills
+// the straight-line chord minus the departure deficit — NOT the longer focal
+// transfer-ellipse arc. (Captured 2026-10-18: game DEP is always ≤ chord; for a
+// 0.15 AU station gate the ellipse arc is ~38% too long.) M is set to
+// sqrt(arc/(K_DEP·a)) so the ship is at the triangular boundary. base/gate in
+// metres, vel in km/s, accel in m/s². maxM (optional) = STL-fuel budget for the
+// departure; when the boundary M exceeds what the tank supports, cap M there →
+// slower (trapezoidal) departure.
 function departureLegCalc(base, gate, vel, accel, maxM) {
-  const slt = calculateSltDistance3D(base.x, base.y, base.z, gate.x, gate.y, gate.z);
-  if (!slt) return null;
-  const arc0 = slt.arcKm;
+  const chordKm = Math.hypot(gate.x - base.x, gate.y - base.y, gate.z - base.z) / 1000;
+  if (!(chordKm > 0)) return null;
+  const arc0 = chordKm;
   let arc = arc0, M = Math.sqrt(arc0 / (K_DEPARTURE * accel));
   let deficitKm = 0;
   for (let i = 0; i < 4; i++) {
@@ -803,11 +807,8 @@ function departureLegCalc(base, gate, vel, accel, maxM) {
   return {
     arcKm: arc0, chargedKm: arc, M: Mfinal, tReal, starved,
     debug: {
-      sltArcKm: slt.arcKm,
-      sltChargedKm: slt.chargedKm,
-      isReduced: slt.isReduced,
       deficitKm,
-      chordKm: Math.hypot(gate.x - base.x, gate.y - base.y, gate.z - base.z) / 1000,
+      chordKm,
       baseRKm: Math.hypot(base.x, base.y, base.z) / 1000,
       gateRKm: Math.hypot(gate.x, gate.y, gate.z) / 1000,
       vel: vel ? { vx: vel.vx, vy: vel.vy } : null,
@@ -1889,7 +1890,7 @@ async function calculate() {
           : (!originStation && !originInEph) ? '⚠ Origin not in fitted ephemeris — gate position estimated'
           : '⚠ DEP fuel allocation still uses the preview-derived cap (B2 outstanding)';
         const dbg = dep.debug || {};
-        const depDebug = `DEBUG (temporary) · arc ${fmtDist(dbg.sltArcKm ?? 0)} · charged ${fmtDist(dbg.sltChargedKm ?? 0)} · reduced ${dbg.isReduced} · chord ${fmtDist(dbg.chordKm ?? 0)}<br>baseR ${fmtDist(dbg.baseRKm ?? 0)} · gateR ${fmtDist(dbg.gateRKm ?? 0)} · deficit ${fmtDist(dbg.deficitKm ?? 0)} · M ${dep.M} · v ${dbg.vel ? Math.hypot(dbg.vel.vx, dbg.vel.vy).toFixed(2) + ' km/s' : '—'}`;
+        const depDebug = `DEBUG (temporary) · chord ${fmtDist(dbg.chordKm ?? 0)} · deficit ${fmtDist(dbg.deficitKm ?? 0)} · net ${fmtDist(dep.chargedKm)}<br>baseR ${fmtDist(dbg.baseRKm ?? 0)} · gateR ${fmtDist(dbg.gateRKm ?? 0)} · M ${dep.M} · v ${dbg.vel ? Math.hypot(dbg.vel.vx, dbg.vel.vy).toFixed(2) + ' km/s' : '—'}`;
         const depNote = `${depNoteBase}<br><span style="font-family:var(--mono);font-size:11px;color:var(--text3)">${depDebug}</span>`;
         html += legHtml('DEP', `${depLabel} → jump gate`, [
           ['Distance', fmtDist(dep.chargedKm)],
