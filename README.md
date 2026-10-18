@@ -49,7 +49,7 @@ These are **FIO account** credentials — not your Prosperous Universe game pass
 
 The deepest tool: a physics-accurate route planner with per-leg fuel, damage, and shield recommendations across multi-leg journeys. Game flight quantities are deterministic to ~machine precision, so the numbers below are exact, sourced from packet captures — not fitted guesses.
 
-**Status: work in progress — actively calibrated.** STL well-leg fuel, DEP fuel and APPROACH fuel/timing are now exact on the validated BFT route (Test11, 2026-10-18: **6h20m57s vs game 6h20m55s; 779.6 vs 779 STL; 435 FTL exact**). Gate distances are captured (planet 0.5 AU, station 0.15 AU); departure uses the game's z=0 charged transfer distance. FTL speed, charge time and charge fuel are anchored to blueprint data, with a capture-calibrated `J(1)` anchor where the panel's `ftlMaxSpeed` is rounded. The damage model is Marcus Licinius Crassus's 2026-10-12 D model; ship mass/volume 86/87 within 1%; landing distance is a deterministic ±13.3% band (exact if the mission seed is known). Known gaps: the full `committed` DEP/APP split for arbitrary fuel loads/usage, gateway damage (unknown), and a ~0.01 pp damage residual. Hypothetical or unknown ships derive FTL speed and the emitter package from the nearest blueprint and are flagged. Heat/whipple/radiation plate effects are not modelled; the anti-rad plate measured non-functional. Treat outputs as close estimates, not gospel.
+**Status: work in progress — actively calibrated.** STL well-leg fuel, DEP fuel and APPROACH fuel/timing are now exact on the validated routes. Test11 (HRT→OZ-189a BFT): **6h20m57s vs game 6h20m55s; 779.6 vs 779 STL; 435 FTL exact**. Big Hauler direct route (ANT→EY-351c, gateways off): **239,468s vs game 239,484s; 1001.2 vs 1006 STL; 700 FTL exact**. Gate distances are captured (planet 0.5 AU, station 0.15 AU); DEP, APPROACH and TRANSIT all use the game's **z=0 charged transfer distance**. There is a **Use gateways** route toggle. FTL speed, charge time and charge fuel are anchored to blueprint data, with a capture-calibrated `J(1)` anchor where the panel's `ftlMaxSpeed` is rounded. The damage model is Marcus Licinius Crassus's 2026-10-12 D model; ship mass/volume 86/87 within 1%; landing distance is a deterministic ±13.3% band (exact if the mission seed is known). Known gaps: the full `committed` DEP/APP split for arbitrary fuel loads/usage, gateway **route legs** (pre-gateway TRANSIT/LOCK/DECAY and post-gateway departure) and gateway damage, plus a ~0.01 pp damage residual. Hypothetical or unknown ships derive FTL speed and the emitter package from the nearest blueprint and are flagged. Heat/whipple/radiation plate effects are not modelled; the anti-rad plate measured non-functional. Treat outputs as close estimates, not gospel.
 
 ### What's calibrated
 
@@ -162,11 +162,12 @@ Note for anyone reproducing this: a regression over these fields is confounded a
 - **Full B2/B3 `committed` split** — DEP/APP fuel and timing are validated on the BFT route, but
   the general `wells → rem → dep/app` split for arbitrary fuel-load/usage combinations is not
   implemented. A slider sweep on the same route is the next data needed.
-- **B5 approach/transit z=0** — departure is fixed; APPROACH and same-system TRANSIT still use
-  3-D positions (Test11 APP +0.43%).
+- **Gateway route legs** — the planner's Use gateways toggle now controls routing, but the game's
+  pre-gateway TRANSIT/LOCK/DECAY legs and post-gateway departure are not modelled. Use a direct
+  route (gateways off) for configuration/fuel validation. Gateway damage remains unknown.
 - **Damage residual** — Test11 0.179% vs game 0.169% (0.010 pp); re-check D on other ships/routes.
 - **FTL `j1` audit** — BP-FYSQ-7703 is calibrated; other blueprints use their stored `vmax`.
-  Gateway damage remains unknown.
+  BP-JRAJ-3531's stored 1.80695 pc/h reproduced the Big Hauler jump times exactly.
 
 ### Modes
 

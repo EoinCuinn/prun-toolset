@@ -83,8 +83,12 @@ Duration: `t [real-s] = d / (2·accel·M) + 2·M` (paper §6, already wall-clock
   arc and do not use the straight-line chord. Captured Test4 HRT: 22.375M game vs 22.383M
   model; Test6 HRT: 18.175M vs 18.276M; OF-443b 54.470M vs 54.577M; MOR 9.829M vs 9.464M.
   Across 39 captured departures most match to 0.03–0.55%; MOR is the worst at 3.7%.
-- **Approach** still uses the gate→planet/station rendezvous in 3-D; B5 z=0 projection for
-  APPROACH/TRANSIT remains open (Test11 APP +0.43%).
+- **Approach / transit** use the same **z=0** projection (B5 complete): DEP at `departureLegCalc`,
+  APPROACH at `stlRendezvousFromGate`, same-system TRANSIT at `stlRendezvous`. Test11 APP
+  +0.02%; Big Hauler APP +0.03%. The 3-D endpoints are kept only for solar-flux damage.
+- **Gateways:** a **Use gateways** toggle controls routing (the game's `useGateways` preference).
+  Gateway *legs* — pre-gateway TRANSIT/LOCK/DECAY and post-gateway departure — are still not
+  modelled; use a direct route for configuration validation.
 
 ### 5. Fuel
 
@@ -212,8 +216,9 @@ transits).
 1. **Full B2/B3 `committed` split** — DEP/APP fuel and timing are validated on the BFT route,
    but the general `wells → rem → dep/app` split for arbitrary fuel-load/usage combinations is
    not implemented. Needs a slider sweep on the same route.
-2. **B5 approach/transit z=0** — DEP is fixed; APPROACH and same-system TRANSIT still run in
-   3-D (Test11 APP +0.43%). Project them to z=0 before `calculateSltDistance3D`.
+2. **Gateway route legs** — the Use gateways toggle controls routing, but the pre-gateway
+   TRANSIT/LOCK/DECAY and post-gateway departure are not modelled. Use a direct route for
+   configuration validation.
 3. **Damage residual** — Test11 0.179% vs 0.169%; re-check D on other ships/routes before
    fitting anything.
 4. **FTL `j1` audit** — BP-FYSQ-7703 is calibrated (1023.54 s/pc); other blueprints use their
@@ -236,8 +241,9 @@ transits).
 | Star mass / density | `systemstars.json` (SAGANAKI via FIO) | meteoroid density + luminosity; API field is `MeteroidDensity` (one 'o') |
 | Gateways | `gateways.json` | FTL lane data |
 | Material weights | `material_data.json` | fuel-store capacity |
-| Ship data | FIO Swagger `api.fnar.net/ships` | thrust, mass, OEM, condition, blueprint id |
+| Ship data | FIO Swagger `api.fnar.net/ships` | thrust, mass, OEM, volume, reactor/emitter, flow, condition, `BlueprintNaturalId`; **no blueprint BOM endpoint** |
 | Fuel stores | FIO `api.fnar.net/storage` | live STL/FTL fuel loads; **the flight uses the loadout slider, not this total** |
+| Blueprint setups | Captured `BLUEPRINT_BLUEPRINTS` (`blueprint_data.jsonl`) | wire hash → naturalId, BOM, performance; refreshed 2026-10-18 with BP-JRAJ-3531 and BP-FYSQ-7703 |
 | Blueprint FTL | `blueprint_ftl.json` | 88 entries; optional `j1` (s/pc) overrides a rounded panel `vmax` |
 | Blueprint max-G | `blueprint_maxg.json` | 88 entries; real-fleet G-cap |
 | Component / BOM | `COMPONENT_DATA` in-file + `BLUEPRINT_BLUEPRINTS` captures | Open Mass ground truth |

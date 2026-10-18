@@ -225,6 +225,10 @@
         <span id="rufVal" class="fuel-val">100%</span>
       </div>
       <div id="rufInfo" class="note" style="margin-top:6px"></div>
+      <label class="note" style="display:flex;align-items:center;gap:6px;margin-top:6px;cursor:pointer">
+        <input id="useGatewaysInput" type="checkbox" checked onchange="calculate()">
+        Use gateways
+      </label>
     </div>
 
     <!-- Calculate -->
@@ -666,7 +670,9 @@ function stlRendezvous(pl1, pl2, GM, accel, M, nowUnix, getPos1Override, getPos2
     const arriveT = nowUnix + tFlight;
     const P = getPos2(pl2, arriveT);
     if (!P) return null;
-    const slt = calculateSltDistance3D(S.x, S.y, S.z, P.x, P.y, P.z);
+    // B5: the game's transfer ellipse is 2-D (z=0). Keep the 3-D endpoints
+    // for flux/damage, but price the distance in the projected plane.
+    const slt = calculateSltDistance3D(S.x, S.y, 0, P.x, P.y, 0);
     if (slt == null) return null;
     const d = slt.chargedKm;
     const newT = stlTimeReal(d, M, accel);
@@ -813,7 +819,8 @@ function stlRendezvousFromGate(gateM, pl2, GM, accel, M, startUnix, getPos2Overr
     const arriveT = startUnix + tFlight;
     const P = getPos(pl2, arriveT);
     if (!P) return null;
-    const slt = calculateSltDistance3D(gateM.x, gateM.y, gateM.z, P.x, P.y, P.z);
+    // B5: APPROACH uses the same z=0 transfer-plane distance as DEP/TRANSIT.
+    const slt = calculateSltDistance3D(gateM.x, gateM.y, 0, P.x, P.y, 0);
     if (!slt) return null;
     let d = slt.chargedKm;
     const isTriangular = d <= 4 * accel * M * M;
@@ -1094,6 +1101,7 @@ let _systems = {};       // SystemId → system object
 let _sysByKey = {};      // uppercase name/NatId → SystemId
 let _graph = {};         // SystemId → [SystemId]
 let _gatewayEdges = new Set();
+let _useGateways = true; // route preference; mirrors the game's useGateways setting
 let _planets = {};       // PlanetNaturalId → planet object
 let _planetByKey = {};   // uppercase NatId/name → PlanetNaturalId
 let _sysStats = {};      // SystemId → { meteoroidDensity, luminosity }
@@ -1729,6 +1737,7 @@ function bfs(startId, endId) {
   while (queue.length) {
     const [cur, path] = queue.shift();
     for (const next of (_graph[cur] || [])) {
+      if (!_useGateways && _gatewayEdges.has(cur + '→' + next)) continue;
       if (next === endId) return [...path, next];
       if (!visited.has(next)) { visited.add(next); queue.push([next, [...path, next]]); }
     }
@@ -1750,6 +1759,7 @@ async function calculate() {
   // APPROACH & same-system transit scale linearly; JUMP/FTL untouched. There is no user-set
   // per-leg STL fuel any more (the "STL fuel for leg" slider was removed).
   const fuf = Math.min(1, Math.max(0.1, +document.getElementById('fufInput').value || 0.5));
+  _useGateways = document.getElementById('useGatewaysInput')?.checked ?? true;
   const phys = shipPhysics(_currentShip);
   const sh = shieldingFor(_currentShip);   // {general,heat,whipple,radiation,gravity}
   const h = 1 - (sh.general || 0);         // D: every damage channel uses the hull factor

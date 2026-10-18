@@ -24,7 +24,7 @@ proxies that have closed forms. His suggested order is reflected below.
 - ✅ **A4 — landing mean** — done. `pf·R(km)`, `pf = 0.15 + 0.45·max(P,0.1)^(−log10 2)`; used for time too.
 - 🟢 **A5 — landing roll** — optional. `d = (pf·R/15)·(13 + 4r)`, r from the missionId PRNG (±13.3%); the planner shows the mean.
 - ✅ **B4 — ephemeris fallback direction** — done. Clockwise motion `M = −n·worldtime + π/2`.
-- 🟡 **B5 — in-system z=0 projection** — **partly done**: DEP now projects both endpoints to z=0 before `calculateSltDistance3D` and uses `chargedKm`; this fixed the near-radial station-gate cases (Test4/6). **Still open for APPROACH and same-system TRANSIT**, which use 3-D positions (Test11 APP +0.43%).
+- ✅ **B5 — in-system z=0 projection** — **done**. DEP, APPROACH and same-system TRANSIT all project both endpoints to z=0 before `calculateSltDistance3D` and use `chargedKm`. Test11 APP +0.02%; Big Hauler APP +0.03% (was +68.6% in 3-D). The 3-D endpoints are retained only for solar-flux damage.
 - ✅ **D — full damage model** — done. Jump, charge, take-off, landing, DEP/APP/TRANSIT with solar flux; `h = 1−SHIELDING_GENERAL`; pressure cap P=25. Test11 planner 0.179% vs game 0.169%.
 - 🟡 **B2 / B3 — STL fuel allocation** — **partly done, validated on the BFT route.** DEP fuel = `M_dep × stlFlowRate/0.015` (Test11: 304 vs game 304). APPROACH fuel = `loaded_STL_units (loadout slider) × 0.491 × fuf` (Test8/11: 429.6 vs 430), and APPROACH is timed at `M_app = appFuel/(flow/0.015)` (Test11: 21m42s vs game 21m38s). Test11 total 6h20m57s vs game 6h20m55s; 779.6 vs 779 STL; 435 FTL exact. **Still open:** the full Marcus `wells → rem → dep/app` split with a general `committed` budget for arbitrary fuel-load/usage combinations. The current formulas reproduce the validated BFT flights.
 - ✅ **C1–C6 — FTL** — done. Charge fuel `⌊P·ρ·pc/333⌋`, measured β (RCT 1.123, QCR 0.929, HPR 2.002, HYR 2.976), blueprint anchor, slider floor, charge time `(3/8)·P·ρ/f`. **New:** capture-calibrated `J(1)` anchor for `BP-FYSQ-7703` (`j1 = 1023.54 s/pc`, effective 3.517 pc/h; the panel's 3.50 is rounded) makes the Test11 jump time exact. [Phase 6]
@@ -48,9 +48,14 @@ proxies that have closed forms. His suggested order is reflected below.
 - ✅ **Test11 forward validation** (HRT→OZ-189a, BP-FYSQ-7703): game 6h20m55s, 779 STL,
   435 FTL; planner 6h20m57s, 779.6 STL, 435 FTL. DEP 304 vs 304; APP 429.6 vs 430;
   LND 46 vs 45; damage 0.179% vs 0.169%.
+- ✅ **Big Hauler validation** (ANT→EY-351c, BP-JRAJ-3531, gateways off): game 239,484s,
+  1006 STL, 700 FTL; planner 239,468s, 1001.2 STL, 700 FTL. DEP +0.01%, APP +0.03%,
+  FTL jump time +0.00%, damage 0.3% both. This also confirmed the stored BP-JRAJ
+  `vmax = 1.80695 pc/h`; no `j1` anchor was needed.
 - 🟡 **Generalisation** — the next tests are the same model on other ships and routes.
-  Watch: per-blueprint `j1` (panel vmax may be rounded), FIO `stlFuelLoad` vs loadout
-  slider (`STL_UNIT_MASS=0.06`), and the B5 approach/transit z=0 projection.
+  Watch: per-blueprint `j1` (panel vmax may be rounded; BP-JRAJ-3531's stored vmax was
+  exact), FIO `stlFuelLoad` vs loadout slider (`STL_UNIT_MASS=0.06`), and gateway-route
+  legs (use a direct route for now).
 - ✅ **Capture replay validator** — built at `prun-flight-capture/validator` (jsdom).
   It joins captured test-flight requests/responses, injects the captured ship, route,
   loadout and settings into the real planner page, freezes the clock to the captured
@@ -78,6 +83,17 @@ type (0.5 AU vs 0.15 AU) and the z=0 charged distance.
 - 🟡 **Damage residual** — Test11 planner 0.179% vs game 0.169% (0.010 pp). Re-check D against other ships/routes before chasing a single constant.
 - 🟡 **FTL `j1` audit** — BP-FYSQ-7703 is calibrated; other blueprints use their stored
   `vmax`. If jump times drift on the next ships, add a `j1` anchor from captured jumps.
+- 🟡 **Gateway flight legs** — a captured ANT→EY-351c test used a gateway
+  (`JUMP_GATEWAY` ZV-307→IA-158) with pre-gateway `TRANSIT`/`LOCK`/`DECAY` and a
+  post-gateway departure from IA-158b. The planner now has a **Use gateways** toggle
+  (mirrors the game's `useGateways`); with it off the direct Big Hauler route matches
+  exactly. The gateway **legs** themselves (transit/lock/decay/post-gateway departure)
+  are still not modelled; the capture validator skips gateway routes. Use a direct
+  route for configuration/fuel validation, or implement gateway legs separately.
+- 🟢 **Configuration lab** — the refreshed `blueprint_data.jsonl` now contains the BOM/
+  performance for BP-JRAJ-3531 "Big Hauler" and the custom BP-FYSQ-7703. Next: derive
+  the planner's empty mass/volume/plates/SSC and damage/fuel per configuration, and
+  compare variants side by side. This is the "are the parts worth it" end game.
 - 🟢 Planet ephemeris — 13/459 covered. [Part 3 "Planets"]
 - 🟢 Station orbit fitting — HRT + ANT done; MOR / BEN / HUB / ARC remaining. [Part 3 "Stations"]
 
@@ -128,4 +144,4 @@ Already-aligned / no change: Phase 2, CS1, the release/review/attribution items 
 
 **Conflict resolved:** routing — handover said add distance weighting, Marcus says don't. Min-hop stays (see Routing above).
 
-**Suggested next:** validate the same model on other ships/routes (the user is doing this now), then full B2/B3 `committed` split, B5 approach/transit z=0, damage residual, FTL `j1` audit, then ship-builder F.
+**Suggested next:** validate the same model on other ships/routes (the user is doing this now), then full B2/B3 `committed` split, gateway route legs, damage residual, FTL `j1` audit, then ship-builder F.
