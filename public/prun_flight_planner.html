@@ -981,9 +981,12 @@ function engineFromThrust(thrustN) {
   return undefined;
 }
 
-// FTL radiation damage fraction (unshielded)
-function radDmgRaw(parsecs) {
-  return 0.000353 * parsecs;
+// FTL lane-jump damage fraction, before the hull factor h = 1 - SHIELDING_GENERAL.
+// Marcus review 2026-10-12: jump damage = h · 1e-5 · pc; no ρ or reactor dependence.
+// This is jump wear, not the STL TRANSIT radiation channel (still unmodelled).
+const JUMP_DMG_PER_PC = 1e-5;
+function jumpDmgRaw(parsecs) {
+  return JUMP_DMG_PER_PC * parsecs;
 }
 
 // ── Damage model (Phase 5 — PHASE4_DAMAGE_SPEC.md §2) ─────────────────────────
@@ -1803,7 +1806,7 @@ async function calculate() {
     let totalJumpSec   = 0;   // lane jump travel time
     let totalChargeSec = 0;   // charge time between lane jumps
     let totalGwSec     = 0;   // gateway time (always computable)
-    let totalRadDmg    = 0;   // lane-jump FTL radiation (radiation shielding)
+    let totalJumpDmg   = 0;   // lane-jump FTL damage (hull factor h = 1 - general shielding)
     let totalGwDmg     = 0;   // gateway wear (general shielding)
     let laneJumps      = 0;   // count of consecutive lane hops (for charges)
     const hopDescs     = [];
@@ -1824,7 +1827,7 @@ async function calculate() {
         totalGwDmg += applyShield(GATEWAY_DMG, sh.general);  // fixed per hop, general shield
       } else {
         laneJumps++;
-        totalRadDmg += applyShield(radDmgRaw(pc), sh.radiation);  // FTL radiation, rad shield
+        totalJumpDmg += applyShield(jumpDmgRaw(pc), sh.general);  // jump damage uses hull factor h
         if (J != null) {
           hopSec = J * pc;
           totalJumpSec += hopSec;
@@ -1847,7 +1850,7 @@ async function calculate() {
     // Location/environment independent → no shielding.
     const chargeUnit  = CHARGE_DMG[_currentShip?.reactorPower] ?? CHARGE_DMG[2000];
     const totalChargeDmg = laneJumps * chargeUnit;
-    const totalFtlDmg = totalRadDmg + totalGwDmg + totalChargeDmg;
+    const totalFtlDmg = totalJumpDmg + totalGwDmg + totalChargeDmg;
 
     const totalFtlSec = totalJumpSec + totalChargeSec + totalGwSec;
     totalRealMin += totalFtlSec / 60;
@@ -1873,7 +1876,7 @@ async function calculate() {
       }
     }
     if (totalGwSec > 0) ftlRows.push(['Gateway time', fmtRealTime(totalGwSec)]);
-    if (totalRadDmg > 0) ftlRows.push(['Radiation dmg', fmtDmg(totalRadDmg)]);
+    if (totalJumpDmg > 0) ftlRows.push(['Jump damage', fmtDmg(totalJumpDmg)]);
     if (totalGwDmg > 0)  ftlRows.push(['Gateway dmg', fmtDmg(totalGwDmg)]);
     ftlRows.push(['Charge dmg', fmtDmg(totalChargeDmg)]);
 
