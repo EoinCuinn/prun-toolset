@@ -49,7 +49,7 @@ These are **FIO account** credentials — not your Prosperous Universe game pass
 
 The deepest tool: a physics-accurate route planner with per-leg fuel, damage, and shield recommendations across multi-leg journeys. Game flight quantities are deterministic to ~machine precision, so the numbers below are exact, sourced from packet captures — not fitted guesses.
 
-**Status: work in progress — actively calibrated.** STL well-leg fuel, DEP fuel and APPROACH fuel/timing are now exact on the validated routes. Test11 (HRT→OZ-189a BFT): **6h20m57s vs game 6h20m55s; 779.6 vs 779 STL; 435 FTL exact**. Big Hauler direct route (ANT→EY-351c, gateways off): **239,468s vs game 239,484s; 1001.2 vs 1006 STL; 700 FTL exact**. Gate distances are captured (planet 0.5 AU, station 0.15 AU); DEP, APPROACH and TRANSIT all use the game's **z=0 charged transfer distance**. There is a **Use gateways** route toggle. FTL speed, charge time and charge fuel are anchored to blueprint data, with a capture-calibrated `J(1)` anchor where the panel's `ftlMaxSpeed` is rounded. The damage model is Marcus Licinius Crassus's 2026-10-12 D model; ship mass/volume 86/87 within 1%; landing distance is a deterministic ±13.3% band (exact if the mission seed is known). Known gaps: the full `committed` DEP/APP split for arbitrary fuel loads/usage, gateway **route legs** (pre-gateway TRANSIT/LOCK/DECAY and post-gateway departure) and gateway damage, plus a ~0.01 pp damage residual. Hypothetical or unknown ships derive FTL speed and the emitter package from the nearest blueprint and are flagged. Heat/whipple/radiation plate effects are not modelled; the anti-rad plate measured non-functional. Treat outputs as close estimates, not gospel.
+**Status: work in progress — actively calibrated.** STL well-leg fuel, DEP fuel and APPROACH fuel/timing are now exact on the validated routes. Test11 (HRT→OZ-189a BFT): **6h20m57s vs game 6h20m55s; 779.6 vs 779 STL; 435 FTL exact**. Big Hauler direct route (ANT→EY-351c, gateways off): **239,468s vs game 239,484s; 1001.2 vs 1006 STL; 700 FTL exact**. Gate distances are captured (planet 0.5 AU, station 0.15 AU); DEP, APPROACH and TRANSIT all use the game's **z=0 charged transfer distance**. There is a **Use gateways** route toggle. FTL speed, charge time and charge fuel are anchored to blueprint data, with a capture-calibrated `J(1)` anchor where the panel's `ftlMaxSpeed` is rounded. The damage model is Marcus Licinius Crassus's 2026-10-12 D model; ship mass/volume 86/87 within 1%; landing distance is a deterministic ±13.3% band (exact if the mission seed is known). Known gaps: the B2/B3 fuel split is implemented (`DEP = min(departure cap, after-TO approach base)`, `APP = approach base`) but BP-OMCU at fuf .81 still reads +2.3% DEP / +1.7% total STL, and very low fuf has a small game-side floor; gateway **route legs** (pre-gateway TRANSIT/LOCK/DECAY and post-gateway departure) and gateway damage; plus a ~0.01 pp damage residual. Hypothetical or unknown ships derive FTL speed and the emitter package from the nearest blueprint and are flagged. Heat/whipple/radiation plate effects are not modelled; the anti-rad plate measured non-functional. Treat outputs as close estimates, not gospel.
 
 ### What's calibrated
 
@@ -122,8 +122,9 @@ subtracted first (wells first); station origins have TO=0 and are unchanged. DEP
 the integer `M` from the departure transfer; APPROACH is timed with its fuel-derived
 `M`, not the saturated boundary. Test11: DEP 304 vs 304; APP 429.6 vs 430; ETA +2s;
 total STL 779.6 vs 779. Big Hauler config (2,989 t cargo): APP 588.1 vs 583, total
-STL 1159.6 vs 1156, ETA +0.64%. The full `committed` split for arbitrary
-fuel-load/usage combinations is still open.
+STL 1159.6 vs 1156, ETA +0.64%. The implemented split is
+`DEP = min(departure cap, (loaded − TO) × 0.491 × fuf)` and `APP = that approach base`;
+at high fuf BP-OMCU remains ~2% high on DEP/total, and very low fuf has a game-side floor.
 
 **FTL speed, charge time and fuel** — blueprint-anchored (C, 2026-10-18)
 ```
@@ -162,9 +163,9 @@ Note for anyone reproducing this: a regression over these fields is confounded a
 - **Radiation / solar flux** — implemented in D as `Luminosity·3.0605e25/r(km)²` at the 3-D
   endpoints. The anti-rad plate remains non-functional (zero measurable effect across nine
   captures); `research/radiation/` is retained as validation.
-- **Full B2/B3 `committed` split** — DEP/APP fuel and timing are validated on the BFT route, but
-  the general `wells → rem → dep/app` split for arbitrary fuel-load/usage combinations is not
-  implemented. A slider sweep on the same route is the next data needed.
+- **B2/B3 residual** — the split is implemented and fixes the high-fuf case (BP-OMCU DEP
+  +12.95% → +2.28%, total STL +6.51% → +1.73%). Remaining: a ~2% high-fuf residual and a
+  small game-side floor at very low fuf.
 - **Gateway route legs** — the planner's Use gateways toggle now controls routing, but the game's
   pre-gateway TRANSIT/LOCK/DECAY legs and post-gateway departure are not modelled. Use a direct
   route (gateways off) for configuration/fuel validation. Gateway damage remains unknown.

@@ -1831,6 +1831,15 @@ async function calculate() {
   const stlLoadedUnits = Math.max(0, (onboardMassT().stl || 0) / STL_UNIT_MASS);
   let stlFuelApproach = null;
 
+  // Landing fuel is a well leg and must be known before the DEP/APP split.
+  if (destPl) {
+    if (phys?.accel && destPl.Radius) {
+      ldgFuelUnits = atmLeg(destPl.Radius, destPl.Pressure ?? 0, phys.accel, 'ldg', _currentShip?.stlFlowRate).M;
+    } else {
+      const lndDistKm = destPl.Radius ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0) : 18514;
+      ldgFuelUnits = Math.round(0.576 * Math.sqrt(lndDistKm));
+    }
+  }
   // ── TO leg ──
   let toTimeRealS = 0;
   if (originPl) {
@@ -1867,15 +1876,23 @@ async function calculate() {
         ? Math.floor(onboardMassT().stl / _currentShip.stlFlowRate) : null;
       const dep = departureLegCalc(base, gate, vel, phys.accel, depBudgetM);
       if (dep) {
-        // B2/B3: the game allocates fuel first, then times the leg. For the
-        // departure, fuel = M × (flow/0.015); at the reference flow 0.015 this is
-        // just M, and at this ship's 0.03 it is 2M. Captured Test4/6/7: M=152 →
-        // 304 units, M=168 → 336, M=152 → 303-304. The old preview-derived
-        // 13.34·fuf·stlFuel/a cap is retired.
-        const depFuel = dep.M * (stlFlowRate / 0.015);
-        totalRealMin += dep.tReal / 60;
+        // B2/B3: fuel first, then time. Captured direct flights show the game
+        // allocates each non-well leg from the after-TO fuel:
+        //   depCap  = dep.M × flow/0.015          (max useful departure burn)
+        //   appBase = (loaded − TO) × 0.491 × fuf  (approach budget)
+        //   DEP = min(depCap, appBase); APP = appBase
+        // Wells (TO/LND) are taken first. This matches Test11, the Big Hauler
+        // station/planet/cargo cases and BP-OMCU at fuf .5/.81; very low fuf
+        // still has a small game-side floor.
+        const depCap = dep.M * (stlFlowRate / 0.015);
+        const appBase = Math.max(0, stlLoadedUnits - toFuelUnits) * 0.491 * fuf;
+        const depFuel = Math.max(0, Math.min(depCap, appBase));
+        stlFuelApproach = Math.max(0, appBase);
+        const depM = Math.max(1, Math.round(depFuel / (stlFlowRate / 0.015)));
+        const depTime = stlTimeReal(dep.chargedKm, depM, phys.accel) ?? dep.tReal;
+        totalRealMin += depTime / 60;
         totalFuelStl += depFuel;
-        t += dep.tReal;
+        t += depTime;
         // DEPARTURE damage — D model: meteor + solar flux at the base and gate.
         const depDensity = (_sysStats[_origin.sysId] || {}).meteoroidDensity || 0;
         const depLum = (_sysStats[_origin.sysId] || {}).luminosity || 0;
@@ -1883,15 +1900,15 @@ async function calculate() {
         totalDmg += depDmg;
         const depLabel = originStation?.name ?? depOriginPl?.PlanetName ?? depOriginPl?.PlanetNaturalId;
         const depNoteBase = dep.starved
-          ? `⚠ Fuel-starved departure — M capped at ${dep.M.toFixed(1)} by STL fuel budget (${onboardMassT().stl.toFixed(1)} t)`
+          ? `⚠ Fuel-starved departure — M capped at ${depM.toFixed(1)} by STL fuel budget (${onboardMassT().stl.toFixed(1)} t)`
           : (!originStation && !originInEph) ? '⚠ Origin not in fitted ephemeris — gate position estimated'
-          : '⚠ DEP fuel allocation still uses the preview-derived cap (B2 outstanding)';
+          : 'DEP/APP fuel uses the B2/B3 wells-first split';
         const dbg = dep.debug || {};
-        const depDebug = `DEBUG (temporary) · arc ${fmtDist(dbg.sltArcKm ?? 0)} · charged ${fmtDist(dbg.sltChargedKm ?? 0)} · reduced ${dbg.isReduced} · chord ${fmtDist(dbg.chordKm ?? 0)}<br>baseR ${fmtDist(dbg.baseRKm ?? 0)} · gateR ${fmtDist(dbg.gateRKm ?? 0)} · M ${dep.M} · v ${dbg.vel ? Math.hypot(dbg.vel.vx, dbg.vel.vy).toFixed(2) + ' km/s' : '—'}`;
+        const depDebug = `DEBUG (temporary) · arc ${fmtDist(dbg.sltArcKm ?? 0)} · charged ${fmtDist(dbg.sltChargedKm ?? 0)} · reduced ${dbg.isReduced} · chord ${fmtDist(dbg.chordKm ?? 0)}<br>baseR ${fmtDist(dbg.baseRKm ?? 0)} · gateR ${fmtDist(dbg.gateRKm ?? 0)} · M ${depM} · v ${dbg.vel ? Math.hypot(dbg.vel.vx, dbg.vel.vy).toFixed(2) + ' km/s' : '—'}`;
         const depNote = `${depNoteBase}<br><span style="font-family:var(--mono);font-size:11px;color:var(--text3)">${depDebug}</span>`;
         html += legHtml('DEP', `${depLabel} → jump gate`, [
           ['Distance', fmtDist(dep.chargedKm)],
-          ['Time (real)', fmtRealTime(dep.tReal)],
+          ['Time (real)', fmtRealTime(depTime)],
           ['STL fuel', depFuel.toFixed(1) + ' units'],
           ['DEP dmg', fmtDmg(depDmg)],
         ], '', depDmg, depNote);
@@ -2011,17 +2028,7 @@ async function calculate() {
   // real transit distance (rendez.chargedKm / stlDistKm) has been solved.
   let stlDmg = 0;
 
-  // LND fuel — exact well-leg allocation (Marcus B3, 2026-10-12): integer fuel tier
-  // M = ceil(sqrt(d/(13.71·accel_atm))), fuel = M at flow 0.015 scaled by flow/0.015.
-  // Computed up-front so the same-system TRANSIT fuel (tank − TO − LND) can use it.
-  if (destPl) {
-    if (phys?.accel && destPl.Radius) {
-      ldgFuelUnits = atmLeg(destPl.Radius, destPl.Pressure ?? 0, phys.accel, 'ldg', _currentShip?.stlFlowRate).M;
-    } else {
-      const lndDistKm = destPl.Radius ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0) : 18514;
-      ldgFuelUnits = Math.round(0.576 * Math.sqrt(lndDistKm));
-    }
-  }
+  // LND fuel was computed before DEP so the B2/B3 split can use the wells total.
 
   let rendez = null;
   let stlDistKm = null, stlDistMinKm = null;
@@ -2058,13 +2065,11 @@ async function calculate() {
       const destPosAtGate = getDestPos(stlDestPl, t); // station closure ignores first arg
       const gateApp = destPosAtGate ? gatePositionM(destPosAtGate, _dest.sysId, path[path.length - 2], !!destStation) : null;
       if (gateApp) {
-        // B2/B3: allocate APPROACH fuel first, then time the rendezvous at that
-        // fuel's M. APPROACH fuel = STL units left after TAKE-OFF × 0.491 × fuf.
-        // Subtract the take-off burn (wells first): Test8 Big Hauler config,
-        // loaded 1,750, TO 39, fuf .7 — full-load form 601.5 vs game 583;
-        // after-TO form 588.1. Station origins have TO=0 and are unchanged.
-        // stlLoadedUnits is the loadout slider, not FIO storage or tank capacity.
-        stlFuelApproach = Math.max(0, stlLoadedUnits - toFuelUnits) * 0.491 * fuf;
+        // APPROACH fuel was allocated by the B2/B3 split in the DEP block
+        // (wells first, then half-remainder with DEP capped). Fall back to the
+        // after-TO formula only if there was no departure leg.
+        if (stlFuelApproach == null)
+          stlFuelApproach = Math.max(0, stlLoadedUnits - toFuelUnits) * 0.491 * fuf;
         const appM = Math.max(1, Math.round(stlFuelApproach / (stlFlowRate / 0.015)));
         rendez = stlRendezvousFromGate(gateApp, stlDestPl, stlGM, phys.accel, appM, t,
                         destStation ? getDestPos : null);

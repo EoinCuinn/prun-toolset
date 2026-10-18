@@ -21,8 +21,9 @@ hull-damage projection with condition alerts.
 - **Fuel:** well-leg TO/LND exact (A3/B3/A4). **DEP fuel = `M × flow/0.015`; APPROACH
   fuel = (loaded loadout units − TO fuel) × 0.491 × fuf; APPROACH is timed at its
   fuel-derived M.**
-  Test11: 779.6 vs game 779 STL, ETA 6h20m57s vs 6h20m55s. Full `committed` split for
-  arbitrary loads/fuf is still open.
+  Test11: 779.6 vs game 779 STL, ETA 6h20m57s vs 6h20m55s. The B2/B3 split is implemented
+  (`DEP = min(dep cap, after-TO approach base)`, `APP = approach base`); a ~2% high-fuf
+  residual and a small low-fuf floor remain.
 - **FTL (C, 2026-10-18):** blueprint-anchored `J(1)`; measured β; emitter-based charge
   time; charge fuel; slider floor `E/P`. A capture-calibrated `j1` anchor overrides a
   rounded panel `ftlMaxSpeed` (BP-FYSQ-7703: 1023.54 s/pc, effective 3.517 pc/h). See §6.
@@ -114,9 +115,11 @@ Duration: `t [real-s] = d / (2·accel·M) + 2·M` (paper §6, already wall-clock
 - **Fuel usage slider:** TO / LND / JUMP are invariant to `fuelUsageFactor`; DEP and APPROACH
   use the laws above. Old per-leg fuel slider removed; `fuelUsageFactor` input added
   (default 0.50, range 0.10–1.00).
-- **Still open:** the full Marcus `wells → rem → dep/app` split with a general `committed`
-  budget for arbitrary fuel-load/usage combinations. The current formulas reproduce the
-  validated BFT flights.
+- **B2/B3 allocation (2026-10-18):** wells are taken first; `depCap = M_dep × flow/0.015`;
+  `appBase = (loaded − TO) × 0.491 × fuf`; then `DEP = min(depCap, appBase)` and `APP = appBase`.
+  The DEP time is re-derived from the allocated DEP fuel. This fixes the high-fuf case
+  (BP-OMCU: DEP +12.95% → +2.28%, total STL +6.51% → +1.73%). A ~2% high-fuf residual and a
+  small low-fuf floor remain.
 - **Same-system TRANSIT fuel:** `(tank − TO − LND) × fuf`, unchanged (validated 2026-07-11).
 
 ### 6. FTL jump + gateway — calibrated (C, 2026-10-18)
@@ -219,9 +222,9 @@ transits).
 
 ## Open items / known issues
 
-1. **Full B2/B3 `committed` split** — DEP/APP fuel and timing are validated on the BFT route,
-   but the general `wells → rem → dep/app` split for arbitrary fuel-load/usage combinations is
-   not implemented. Needs a slider sweep on the same route.
+1. **B2/B3 residual** — the split is implemented and fixes the high-fuf case, but BP-OMCU
+   remains ~2% high on DEP/total STL, and very low fuf has a game-side floor. Needs a
+   controlled low-fuf sweep if exactness there matters.
 2. **Gateway route legs** — the Use gateways toggle controls routing, but the pre-gateway
    TRANSIT/LOCK/DECAY and post-gateway departure are not modelled. Use a direct route for
    configuration validation.

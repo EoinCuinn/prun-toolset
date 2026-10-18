@@ -26,7 +26,7 @@ proxies that have closed forms. His suggested order is reflected below.
 - ✅ **B4 — ephemeris fallback direction** — done. Clockwise motion `M = −n·worldtime + π/2`.
 - ✅ **B5 — in-system z=0 projection** — **done**. DEP, APPROACH and same-system TRANSIT all project both endpoints to z=0 before `calculateSltDistance3D` and use `chargedKm`. Test11 APP +0.02%; Big Hauler APP +0.03% (was +68.6% in 3-D). The 3-D endpoints are retained only for solar-flux damage.
 - ✅ **D — full damage model** — done. Jump, charge, take-off, landing, DEP/APP/TRANSIT with solar flux; `h = 1−SHIELDING_GENERAL`; pressure cap P=25. Test11 planner 0.179% vs game 0.169%.
-- 🟡 **B2 / B3 — STL fuel allocation** — **partly done, validated on the BFT and Big Hauler routes.** DEP fuel = `M_dep × stlFlowRate/0.015` (Test11: 304 vs game 304). APPROACH fuel = `(loaded_STL_units (loadout slider) − TO fuel) × 0.491 × fuf` (Test8/11: 429.6 vs 430; Big Hauler config with 2,989 t cargo: 588.1 vs 583), and APPROACH is timed at `M_app = appFuel/(flow/0.015)` (Test11: 21m42s vs game 21m38s). Test11 total 6h20m57s vs game 6h20m55s; 779.6 vs 779 STL; 435 FTL exact. Big Hauler config: ETA +0.64%, STL 1159.6 vs 1156, damage +0.02%. **Still open:** the full Marcus `wells → rem → dep/app` split with a general `committed` budget for arbitrary fuel-load/usage combinations. The current formulas reproduce the validated flights to <1%.
+- 🟡 **B2 / B3 — STL fuel allocation** — **split implemented 2026-10-18.** Wells first; `depCap = M_dep × flow/0.015`; `appBase = (loaded − TO) × 0.491 × fuf`; then **DEP = min(depCap, appBase)** and **APP = appBase**, with DEP timed at its allocated M. Test11: DEP 304/304, APP 429.6/430, ETA 6h20m57s vs game 6h20m55s. Big Hauler cargo: APP 588.1/583, total STL 1159.6/1156. BP-OMCU high fuf: DEP +12.95% → **+2.28%**, total STL +6.51% → **+1.73%**. **Still open:** ~2% residual at high fuf and a small game-side floor at very low fuf.
 - ✅ **C1–C6 — FTL** — done. Charge fuel `⌊P·ρ·pc/333⌋`, measured β, blueprint anchor, slider floor, charge time `(3/8)·P·ρ/f`. **Capture finding (2026-10-18):** lane-jump time is `J(1)·pc`; the reactor-usage slider scales charge time and FTL fuel, not lane-jump speed. Test11, Big Hauler and BP-OMCU all match with jump speed held at blueprint `J(1)`. BP-FYSQ-7703's panel 3.50 pc/h is rounded; its `j1 = 1023.54 s/pc` anchor is exact. [Phase 6]
 - 🟢 **F — ship builder fractional component volumes** (QCR 6–7, HPR 116–117, MFL 5–6, MSL 125.8–126.2). With A6/A7/A8, empty-mass chain is perfect 160/160. **Desktop-only** — needs `C:\prun-tools\prun-openmass\`. [Ship Val / reopens Open Mass]
 
@@ -54,10 +54,9 @@ proxies that have closed forms. His suggested order is reflected below.
   `vmax = 1.80695 pc/h`; no `j1` anchor was needed.
 - ✅ **BP-OMCU-0214 "Stability Upgrade"** (VH-192c→EY-303b, direct, fuf .81): TO/DEP/APP
   distances/times within 0.7%, FTL fuel/charge exact, jump time -0.68%, damage 0.4%
-  both. DEP fuel +12.95% / total STL +6.51% — the open B2/B3 `committed` split (the game
-  splits DEP/APP near half at high fuf instead of using the departure cap). The BOM
-  includes **STS:1** (stability system, gravity shield); BP-OMCU performance anchors added
-  to the planner data.
+  both. After the B2/B3 split: DEP fuel +2.28%, APP +0.83%, total STL +1.73% (was
+  +12.95% / +6.51%). The BOM includes **STS:1** (stability system, gravity shield);
+  BP-OMCU performance anchors added to the planner data.
 - 🟡 **Generalisation** — the next tests are the same model on other ships and routes.
   Watch: per-blueprint `j1` (panel vmax may be rounded; BP-JRAJ-3531's stored vmax was
   exact), FIO `stlFuelLoad` vs loadout slider (`STL_UNIT_MASS=0.06`), and gateway-route
@@ -66,9 +65,9 @@ proxies that have closed forms. His suggested order is reflected below.
   It joins captured test-flight requests/responses, injects the captured ship, route,
   loadout and settings into the real planner page, freezes the clock to the captured
   departure timestamp, runs `calculate()`, and prints a leg-by-leg comparison. The
-  latest Test11 capture passes (ETA +0.01%, STL +0.08%, FTL exact); `--all` also exposes
-  the older low-`fuelUsageFactor` flights that still need the full B2/B3 `committed` split.
-  Local/private tool; `--ship` or `blueprint_map.json` handles custom blueprint hashes.
+  latest Test11 capture passes (ETA +0.01%, STL +0.08%, FTL exact); the Big Hauler
+  and BP-OMCU direct configs pass except the ~2% high-fuf B2/B3 residual. Gateway routes
+  are skipped. Local/private tool; `--ship`/blueprint data handles custom hashes.
 
 **Next-test checklist:** for each ship/route, record the blueprint, **loadout slider units**,
 `fuelUsageFactor`, and route. Compare TO/DEP/APP/LND/FTL fuel and time leg-by-leg. If the FTL
@@ -141,7 +140,7 @@ Marcus's review reopened several items. Current status after the 2026-10-18 pass
 | Roadmap item | Status now | Remaining |
 |---|---|---|
 | Phase 1 — G-cap | ✅ done | Blueprint `maxGFactor` + `blueprint_maxg.json`; FIO Acceleration is unclamped thrust/mass. |
-| Phase 3 — Acceleration Integration | 🟡 partly | DEP/APP fuel-first + timing validated on Test11; full `committed` split still open. |
+| Phase 3 — Acceleration Integration | 🟡 mostly | DEP/APP fuel-first split implemented; ~2% high-fuf residual and low-fuf floor remain. |
 | Open Mass — empty mass & volume | 🟡 partly | Plate/volume formulas (A6/A7/A8, F) still pending; desktop data needed. |
 | Phase 5 — Damage Model | ✅ done | D implemented and Test11-validated; 0.010 pp residual to re-check. |
 | Phase 6 — FTL & Gateway Routing | ✅ mostly | C1–C6 implemented; `j1` anchor for BP-FYSQ-7703; gateway damage unknown. |
@@ -150,4 +149,4 @@ Already-aligned / no change: Phase 2, CS1, the release/review/attribution items 
 
 **Conflict resolved:** routing — handover said add distance weighting, Marcus says don't. Min-hop stays (see Routing above).
 
-**Suggested next:** validate the same model on other ships/routes (the user is doing this now), then full B2/B3 `committed` split, gateway route legs, damage residual, FTL `j1` audit, then ship-builder F.
+**Suggested next:** validate the same model on other ships/routes (the user is doing this now), then gateway route legs, B2/B3 high-fuf/low-fuf residual, damage residual, FTL `j1` audit, then ship-builder F.
