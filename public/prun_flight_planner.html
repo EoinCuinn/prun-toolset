@@ -266,7 +266,10 @@ const FTL_REACTORS = {
 // Independent of ship and reactor; speed exactly 3 pc/hour = 1200 s/pc.
 
 // STL departure arc constants (Marcus's prun_flight_cold.py)
-const GATE_D_PLANET_M = 74798935 * 1000; // gate is 74,798,935 km from planet, in metres
+// Captured 2026-10-18: planet gates are 0.5 AU from the planet; station gates are
+// 0.15 AU from the station. The direction comes from the system map positions.
+const GATE_D_PLANET_M  = 74798935 * 1000;          // 0.5 AU, in metres
+const GATE_D_STATION_M = 22439680.605 * 1000;      // 0.15 AU, in metres
 const K_DEPARTURE = 4.0;                 // departure M = sqrt(arc / (K_DEPARTURE × accel))
 
 // Orbital ephemeris — Josh Glass paper (June 2026), Section 10
@@ -762,8 +765,10 @@ function departureDeficit(arc, M, accel, O, P, vbody) {
   return Math.min(2 * M * w0 - w0 * w0 / (2 * accel), 0.95 * arc);
 }
 
-// Gate position in metres — GATE_D_PLANET_M from planet toward the neighboring system.
-function gatePositionM(base, originSysId, neighborSysId) {
+// Gate position in metres. Planet gates are 0.5 AU from the planet; station gates
+// are 0.15 AU from the station (captured 2026-10-18). Direction is toward the
+// neighboring system in the system-map frame.
+function gatePositionM(base, originSysId, neighborSysId, stationGate) {
   const sysA = _systems[originSysId], sysB = _systems[neighborSysId];
   if (!sysA || !sysB) return null;
   const vx = sysB.PositionX - sysA.PositionX;
@@ -771,7 +776,8 @@ function gatePositionM(base, originSysId, neighborSysId) {
   const vz = sysB.PositionZ - sysA.PositionZ;
   const n = Math.sqrt(vx*vx + vy*vy + vz*vz);
   if (!n) return null;
-  return { x: base.x + GATE_D_PLANET_M*vx/n, y: base.y + GATE_D_PLANET_M*vy/n, z: base.z + GATE_D_PLANET_M*vz/n };
+  const d = stationGate ? GATE_D_STATION_M : GATE_D_PLANET_M;
+  return { x: base.x + d*vx/n, y: base.y + d*vy/n, z: base.z + d*vz/n };
 }
 
 // Departure leg: planet → jump gate. M set to sqrt(arc/(K_DEP·a)) so ship is at triangular boundary.
@@ -1849,7 +1855,7 @@ async function calculate() {
   const hasDepOrigin = !!(originStation || depOriginPl);
   if (!sameSys && hasDepOrigin && phys?.accel) {
     const base = getOriginPos(depOriginPl, t); // station closure ignores first arg
-    const gate = base ? gatePositionM(base, _origin.sysId, path[1]) : null;
+    const gate = base ? gatePositionM(base, _origin.sysId, path[1], !!originStation) : null;
     if (base && gate) {
       const vel = planetVelocityKmS(depOriginPl, t, getOriginPos);
       // Fix 1 — departure fuel budget (first segment): floor(STL fuel onboard / flow rate).
@@ -2050,7 +2056,7 @@ async function calculate() {
     const hasApproachDest = !!(stlDestPl || destStation);
     if (hasApproachDest && phys?.accel && path) {
       const destPosAtGate = getDestPos(stlDestPl, t); // station closure ignores first arg
-      const gateApp = destPosAtGate ? gatePositionM(destPosAtGate, _dest.sysId, path[path.length - 2]) : null;
+      const gateApp = destPosAtGate ? gatePositionM(destPosAtGate, _dest.sysId, path[path.length - 2], !!destStation) : null;
       if (gateApp) {
         // NOTE: APPROACH *fuel* is no longer taken from approachComputedMax — it is now the
         // tank-capacity formula (see display block below). We still call it purely to obtain the
