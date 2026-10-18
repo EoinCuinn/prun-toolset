@@ -128,8 +128,9 @@ fuel-load/usage combinations is still open.
 **FTL speed, charge time and fuel** — blueprint-anchored (C, 2026-10-18)
 ```
 J(1) = 3600 / ftlMaxSpeed (pc/h)
-J(ρ) = J(1) · e^(β(1−ρ))
-β: RCT 1.123 · QCR 0.929 · HPR 2.002 · HYR 2.976
+lane-jump time = J(1) · pc
+ρ scales charge time and FTL fuel, not lane-jump speed
+β: RCT 1.123 · QCR 0.929 · HPR 2.002 · HYR 2.976  (retained reactor data)
 charge time = (3/8)·P·ρ/f per charge (jumps − 1)
   at the E/P floor this is (3/8)·E/f
 charge fuel = ⌊P·ρ·pc/333⌋ FF per jump (first charge on departure)

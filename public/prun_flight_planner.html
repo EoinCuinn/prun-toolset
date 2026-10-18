@@ -1062,6 +1062,8 @@ const BLUEPRINT_SHIELDING = {
   'BP-NVGM-1171': { general: -0.10, heat: 0, whipple: 0, radiation: 0, gravity: 0 },
   'BP-JRAJ-3531': { general: -0.10, heat: 0, whipple: 0, radiation: 0, gravity: 0 },
   'BP-FYSQ-7703': { general: 0.10,  heat: 1.00, whipple: 0, radiation: 0, gravity: 0 },
+  // BP-OMCU-0214 "Stability Upgrade": BHP plates (general 0) + STS (gravity 1.0).
+  'BP-OMCU-0214': { general: 0, heat: 0, whipple: 0, radiation: 0, gravity: 1.0 },
 };
 // Per-component shielding factors (spec §3a). General is additive (hull plate + drones).
 // Hull plates are picked in the hull selector; drones/other shields in the damage dropdowns.
@@ -1665,9 +1667,7 @@ function onRufChange() {
   if (!ftl) { infoEl.innerHTML = '— reactor stats unavailable'; return; }
   const parts = [`min ${minPct}%`];
   if (ftl.c != null) parts.push(`charge ${fmtRealTime(ftl.c * ruf)}/jump`);
-  if (ftl.J1 != null) parts.push(`${(3600 / ftl.J1).toFixed(2)} pc/hr at 100%`);
-  const J = ftl.A * Math.exp(-ftl.beta * ruf);
-  parts.push(`${(3600 / J).toFixed(2)} pc/hr at ${Math.round(ruf * 100)}%`);
+  if (ftl.J1 != null) parts.push(`${(3600 / ftl.J1).toFixed(2)} pc/hr (blueprint)`);
   infoEl.innerHTML = parts.join(' &nbsp;·&nbsp; ') + (ftl.estimated ? ' <span style="color:var(--yellow)">(est)</span>' : '');
 }
 
@@ -1904,7 +1904,9 @@ async function calculate() {
     const ftl    = ftlPhysics(_currentShip);
     const minRuf = Math.min(1, ftl?.minUsage ?? 0.1);
     const ruf    = Math.max(minRuf, +document.getElementById('rufSlider').value / 100);
-    const J      = ftl ? ftl.A * Math.exp(-ftl.beta * ruf) : null; // s/parsec for lane jumps
+    // Captured test flights show lane-jump TIME at the blueprint J(1) anchor;
+    // the reactor-usage setting drives charge time and charge fuel, not speed.
+    const J      = ftl ? ftl.J1 : null; // s/parsec for lane jumps
 
     let totalParsecs   = 0;
     let totalJumpSec   = 0;   // lane jump travel time

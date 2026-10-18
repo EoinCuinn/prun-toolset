@@ -27,7 +27,7 @@ proxies that have closed forms. His suggested order is reflected below.
 - ✅ **B5 — in-system z=0 projection** — **done**. DEP, APPROACH and same-system TRANSIT all project both endpoints to z=0 before `calculateSltDistance3D` and use `chargedKm`. Test11 APP +0.02%; Big Hauler APP +0.03% (was +68.6% in 3-D). The 3-D endpoints are retained only for solar-flux damage.
 - ✅ **D — full damage model** — done. Jump, charge, take-off, landing, DEP/APP/TRANSIT with solar flux; `h = 1−SHIELDING_GENERAL`; pressure cap P=25. Test11 planner 0.179% vs game 0.169%.
 - 🟡 **B2 / B3 — STL fuel allocation** — **partly done, validated on the BFT and Big Hauler routes.** DEP fuel = `M_dep × stlFlowRate/0.015` (Test11: 304 vs game 304). APPROACH fuel = `(loaded_STL_units (loadout slider) − TO fuel) × 0.491 × fuf` (Test8/11: 429.6 vs 430; Big Hauler config with 2,989 t cargo: 588.1 vs 583), and APPROACH is timed at `M_app = appFuel/(flow/0.015)` (Test11: 21m42s vs game 21m38s). Test11 total 6h20m57s vs game 6h20m55s; 779.6 vs 779 STL; 435 FTL exact. Big Hauler config: ETA +0.64%, STL 1159.6 vs 1156, damage +0.02%. **Still open:** the full Marcus `wells → rem → dep/app` split with a general `committed` budget for arbitrary fuel-load/usage combinations. The current formulas reproduce the validated flights to <1%.
-- ✅ **C1–C6 — FTL** — done. Charge fuel `⌊P·ρ·pc/333⌋`, measured β (RCT 1.123, QCR 0.929, HPR 2.002, HYR 2.976), blueprint anchor, slider floor, charge time `(3/8)·P·ρ/f`. **New:** capture-calibrated `J(1)` anchor for `BP-FYSQ-7703` (`j1 = 1023.54 s/pc`, effective 3.517 pc/h; the panel's 3.50 is rounded) makes the Test11 jump time exact. [Phase 6]
+- ✅ **C1–C6 — FTL** — done. Charge fuel `⌊P·ρ·pc/333⌋`, measured β, blueprint anchor, slider floor, charge time `(3/8)·P·ρ/f`. **Capture finding (2026-10-18):** lane-jump time is `J(1)·pc`; the reactor-usage slider scales charge time and FTL fuel, not lane-jump speed. Test11, Big Hauler and BP-OMCU all match with jump speed held at blueprint `J(1)`. BP-FYSQ-7703's panel 3.50 pc/h is rounded; its `j1 = 1023.54 s/pc` anchor is exact. [Phase 6]
 - 🟢 **F — ship builder fractional component volumes** (QCR 6–7, HPR 116–117, MFL 5–6, MSL 125.8–126.2). With A6/A7/A8, empty-mass chain is perfect 160/160. **Desktop-only** — needs `C:\prun-tools\prun-openmass\`. [Ship Val / reopens Open Mass]
 
 ### Ship builder (part of F)
@@ -52,6 +52,12 @@ proxies that have closed forms. His suggested order is reflected below.
   1006 STL, 700 FTL; planner 239,468s, 1001.2 STL, 700 FTL. DEP +0.01%, APP +0.03%,
   FTL jump time +0.00%, damage 0.3% both. This also confirmed the stored BP-JRAJ
   `vmax = 1.80695 pc/h`; no `j1` anchor was needed.
+- ✅ **BP-OMCU-0214 "Stability Upgrade"** (VH-192c→EY-303b, direct, fuf .81): TO/DEP/APP
+  distances/times within 0.7%, FTL fuel/charge exact, jump time -0.68%, damage 0.4%
+  both. DEP fuel +12.95% / total STL +6.51% — the open B2/B3 `committed` split (the game
+  splits DEP/APP near half at high fuf instead of using the departure cap). The BOM
+  includes **STS:1** (stability system, gravity shield); BP-OMCU performance anchors added
+  to the planner data.
 - 🟡 **Generalisation** — the next tests are the same model on other ships and routes.
   Watch: per-blueprint `j1` (panel vmax may be rounded; BP-JRAJ-3531's stored vmax was
   exact), FIO `stlFuelLoad` vs loadout slider (`STL_UNIT_MASS=0.06`), and gateway-route

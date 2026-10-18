@@ -121,13 +121,14 @@ Duration: `t [real-s] = d / (2·accel·M) + 2·M` (paper §6, already wall-clock
 
 ### 6. FTL jump + gateway — calibrated (C, 2026-10-18)
 
-`J(1) = 3600 / ftlMaxSpeed` (pc/h); `J(ρ) = J(1)·e^(β(1−ρ))`. Measured β: RCT 1.123,
-QCR 0.929, HPR 2.002, HYR 2.976. Charge time `(3/8)·P·ρ/f` per charge (the E/P floor
-gives `(3/8)·E/f`), counts jumps−1;
-charge fuel `⌊P·ρ·pc/333⌋` FF per jump, first charge on departure. `E = 100·SFE +
-175·MFE + 300·LFE`; slider floor `E/P`. 88 blueprint entries (85 with FTL) in
-`public/blueprint_ftl.json`; unknown/hypothetical ships use the C3 hull-volume fit and
-are flagged. `FP_SCALE = 12.0`. Gateway: `t_gw = d_ftl × 1200 + 1220` s (3 pc/hr,
+`J(1) = 3600 / ftlMaxSpeed` (pc/h). Captured Test11, Big Hauler and BP-OMCU show
+**lane-jump time = J(1)·pc**; the reactor-usage slider ρ scales **charge time and FTL
+fuel**, not lane-jump speed. Measured β values (RCT 1.123, QCR 0.929, HPR 2.002,
+HYR 2.976) are retained as reactor data. Charge time `(3/8)·P·ρ/f` per charge (the E/P
+floor gives `(3/8)·E/f`), counts jumps−1; charge fuel `⌊P·ρ·pc/333⌋` FF per jump, first
+charge on departure. `E = 100·SFE + 175·MFE + 300·LFE`; slider floor `E/P`. 89 blueprint
+entries in `public/blueprint_ftl.json`; unknown/hypothetical ships use the C3 hull-volume
+fit and are flagged. `FP_SCALE = 12.0`. Gateway: `t_gw = d_ftl × 1200 + 1220` s (3 pc/hr,
 ship-independent); gateway damage unknown.
 
 **Capture-calibrated `J(1)` anchor (2026-10-18):** the in-game panel rounds `ftlMaxSpeed`
