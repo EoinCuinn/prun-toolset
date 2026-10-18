@@ -465,10 +465,12 @@ function solveKepler(M_anom, ecc) {
   return E;
 }
 
+// FIO fallback orbit — true game motion is clockwise: M = -n·worldtime + π/2.
+// (The fitted ephemeris uses its own M0/n convention and is unaffected.)
 function planetXY(unixT, a_m, ecc, GM_wt) {
   const wt  = worldTime(unixT);
   const n   = Math.sqrt(GM_wt / (a_m * a_m * a_m));
-  const M_a = ((n * wt) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+  const M_a = ((-n * wt + Math.PI / 2) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
   const E   = solveKepler(M_a, ecc);
   return { x: a_m * (Math.cos(E) - ecc), y: a_m * Math.sqrt(1 - ecc * ecc) * Math.sin(E) };
 }
@@ -478,7 +480,7 @@ function planetXY(unixT, a_m, ecc, GM_wt) {
 function planetXYZ(unixT, a_m, ecc, inc, GM_wt) {
   const wt    = worldTime(unixT);
   const n     = Math.sqrt(GM_wt / (a_m * a_m * a_m));
-  const M_a   = ((n * wt) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+  const M_a   = ((-n * wt + Math.PI / 2) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
   const E     = solveKepler(M_a, ecc);
   const x_orb = a_m * (Math.cos(E) - ecc);
   const y_orb = a_m * Math.sqrt(1 - ecc * ecc) * Math.sin(E);
@@ -900,23 +902,24 @@ function fmtMin(min) {
   return fmtRealTime(min * 60);
 }
 
-// Atmospheric leg (TO or landing) — paper Section 12.4, corrected in Section 1.2
-// d_TO  = (R_m/1000) × (0.1482 + 0.4521·P^0.30)   frame km
-// d_LDG = 926 × (R_m/1e6)^0.96 × (1+P)^(-0.42)   frame km  (decreases with pressure)
-// tier  = sqrt(d / (13.71 × accel_atm))            server-set speed tier (drives real time)
-// t     = tier × (13.71/2 + 2) = tier × 8.855      real-s
-// fuel  = tier × (flowRate / 0.015)                STL fuel: the tier's 13.71 has the Standard
-//   engine's 0.015 flow rate baked in, so ships with other flow rates scale linearly. Confirmed
-//   vs captures 2026-07-11 (0.015 ships match; AVI-072QE @ 0.0075 halves). Time is flow-independent.
+// Atmospheric leg (TO or landing) — Marcus review 2026-10-12 (A3/B3/A4).
+// d_TO  = R(km) × (0.15 + 0.45·P^log10(2))                  exact, no floor
+// d_LDG = pf × R(km), pf = 0.15 + 0.45·max(P,0.1)^(−log10 2)  same mean used for time
+// accel_atm = accel / 350.11
+// M  = ceil(sqrt(d / (13.71 × accel_atm)))                  integer fuel tier
+// t  = d / (2 × accel_atm × M) + 2M                         real-s
+// fuel = M × (flowRate / 0.015)                             STL units
 function atmLeg(R_m, P, accel, which, flowRate) {
   const accel_atm = accel / 350.11;
   const p = Math.max(0, P || 0);
+  const radiusKm = R_m / 1000;
   const d = (which === 'to')
-    ? (R_m / 1000) * (0.1482 + 0.4521 * Math.pow(p, 0.30))
-    : 926 * Math.pow(R_m / 1e6, 0.96) * Math.pow(1 + p, -0.42);
-  const tier = Math.sqrt(d / (13.71 * accel_atm));    // speed tier → real time (flow-rate independent)
-  const fuel = tier * ((flowRate ?? 0.015) / 0.015);  // STL fuel scales linearly with flow rate
-  return { dKm: d, M: Math.round(fuel) || 1, tReal: tier * 8.855 };
+    ? radiusKm * (0.15 + 0.45 * Math.pow(p, Math.log10(2)))
+    : landingDistKm(radiusKm, p);
+  const M = Math.max(1, Math.ceil(Math.sqrt(d / (13.71 * accel_atm))));
+  const tReal = d / (2 * accel_atm * M) + 2 * M;
+  const fuel = M * ((flowRate ?? 0.015) / 0.015);
+  return { dKm: d, M: Math.round(fuel) || 1, tReal };
 }
 
 // FTL physics for a ship — returns { c, A, beta } or null
@@ -966,9 +969,10 @@ function landingDmgRaw(stlDistKm, accelMs2, pressureAtm) {
 // Actual landing dist = (20/3) × pressureFactor × (sma − radius); the game rolls the approach-orbit
 // altitude with mean ≈ 0.15×radius, and (20/3)×0.15 = 1, so the mean collapses to pressureFactor×radius
 // = planet_term. Confirmed exact across Promitor/Beanironia/Odysseus (pressure 0.69–29.6, radius 7.7k–21.1k km).
-// Any single landing rolls within ~±15% of this mean. radius in km, pressure in atm, result in km.
+// Any single landing rolls within ±2/15 = ±13.3% of this mean (missionId-seeded PRNG).
+// radius in km, pressure in atm, result in km.
 function landingDistKm(radiusKm, pressureAtm) {
-    const pressureFactor = 0.15 + 0.45 * Math.pow(Math.max(pressureAtm, 0.1), -0.301);
+    const pressureFactor = 0.15 + 0.45 * Math.pow(Math.max(pressureAtm, 0.1), -Math.log10(2));
     return pressureFactor * radiusKm; // = planet_term. NB: the (20/3) from the per-roll law cancels the
                                       // mean-altitude 0.15×radius factor (20/3 × 0.15 = 1), so it is NOT applied here.
 }
@@ -1901,18 +1905,16 @@ async function calculate() {
   // once the real transit distance (rendez.chargedKm / stlDistKm) has been solved.
   let stlMet = 0;
 
-  // LND fuel — STL burn physics, same as atmLeg/take-off: fuel = √(dist/(13.71·accel/350.11)) × flow/0.015
-  // (≈ 336.9 × flow × √(dist/accel)). Engine-dependent via flow rate AND acceleration — confirmed 2026-07-14
-  // on a controlled 5-engine set (k=336.9 loaded-accel, closed-form (4/0.06)·√(350.11/13.71); all 5 engines incl.
-  // Hyperthrust, once accel is g-capped — phys.accel from shipPhysics already applies min(accel, maxGFactor·9.80665),
-  // which handles Hyperthrust's +21%). Replaces the old flat per-blueprint constant. Computed up-front (in UNITS) so
-  // the same-system TRANSIT fuel formula (tank − TO − LND) can use it, unchanged.
+  // LND fuel — exact well-leg allocation (Marcus B3, 2026-10-12): integer fuel tier
+  // M = ceil(sqrt(d/(13.71·accel_atm))), fuel = M at flow 0.015 scaled by flow/0.015.
+  // Computed up-front so the same-system TRANSIT fuel (tank − TO − LND) can use it.
   if (destPl) {
-    const lndDistKm = destPl.Radius ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0) : 18514;
-    const lndFuelT = phys?.accel
-      ? Math.sqrt(lndDistKm / (13.71 * (phys.accel / 350.11))) * ((_currentShip?.stlFlowRate ?? 0.015) / 0.015)
-      : 0.576 * Math.sqrt(lndDistKm);
-    ldgFuelUnits = Math.round(lndFuelT);
+    if (phys?.accel && destPl.Radius) {
+      ldgFuelUnits = atmLeg(destPl.Radius, destPl.Pressure ?? 0, phys.accel, 'ldg', _currentShip?.stlFlowRate).M;
+    } else {
+      const lndDistKm = destPl.Radius ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0) : 18514;
+      ldgFuelUnits = Math.round(0.576 * Math.sqrt(lndDistKm));
+    }
   }
 
   let rendez = null;
@@ -2029,17 +2031,14 @@ async function calculate() {
   // ── LDG leg ──
   if (destPl) {
     const ldgAtm = (phys?.accel && destPl.Radius)
-      ? atmLeg(destPl.Radius, destPl.Pressure ?? 0, phys.accel, 'ldg')
+      ? atmLeg(destPl.Radius, destPl.Pressure ?? 0, phys.accel, 'ldg', _currentShip?.stlFlowRate)
       : null;
     const ldgTime = ldgAtm ? ldgAtm.tReal : 886;
-    // Landing distance — planet_term (mean of the plot-roll distribution), ±15% band.
-    const ldgKm   = destPl.Radius
-      ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0)
-      : (ldgAtm ? ldgAtm.dKm : 18514);
-    // LND fuel — STL burn physics (flow + accel dependent), same as atmLeg/take-off. ldgFuelUnits reused for the total.
-    const lndFuelT = phys?.accel
-      ? Math.sqrt(ldgKm / (13.71 * (phys.accel / 350.11))) * ((_currentShip?.stlFlowRate ?? 0.015) / 0.015)
-      : 0.576 * Math.sqrt(ldgKm);
+    // Landing distance — planet-term mean; the per-flight draw is ±13.3% (missionId PRNG).
+    const ldgKm = ldgAtm ? ldgAtm.dKm
+      : (destPl.Radius ? landingDistKm(destPl.Radius / 1000, destPl.Pressure ?? 0) : 18514);
+    // LND fuel — same integer well-leg allocation as the early TRANSIT block.
+    const lndFuelT = ldgAtm ? ldgAtm.M : Math.round(0.576 * Math.sqrt(ldgKm));
     const ldgFuel = ldgFuelUnits;
     totalRealMin += ldgTime / 60;
     totalFuelStl += ldgFuel;
@@ -2050,12 +2049,12 @@ async function calculate() {
     totalDmg += ldgDmg;
     const hazards = planetHazardBadges(destPl);
     html += legHtml('LDG', `Orbit → ${destPl.PlanetName || destPl.PlanetNaturalId}`, [
-      ['Distance', ldgKm.toFixed(1) + ' km (±15%)'],
+      ['Distance', ldgKm.toFixed(1) + ' km (±13.3%)'],
       ['Time (real)', fmtRealTime(ldgTime)],
-      ['STL fuel', lndFuelT.toFixed(1) + ' units (±15%)'],
+      ['STL fuel', lndFuelT.toFixed(1) + ' units (±13.3%)'],
       ['Landing dmg', fmtDmg(ldgDmg)],
     ], hazards, ldgDmg, ldgAtm
-      ? '⚠ Planetary median ±15% — actual varies by approach geometry &amp; base tile position (paper §1.2).'
+      ? '⚠ Landing distance is the planet-term mean; the actual draw is ±13.3% (missionId-seeded PRNG).'
       : '(estimate — no ship selected)');
   }
 
@@ -2171,7 +2170,7 @@ function primePlanetInSys(sysId) {
   Actively calibrated against real game data. Treat outputs as close estimates, not gospel.
   <ul style="margin:6px 0 0;padding-left:18px;">
     <li>Flight time ~1% · take-off / landing / transit fuel ~1% · meteor damage R²=0.9989 · ship mass &amp; volume 86/87 within 1%.</li>
-    <li>Landing distance is a deterministic ±15% band (exact only if the mission seed is known) — the planner shows the mean.</li>
+    <li>Landing distance is a deterministic ±13.3% band (exact only if the mission seed is known) — the planner shows the mean.</li>
     <li>Known gaps: departure-segment fuel ~6% low; radiation damage not yet modelled; FTL / gateway routing not yet included.</li>
   </ul>
   <div style="margin-top:10px;color:var(--text);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Credits</div>
