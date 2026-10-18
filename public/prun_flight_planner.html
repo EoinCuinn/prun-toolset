@@ -1813,9 +1813,10 @@ async function calculate() {
   const stlTankCapacity = _currentShip?.stlFuelCap != null
     ? _currentShip.stlFuelCap / STL_UNIT_MASS
     : (+document.getElementById('stlMassSlider').max || 0);
-  const stlLoadedUnits = _currentShip?.stlFuelLoad != null
-    ? _currentShip.stlFuelLoad / STL_UNIT_MASS
-    : stlTankCapacity;
+  // Flight loadout = the STL slider, not FIO storage (the ship may carry more
+  // than the flight is loaded with). Test8: storage 2,130 u, slider 1,750 u;
+  // the game's APPROACH fuel uses 1,750.
+  const stlLoadedUnits = Math.max(0, (onboardMassT().stl || 0) / STL_UNIT_MASS);
   let stlFuelApproach = null;
 
   // ── TO leg ──
