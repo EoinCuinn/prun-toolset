@@ -49,17 +49,21 @@ These are **FIO account** credentials — not your Prosperous Universe game pass
 
 The deepest tool: a physics-accurate route planner with per-leg fuel, damage, and shield recommendations across multi-leg journeys. Game flight quantities are deterministic to ~machine precision, so the numbers below are exact, sourced from packet captures — not fitted guesses.
 
-**Status: work in progress — actively calibrated.** Flight time and well-leg fuel are now exact; the damage model is Marcus Licinius Crassus's 2026-10-12 D model (jump, charge, take-off, landing, and DEP/APP/TRANSIT with solar flux); ship mass/volume 86/87 within 1%; landing distance is a deterministic ±13.3% band (exact if the mission seed is known). Known gaps: DEP fuel allocation (B2), FTL charge fuel/reactor constants (C), and gateway damage (unknown). Heat/whipple/radiation plate effects are not modelled; the anti-rad plate measured non-functional. Treat outputs as close estimates, not gospel.
+**Status: work in progress — actively calibrated.** STL well-leg fuel is exact; FTL speed, charge time and charge fuel are anchored to blueprint `ftlMaxSpeed` and emitter data; the damage model is Marcus Licinius Crassus's 2026-10-12 D model (jump, charge, take-off, landing, and DEP/APP/TRANSIT with solar flux); ship mass/volume 86/87 within 1%; landing distance is a deterministic ±13.3% band (exact if the mission seed is known). Known gaps: DEP fuel allocation (B2) and gateway damage (unknown). Hypothetical or unknown ships derive FTL speed and the emitter package from the nearest blueprint and are flagged. Heat/whipple/radiation plate effects are not modelled; the anti-rad plate measured non-functional. Treat outputs as close estimates, not gospel.
 
 ### What's calibrated
 
-**Meteor damage**
-Formula fitted against 19 systems, R²=0.9989:
+**Jump / charge / transit damage** — D model, 2026-10-12
+All channels are fractions of condition × `h = 1 − SHIELDING_GENERAL`.
 ```
-damage = 7.1692e-6 × dist_km × density^p(ρ)
-p(ρ) = 0.683 + 0.223 × log₁₀(ρ)
+jump    = h × 1e-5 × pc
+charge  = h × 5e-4 × (ρ − E/P)
+DEP/APP/TRANSIT = h × d_km × [2e-12 + 5e-12·ρ + 2e-22·√(F1·F2)]
+F = Luminosity × 3.0605e25 / r_km² at the 3-D endpoints
 ```
-Density-dependent exponent — star-type multipliers were a sampling artefact, not a real signal.
+The old meteor v5 fit was an approximation of `2e-12 + 5e-12·ρ`. The star re-enters through
+flux, which is where the worst residual lived. NL-534 validation: predicted/observed 0.91–0.93
+on the radial legs; the same-distance inward-dive control matches within 1.7%.
 
 **Landing distance**
 Not a physics quantity — a deterministic PRNG draw, seeded by the `missionId` the client sends with the flight calc:
@@ -67,36 +71,54 @@ Not a physics quantity — a deterministic PRNG draw, seeded by the `missionId` 
 d = k(planet) × (13 + 4·r)
 r = new java.util.Random(UUID.hashCode(missionId)).nextDouble()
 ```
-So `d ∈ [13k, 17k)` — mean `15k`, band exactly `±2/15` (±13.3%, the familiar "±15%"). The mean is the planet radius/pressure term (Taiyi's distance work); the planner estimates it as `926 × (radius_m/1e6)^0.96 × (1 + pressure)^−0.42`.
+So `d ∈ [13k, 17k)` — mean `15k`, band exactly `±2/15` (±13.3%). The mean is the planet
+radius/pressure term (Taiyi's distance work), now used directly as `pf × R(km)` with
+`pf = 0.15 + 0.45·max(P,0.1)^(−log10 2)` (A4). The planner shows this mean; the per-flight
+draw is ±13.3%.
 
 The seed is **client-generated** and echoed verbatim by the server, so a landing is predictable from the wire — but the client mints that UUID with `crypto.getRandomValues()` (OS CSPRNG), so it is **not steerable**. Real flights inherit their plan's draw and re-roll per flight, including to an established base — the fixed-tile hypothesis is refuted. Full write-up and verification: [`research/landing/`](research/landing/).
 
-**Landing damage**
-Fitted 2026-07-05, 24 points (2 blueprints × 12 planets), R²=0.989:
+**Take-off / landing damage** — D model, 2026-10-12
 ```
-damage = 1.1322e-4 × dist_km^0.4934 × accel^−0.9441 × pressure^0.9288
+take-off = h × T × G(g)
+landing  = h × T × [G(g) + min(4e-7·P, 1e-5)]
+G(g) = 1.5e-5 + 6e-5·(0.25 − g)   for g < 0.25
+     = 1.5e-5 + 6e-6·(g − 2.5)    for g > 2.5
+     = 0                           otherwise
 ```
-Higher acceleration = less damage — exposure time, not speed, drives accumulation. Accel exponent −0.94 is near-perfect inverse. Known outlier: MG-197e (85 atm) over-predicted ~2×, pressure law saturates at extreme values.
+`T` is the well-leg duration. The old M2 fit had the wrong accel exponent (−0.94 instead of
+−0.5) and the pressure term hard-caps at P = 25, so MG-197e is not an outlier.
 
-**Take-off / landing fuel** — the same STL burn physics for both legs
+**Take-off / landing fuel** — exact well-leg allocation (B3)
 ```
-fuel     = 336.9 × stlFlowRate × √(dist_km / accel_eff)
-accel_eff = min(thrust / mass, maxGFactor × 9.80665)
+M = ceil(√(d_km / (13.71 × accel_atm)))       accel_atm = accel / 350.11
+t = d_km / (2 × accel_atm × M) + 2M
+fuel = M × stlFlowRate / 0.015
 ```
-`336.9` is derived, not fitted — it is the closed form `(4/0.06) × √(350.11/13.71)` (credit: Marcus Licinius Crassus), and supersedes the earlier fitted `354.5`. Confirmed across a controlled 5-engine set. The g-force cap only binds for Hyperthrust, the one engine whose raw acceleration exceeds the hull's g-limit; capped, all five engines agree.
+This is the same burn physics as the derived closed form `336.9 × flow × √(dist/accel)`
+(`336.9 = (4/0.06)·√(350.11/13.71)`, credit Marcus Licinius Crassus); the integer `M` and
+trapezoidal time are the exact game form. The g-force cap clamps `accel` to
+`maxGFactor × 9.80665`.
 
 **Approach fuel**
 ```
 fuel = STL_tank_capacity × 0.491 × fuelUsageFactor
 ```
-Not distance- or acceleration-dependent — confirmed empirically.
+This is preview-derived; B2 will replace it and the DEP split with the real-flight fuel
+allocation model.
 
-**FTL fuel and time**
+**FTL speed, charge time and fuel** — blueprint-anchored (C, 2026-10-18)
 ```
-FP_MIN_PER_PARSEC = 28.5
-FP_FUEL_PER_PARSEC = 14.2
+J(1) = 3600 / ftlMaxSpeed (pc/h)
+J(ρ) = J(1) · e^(β(1−ρ))
+β: RCT 1.123 · QCR 0.929 · HPR 2.002 · HYR 2.976
+charge time = (3/8)·E/f per charge (jumps − 1)
+charge fuel = ⌊P·ρ·pc/333⌋ FF per jump (first charge on departure)
+E = 100·SFE + 175·MFE + 300·LFE; slider floor = E/P
 ```
-Empirically calibrated from flight log data.
+88 blueprint entries (85 with FTL) come from the captured `BLUEPRINT_BLUEPRINTS` performance
+data (`public/blueprint_ftl.json`); unknown or hypothetical ships use the C3 hull-volume fit
+and are flagged in the UI.
 
 **Ship empty mass and hull volume** — derived from the blueprint dropdowns, not fitted
 ```
@@ -112,9 +134,13 @@ Note for anyone reproducing this: a regression over these fields is confounded a
 
 ### What's in progress
 
-- **Radiation damage** — Confirmed real (2026-07-08). Accumulates on TRANSIT segments only; scales as k·AU⁻²·distMkm, k≈0.045 %·AU²/Mkm (O-class, two ships, pre-registered prediction confirmed). Implementation parked — path integration along the transfer ellipse is non-trivial, and star-class dependence is uncalibrated outside O-class. Anti-rad plate is non-functional (not net negative — zero measurable effect across nine captures). No radiation term in active code.
-- **DEP fuel** — ~6% low, departure thrust term not yet fitted.
-- **FTL/Gateway routing** — Phase 6, ready to start.
+- **Radiation / solar flux** — implemented in D as `Luminosity·3.0605e25/r(km)²` at the 3-D
+  endpoints. The anti-rad plate remains non-functional (zero measurable effect across nine
+  captures); `research/radiation/` is retained as validation.
+- **DEP fuel allocation** — still preview-calibrated. B2 will replace the DEP/APP split with the
+  real-flight allocation model.
+- **FTL** — C implemented: blueprint `ftlMaxSpeed` anchors, measured β, emitter-based charge
+  time, charge fuel and slider floor. Gateway damage remains unknown.
 
 ### Modes
 

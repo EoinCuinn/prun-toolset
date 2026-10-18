@@ -8,17 +8,18 @@ that is the status source of truth; this file is the "how it works" companion.
 
 Read-only planner. Enter origin, destination, and a ship (real fleet via FIO Swagger,
 or a hypothetical build from component dropdowns) → per-leg flight time, fuel, and a
-(provisional) hull-damage projection with condition alerts.
+hull-damage projection with condition alerts.
 
 - **Flight time / distance:** solved and validated. Arc within ~0.03% of game (Marcus's
   fitted ephemeris). STL rendezvous, departure/approach arcs, FTL jump + gateway all live.
-- **Fuel:** TO / LND / APPROACH / TRANSIT solved and confirmed in-browser. **DEP fuel is
-  ~6% low — open bug.**
+- **Fuel:** well-leg TO/LND exact (A3/B3/A4); APPROACH/TRANSIT confirmed. **DEP fuel
+  allocation is still preview-calibrated (B2).**
+- **FTL (C, 2026-10-18):** blueprint-anchored `J(1) = 3600/ftlMaxSpeed`; measured β;
+  emitter-based charge time; charge fuel; slider floor `E/P`. See §6.
 - **Empty mass & totalVolume (Open Mass, 2026-07-18):** derived from the loadout, not a
   fitted aggregate. Volume 86/86 within 1%, mass 82/86 within 1%.
-- **Damage model:** implemented but **REOPENED 2026-07-10 — treat every damage number as
-  provisional** until re-confirmed. Meteor v5 committed; landing damage fitted; radiation
-  known but **not yet implemented**.
+- **Damage model:** D model (Marcus 2026-10-12, committed 2026-10-18) — jump, charge,
+  take-off, landing, and DEP/APP/TRANSIT with solar flux; see §8.
 - **UI (2026-09-19):** hypothetical-mode shielding is five mutually-exclusive dropdowns
   (was a checkbox grid); per-part count selectors removed (one of each part). Commit 68a9208.
 
@@ -75,11 +76,15 @@ Duration: `t [real-s] = d / (2·accel·M) + 2·M` (paper §6, already wall-clock
 - **DEP fuel — OPEN BUG:** planner underpredicts the DEPARTURE segment by ~6%; the departure
   thrust term is not yet fitted. DEP leg only; TO / LND / TRANSIT confirmed.
 
-### 6. FTL jump + gateway
+### 6. FTL jump + gateway — calibrated (C, 2026-10-18)
 
-`t_jump = A · e^(-β·ρ) · d_ftl`; `t_charge = c · ρ · (hops-1)`; `c = (3/8)·reactorPower/chargeFactor`,
-`β = κ·reactorPower` (κ≈4.4e-4). `FP_SCALE = 12.0`. Gateway: `t_gw = d_ftl × 1200 + 1220` s
-(3 pc/hr, ship-independent). `A`/`β` are paper estimates (±5%), not yet calibrated against APEX.
+`J(1) = 3600 / ftlMaxSpeed` (pc/h); `J(ρ) = J(1)·e^(β(1−ρ))`. Measured β: RCT 1.123,
+QCR 0.929, HPR 2.002, HYR 2.976. Charge time `(3/8)·E/f` per charge, counts jumps−1;
+charge fuel `⌊P·ρ·pc/333⌋` FF per jump, first charge on departure. `E = 100·SFE +
+175·MFE + 300·LFE`; slider floor `E/P`. 88 blueprint entries (85 with FTL) in
+`public/blueprint_ftl.json`; unknown/hypothetical ships use the C3 hull-volume fit and
+are flagged. `FP_SCALE = 12.0`. Gateway: `t_gw = d_ftl × 1200 + 1220` s (3 pc/hr,
+ship-independent); gateway damage unknown.
 
 ### 7. Empty mass & totalVolume — "Open Mass" (2026-07-18, commit 7c74e80)
 
@@ -97,30 +102,32 @@ Hypothetical empty mass is derived from the twelve selectable components, not a 
   coefficients — the fields co-vary in any natural corpus. Every delta was measured from CLEAN
   one-field-change blueprint pairs.
 
-### 8. Damage model — implemented, REOPENED 2026-07-10 (provisional)
+### 8. Damage model — D (Marcus 2026-10-12; committed 2026-10-18)
 
-`applyShield(base, factor) = base × (1 − factor)`. Shielding resolved per ship: real fleet →
-`BLUEPRINT_SHIELDING` (4 known blueprints); hypothetical → summed `SHIELDING_FACTORS` over the
-hull plate + selected shielding dropdowns (general is additive).
+Every channel is a fraction of condition multiplied by `h = 1 − SHIELDING_GENERAL`.
+Shielding resolved per ship: real fleet → `BLUEPRINT_SHIELDING` (5 known blueprints; unknown
+→ h=1); hypothetical → summed `SHIELDING_FACTORS` over the hull plate + selected damage/repair
+dropdowns (general is additive). Heat/whipple/radiation plate factors are not used by D.
 
-- **Meteor (v5, commit 207845e):** `k = 7.1692e-6`, density-dependent exponent
-  `p(ρ) = 0.683 + 0.223·log₁₀(ρ)`. Star-type multipliers removed (F=G=K=M=1.000). 19 systems,
-  R²=0.9989. Distance = charged transit distance (chargedKm ÷ 1e6).
-- **Landing (fitted 2026-07-05):** `1.1322e-4 × dist^0.4934 × accel^−0.9441 × pressure^0.9288`,
-  R²=0.989. Higher accel = less damage (exposure time). Distance input is `planet_term ± 15%`,
-  so that uncertainty propagates. Pressure law saturates at extremes (MG-197e ~2× over).
-- **Charge:** `CHARGE_DMG = {2000: 6.875e-6, 2400: 7.133e-5}` (QCR / RCT).
-- **Gateway:** `GATEWAY_DMG = 5.247e-5` per hop — estimated from 8 samples on one ship.
+- **Jump:** `h·1e-5·pc` (no ρ or reactor dependence).
+- **Charge:** `h·5e-4·(ρ − E/P)` per lane jump; E = emitter power; snapshot fallback when unknown.
+- **Take-off:** `h·T·G(g)`.
+- **Landing:** `h·T·[G(g) + min(4e-7·P, 1e-5)]`.
+- **DEP / APP / TRANSIT:** `h·d·[2e-12 + 5e-12·ρ + 2e-22·√(F1·F2)]`, F =
+  `Luminosity·3.0605e25/r(km)²` at the 3-D start/end points.
+- `G(g) = 1.5e-5 + 6e-5·(0.25−g)` for g<0.25; `1.5e-5 + 6e-6·(g−2.5)` for g>2.5; else 0.
+- **Gateway:** unknown; retains `GATEWAY_DMG = 5.247e-5` per hop (estimate).
 - **Condition feedback:** `projected = current − tripDamage`; alerts amber <80%, red <50%.
-- ⚠ The whole model + all mitigation was reopened on new player information. Meteor v5 believed
-  still correct but to be re-cross-checked; landing/charge/gateway all provisional.
+- NL-534 validation: predicted/observed 0.91–0.93 on the four radial legs; the a→h control
+  (same distance, inward dive) matches within 1.7%.
 
-### 9. Radiation — known, NOT implemented
+### 9. Radiation / solar flux — implemented in D
 
-Formula (Aem, KQ-451 O-type runs): with advanced anti-rad shielding `%/Mkm = 0.0224 × AU⁻²`;
-without `0.0734 × AU⁻²`; floor ~0.0002 %/Mkm; ~70% reduction for advanced anti-rad. Relevant for
-O/B systems and inner-planet routes. **Not in the planner yet.** Note: the anti-rad *plate* is
-confirmed non-functional in standard cases (do not credit it with radiation mitigation).
+The D transit term includes solar flux `F = Luminosity·3.0605e25/r(km)²` at the 3-D endpoints.
+This supersedes the earlier path-integration approach. The anti-rad *plate* is confirmed
+non-functional in the captures, consistent with D using only `h = 1 − SHIELDING_GENERAL`.
+`research/radiation/` is retained as validation (NL-534 a→h control, WX-827 meteor-dominated
+transits).
 
 ### 10. UI — dual mode + shielding dropdowns (2026-09-19, commit 68a9208)
 
