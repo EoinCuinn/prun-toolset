@@ -975,7 +975,9 @@ function ftlPhysics(ship) {
   const c = (P && f) ? (3 / 8) * P / f
     : (chargeMin && minUsage ? chargeMin / minUsage : (known?.c ?? chargeMin));
   const vmax = (bp?.vmax > 0) ? bp.vmax : null;
-  let J1 = vmax ? 3600 / vmax : null;
+  // Prefer a capture-calibrated J(1) when present: the in-game panel rounds
+  // ftlMaxSpeed (e.g. 3.50 vs a captured effective 3.517 pc/h).
+  let J1 = (bp?.j1 > 0) ? bp.j1 : (vmax ? 3600 / vmax : null);
   if (J1 == null) J1 = estimateJ1(P, E, V);
   const A = (J1 != null) ? J1 * Math.exp(beta) : (known?.A ?? (P <= 2400 ? 2804 : 2362));
   return { c, chargeMin, A, beta, f, E, minUsage, vmax, J1, estimated: !bp, blueprint: !!bp };
