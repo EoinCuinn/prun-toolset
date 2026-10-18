@@ -994,13 +994,15 @@ function jumpDmgRaw(parsecs) {
 const CHARGE_DMG = { 2000: 6.875e-6, 2400: 7.133e-5 };  // QCR / RCT; unknown → QCR default
 const GATEWAY_DMG = 5.247e-5;   // fixed per gateway hop (spec §2e)
 
-// Per-blueprint shielding factors for the 4 known real blueprints (spec §3c). Unknown
-// blueprints default to BHP baseline (general 0, everything else 0).
+// Per-blueprint shielding factors for the 5 known real blueprints (spec §3c; BP-FYSQ-7703
+// added from the in-game blueprint view 2026-10-18). Unknown blueprints default to BHP
+// baseline (general 0, everything else 0).
 const BLUEPRINT_SHIELDING = {
   'BP-IXZI-0433': { general: -0.10, heat: 0, whipple: 0, radiation: 0, gravity: 0 },
   'BP-HJQJ-2441': { general: 0.15,  heat: 0, whipple: 0, radiation: 0, gravity: 1.0 },
   'BP-NVGM-1171': { general: -0.10, heat: 0, whipple: 0, radiation: 0, gravity: 0 },
   'BP-JRAJ-3531': { general: -0.10, heat: 0, whipple: 0, radiation: 0, gravity: 0 },
+  'BP-FYSQ-7703': { general: 0.10,  heat: 1.00, whipple: 0, radiation: 0, gravity: 0 },
 };
 // Per-component shielding factors (spec §3a). General is additive (hull plate + drones).
 // Hull plates are picked in the hull selector; drones/other shields in the damage dropdowns.
@@ -1050,6 +1052,7 @@ let _planetByKey = {};   // uppercase NatId/name → PlanetNaturalId
 let _sysStats = {};      // SystemId → { meteoroidDensity, luminosity }
 let _sysGM = {};         // SystemId → GM (m³/s²) = G × star_mass_kg
 let _ephemeris = {};     // PlanetNaturalId → [e, n, M0, peri, p_km, ux, uy, uz, wx, wy, wz]
+let _blueprintMaxG = {}; // BlueprintNaturalId → max G-factor (OpenMass corpus + in-game blueprint views, 2026-10-18)
 let _reductionSurface = null; // { NE, NA, grid } bilinear lookup for isReduced STL arc
 let _stationData = {};       // naturalId → station orbital params
 let _stationsBySys = {};     // sysId → station entry
@@ -1065,7 +1068,7 @@ let _dest   = null;
 
 async function loadData() {
   if (_loaded) return;
-  const [univRaw, planetRaw, starsRaw, gatewaysRaw, materialRaw, ephRaw, redSurf, stationRaw] = await Promise.all([
+  const [univRaw, planetRaw, starsRaw, gatewaysRaw, materialRaw, ephRaw, redSurf, stationRaw, maxgRaw] = await Promise.all([
     fetch('/prun_universe_data.json').then(r => r.json()),
     fetch('/planet_data.json').then(r => r.json()),
     fetch('/systemstars.json').then(r => r.json()),
@@ -1074,8 +1077,10 @@ async function loadData() {
     fetch('/ephemeris.json').then(r => r.json()),
     fetch('/insystem_reduction_surface.json').then(r => r.json()),
     fetch('/station_data.json').then(r => r.json()),
+    fetch('/blueprint_maxg.json').then(r => r.json()),
   ]);
   _reductionSurface = redSurf;
+  _blueprintMaxG = maxgRaw;
 
   materialRaw.forEach(m => { if (m.Ticker && m.Weight) _itemWeight[m.Ticker] = m.Weight; });
 
@@ -1324,7 +1329,7 @@ async function loadShips() {
         chargeFactor:       s.ChargeFactor,         // often null in Swagger; FTL_REACTORS covers known reactors
         emitterPower:       s.EmitterPower,
         stlFlowRate:        s.STLFuelFlowRate,      // t of STL fuel per unit M (Fix 1)
-        maxGFactor:         null,                   // API has no component loadout → no G-cap known (no-op for this fleet)
+        maxGFactor:         _blueprintMaxG[s.BlueprintNaturalId] ?? null, // blueprint-derived G-cap; null = unknown blueprint
         stlFuelLoad:        stlStore ? stlStore.load : null,  // actual onboard STL fuel mass (WeightLoad)
         stlFuelCap:         stlStore ? stlStore.cap  : null,  // STL tank WeightCapacity → slider max
         ftlFuelLoad:        ftlStore ? ftlStore.load : null,  // actual onboard FTL fuel mass (WeightLoad)
@@ -1605,7 +1610,8 @@ function renderShipMeta() {
     ${s.location ? `&nbsp; <span>at:</span> ${s.location}${s.inFlight ? ' <span style="color:var(--yellow)">(in flight)</span>' : ''}` : ''}<br>
     <span>Thrust:</span> ${s.thrust.toLocaleString()}N &nbsp;
     <span>Empty:</span> ${s.operatingEmptyMass.toFixed(1)}t &nbsp;
-    <span>STL flow:</span> ${s.stlFlowRate}
+    <span>STL flow:</span> ${s.stlFlowRate}<br>
+    <span>G-cap:</span> ${s.maxGFactor ? `${s.maxGFactor}g (${(s.maxGFactor * G0).toFixed(1)} m/s²)` : '<span style="color:var(--yellow)">unknown — blueprint not in corpus</span>'}
     ${ftl ? `<br><span>reactor P:</span> ${s.reactorPower}${ftl.c != null ? ` &nbsp;<span>c:</span> ${ftl.c}s` : ''}${ftl.estimated ? ' <span style="color:var(--yellow)">(est)</span>' : ''}` : ''}
   `;
   onRufChange();
@@ -1613,8 +1619,9 @@ function renderShipMeta() {
 
 // accel = min(thrust / totalMass, maxGFactor·G0); totalMass = empty + onboard, on the raw
 // Swagger Mass scale (no conversion). Verified 2026-07-02: thrust / raw-Mass == Swagger
-// Acceleration, the game-unit scale stlTimeReal expects. maxGFactor is null in Real Fleet (no loadout → no cap; a no-op
-// for this fleet) and hull+seat-derived in Hypothetical mode.
+// Acceleration, the game-unit scale stlTimeReal expects. maxGFactor is blueprint-derived
+// for Real Fleet (OpenMass corpus map; null when the blueprint is unknown) and
+// hull+seat-derived in Hypothetical mode.
 function shipPhysics(ship) {
   if (!ship || !ship.thrust || !ship.operatingEmptyMass) return null;
   const o = onboardMassT();
