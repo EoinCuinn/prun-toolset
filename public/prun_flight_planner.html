@@ -667,7 +667,7 @@ function stlRendezvous(pl1, pl2, GM, accel, M, nowUnix, getPos1Override, getPos2
     const d = slt.chargedKm;
     const newT = stlTimeReal(d, M, accel);
     if (newT == null) return null;
-    if (Math.abs(newT - tFlight) < 0.5) return { chargedKm: d, arcKm: slt.arcKm, tReal: newT, isReduced: slt.isReduced, approx: !useEphFrame };
+    if (Math.abs(newT - tFlight) < 0.5) return { chargedKm: d, arcKm: slt.arcKm, tReal: newT, isReduced: slt.isReduced, approx: !useEphFrame, start: S, end: P };
     tFlight = newT;
   }
   return null;
@@ -821,7 +821,7 @@ function stlRendezvousFromGate(gateM, pl2, GM, accel, M, startUnix, getPos2Overr
     }
     const newT = stlTimeReal(d, M, accel);
     if (newT == null) return null;
-    if (Math.abs(newT - tFlight) < 0.5) return { chargedKm: d, arcKm: slt.arcKm, tReal: newT, isReduced: slt.isReduced, approx: !inEph && !getPos2Override };
+    if (Math.abs(newT - tFlight) < 0.5) return { chargedKm: d, arcKm: slt.arcKm, tReal: newT, isReduced: slt.isReduced, approx: !inEph && !getPos2Override, start: gateM, end: P };
     tFlight = newT;
   }
   return null;
@@ -942,27 +942,26 @@ function parsecsBetween(a, b) {
   return Math.sqrt(dx * dx + dy * dy + dz * dz) / FP_SCALE;
 }
 
-// Meteor damage fraction (unshielded)
-// Meteor formula v5 — fitted 2026-07-04
-// k=7.1692e-6, p(ρ)=0.683+0.223·log₁₀(ρ), no star-type multipliers
-// 19 systems, 2 parameters, R²=0.9989, worst residual 7.1%
-// Star-type signal confirmed absent — F/G/K/M all = 1.000
-// transitDistKm is the game "charged" STL distance ÷ 1e6 (applied at the CALL SITE); k is fit to that scale.
-function meteorDmgRaw(transitDistKm, density) {
-  const rhoExp = 0.683 + 0.223 * Math.log10(Math.max(density, 0.001));
-  return 7.1692e-6 * transitDistKm * Math.pow(Math.max(0.001, density), rhoExp);
+// Damage model — Marcus review 2026-10-12 (D). Every channel is a fraction of
+// condition multiplied by the hull factor h = 1 - SHIELDING_GENERAL.
+// Solar flux F = Luminosity * 3.0605e25 / r(km)^2 at a 3-D position (star at origin).
+function solarFlux(luminosity, posM) {
+  if (!luminosity || !posM) return 0;
+  const rKm = Math.hypot(posM.x, posM.y, posM.z) / 1000;
+  return rKm > 0 ? luminosity * 3.0605e25 / (rKm * rKm) : 0;
 }
-
-// Landing damage fraction (unshielded) — M2 fit, 2026-07-05.
-// k=1.1322e-4, 24 points (2 blueprints × 12 planets), R²(log-space)=0.98925,
-// worst residual 2.13× (MG-197e, 85 atm — known high-pressure outlier).
-// Drivers: stlDist^0.4934 × accel^-0.9441 × pressure^0.9288.
-// accel in m/s², stlDist in km (from landingDistKm), pressure in atm; result is damage fraction.
-function landingDmgRaw(stlDistKm, accelMs2, pressureAtm) {
-  return 1.1322e-4
-    * Math.pow(stlDistKm, 0.4934)
-    * Math.pow(accelMs2, -0.9441)
-    * Math.pow(Math.max(pressureAtm, 0.001), 0.9288);
+// DEP / APPROACH / TRANSIT damage: meteor + solar-flux channels.
+function transitDmg(dKm, density, luminosity, p1, p2, h) {
+  const F1 = solarFlux(luminosity, p1);
+  const F2 = solarFlux(luminosity, p2);
+  const rate = 2e-12 + 5e-12 * Math.max(density || 0, 0) + 2e-22 * Math.sqrt(F1 * F2);
+  return (h ?? 1) * dKm * rate;
+}
+// Gravity-driven well-leg rate (per second), same thresholds as building materials.
+function gravityDmgRate(g) {
+  if (g < 0.25) return 1.5e-5 + 6e-5 * (0.25 - g);
+  if (g > 2.5) return 1.5e-5 + 6e-6 * (g - 2.5);
+  return 0;
 }
 
 // Landing distance — planet_term, the MEAN of the (randomly-rolled) approach-orbit landing distance.
@@ -1028,11 +1027,6 @@ function shieldingFor(ship) {
   if (!ship) return ZERO_SHIELD;
   if (ship.source === 'hypo') return ship.shielding || ZERO_SHIELD;
   return BLUEPRINT_SHIELDING[ship.blueprintId] || ZERO_SHIELD;
-}
-
-// Reduce a base damage fraction by a shielding factor: damage × (1 − factor) (spec §3).
-function applyShield(base, factor) {
-  return base * (1 - (factor || 0));
 }
 
 function fmtDmg(frac) {
@@ -1682,6 +1676,7 @@ async function calculate() {
   const fuf = Math.min(1, Math.max(0.1, +document.getElementById('fufInput').value || 0.5));
   const phys = shipPhysics(_currentShip);
   const sh = shieldingFor(_currentShip);   // {general,heat,whipple,radiation,gravity}
+  const h = 1 - (sh.general || 0);         // D: every damage channel uses the hull factor
   const sameSys = _origin.sysId === _dest.sysId;
 
   const originSys = _systems[_origin.sysId];
@@ -1748,14 +1743,17 @@ async function calculate() {
     toTimeRealS        = toAtm ? toAtm.tReal : 886;
     toFuelUnits        = toAtm ? toAtm.M     : 50;
     const toKm        = toAtm ? toAtm.dKm   : 18514;
+    const toDmg       = toAtm ? h * toAtm.tReal * gravityDmgRate(originPl.Gravity ?? 0) : 0;
     totalRealMin += toTimeRealS / 60;
     totalFuelStl += toFuelUnits;
+    totalDmg += toDmg;
     const hazards = planetHazardBadges(originPl);
     html += legHtml('TO', `${originPl.PlanetName || originPl.PlanetNaturalId} → orbit`, [
       ['Distance', fmtDist(toKm)],
       ['Time (real)', fmtRealTime(toTimeRealS)],
       ['STL fuel', toFuelUnits.toFixed(1) + ' units'],
-    ], hazards, 0, toAtm ? null : '(estimate — no ship selected)');
+      ['Take-off dmg', fmtDmg(toDmg)],
+    ], hazards, toDmg, toAtm ? null : '(estimate — no ship selected)');
   }
   t += toTimeRealS;
 
@@ -1787,22 +1785,22 @@ async function calculate() {
         totalRealMin += dep.tReal / 60;
         totalFuelStl += depFuel;
         t += dep.tReal;
-        // DEPARTURE meteoroid ablation — origin system density, general shielding.
-        // Real departure transit distance (dep.chargedKm) ÷ 1e6 to match the refit k's distance scale.
+        // DEPARTURE damage — D model: meteor + solar flux at the base and gate.
         const depDensity = (_sysStats[_origin.sysId] || {}).meteoroidDensity || 0;
-        const depMet = dep.chargedKm ? applyShield(meteorDmgRaw(dep.chargedKm / 1e6, depDensity), sh.general) : 0;
-        totalDmg += depMet;
+        const depLum = (_sysStats[_origin.sysId] || {}).luminosity || 0;
+        const depDmg = dep.chargedKm ? transitDmg(dep.chargedKm, depDensity, depLum, base, gate, h) : 0;
+        totalDmg += depDmg;
         const depLabel = originStation?.name ?? depOriginPl?.PlanetName ?? depOriginPl?.PlanetNaturalId;
         const depNote = dep.starved
           ? `⚠ Fuel-starved departure — M capped at ${dep.M.toFixed(1)} by STL fuel budget (${onboardMassT().stl.toFixed(1)} t)`
           : (!originStation && !originInEph) ? '⚠ Origin not in fitted ephemeris — gate position estimated'
-          : '⚠ Departure thrust term not yet isolated — modelled as ablation only';
+          : '⚠ DEP fuel allocation still uses the preview-derived cap (B2 outstanding)';
         html += legHtml('DEP', `${depLabel} → jump gate`, [
           ['Distance', fmtDist(dep.chargedKm)],
           ['Time (real)', fmtRealTime(dep.tReal)],
           ['STL fuel', depFuel.toFixed(1) + ' units'],
-          ['Meteor dmg', fmtDmg(depMet)],
-        ], '', depMet, depNote);
+          ['DEP dmg', fmtDmg(depDmg)],
+        ], '', depDmg, depNote);
       }
     }
   }
@@ -1835,10 +1833,10 @@ async function calculate() {
         // Paper §12.6 eq.19: 3 pc/hr + 1220s bracket (10+600+600+10)
         hopSec = pc * 1200 + 1220;
         totalGwSec += hopSec;
-        totalGwDmg += applyShield(GATEWAY_DMG, sh.general);  // fixed per hop, general shield
+        totalGwDmg += h * GATEWAY_DMG;  // fixed per hop, hull factor h
       } else {
         laneJumps++;
-        totalJumpDmg += applyShield(jumpDmgRaw(pc), sh.general);  // jump damage uses hull factor h
+        totalJumpDmg += h * jumpDmgRaw(pc);
         if (J != null) {
           hopSec = J * pc;
           totalJumpSec += hopSec;
@@ -1857,10 +1855,15 @@ async function calculate() {
       totalChargeSec = (laneJumps - 1) * ftl.c * ruf;
     }
 
-    // CHARGE damage — one reactor charge per lane jump, fixed per reactor type (spec §2c).
-    // Location/environment independent → no shielding.
-    const chargeUnit  = CHARGE_DMG[_currentShip?.reactorPower] ?? CHARGE_DMG[2000];
-    const totalChargeDmg = laneJumps * chargeUnit;
+    // CHARGE damage — D model: h * 5e-4 * (rho - E/P) per lane jump (C6: every jump).
+    // E = emitter power; fall back to the old snapshot constants when it is unknown.
+    const chargeP = _currentShip?.reactorPower;
+    const chargeE = _currentShip?.emitterPower;
+    const chargeLaw = !!(ftl && chargeP > 0 && chargeE > 0);
+    const chargeUnit = !ftl ? 0
+      : chargeLaw ? 5e-4 * Math.max(0, ruf - chargeE / chargeP)
+      : (CHARGE_DMG[chargeP] ?? CHARGE_DMG[2000]);
+    const totalChargeDmg = laneJumps * h * chargeUnit;
     const totalFtlDmg = totalJumpDmg + totalGwDmg + totalChargeDmg;
 
     const totalFtlSec = totalJumpSec + totalChargeSec + totalGwSec;
@@ -1889,9 +1892,12 @@ async function calculate() {
     if (totalGwSec > 0) ftlRows.push(['Gateway time', fmtRealTime(totalGwSec)]);
     if (totalJumpDmg > 0) ftlRows.push(['Jump damage', fmtDmg(totalJumpDmg)]);
     if (totalGwDmg > 0)  ftlRows.push(['Gateway dmg', fmtDmg(totalGwDmg)]);
-    ftlRows.push(['Charge dmg', fmtDmg(totalChargeDmg)]);
+    ftlRows.push([(ftl && !chargeLaw) ? 'Charge dmg (est)' : 'Charge dmg', fmtDmg(totalChargeDmg)]);
 
-    const ftlNote = ftl?.estimated ? '⚠ Reactor constants from paper estimates — calibrate against APEX' : null;
+    const ftlNote = [
+      ftl?.estimated ? '⚠ Reactor constants from paper estimates — calibrate against APEX' : null,
+      (ftl && !chargeLaw) ? '⚠ Charge damage uses a fallback constant (emitter power unknown)' : null,
+    ].filter(Boolean).join(' ') || null;
     const numJumps = path.length - 1;
     html += legHtml('FTL', `${numJumps} jump${numJumps > 1 ? 's' : ''} — ${totalParsecs.toFixed(2)} pc`,
       ftlRows, hopRows, totalFtlDmg, ftlNote);
@@ -1901,9 +1907,9 @@ async function calculate() {
   const stlDestPl  = destPl || stlDestFallback;   // null when dest is a known station
   const stlDestSMA = destStation ? destStation.a_m * 1000 : stlDestPl?.OrbitSemiMajorAxis;
   const density = (_sysStats[_dest.sysId] || {}).meteoroidDensity || 0;
-  // APPROACH/TRANSIT meteoroid ablation — general shielding (spec §3b). Computed below,
-  // once the real transit distance (rendez.chargedKm / stlDistKm) has been solved.
-  let stlMet = 0;
+  // APPROACH/TRANSIT damage — D model (meteor + solar flux), computed below once the
+  // real transit distance (rendez.chargedKm / stlDistKm) has been solved.
+  let stlDmg = 0;
 
   // LND fuel — exact well-leg allocation (Marcus B3, 2026-10-12): integer fuel tier
   // M = ceil(sqrt(d/(13.71·accel_atm))), fuel = M at flow 0.015 scaled by flow/0.015.
@@ -1964,12 +1970,13 @@ async function calculate() {
     stlLegLabel = stlDestLabel ? `jump gate → ${stlDestLabel}` : `approach in ${destSys?.NaturalId}`;
   }
 
-  // Meteor ablation on the REAL STL transit distance: rendezvous arc when solved, else the
-  // same-system Hohmann arc. ÷ 1e6 to match the refit k's distance scale. No distance → 0.
+  // TRANSIT damage on the REAL STL distance: rendezvous arc when solved, else the
+  // same-system Hohmann arc. Flux uses the rendezvous 3-D endpoints when available.
   const stlTransitDistKm = rendez ? rendez.chargedKm : stlDistKm;
+  const stlLum = (_sysStats[_dest.sysId] || {}).luminosity || 0;
   if (stlTransitDistKm) {
-    stlMet = applyShield(meteorDmgRaw(stlTransitDistKm / 1e6, density), sh.general);
-    totalDmg += stlMet;
+    stlDmg = transitDmg(stlTransitDistKm, density, stlLum, rendez?.start, rendez?.end, h);
+    totalDmg += stlDmg;
   }
 
   const hasStlContent = sameSys
@@ -2018,14 +2025,14 @@ async function calculate() {
       }
     }
 
-    stlRows.push(['Meteor dmg', fmtDmg(stlMet)]);
+    stlRows.push(['Transit dmg', fmtDmg(stlDmg)]);
 
     const metBadge = density > 3.5 ? '<span class="hz-badge hz-met" style="color:#f87171">MET★</span>' :
                      density > 2.0 ? '<span class="hz-badge hz-met">MET</span>' : '';
 
     const stlNote = (!stlGM && sameSys) ? '⚠ System GM unknown — showing range not exact distance'
       : null;
-    html += legHtml('STL', stlLegLabel, stlRows, metBadge, stlMet, stlNote);
+    html += legHtml('STL', stlLegLabel, stlRows, metBadge, stlDmg, stlNote);
   }
 
   // ── LDG leg ──
@@ -2042,9 +2049,12 @@ async function calculate() {
     const ldgFuel = ldgFuelUnits;
     totalRealMin += ldgTime / 60;
     totalFuelStl += ldgFuel;
-    // LANDING damage — M2 fitted formula (2026-07-05), heat shielding applied via applyShield.
-    const ldgDmg = (phys?.accel && destPl.Radius)
-      ? applyShield(landingDmgRaw(ldgKm, phys.accel, destPl.Pressure ?? 0.001), sh.heat)
+    // LANDING damage — D model: h * T * (G(g) + min(4e-7*P, 1e-5)).
+    const ldgDmg = ldgAtm
+      ? h * ldgAtm.tReal * (
+          gravityDmgRate(destPl.Gravity ?? 0) +
+          Math.min(4e-7 * (destPl.Pressure ?? 0), 1e-5)
+        )
       : 0;
     totalDmg += ldgDmg;
     const hazards = planetHazardBadges(destPl);
@@ -2133,14 +2143,15 @@ function buildShieldRec(origin, dest, sameSys) {
   const maxLum = Math.max(0, ...sysIds.map(id => (_sysStats[id] || {}).luminosity || 0));
   const maxDen = Math.max(0, ...sysIds.map(id => (_sysStats[id] || {}).meteoroidDensity || 0));
   const recs = [];
-  if (needHeat) recs.push('<span class="hz-badge hz-heat">HEAT shield</span>');
-  if (needGrav) recs.push('<span class="hz-badge hz-grav">GRAV stabilizer</span>');
-  if (maxLum > 100) recs.push('<span class="hz-badge hz-rad" style="color:#f87171">RAD shield ★</span>');
-  else if (maxLum > 10) recs.push('<span class="hz-badge hz-rad">RAD shield</span>');
+  if (needHeat) recs.push('<span class="hz-badge hz-heat">HEAT</span>');
+  if (needGrav) recs.push('<span class="hz-badge hz-grav">GRAV</span>');
+  if (maxLum > 100) recs.push('<span class="hz-badge hz-rad" style="color:#f87171">RAD ★</span>');
+  else if (maxLum > 10) recs.push('<span class="hz-badge hz-rad">RAD</span>');
   if (maxDen > 3.5) recs.push('<span class="hz-badge hz-met" style="color:#f87171">WHIPPLE ★</span>');
-  else if (maxDen > 2.0) recs.push('<span class="hz-badge hz-met">WHIPPLE shield</span>');
+  else if (maxDen > 2.0) recs.push('<span class="hz-badge hz-met">WHIPPLE</span>');
   if (!recs.length) return '';
-  return `<div class="total-row" style="margin-top:4px"><span class="k">Shields Recommended</span><span class="v"><div class="hz">${recs.join(' ')}</div></span></div>`;
+  return `<div class="total-row" style="margin-top:4px"><span class="k">Route hazards</span><span class="v"><div class="hz">${recs.join(' ')}</div></span></div>
+    <div class="note" style="margin-top:2px">Damage uses the general hull factor h only; heat/whipple/radiation plate effects are not modelled (the anti-rad plate measured non-functional).</div>`;
 }
 
 function primePlanetInSys(sysId) {
@@ -2169,9 +2180,9 @@ function primePlanetInSys(sysId) {
   <div style="color:var(--text);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:6px;">Status &amp; accuracy — work in progress</div>
   Actively calibrated against real game data. Treat outputs as close estimates, not gospel.
   <ul style="margin:6px 0 0;padding-left:18px;">
-    <li>Flight time ~1% · take-off / landing / transit fuel ~1% · meteor damage R²=0.9989 · ship mass &amp; volume 86/87 within 1%.</li>
+    <li>Flight time ~1% · well-leg fuel exact · D damage model (Marcus 2026-10-12) · ship mass &amp; volume 86/87 within 1%.</li>
     <li>Landing distance is a deterministic ±13.3% band (exact only if the mission seed is known) — the planner shows the mean.</li>
-    <li>Known gaps: departure-segment fuel ~6% low; radiation damage not yet modelled; FTL / gateway routing not yet included.</li>
+    <li>Known gaps: DEP fuel allocation (B2), FTL charge fuel/reactor constants (C), unknown gateway damage. Heat/whipple/radiation plate effects are not modelled; the anti-rad plate measured non-functional.</li>
   </ul>
   <div style="margin-top:10px;color:var(--text);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Credits</div>
   <div style="margin-top:4px;">The flight physics stands on the work of <strong>Marcus Licinius Crassus</strong> (flight-dynamics papers, landing-distance PRNG law, the derived fuel constant), <strong>Taiyi Bureau</strong> (take-off/landing distance formulas, universe map), <strong>Aem</strong> (radiation &amp; landing-damage datasets), and the <strong>FIO</strong> community. Full write-ups &amp; credits: <a href="https://github.com/EoinCuinn/prun-toolset" target="_blank" rel="noopener" style="color:var(--accent);">the repo</a>.</div>

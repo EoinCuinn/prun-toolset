@@ -49,7 +49,7 @@ These are **FIO account** credentials — not your Prosperous Universe game pass
 
 The deepest tool: a physics-accurate route planner with per-leg fuel, damage, and shield recommendations across multi-leg journeys. Game flight quantities are deterministic to ~machine precision, so the numbers below are exact, sourced from packet captures — not fitted guesses.
 
-**Status: work in progress — actively calibrated.** Flight time and take-off/landing/transit fuel land within ~1%, meteor damage R²=0.9989, ship mass/volume 86/87 within 1%, and landing distance is a deterministic ±15% band (exact if the mission seed is known). Known gaps: departure-segment fuel ~6% low, radiation not yet modelled, FTL/gateway routing not yet included. Treat outputs as close estimates, not gospel.
+**Status: work in progress — actively calibrated.** Flight time and well-leg fuel are now exact; the damage model is Marcus Licinius Crassus's 2026-10-12 D model (jump, charge, take-off, landing, and DEP/APP/TRANSIT with solar flux); ship mass/volume 86/87 within 1%; landing distance is a deterministic ±13.3% band (exact if the mission seed is known). Known gaps: DEP fuel allocation (B2), FTL charge fuel/reactor constants (C), and gateway damage (unknown). Heat/whipple/radiation plate effects are not modelled; the anti-rad plate measured non-functional. Treat outputs as close estimates, not gospel.
 
 ### What's calibrated
 
