@@ -112,7 +112,8 @@ allocation model.
 J(1) = 3600 / ftlMaxSpeed (pc/h)
 J(ρ) = J(1) · e^(β(1−ρ))
 β: RCT 1.123 · QCR 0.929 · HPR 2.002 · HYR 2.976
-charge time = (3/8)·E/f per charge (jumps − 1)
+charge time = (3/8)·P·ρ/f per charge (jumps − 1)
+  at the E/P floor this is (3/8)·E/f
 charge fuel = ⌊P·ρ·pc/333⌋ FF per jump (first charge on departure)
 E = 100·SFE + 175·MFE + 300·LFE; slider floor = E/P
 ```

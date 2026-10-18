@@ -969,13 +969,15 @@ function ftlPhysics(ship) {
     if (cand.length) near = cand.reduce((a, b) => Math.abs(b.volume - V) < Math.abs(a.volume - V) ? b : a);
     if (near) { E = near.E; f = f > 0 ? f : near.f; }
   }
-  const c = (E && f) ? (3 / 8) * E / f : (near?.chargeTime ?? known?.c ?? null);
   const minUsage = (E && P) ? E / P : (near?.minUsage ?? bp?.minUsage ?? null);
+  const chargeMin = (E && f) ? (3 / 8) * E / f : (near?.chargeTime ?? bp?.chargeTime ?? null);
+  const c = (P && f) ? (3 / 8) * P / f
+    : (chargeMin && minUsage ? chargeMin / minUsage : (known?.c ?? chargeMin));
   const vmax = (bp?.vmax > 0) ? bp.vmax : null;
   let J1 = vmax ? 3600 / vmax : null;
   if (J1 == null) J1 = estimateJ1(P, E, V);
   const A = (J1 != null) ? J1 * Math.exp(beta) : (known?.A ?? (P <= 2400 ? 2804 : 2362));
-  return { c, A, beta, f, E, minUsage, vmax, J1, estimated: !bp, blueprint: !!bp };
+  return { c, chargeMin, A, beta, f, E, minUsage, vmax, J1, estimated: !bp, blueprint: !!bp };
 }
 
 // FTL parsec distance between two system objects
@@ -1651,7 +1653,7 @@ function onRufChange() {
   if (!_currentShip) { infoEl.innerHTML = '— select ship'; return; }
   if (!ftl) { infoEl.innerHTML = '— reactor stats unavailable'; return; }
   const parts = [`min ${minPct}%`];
-  if (ftl.c != null) parts.push(`charge ${fmtRealTime(ftl.c)}/jump`);
+  if (ftl.c != null) parts.push(`charge ${fmtRealTime(ftl.c * ruf)}/jump`);
   if (ftl.J1 != null) parts.push(`${(3600 / ftl.J1).toFixed(2)} pc/hr at 100%`);
   const J = ftl.A * Math.exp(-ftl.beta * ruf);
   parts.push(`${(3600 / J).toFixed(2)} pc/hr at ${Math.round(ruf * 100)}%`);
@@ -1676,7 +1678,8 @@ function renderShipMeta() {
   );
   if (ftl) {
     rows.push(['Reactor P', `${s.reactorPower} GW`]);
-    if (ftl.c != null) rows.push(['Charge', `${Math.round(ftl.c)} s`]);
+    if (ftl.c != null) rows.push(['Charge @100%', `${Math.round(ftl.c)} s`]);
+    if (ftl.chargeMin != null) rows.push(['Charge min', `${Math.round(ftl.chargeMin)} s`]);
     if (ftl.minUsage != null) rows.push(['Min use', `${(ftl.minUsage * 100).toFixed(1)} %`]);
     if (ftl.vmax != null) rows.push(['Vmax', `${ftl.vmax.toFixed(2)} pc/h`]);
     if (ftl.estimated) rows.push(['FTL anchor', '<span style="color:var(--yellow)">estimated</span>']);
@@ -1924,7 +1927,7 @@ async function calculate() {
 
     // Charges between consecutive lane jumps — (m-1) charges, each c·ρ seconds (paper §12.3)
     if (laneJumps > 1 && ftl?.c != null) {
-      totalChargeSec = (laneJumps - 1) * ftl.c;
+      totalChargeSec = (laneJumps - 1) * ftl.c * ruf;
     }
 
     // CHARGE damage — D model: h * 5e-4 * (rho - E/P) per lane jump (C6: every jump).
@@ -1954,7 +1957,7 @@ async function calculate() {
       if (J != null) {
         ftlRows.push(['Jump time', fmtRealTime(totalJumpSec)]);
         if (laneJumps > 1 && ftl?.c != null)
-          ftlRows.push([`Charge (${laneJumps-1}×${Math.round(ftl.c)}s)`, fmtRealTime(totalChargeSec)]);
+          ftlRows.push([`Charge (${laneJumps-1}×${Math.round(ftl.c * ruf)}s)`, fmtRealTime(totalChargeSec)]);
         else if (laneJumps > 1)
           ftlRows.push(['Charge', '— reactor stats missing']);
       } else {
@@ -2175,7 +2178,7 @@ async function calculate() {
     <div class="total-row"><span class="k">STL Fuel Used</span><span class="v">${totalFuelStl.toFixed(1)} units</span></div>
     ${totalFuelFtl > 0 ? `<div class="total-row"><span class="k">FTL Fuel Used</span><span class="v">${Math.round(totalFuelFtl).toLocaleString()} FF units</span></div>` : ''}
     ${shieldRec}
-    <div class="note" style="margin-top:0.75rem">STL: transfer ellipse arc rendezvous solver (paper §8). TO/LDG: exact well-leg forms (A3/B3/A4). FTL: J(1)=3600/ftlMaxSpeed, J(ρ)=J(1)·e^(β(1−ρ)); charge time (3/8)·E/f; charge fuel ⌊P·ρ·pc/333⌋; gateway 3 pc/hr + 1220s. Damage: D model, h = 1 − SHIELDING_GENERAL. DEP/APPROACH fuel allocation (B2) still pending.</div>
+    <div class="note" style="margin-top:0.75rem">STL: transfer ellipse arc rendezvous solver (paper §8). TO/LDG: exact well-leg forms (A3/B3/A4). FTL: J(1)=3600/ftlMaxSpeed, J(ρ)=J(1)·e^(β(1−ρ)); charge time (3/8)·P·ρ/f; charge fuel ⌊P·ρ·pc/333⌋; gateway 3 pc/hr + 1220s. Damage: D model, h = 1 − SHIELDING_GENERAL. DEP/APPROACH fuel allocation (B2) still pending.</div>
   `;
 
   resEl.innerHTML = html;
