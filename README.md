@@ -49,7 +49,7 @@ These are **FIO account** credentials — not your Prosperous Universe game pass
 
 The deepest tool: a physics-accurate route planner with per-leg fuel, damage, and shield recommendations across multi-leg journeys. Game flight quantities are deterministic to ~machine precision, so the numbers below are exact, sourced from packet captures — not fitted guesses.
 
-**Status: work in progress — actively calibrated.** STL well-leg fuel is exact; FTL speed, charge time and charge fuel are anchored to blueprint `ftlMaxSpeed` and emitter data; the damage model is Marcus Licinius Crassus's 2026-10-12 D model (jump, charge, take-off, landing, and DEP/APP/TRANSIT with solar flux); ship mass/volume 86/87 within 1%; landing distance is a deterministic ±13.3% band (exact if the mission seed is known). Known gaps: DEP fuel allocation (B2) and gateway damage (unknown). Hypothetical or unknown ships derive FTL speed and the emitter package from the nearest blueprint and are flagged. Heat/whipple/radiation plate effects are not modelled; the anti-rad plate measured non-functional. Treat outputs as close estimates, not gospel.
+**Status: work in progress — actively calibrated.** STL well-leg fuel, DEP fuel and APPROACH fuel/timing are now exact on the validated BFT route (Test11, 2026-10-18: **6h20m57s vs game 6h20m55s; 779.6 vs 779 STL; 435 FTL exact**). Gate distances are captured (planet 0.5 AU, station 0.15 AU); departure uses the game's z=0 charged transfer distance. FTL speed, charge time and charge fuel are anchored to blueprint data, with a capture-calibrated `J(1)` anchor where the panel's `ftlMaxSpeed` is rounded. The damage model is Marcus Licinius Crassus's 2026-10-12 D model; ship mass/volume 86/87 within 1%; landing distance is a deterministic ±13.3% band (exact if the mission seed is known). Known gaps: the full `committed` DEP/APP split for arbitrary fuel loads/usage, gateway damage (unknown), and a ~0.01 pp damage residual. Hypothetical or unknown ships derive FTL speed and the emitter package from the nearest blueprint and are flagged. Heat/whipple/radiation plate effects are not modelled; the anti-rad plate measured non-functional. Treat outputs as close estimates, not gospel.
 
 ### What's calibrated
 
@@ -89,6 +89,16 @@ G(g) = 1.5e-5 + 6e-5·(0.25 − g)   for g < 0.25
 `T` is the well-leg duration. The old M2 fit had the wrong accel exponent (−0.94 instead of
 −0.5) and the pressure term hard-caps at P = 25, so MG-197e is not an outlier.
 
+**Gate geometry and departure transfer** — captured 2026-10-18
+```
+planet gate  = 0.5 AU (74,798,935 km) from the planet
+station gate = 0.15 AU (22,439,680.6 km) from the station
+```
+Direction is the system-map direction toward the neighboring system. The departure is
+not the 3-D ellipse arc and not the straight-line chord: the game projects both endpoints
+to **z=0** and bills the **charged (rank-one reduced)** distance. Across 39 captured
+departures this matches to 0.03–0.55% on most cases (worst MOR 3.7%).
+
 **Take-off / landing fuel** — exact well-leg allocation (B3)
 ```
 M = ceil(√(d_km / (13.71 × accel_atm)))       accel_atm = accel / 350.11
@@ -100,12 +110,18 @@ This is the same burn physics as the derived closed form `336.9 × flow × √(d
 trapezoidal time are the exact game form. The g-force cap clamps `accel` to
 `maxGFactor × 9.80665`.
 
-**Approach fuel**
+**Departure and approach fuel** — B2/B3, validated 2026-10-18
 ```
-fuel = STL_tank_capacity × 0.491 × fuelUsageFactor
+DEP fuel      = M_dep × stlFlowRate / 0.015
+APPROACH fuel = loaded_STL_units × 0.491 × fuelUsageFactor
+APPROACH M    = APPROACH fuel / (stlFlowRate / 0.015)
 ```
-This is preview-derived; B2 will replace it and the DEP split with the real-flight fuel
-allocation model.
+`loaded_STL_units` is the **flight loadout slider**, not FIO storage and not tank
+capacity: the ship may store 2,130 units but fly with 1,750. DEP uses the integer `M`
+from the departure transfer; APPROACH is timed with its fuel-derived `M`, not the
+saturated boundary. Test11: DEP 304 vs 304; APP 429.6 vs 430; ETA +2s; total STL
+779.6 vs 779. The full `committed` split for arbitrary fuel-load/usage combinations
+is still open.
 
 **FTL speed, charge time and fuel** — blueprint-anchored (C, 2026-10-18)
 ```
@@ -120,6 +136,11 @@ E = 100·SFE + 175·MFE + 300·LFE; slider floor = E/P
 88 blueprint entries (85 with FTL) come from the captured `BLUEPRINT_BLUEPRINTS` performance
 data (`public/blueprint_ftl.json`); unknown or hypothetical ships use the C3 hull-volume fit
 and are flagged in the UI.
+
+The in-game panel rounds `ftlMaxSpeed` to two decimals, so a displayed 3.50 pc/h can really
+be ~3.517. `BP-FYSQ-7703` carries a capture-calibrated `"j1": 1023.54` s/pc, preferred over
+`3600/vmax`; that made the Test11 jump time exactly 5h44m22s. Other blueprints use their
+stored `vmax` until a capture shows drift.
 
 **Ship empty mass and hull volume** — derived from the blueprint dropdowns, not fitted
 ```
@@ -138,10 +159,14 @@ Note for anyone reproducing this: a regression over these fields is confounded a
 - **Radiation / solar flux** — implemented in D as `Luminosity·3.0605e25/r(km)²` at the 3-D
   endpoints. The anti-rad plate remains non-functional (zero measurable effect across nine
   captures); `research/radiation/` is retained as validation.
-- **DEP fuel allocation** — still preview-calibrated. B2 will replace the DEP/APP split with the
-  real-flight allocation model.
-- **FTL** — C implemented: blueprint `ftlMaxSpeed` anchors, measured β, emitter-based charge
-  time, charge fuel and slider floor. Gateway damage remains unknown.
+- **Full B2/B3 `committed` split** — DEP/APP fuel and timing are validated on the BFT route, but
+  the general `wells → rem → dep/app` split for arbitrary fuel-load/usage combinations is not
+  implemented. A slider sweep on the same route is the next data needed.
+- **B5 approach/transit z=0** — departure is fixed; APPROACH and same-system TRANSIT still use
+  3-D positions (Test11 APP +0.43%).
+- **Damage residual** — Test11 0.179% vs game 0.169% (0.010 pp); re-check D on other ships/routes.
+- **FTL `j1` audit** — BP-FYSQ-7703 is calibrated; other blueprints use their stored `vmax`.
+  Gateway damage remains unknown.
 
 ### Modes
 
