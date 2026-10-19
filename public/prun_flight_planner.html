@@ -226,7 +226,7 @@
     <div class="card">
       <div class="card-label">FTL Reactor (ρ)</div>
       <div class="fuel-row">
-        <input id="rufSlider" class="fuel-slider" type="range" min="10" max="100" value="100" oninput="onRufChange()">
+        <input id="rufSlider" class="fuel-slider" type="range" min="10" max="100" step="0.1" value="100" oninput="onRufChange()">
         <span id="rufVal" class="fuel-val">100%</span>
       </div>
       <div id="rufInfo" class="note" style="margin-top:6px"></div>
@@ -1893,11 +1893,11 @@ function onLoadoutChange() {
 function onRufChange() {
   const el = document.getElementById('rufSlider');
   const ftl = ftlPhysics(_currentShip);
-  const minPct = ftl?.minUsage != null ? Math.min(100, Math.max(1, Math.ceil(ftl.minUsage * 100))) : 10;
+  const minPct = ftl?.minUsage != null ? Math.min(100, Math.max(1, Math.ceil(ftl.minUsage * 1000) / 10)) : 10;
   el.min = minPct;
   if (+el.value < minPct) el.value = minPct;
   const ruf = +el.value / 100;
-  document.getElementById('rufVal').textContent = Math.round(ruf * 100) + '%';
+  document.getElementById('rufVal').textContent = (+(ruf * 100).toFixed(1)) + '%';
   const infoEl = document.getElementById('rufInfo');
   if (!_currentShip) { infoEl.innerHTML = '— select ship'; return; }
   if (!ftl) { infoEl.innerHTML = '— reactor stats unavailable'; return; }
