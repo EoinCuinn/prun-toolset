@@ -132,8 +132,14 @@ type (0.5 AU vs 0.15 AU) and the z=0 charged distance.
   FTL time (+4 to +31 h); high-power reactors cut ETA from ~23 h to 3.6 h but need a
   much larger FTL tank (426→1543 fuel); AHP/HHP hull plates cut damage by ~0.12–0.25 pp
   vs LHP; heat/whipple/radiation plates show no damage effect under the current D model.
-  Next: cargo-loaded scenarios, a UI/CLI import path, and validating the lab's damage
-  deltas against in-game flights.
+  **Cargo passes 2026-10-19:** `LAB_CARGO=100` (the largest load every hull can carry)
+  changes ETA/STL on **31/53** configurations; `LAB_CARGO=500` changes **39/53** and flags
+  7 rows whose cargo capacity is below 500 t. High-thrust ships that remain above their
+  max-G cap show **no cargo effect at all**; the effect appears only when cargo pushes
+  acceleration below the cap (e.g. the glass-engine build: 10.15 h / 1185.5 STL empty →
+  10.22 h / 1224.9 at 100 t). Reports: `bp_config_lab.md`,
+  `bp_config_lab_cargo100.md`, `bp_config_lab_cargo500.md`.
+  Next: a UI/CLI import path and validating the lab's damage deltas against in-game flights.
 - 🟢 Planet ephemeris — 13/459 covered. [Part 3 "Planets"]
 - 🟢 Station orbit fitting — HRT + ANT done; MOR / BEN / HUB / ARC remaining. [Part 3 "Stations"]
 
