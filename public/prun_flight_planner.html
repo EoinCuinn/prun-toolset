@@ -1994,7 +1994,7 @@ async function calculate() {
   // segment's physics-computed max × fuf. TO/LND fixed (no factor); DEP capped at its max;
   // APPROACH & same-system transit scale linearly; JUMP/FTL untouched. There is no user-set
   // per-leg STL fuel any more (the "STL fuel for leg" slider was removed).
-  const fuf = Math.min(1, Math.max(0.1, +document.getElementById('fufInput').value || 0.5));
+  const fuf = Math.min(1, Math.max(0.05, +document.getElementById('fufInput').value || 0.5));
   _useGateways = document.getElementById('useGatewaysInput')?.checked ?? true;
   const phys = shipPhysics(_currentShip);
   const sh = shieldingFor(_currentShip);   // {general,heat,whipple,radiation,gravity}
@@ -2430,7 +2430,6 @@ async function calculate() {
   const rufSetting = +document.getElementById('rufSlider').value / 100;
   const lowNotes = [];
   if (!sameSys && rufSetting < 0.90) lowNotes.push(`low reactor usage (${(rufSetting*100).toFixed(0)}%) — FTL jump/charge/fuel are not calibrated below ~90%`);
-  if (fuf < 0.25) lowNotes.push(`very low fuel use (${fuf.toFixed(2)}) — the game's STL floor is not modelled below ~0.25`);
   if (lowNotes.length) {
     alertBanner += `<div class="note" style="margin-top:0.5rem;color:#fbbf24;font-weight:600">⚠ ${lowNotes.join(' · ')}. Treat these results as estimates.</div>`;
   }
@@ -2525,7 +2524,7 @@ function primePlanetInSys(sysId) {
   <ul style="margin:6px 0 0;padding-left:18px;">
     <li>Flight time: STL ~1%, FTL anchored to blueprint speeds · well-leg fuel exact · D damage model (Marcus 2026-10-12) · empty mass 55/55 within 0.06% in the 2026-06-30 BP export sweep; volume 86/87 within 1%.</li>
     <li>Landing distance is a deterministic ±13.3% band (exact only if the mission seed is known) — the planner shows the mean.</li>
-    <li>Known gaps: ~2% high-fuf B2/B3 residual, very low fuf has a game-side floor, low reactor usage (ρ≈.65) is not calibrated, unknown gateway damage. FTL uses blueprint ftlMaxSpeed/emitter anchors; a new hypothetical build has no emitter-count input, so its FTL speed is an estimate — use the <strong>Import blueprint…</strong> path for exact speed. Emitter mass is 0.8 t (sweep median); exact BOM emitter mass closes the empty-mass chain. Heat/whipple/radiation plate effects are not modelled; the anti-rad plate measured non-functional.</li>
+    <li>Known gaps: ~2% high-fuf B2/B3 residual, small APP residual at fuf .05, low reactor usage (ρ≈.65) is not calibrated, unknown gateway damage. FTL uses blueprint ftlMaxSpeed/emitter anchors; a new hypothetical build has no emitter-count input, so its FTL speed is an estimate — use the <strong>Import blueprint…</strong> path for exact speed. Emitter mass is 0.8 t (sweep median); exact BOM emitter mass closes the empty-mass chain. Heat/whipple/radiation plate effects are not modelled; the anti-rad plate measured non-functional.</li>
   </ul>
   <div style="margin-top:10px;color:var(--text);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Credits</div>
   <div style="margin-top:4px;">The flight physics stands on the work of <strong>Marcus Licinius Crassus</strong> (flight-dynamics papers, landing-distance PRNG law, the derived fuel constant), <strong>Taiyi Bureau</strong> (take-off/landing distance formulas, universe map), <strong>Aem</strong> (radiation &amp; landing-damage datasets), and the <strong>FIO</strong> community. Full write-ups &amp; credits: <a href="https://github.com/EoinCuinn/prun-toolset" target="_blank" rel="noopener" style="color:var(--accent);">the repo</a>.</div>

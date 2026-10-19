@@ -113,12 +113,22 @@ proxies that have closed forms. His suggested order is reflected below.
   The current model holds lane-jump speed at `J(1)` and scales charge/fuel by `ρ`.
   That holds at high `ruf` (BP-OMCU .964 matched), but not at .651. Needs a controlled
   `ruf` sweep (e.g. .25/.50/.75/1.0) on one route to derive the low-usage law.
-- 🟡 **Low-`fuf` STL floor.** At `fuf .05`: DEP time 8,588 vs 4,523, DEP fuel 35 vs 67.7;
-  APP time 3,740 vs 2,027. This is the known game-side floor, not a ship-data error.
-- 🟡 **APP distance** game 27.46M vs planner 20.18M. The destination is station ANT;
-  the mismatch is consistent with the planner arriving ~98,000s earlier because of the
-  low-`ruf` FTL error, so the station is at a different orbital position. Re-check after
-  the FTL fix before treating it as a station-ephemeris error.
+- ✅ **Low-`fuf` gap — root cause found and fixed 2026-10-19.** The planner clamped
+  `fuf` at **0.1** even though the slider and game allow **0.05**. Removing the clamp
+  changed the Big Hauler direct-route `fuf .05` result from **DEP fuel +89.7% / total
+  STL +75.5% / ETA −0.64%** to **DEP fuel −1.26% / total STL −1.9% / ETA +0.07%**.
+  Remaining at `.05`: APP fuel −4.6%, APP time +3.8% (small low-fuf residual).
+- ✅ **Big Hauler fuel sweep** (direct route, gateways off, ruf 100%): `fuf .25/.50/.75/1.00`
+  → STL **−0.85/−0.72/−0.67/−0.65%**, ETA **+0.01%**, FTL exact, damage 0.3% both.
+  `fuf .05` after the clamp fix → ETA **+0.07%**, STL **−1.9%**.
+- ✅ **Big Hauler reactor sweep** (`.975/.98/.987/.994/1.0`): FTL fuel and charge exact
+  at every point; jump time worst **−0.38%** at `.975`; ETA worst **−0.37%**. High-ruf
+  FTL is solid. Big Hauler cannot go lower — its `E/P` floor is **97.5%** — so low-rho
+  data still needs a low-minimum ship (BP-YEKV ~30%, BP-FYSQ ~20%).
+- 🟡 **APP distance** game 27.46M vs planner 20.18M on the BP-YEKV flight. The destination
+  is station ANT; the mismatch is consistent with the planner arriving ~98,000s earlier
+  because of the low-`ruf` FTL error, so the station is at a different orbital position.
+  Re-check after the FTL fix before treating it as a station-ephemeris error.
 
 **Next-test checklist:** for each ship/route, record the blueprint, **loadout slider units**,
 `fuelUsageFactor`, and route. Compare TO/DEP/APP/LND/FTL fuel and time leg-by-leg. If the FTL

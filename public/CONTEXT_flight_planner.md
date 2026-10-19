@@ -23,7 +23,7 @@ hull-damage projection with condition alerts.
   fuel-derived M.**
   Test11: 779.6 vs game 779 STL, ETA 6h20m57s vs 6h20m55s. The B2/B3 split is implemented
   (`DEP = min(dep cap, after-TO approach base)`, `APP = approach base`); a ~2% high-fuf
-  residual and a small low-fuf floor remain.
+  residual remains, plus a small APP residual at fuf .05.
 - **FTL (C, 2026-10-18):** blueprint-anchored `J(1)`; measured β; emitter-based charge
   time; charge fuel; slider floor `E/P`. A capture-calibrated `j1` anchor overrides a
   rounded panel `ftlMaxSpeed` (BP-FYSQ-7703: 1023.54 s/pc, effective 3.517 pc/h). See §6.
@@ -134,7 +134,9 @@ Duration: `t [real-s] = d / (2·accel·M) + 2·M` (paper §6, already wall-clock
   `appBase = (loaded − TO) × 0.491 × fuf`; then `DEP = min(depCap, appBase)` and `APP = appBase`.
   The DEP time is re-derived from the allocated DEP fuel. This fixes the high-fuf case
   (BP-OMCU: DEP +12.95% → +2.28%, total STL +6.51% → +1.73%). A ~2% high-fuf residual and a
-  small low-fuf floor remain.
+  small APP residual at fuf .05 remain. **2026-10-19:** the old `fuf` clamp at 0.1 was
+  removed (slider/game allow 0.05); Big Hauler `fuf .05` went from DEP fuel +89.7% /
+  total STL +75.5% to **−1.26% / −1.9%**, ETA −0.64% → **+0.07%**.
 - **Same-system TRANSIT fuel:** `(tank − TO − LND) × fuf`, unchanged (validated 2026-07-11).
 
 ### 6. FTL jump + gateway — calibrated (C, 2026-10-18)
@@ -252,8 +254,9 @@ transits).
 ## Open items / known issues
 
 1. **B2/B3 residual** — the split is implemented and fixes the high-fuf case, but BP-OMCU
-   remains ~2% high on DEP/total STL, and very low fuf has a game-side floor. Needs a
-   controlled low-fuf sweep if exactness there matters.
+   remains ~2% high on DEP/total STL. The 2026-10-19 Big Hauler sweep shows `fuf .25–1.0`
+   within ~0.9% on STL and +0.01% ETA; `fuf .05` is within 1.9% STL / 0.07% ETA after the
+   0.1 clamp was removed, with a small APP fuel/time residual.
 2. **Gateway route legs** — the Use gateways toggle controls routing, but the pre-gateway
    TRANSIT/LOCK/DECAY and post-gateway departure are not modelled. Use a direct route for
    configuration validation.
@@ -272,9 +275,11 @@ transits).
 8. **Ship Builder ↔ Flight Planner** — to share one component/physics model (planned).
 9. **Dead code** — `engineFromThrust()` / `engineType` (landing rewrite) and
    `approachComputedMax()` (B2/B3) are now unused; safe to delete.
-10. **Low-ρ FTL law** — a 2026-10-19 capture at ρ=.651 shows game jump time 2.0× the
-    planner and charge/FTL fuel 0.60×/0.59×, while ρ≈.96–1.0 matches. Route distance
-    and jump count matched. Needs a controlled ρ sweep before changing the model.
+10. **Low-ρ FTL law** — a 2026-10-19 BP-YEKV capture at ρ=.651 shows game jump time 2.0×
+    the planner and charge/FTL fuel 0.60×/0.59×. The Big Hauler sweep at ρ=.975–1.0 is
+    much milder: FTL fuel/charge exact, jump time worst −0.38%, ETA worst −0.37%. The
+    effect grows sharply below ~.9; Big Hauler cannot go lower (E/P floor .975). Needs a
+    low-minimum ship (BP-YEKV ~.30, BP-FYSQ ~.20) sweep before fitting.
 
 ---
 
