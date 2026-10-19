@@ -206,6 +206,10 @@ dropdowns (general is additive). Heat/whipple/radiation plate factors are not us
 - `G(g) = 1.5e-5 + 6e-5·(0.25−g)` for g<0.25; `1.5e-5 + 6e-6·(g−2.5)` for g>2.5; else 0.
 - **Gateway:** unknown; retains `GATEWAY_DMG = 5.247e-5` per hop (estimate).
 - **Condition feedback:** `projected = current − tripDamage`; alerts amber <80%, red <50%.
+- **UI / channels:** the planner currently shows only total damage and route hazards — there
+  is no per-channel breakdown. The heat/whipple/radiation/gravity dropdowns affect mass and
+  the shield record, but D applies only general shielding. Channel display and channel-specific
+  mitigation are open (BACKLOG “Damage channels”).
 - NL-534 validation: predicted/observed 0.91–0.93 on the four radial legs; the a→h control
   (same distance, inward dive) matches within 1.7%.
 - Test11 (2026-10-18, HRT→OZ-189a BFT): planner 0.179% vs game 0.169% (0.010 pp residual).

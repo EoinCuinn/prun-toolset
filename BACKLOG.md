@@ -151,6 +151,13 @@ type (0.5 AU vs 0.15 AU) and the z=0 charged distance.
 - ✅ DEP fuel — fixed and validated on Test11 (304 vs 304); the old ~6% preview error is retired.
 - ✅ Radiation damage — implemented in D as the DEP/APP/TRANSIT solar-flux term.
 - 🟡 **Damage residual** — Test11 planner 0.179% vs game 0.169% (0.010 pp). Re-check D against other ships/routes before chasing a single constant.
+- 🟡 **Damage channels / mitigation** — the total D model is implemented (jump, charge,
+  TO/LND gravity, meteor + solar transit), but the planner currently collapses it into one
+  number and applies only **general** shielding. Per-channel breakdown and
+  heat/whipple/radiation/gravity shielding are **not** implemented. The anti-rad plate
+  measured non-functional, so we should not wire the shield factors blindly. Next: expose
+  the current model's channel contributions per leg, then test channel-specific factors
+  against game data.
 - 🟡 **FTL `j1` audit** — BP-FYSQ-7703 is calibrated; other blueprints use their stored
   `vmax`. If jump times drift on the next ships, add a `j1` anchor from captured jumps.
 - 🟡 **Gateway flight legs** — a captured ANT→EY-351c test used a gateway
@@ -227,7 +234,7 @@ Marcus's review reopened several items. Current status after the 2026-10-18 pass
 | Phase 1 — G-cap | ✅ done | Blueprint `maxGFactor` + `blueprint_maxg.json`; FIO Acceleration is unclamped thrust/mass. |
 | Phase 3 — Acceleration Integration | 🟡 mostly | DEP/APP fuel-first split implemented; ~2% high-fuf residual and low-fuf floor remain. |
 | Open Mass — empty mass & volume | 🟢 mostly | A6/A7 exact and applied (55/55 BP-export configs); A8/F and emitter-count input remain. |
-| Phase 5 — Damage Model | ✅ done | D implemented and Test11-validated; 0.010 pp residual to re-check. |
+| Phase 5 — Damage Model | 🟡 partial | Total D model implemented and Test11-validated (0.010 pp residual); per-channel breakdown and heat/whipple/radiation/gravity mitigation still open. |
 | Phase 6 — FTL & Gateway Routing | ✅ mostly | C1–C6 implemented; `j1` anchor for BP-FYSQ-7703; gateway damage unknown. |
 
 Already-aligned / no change: Phase 2, CS1, the release/review/attribution items (all genuinely done), ephemeris & station coverage (still in progress as the roadmap says).
