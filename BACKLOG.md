@@ -31,9 +31,10 @@ proxies that have closed forms. His suggested order is reflected below.
 - 🟢 **F — ship builder fractional component volumes** (QCR 6–7, HPR 116–117, MFL 5–6, MSL 125.8–126.2). With A6/A7/A8, empty-mass chain is perfect 160/160. **Desktop-only** — needs `C:\prun-tools\prun-openmass\`. [Ship Val / reopens Open Mass]
 
 ### Ship builder (part of F)
-- 🟢 **A6 — SSC** `⌈V/21⌉`.
-- 🟡 **A7 — hull plates** `⌈(36π)^(1/3)·V^(2/3)/10⌉` (exact; current `⌈V^(2/3)/2.07⌉` misses 6/160). [reopens Open Mass]
+- ✅ **A6 — SSC** — done 2026-10-19. `⌈V/21⌉` matches **55/55** unique BP-export configurations (old `round(0.0478V)` matched 44/55).
+- ✅ **A7 — hull plates** — done 2026-10-19. `⌈(36π)^(1/3)·V^(2/3)/10⌉` matches **55/55** (old `round(0.535·V^0.655)` matched 36/55). Worst OEM error fell 1.15% → 0.06%.
 - 🟢 **A8 — CQT band** ends ~900, not 999 (CQS fitted at V 962–981).
+- 🟡 **Emitter-set mass** — the hypothetical builder has no emitter-count input, so it uses a fixed 0.8 t placeholder (sweep median; real sets 0.5–2.6 t). Exact BOM emitter mass makes OEM exact (0.00% worst). Next: add emitter counts to the hypothetical builder or import them from a blueprint/BP export.
 
 ### 2026-10-18 validation pass (DeepSeek)
 
@@ -69,6 +70,32 @@ proxies that have closed forms. His suggested order is reflected below.
   and BP-OMCU direct configs pass except the ~2% high-fuf B2/B3 residual. Gateway routes
   are skipped. Local/private tool; `--ship`/blueprint data handles custom hashes.
 
+### 2026-10-19 BP export sweep (DeepSeek)
+
+- ✅ **Importer/report built.** `prun-flight-capture/validator/bp_export_report.js` parses
+  `C:\prun-tools\prun-dam_acc\BP_Exports` (25 files, 69 `BLUEPRINT_BLUEPRINT` records,
+  3 natural IDs → **55 unique configurations**), feeds each configuration's selections
+  into the real planner hypothetical builder in jsdom, and compares game
+  OEM/volume/plates/SSC/max-G/acceleration/FTL. Output: `bp_export_report.md`
+  (private capture repo).
+- ✅ **Structure validated.** Volume is within **0.10%** on every configuration; OEM is
+  within **0.06%** (mean −0.00%); max-G exact; acceleration tracks OEM. The residual is
+  only the fixed 0.8 t emitter-mass placeholder — using each export's exact BOM emitter
+  mass makes OEM exact (0.00% worst).
+- ✅ **A6/A7 confirmed exact.** `ceil(V/21)` and `ceil((36π)^(1/3)·V^(2/3)/10)` match
+  **55/55**; the old formulas matched 44/55 and 36/55. Applied to the planner.
+- ✅ **FTL charge exact 55/55** (nearest same-reactor blueprint).
+- 🟡 **FTL speed needs the emitter package.** The no-emitter volume-fit estimate ranges
+  **−51.4% … +4.9%**. With the exact emitter package plus the C3 within-class linear
+  fit, the error is **0.01% worst** over the 23 configurations with ≥2 class anchors;
+  single-anchor classes copy the nearest blueprint and reach **1.55%**. The missing
+  input is the auto-emitter count/package.
+- **Next:** make the importer create a synthetic blueprint anchor per exported
+  configuration (exact P/E/f/vmax/volume + exact OEM), then run a common route through
+  the planner for each variant to produce the fuel/time/damage “are the parts worth it”
+  comparison. Adding emitter counts to the hypothetical builder is the other route to
+  exact FTL speed for new designs.
+
 **Next-test checklist:** for each ship/route, record the blueprint, **loadout slider units**,
 `fuelUsageFactor`, and route. Compare TO/DEP/APP/LND/FTL fuel and time leg-by-leg. If the FTL
 jump time is ~0.5% off, derive a `j1` from the captured jump (`j1 = jump_seconds / pc`) and add
@@ -95,10 +122,10 @@ type (0.5 AU vs 0.15 AU) and the z=0 charged distance.
   exactly. The gateway **legs** themselves (transit/lock/decay/post-gateway departure)
   are still not modelled; the capture validator skips gateway routes. Use a direct
   route for configuration/fuel validation, or implement gateway legs separately.
-- 🟢 **Configuration lab** — the refreshed `blueprint_data.jsonl` now contains the BOM/
-  performance for BP-JRAJ-3531 "Big Hauler" and the custom BP-FYSQ-7703. Next: derive
-  the planner's empty mass/volume/plates/SSC and damage/fuel per configuration, and
-  compare variants side by side. This is the "are the parts worth it" end game.
+- 🟡 **Configuration lab** — importer/report built (2026-10-19) over the 55 unique
+  BP-export configurations; structure/FTL comparison is done. Next: add a synthetic
+  blueprint anchor per configuration and run a common route to compare fuel, time and
+  damage side by side. This is the "are the parts worth it" end game.
 - 🟢 Planet ephemeris — 13/459 covered. [Part 3 "Planets"]
 - 🟢 Station orbit fitting — HRT + ANT done; MOR / BEN / HUB / ARC remaining. [Part 3 "Stations"]
 
@@ -141,7 +168,7 @@ Marcus's review reopened several items. Current status after the 2026-10-18 pass
 |---|---|---|
 | Phase 1 — G-cap | ✅ done | Blueprint `maxGFactor` + `blueprint_maxg.json`; FIO Acceleration is unclamped thrust/mass. |
 | Phase 3 — Acceleration Integration | 🟡 mostly | DEP/APP fuel-first split implemented; ~2% high-fuf residual and low-fuf floor remain. |
-| Open Mass — empty mass & volume | 🟡 partly | Plate/volume formulas (A6/A7/A8, F) still pending; desktop data needed. |
+| Open Mass — empty mass & volume | 🟢 mostly | A6/A7 exact and applied (55/55 BP-export configs); A8/F and emitter-count input remain. |
 | Phase 5 — Damage Model | ✅ done | D implemented and Test11-validated; 0.010 pp residual to re-check. |
 | Phase 6 — FTL & Gateway Routing | ✅ mostly | C1–C6 implemented; `j1` anchor for BP-FYSQ-7703; gateway damage unknown. |
 
@@ -149,4 +176,4 @@ Already-aligned / no change: Phase 2, CS1, the release/review/attribution items 
 
 **Conflict resolved:** routing — handover said add distance weighting, Marcus says don't. Min-hop stays (see Routing above).
 
-**Suggested next:** validate the same model on other ships/routes (the user is doing this now), then gateway route legs, B2/B3 high-fuf/low-fuf residual, damage residual, FTL `j1` audit, then ship-builder F.
+**Suggested next:** turn the BP-export report into the configuration lab (synthetic blueprint anchors + a common route for fuel/time/damage per variant), then gateway route legs, B2/B3 high-fuf/low-fuf residual, damage residual, FTL `j1` audit, then ship-builder F. Validate each against in-game test flights.

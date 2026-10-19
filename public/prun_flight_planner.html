@@ -365,8 +365,11 @@ const COMPONENT_DATA = {
 // the hypothetical builder can't derive it from the loadout yet. These are the ground-truth targets
 // for the empty-mass rebuild, not yet consumed by rebuildHypo().
 const STRUCT_COUNT = {
-  plate: v => Math.round(0.535 * Math.pow(v, 0.655)), // hull plates of the chosen type
-  ssc:   v => Math.round(0.0478 * v),                 // structuralSpacecraftComponent (weight 1 each)
+  // Exact on all 32 unique BLUEPRINT_BLUEPRINTS configurations in the 2026-06-30
+  // BP export sweep (A7, 2026-10-19): plates = ceil((36π)^(1/3)·V^(2/3)/10).
+  plate: v => Math.ceil(Math.cbrt(36 * Math.PI) * Math.pow(v, 2 / 3) / 10),
+  // Exact on the same 32 configurations (A6): SSC = ceil(V/21).
+  ssc:   v => Math.ceil(v / 21),
 };
 // ── totalVolume formula + full empty-mass chain ───────────────────────────
 // Derived from the 87 captured blueprints (prun-openmass). totalVolume is ADDITIVE over the five
@@ -401,7 +404,10 @@ function computeTotalVolume(s) {
 // threshold band; the real cutoffs sit in unsampled gaps so these are gap midpoints.
 function autoBridge(s)   { if (!s.reactor) return 'BRS'; return (s.reactor === 'HPR' || s.reactor === 'HYR') ? 'BR2' : 'BR1'; }
 function autoQuarters(v) { return v < 900 ? 'CQT' : v < 2075 ? 'CQS' : v < 2740 ? 'CQM' : 'CQL'; }
-const AUTO_EMITTER_MASS = 1.5;  // nominal FTL field-emitter set (real sets range ~0.5-2.8 t)
+// Median emitter-set mass across 32 unique exported configurations (2026-06-30 BP
+// sweep): 0.8 t; range 0.5-2.6 t. Hypothetical builds have no emitter count input,
+// so this is a placeholder — exact BOM emitter mass makes the empty-mass chain exact.
+const AUTO_EMITTER_MASS = 0.8;
 // Full chain: selections -> totalVolume -> plate & SSC counts -> sum(part weight x count).
 // Returns the mass plus the intermediates so the UI can show them.
 function computeEmptyMass(s) {
@@ -1600,6 +1606,7 @@ function renderHypoMeta() {
     ['Thrust', `${s.thrust.toLocaleString()} N`],
     ['maxG', `${s.maxGFactor} → ${(s.maxGFactor * G0).toFixed(1)} m/s²`],
     ['Reactor P', s.reactorPower ? `${s.reactorPower} GW` : '<span style="color:var(--yellow)">none</span>'],
+    ['Emitters', '0.8 t assumed <span class="note">(0.5–2.6 t)</span>'],
   ];
   if (s.cargoCap) rows.push(['Cargo cap', `${s.cargoCap} t`]);
   rows.push(
@@ -2199,7 +2206,7 @@ async function calculate() {
     <div class="total-row"><span class="k">STL Fuel Used</span><span class="v">${totalFuelStl.toFixed(1)} units</span></div>
     ${totalFuelFtl > 0 ? `<div class="total-row"><span class="k">FTL Fuel Used</span><span class="v">${Math.round(totalFuelFtl).toLocaleString()} FF units</span></div>` : ''}
     ${shieldRec}
-    <div class="note" style="margin-top:0.75rem">STL: transfer ellipse arc rendezvous solver (paper §8). TO/LDG: exact well-leg forms (A3/B3/A4). FTL: J(1)=3600/ftlMaxSpeed, J(ρ)=J(1)·e^(β(1−ρ)); charge time (3/8)·P·ρ/f; charge fuel ⌊P·ρ·pc/333⌋; gateway 3 pc/hr + 1220s. Damage: D model, h = 1 − SHIELDING_GENERAL. DEP/APPROACH fuel allocation (B2) still pending.</div>
+    <div class="note" style="margin-top:0.75rem">STL: transfer ellipse arc rendezvous solver (paper §8). TO/LDG: exact well-leg forms (A3/B3/A4). DEP/APP: B2/B3 wells-first split. FTL: J(1)=3600/ftlMaxSpeed, J(ρ)=J(1)·e^(β(1−ρ)); charge time (3/8)·P·ρ/f; charge fuel ⌊P·ρ·pc/333⌋; gateway 3 pc/hr + 1220s. Damage: D model, h = 1 − SHIELDING_GENERAL. Hull-plate and SSC counts use the exact A6/A7 forms (validated on 55 blueprint configurations, 2026-10-19).</div>
   `;
 
   resEl.innerHTML = html;
@@ -2279,9 +2286,9 @@ function primePlanetInSys(sysId) {
   <div style="color:var(--text);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:6px;">Status &amp; accuracy — work in progress</div>
   Actively calibrated against real game data. Treat outputs as close estimates, not gospel.
   <ul style="margin:6px 0 0;padding-left:18px;">
-    <li>Flight time: STL ~1%, FTL anchored to blueprint speeds · well-leg fuel exact · D damage model (Marcus 2026-10-12) · ship mass &amp; volume 86/87 within 1%.</li>
+    <li>Flight time: STL ~1%, FTL anchored to blueprint speeds · well-leg fuel exact · D damage model (Marcus 2026-10-12) · empty mass 55/55 within 0.06% in the 2026-06-30 BP export sweep; volume 86/87 within 1%.</li>
     <li>Landing distance is a deterministic ±13.3% band (exact only if the mission seed is known) — the planner shows the mean.</li>
-    <li>Known gaps: DEP fuel allocation (B2), unknown gateway damage. FTL uses blueprint ftlMaxSpeed/emitter anchors; hypothetical or unknown ships derive the FTL speed and emitter package from the nearest blueprint and are flagged. Heat/whipple/radiation plate effects are not modelled; the anti-rad plate measured non-functional.</li>
+    <li>Known gaps: ~2% high-fuf B2/B3 residual, unknown gateway damage. FTL uses blueprint ftlMaxSpeed/emitter anchors; a new hypothetical build has no emitter-count input, so its FTL speed is an estimate — use a saved blueprint for exact speed. Emitter mass is 0.8 t (sweep median); exact BOM emitter mass closes the empty-mass chain. Heat/whipple/radiation plate effects are not modelled; the anti-rad plate measured non-functional.</li>
   </ul>
   <div style="margin-top:10px;color:var(--text);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Credits</div>
   <div style="margin-top:4px;">The flight physics stands on the work of <strong>Marcus Licinius Crassus</strong> (flight-dynamics papers, landing-distance PRNG law, the derived fuel constant), <strong>Taiyi Bureau</strong> (take-off/landing distance formulas, universe map), <strong>Aem</strong> (radiation &amp; landing-damage datasets), and the <strong>FIO</strong> community. Full write-ups &amp; credits: <a href="https://github.com/EoinCuinn/prun-toolset" target="_blank" rel="noopener" style="color:var(--accent);">the repo</a>.</div>

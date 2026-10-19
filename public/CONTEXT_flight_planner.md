@@ -1,10 +1,10 @@
-# Flight Planner — Technical Context (updated 2026-10-18)
+# Flight Planner — Technical Context (updated 2026-10-19)
 
 Technical reference for `public/prun_flight_planner.html`. For the phase-by-phase
 history, gates, and running revision log, see `prun-flight-planner-roadmap.html` —
 that is the status source of truth; this file is the "how it works" companion.
 
-## Current state (2026-10-18)
+## Current state (2026-10-19)
 
 Read-only planner. Enter origin, destination, and a ship (real fleet via FIO Swagger,
 or a hypothetical build from component dropdowns) → per-leg flight time, fuel, and a
@@ -27,8 +27,17 @@ hull-damage projection with condition alerts.
 - **FTL (C, 2026-10-18):** blueprint-anchored `J(1)`; measured β; emitter-based charge
   time; charge fuel; slider floor `E/P`. A capture-calibrated `j1` anchor overrides a
   rounded panel `ftlMaxSpeed` (BP-FYSQ-7703: 1023.54 s/pc, effective 3.517 pc/h). See §6.
-- **Empty mass & totalVolume (Open Mass, 2026-07-18):** derived from the loadout, not a
-  fitted aggregate. Volume 86/86 within 1%, mass 82/86 within 1%.
+- **BP export sweep (2026-10-19):** 25 export files / 69 `BLUEPRINT_BLUEPRINT`
+  records / **55 unique configurations** replayed through the planner's hypothetical
+  builder. Volume within 0.10%, OEM within 0.06%, max-G exact, FTL charge exact. With
+  the exact emitter package + C3 within-class fit, FTL speed is within **0.01%** for
+  classes with ≥2 anchors; the no-emitter estimate is unreliable (**−51%…+5%**), so a
+  saved/imported blueprint anchor is required for exact speed.
+- **Empty mass & totalVolume (Open Mass; A6/A7 2026-10-19):** derived from the loadout,
+  not a fitted aggregate. Volume 86/86 within 1%. **A6/A7 are now exact:** plates
+  `ceil((36π)^(1/3)·V^(2/3)/10)` and SSC `ceil(V/21)` match **55/55** unique BP-export
+  configurations; empty mass is within **0.06%** (mean −0.00%), and exact (0.00% worst)
+  when the BOM emitter-set mass replaces the 0.8 t placeholder.
 - **Damage model:** D model (Marcus 2026-10-12, committed 2026-10-18) — jump, charge,
   take-off, landing, and DEP/APP/TRANSIT with solar flux; see §8. Test11 damage 0.179%
   vs game 0.169% (0.010 pp residual).
@@ -130,9 +139,15 @@ fuel**, not lane-jump speed. Measured β values (RCT 1.123, QCR 0.929, HPR 2.002
 HYR 2.976) are retained as reactor data. Charge time `(3/8)·P·ρ/f` per charge (the E/P
 floor gives `(3/8)·E/f`), counts jumps−1; charge fuel `⌊P·ρ·pc/333⌋` FF per jump, first
 charge on departure. `E = 100·SFE + 175·MFE + 300·LFE`; slider floor `E/P`. 89 blueprint
-entries in `public/blueprint_ftl.json`; unknown/hypothetical ships use the C3 hull-volume
-fit and are flagged. `FP_SCALE = 12.0`. Gateway: `t_gw = d_ftl × 1200 + 1220` s (3 pc/hr,
-ship-independent); gateway damage unknown.
+entries in `public/blueprint_ftl.json`; unknown/hypothetical ships are flagged.
+`FP_SCALE = 12.0`. Gateway: `t_gw = d_ftl × 1200 + 1220` s (3 pc/hr, ship-independent);
+gateway damage unknown.
+
+**FTL-speed estimate (2026-10-19):** the C3 law — `1/ftlMaxSpeed` linear in volume
+*within a (reactor, emitter) class* — is exact to **0.01% worst** on the 55-config BP
+sweep when the exact emitter package is known. The current no-emitter fallback fits
+across emitter classes and is off by **−51%…+5%**; it must not be trusted for a new
+build. Imported blueprint anchors carry the exact P/E/f/vmax and avoid this entirely.
 
 **Capture-calibrated `J(1)` anchor (2026-10-18):** the in-game panel rounds `ftlMaxSpeed`
 to two decimals, so `BP-FYSQ-7703`'s displayed 3.50 pc/h is really ~3.517. Its
@@ -140,7 +155,7 @@ to two decimals, so `BP-FYSQ-7703`'s displayed 3.50 pc/h is really ~3.517. Its
 `3600/vmax`; this made the Test11 jump time exactly 5h44m22s. Other blueprints use
 their stored `vmax` until a capture shows drift.
 
-### 7. Empty mass & totalVolume — "Open Mass" (2026-07-18, commit 7c74e80)
+### 7. Empty mass & totalVolume — "Open Mass" (2026-07-18; A6/A7 2026-10-19)
 
 Hypothetical empty mass is derived from the twelve selectable components, not a fitted number:
 - **`operatingEmptyMass = Σ(component BOM weight × count)`** over the full bill of material,
@@ -148,8 +163,12 @@ Hypothetical empty mass is derived from the twelve selectable components, not a 
 - **`totalVolume = 438 + 1.05 × cargo_capM3 + engineΔ + stlTankΔ + reactorΔ + ftlTankΔ`.** Cargo
   drives it by m³ capacity, not tonnage. It is a fixed point (the game sizes structure *from*
   volume, and that structure then occupies volume) — NOT the sum of component volumes.
-- Downstream: `plates = round(0.535 · V^0.655)`, `SSC = round(0.0478 · V)`, crew quarters by
+- Downstream (A6/A7, exact on 55/55 BP-export configurations):
+  `plates = ceil((36π)^(1/3) · V^(2/3) / 10)`, `SSC = ceil(V / 21)`, crew quarters by
   volume band, command bridge by FTL-reactor tier, FTL field controller if an FTL reactor is fitted.
+- Emitter set: the game adds 0.5–2.6 t of FTL field emitters (SFE 0.1 / MFE 0.2 / LFE 0.4 t each).
+  The hypothetical builder has no emitter-count input, so it uses the 0.8 t sweep median;
+  using the exact BOM emitter mass makes the empty-mass chain exact.
 - Only 5 of the 12 fields move volume: hull-plate type (count is volume-driven, identical across
   types), engine, STL tank, reactor, FTL tank. Shielding / drone / seats have ZERO volume effect.
 - ⚠ **Method note:** a regression over the five volume fields returns high R² and *wrong*
@@ -233,8 +252,10 @@ transits).
 4. **FTL `j1` audit** — BP-FYSQ-7703 is calibrated (1023.54 s/pc); other blueprints use their
    stored `vmax`. Add a `j1` anchor if captured jump times drift.
 5. **Gateway damage** — still unknown; retains the `GATEWAY_DMG = 5.247e-5` estimate.
-6. **Exact plate / SSC rounding rule** — counts reproduced to ±1 only; the sole remaining
-   empty-mass error source (4 ships at 1.0–1.35%). Needs a size-ladder sweep.
+6. **Emitter package / FTL speed for new builds** — A6/A7 closed the plate/SSC rounding.
+   The remaining empty-mass input is the auto-emitter set (0.5–2.6 t). The hypothetical
+   builder has no emitter-count input, so its FTL speed without a blueprint anchor can be
+   off by **−51%…+5%**. Import a saved/exported blueprint, or add emitter selectors.
 7. **Vortex drive** — unmodelled (1 sample, BP-CLNY-0000); outside the twelve selectable fields.
 8. **Ship Builder ↔ Flight Planner** — to share one component/physics model (planned).
 9. **Dead code** — `engineFromThrust()` / `engineType` (landing rewrite) and
