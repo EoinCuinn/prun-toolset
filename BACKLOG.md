@@ -96,6 +96,30 @@ proxies that have closed forms. His suggested order is reflected below.
   comparison. Adding emitter counts to the hypothetical builder is the other route to
   exact FTL speed for new designs.
 
+### 2026-10-19 in-game capture — BP-YEKV-6526, EY-303f→ANT
+
+- **Settings were outside the validated envelope:** `fuf = 0.05`, `ruf = 0.651`,
+  1500 STL / 300 FTL, gateways off. Route 15 jumps / 107.4 pc.
+- ✅ **Validator fixed:** it now injects the captured `BLUEPRINT_BLUEPRINTS` performance
+  as `_blueprintFtl` / `_blueprintMaxG` anchors for replay. BP-YEKV-6526 is newer than
+  the static planner data; without the anchors the replay lost its G-cap and FTL speed.
+  After the fix: TO distance 44,466.7 vs 44,467.0, **TO time 1065 vs 1062 (−0.28%)**,
+  **TO fuel 120 vs 121 (+0.83%)**.
+- 🔴 **Low-`ruf` FTL gap (new).** The route distance and jump count match (15 jumps,
+  14 charges, 107.4 pc vs ~106.4 pc / 0.9%), but at `ruf .651`:
+  - game jump time 195,166s vs planner 97,316s (**×2.0**);
+  - game charge 2,441.6s vs planner 4,102s (**×0.60**);
+  - game FTL fuel 292 vs planner 492 (**×0.59**).
+  The current model holds lane-jump speed at `J(1)` and scales charge/fuel by `ρ`.
+  That holds at high `ruf` (BP-OMCU .964 matched), but not at .651. Needs a controlled
+  `ruf` sweep (e.g. .25/.50/.75/1.0) on one route to derive the low-usage law.
+- 🟡 **Low-`fuf` STL floor.** At `fuf .05`: DEP time 8,588 vs 4,523, DEP fuel 35 vs 67.7;
+  APP time 3,740 vs 2,027. This is the known game-side floor, not a ship-data error.
+- 🟡 **APP distance** game 27.46M vs planner 20.18M. The destination is station ANT;
+  the mismatch is consistent with the planner arriving ~98,000s earlier because of the
+  low-`ruf` FTL error, so the station is at a different orbital position. Re-check after
+  the FTL fix before treating it as a station-ephemeris error.
+
 **Next-test checklist:** for each ship/route, record the blueprint, **loadout slider units**,
 `fuelUsageFactor`, and route. Compare TO/DEP/APP/LND/FTL fuel and time leg-by-leg. If the FTL
 jump time is ~0.5% off, derive a `j1` from the captured jump (`j1 = jump_seconds / pc`) and add

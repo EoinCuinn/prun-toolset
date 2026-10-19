@@ -139,10 +139,14 @@ Duration: `t [real-s] = d / (2·accel·M) + 2·M` (paper §6, already wall-clock
 
 ### 6. FTL jump + gateway — calibrated (C, 2026-10-18)
 
-`J(1) = 3600 / ftlMaxSpeed` (pc/h). Captured Test11, Big Hauler and BP-OMCU show
-**lane-jump time = J(1)·pc**; the reactor-usage slider ρ scales **charge time and FTL
-fuel**, not lane-jump speed. Measured β values (RCT 1.123, QCR 0.929, HPR 2.002,
-HYR 2.976) are retained as reactor data. Charge time `(3/8)·P·ρ/f` per charge (the E/P
+`J(1) = 3600 / ftlMaxSpeed` (pc/h). At **high ρ (≈0.96–1.0)**, captured Test11,
+Big Hauler and BP-OMCU show **lane-jump time = J(1)·pc**; ρ scales **charge time and
+FTL fuel**, not lane-jump speed. Measured β values (RCT 1.123, QCR 0.929, HPR 2.002,
+HYR 2.976) are retained as reactor data. **At low ρ this breaks down:** a 2026-10-19
+capture at ρ=.651 (BP-YEKV-6526, 107.4 pc, 15 jumps) gave game jump time **2.0×** the
+planner, while charge time and FTL fuel were **0.60×/0.59×** the planner. The route
+distance and jump count matched, so this is a low-usage FTL law gap, not routing or
+ship data. Needs a controlled ρ sweep (.25/.50/.75/1.0) before fitting. Charge time `(3/8)·P·ρ/f` per charge (the E/P
 floor gives `(3/8)·E/f`), counts jumps−1; charge fuel `⌊P·ρ·pc/333⌋` FF per jump, first
 charge on departure. `E = 100·SFE + 175·MFE + 300·LFE`; slider floor `E/P`. 89 blueprint
 entries in `public/blueprint_ftl.json`; unknown/hypothetical ships are flagged.
@@ -268,6 +272,9 @@ transits).
 8. **Ship Builder ↔ Flight Planner** — to share one component/physics model (planned).
 9. **Dead code** — `engineFromThrust()` / `engineType` (landing rewrite) and
    `approachComputedMax()` (B2/B3) are now unused; safe to delete.
+10. **Low-ρ FTL law** — a 2026-10-19 capture at ρ=.651 shows game jump time 2.0× the
+    planner and charge/FTL fuel 0.60×/0.59×, while ρ≈.96–1.0 matches. Route distance
+    and jump count matched. Needs a controlled ρ sweep before changing the model.
 
 ---
 
