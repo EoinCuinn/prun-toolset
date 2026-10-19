@@ -510,7 +510,7 @@ function bpTicker(bp, sel) {
 }
 function bpParseRecords(text) {
   let parsed;
-  const cleaned = String(text).trim().replace(/^42(?=[\[{])/, '');   // tolerate a pasted WebSocket frame
+  const cleaned = String(text).replace(/^﻿/, '').trim().replace(/^42(?=[\[{])/, '');   // BOM / pasted WebSocket frame
   try {
     parsed = JSON.parse(cleaned);
   } catch (e) {
