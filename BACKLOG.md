@@ -122,10 +122,18 @@ type (0.5 AU vs 0.15 AU) and the z=0 charged distance.
   exactly. The gateway **legs** themselves (transit/lock/decay/post-gateway departure)
   are still not modelled; the capture validator skips gateway routes. Use a direct
   route for configuration/fuel validation, or implement gateway legs separately.
-- 🟡 **Configuration lab** — importer/report built (2026-10-19) over the 55 unique
-  BP-export configurations; structure/FTL comparison is done. Next: add a synthetic
-  blueprint anchor per configuration and run a common route to compare fuel, time and
-  damage side by side. This is the "are the parts worth it" end game.
+- 🟡 **Configuration lab** — ✅ **prototype built 2026-10-19.** `bp_config_lab.js`
+  registers a synthetic blueprint anchor per exported configuration (exact OEM, volume,
+  thrust, max-G, P/E/f/vmax, engine flow, shielding) and flies one common route
+  (VH-192c→EY-303b, gateways off, fuf .81, ruf 1, 1500 STL / 800 FTL clamped, 0 cargo).
+  All **55/55** configurations fly; the report has per-configuration ETA/STL/FTL/damage,
+  headline extremes, and per-sweep deltas. Initial findings: the FSE engine is the
+  fuel-saver (~−390 STL vs AEN, small time cost); bigger cargo bays trade volume for
+  FTL time (+4 to +31 h); high-power reactors cut ETA from ~23 h to 3.6 h but need a
+  much larger FTL tank (426→1543 fuel); AHP/HHP hull plates cut damage by ~0.12–0.25 pp
+  vs LHP; heat/whipple/radiation plates show no damage effect under the current D model.
+  Next: cargo-loaded scenarios, a UI/CLI import path, and validating the lab's damage
+  deltas against in-game flights.
 - 🟢 Planet ephemeris — 13/459 covered. [Part 3 "Planets"]
 - 🟢 Station orbit fitting — HRT + ANT done; MOR / BEN / HUB / ARC remaining. [Part 3 "Stations"]
 
