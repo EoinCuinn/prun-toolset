@@ -1237,11 +1237,19 @@ function solarFlux(luminosity, posM) {
   return rKm > 0 ? luminosity * 3.0605e25 / (rKm * rKm) : 0;
 }
 // DEP / APPROACH / TRANSIT damage: meteor + solar-flux channels.
-function transitDmg(dKm, density, luminosity, p1, p2, h) {
+// Keep the components separate so the results can attribute damage, while the
+// total stays exactly the validated D-model figure.
+function transitDmgParts(dKm, density, luminosity, p1, p2, h) {
   const F1 = solarFlux(luminosity, p1);
   const F2 = solarFlux(luminosity, p2);
-  const rate = 2e-12 + 5e-12 * Math.max(density || 0, 0) + 2e-22 * Math.sqrt(F1 * F2);
-  return (h ?? 1) * dKm * rate;
+  const meteorRate = 2e-12 + 5e-12 * Math.max(density || 0, 0);
+  const solarRate  = 2e-22 * Math.sqrt(F1 * F2);
+  const meteor = (h ?? 1) * dKm * meteorRate;
+  const solar  = (h ?? 1) * dKm * solarRate;
+  return { meteor, solar, total: meteor + solar };
+}
+function transitDmg(dKm, density, luminosity, p1, p2, h) {
+  return transitDmgParts(dKm, density, luminosity, p1, p2, h).total;
 }
 // Gravity-driven well-leg rate (per second), same thresholds as building materials.
 function gravityDmgRate(g) {
@@ -2011,6 +2019,8 @@ async function calculate() {
   let totalDmg = 0;
   let totalFuelStl = 0;
   let totalFuelFtl = 0;
+  // Damage attribution (post-general-shielding). These sum to totalDmg.
+  const dmgChannels = { jump: 0, charge: 0, gravity: 0, meteor: 0, solar: 0, landingPressure: 0, gateway: 0 };
 
   const nowUnix = Date.now() / 1000;
   let t = nowUnix; // Unix time threaded through legs for planet position lookups
@@ -2089,6 +2099,7 @@ async function calculate() {
     totalRealMin += toTimeRealS / 60;
     totalFuelStl += toFuelUnits;
     totalDmg += toDmg;
+    dmgChannels.gravity += toDmg;
     const hazards = planetHazardBadges(originPl);
     html += legHtml('TO', `${originPl.PlanetName || originPl.PlanetNaturalId} → orbit`, [
       ['Distance', fmtDist(toKm)],
@@ -2133,8 +2144,13 @@ async function calculate() {
         // DEPARTURE damage — D model: meteor + solar flux at the base and gate.
         const depDensity = (_sysStats[_origin.sysId] || {}).meteoroidDensity || 0;
         const depLum = (_sysStats[_origin.sysId] || {}).luminosity || 0;
-        const depDmg = dep.chargedKm ? transitDmg(dep.chargedKm, depDensity, depLum, base, gate, h) : 0;
+        const depParts = dep.chargedKm
+          ? transitDmgParts(dep.chargedKm, depDensity, depLum, base, gate, h)
+          : { meteor: 0, solar: 0, total: 0 };
+        const depDmg = depParts.total;
         totalDmg += depDmg;
+        dmgChannels.meteor += depParts.meteor;
+        dmgChannels.solar  += depParts.solar;
         const depLabel = originStation?.name ?? depOriginPl?.PlanetName ?? depOriginPl?.PlanetNaturalId;
         const depNoteBase = dep.starved
           ? `⚠ Fuel-starved departure — M capped at ${depM.toFixed(1)} by STL fuel budget (${onboardMassT().stl.toFixed(1)} t)`
@@ -2221,6 +2237,9 @@ async function calculate() {
     const totalFtlSec = totalJumpSec + totalChargeSec + totalGwSec;
     totalRealMin += totalFtlSec / 60;
     totalDmg += totalFtlDmg;
+    dmgChannels.jump    += totalJumpDmg;
+    dmgChannels.charge  += totalChargeDmg;
+    dmgChannels.gateway += totalGwDmg;
     t += totalFtlSec;
 
     // Build per-hop rows
@@ -2320,8 +2339,11 @@ async function calculate() {
   const stlTransitDistKm = rendez ? rendez.chargedKm : stlDistKm;
   const stlLum = (_sysStats[_dest.sysId] || {}).luminosity || 0;
   if (stlTransitDistKm) {
-    stlDmg = transitDmg(stlTransitDistKm, density, stlLum, rendez?.start, rendez?.end, h);
+    const stlParts = transitDmgParts(stlTransitDistKm, density, stlLum, rendez?.start, rendez?.end, h);
+    stlDmg = stlParts.total;
     totalDmg += stlDmg;
+    dmgChannels.meteor += stlParts.meteor;
+    dmgChannels.solar  += stlParts.solar;
   }
 
   const hasStlContent = sameSys
@@ -2385,13 +2407,12 @@ async function calculate() {
     totalRealMin += ldgTime / 60;
     totalFuelStl += ldgFuel;
     // LANDING damage — D model: h * T * (G(g) + min(4e-7*P, 1e-5)).
-    const ldgDmg = ldgAtm
-      ? h * ldgAtm.tReal * (
-          gravityDmgRate(destPl.Gravity ?? 0) +
-          Math.min(4e-7 * (destPl.Pressure ?? 0), 1e-5)
-        )
-      : 0;
+    const ldgGrav = ldgAtm ? h * ldgAtm.tReal * gravityDmgRate(destPl.Gravity ?? 0) : 0;
+    const ldgPress = ldgAtm ? h * ldgAtm.tReal * Math.min(4e-7 * (destPl.Pressure ?? 0), 1e-5) : 0;
+    const ldgDmg = ldgGrav + ldgPress;
     totalDmg += ldgDmg;
+    dmgChannels.gravity += ldgGrav;
+    dmgChannels.landingPressure += ldgPress;
     const hazards = planetHazardBadges(destPl);
     html += legHtml('LDG', `Orbit → ${destPl.PlanetName || destPl.PlanetNaturalId}`, [
       ['Distance', ldgKm.toFixed(1) + ' km (±13.3%)'],
@@ -2435,6 +2456,27 @@ async function calculate() {
     alertBanner += `<div class="note" style="margin-top:0.5rem;color:#fbbf24;font-weight:600">⚠ ${lowNotes.join(' · ')}. Treat these results as estimates.</div>`;
   }
 
+  const dmgChannelRows = [
+    ['Jump wear',      dmgChannels.jump,            'general'],
+    ['Charge wear',    dmgChannels.charge,          'general'],
+    ['Gravity (TO/LND)', dmgChannels.gravity,       'general · STS untested'],
+    ['Meteor / transit', dmgChannels.meteor,        'general · whipple under test'],
+    ['Solar flux',     dmgChannels.solar,           'general · anti-rad inert'],
+    ['Landing pressure', dmgChannels.landingPressure, 'general · heat untested'],
+    ['Gateway',        dmgChannels.gateway,         'general · estimate'],
+  ];
+  const dmgChannelSum = dmgChannelRows.reduce((a, r) => a + r[1], 0);
+  const dmgBreakdown = `
+    <div style="margin-top:0.75rem;border-top:1px solid var(--border);padding-top:0.5rem">
+      <div style="color:var(--text);font-weight:600;margin-bottom:4px">Damage channels <span class="note" style="font-weight:400">(model attribution, not a game readout)</span></div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <tr style="color:var(--text2)"><th style="text-align:left;font-weight:500;padding:2px 0">Channel</th><th style="text-align:right;font-weight:500;padding:2px 0">Damage</th><th style="text-align:left;font-weight:500;padding:2px 0 2px 8px">Shield applied</th></tr>
+        ${dmgChannelRows.map(([label, val, note]) => `<tr><td style="padding:2px 0">${label}</td><td style="text-align:right;padding:2px 0">${fmtDmg(val)}</td><td style="padding:2px 0 2px 8px;color:var(--text2)">${note}</td></tr>`).join('')}
+        <tr style="border-top:1px solid var(--border)"><td style="padding:3px 0;color:var(--text)">Total</td><td style="text-align:right;padding:3px 0;color:var(--text)">${fmtDmg(dmgChannelSum)}</td><td style="padding:3px 0 3px 8px;color:var(--text2)">h = ${h.toFixed(3)}${Math.abs(dmgChannelSum - totalDmg) > 1e-9 ? ' · ⚠ channel sum mismatch' : ''}</td></tr>
+      </table>
+      <div class="note" style="margin-top:4px">All channels currently use general shielding only. Whipple (meteor), heat (landing pressure), radiation (solar) and gravity/STS are not applied: the radiation study found the specialised anti-rad plate inert; whipple/meteor is under test; heat and gravity are untested.</div>
+    </div>`;
+
   html += `<hr class="results-divider">
     <div class="total-row"><span class="k">${timeLabel}</span><span class="v${stlTimeKnown ? '' : ' approx'}">${fmtMin(totalRealMin)}</span></div>
     <div class="total-row"><span class="k">Trip Hull Damage</span><span class="v dmg${totalDmg > 0.05 ? ' high' : ''}">${fmtDmg(totalDmg)}</span></div>
@@ -2443,7 +2485,8 @@ async function calculate() {
     <div class="total-row"><span class="k">STL Fuel Used</span><span class="v">${totalFuelStl.toFixed(1)} units</span></div>
     ${totalFuelFtl > 0 ? `<div class="total-row"><span class="k">FTL Fuel Used</span><span class="v">${Math.round(totalFuelFtl).toLocaleString()} FF units</span></div>` : ''}
     ${shieldRec}
-    <div class="note" style="margin-top:0.75rem">STL: transfer ellipse arc rendezvous solver (paper §8). TO/LDG: exact well-leg forms (A3/B3/A4). DEP/APP: B2/B3 wells-first split. FTL: J(1)=3600/ftlMaxSpeed, J(ρ)=J(1)·e^(β(1−ρ)); charge time (3/8)·P·ρ/f; charge fuel ⌊P·ρ·pc/333⌋; gateway 3 pc/hr + 1220s. Damage: D model, h = 1 − SHIELDING_GENERAL. Hull-plate and SSC counts use the exact A6/A7 forms (validated on 55 blueprint configurations, 2026-10-19).</div>
+    ${dmgBreakdown}
+    <div class="note" style="margin-top:0.75rem">STL: transfer ellipse arc rendezvous solver (paper §8). TO/LDG: exact well-leg forms (A3/B3/A4). DEP/APP: B2/B3 wells-first split. FTL: J(1)=3600/ftlMaxSpeed, J(ρ)=J(1)·e^(β(1−ρ)); charge time (3/8)·P·ρ/f; charge fuel ⌊P·ρ·pc/333⌋; gateway 3 pc/hr + 1220s. Damage: D model, h = 1 − SHIELDING_GENERAL; the channel table is model attribution, not a game channel readout. Hull-plate and SSC counts use the exact A6/A7 forms (validated on 55 blueprint configurations, 2026-10-19).</div>
   `;
 
   resEl.innerHTML = html;

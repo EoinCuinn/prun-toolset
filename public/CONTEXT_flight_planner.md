@@ -206,10 +206,17 @@ dropdowns (general is additive). Heat/whipple/radiation plate factors are not us
 - `G(g) = 1.5e-5 + 6e-5·(0.25−g)` for g<0.25; `1.5e-5 + 6e-6·(g−2.5)` for g>2.5; else 0.
 - **Gateway:** unknown; retains `GATEWAY_DMG = 5.247e-5` per hop (estimate).
 - **Condition feedback:** `projected = current − tripDamage`; alerts amber <80%, red <50%.
-- **UI / channels:** the planner currently shows only total damage and route hazards — there
-  is no per-channel breakdown. The heat/whipple/radiation/gravity dropdowns affect mass and
-  the shield record, but D applies only general shielding. Channel display and channel-specific
-  mitigation are open (BACKLOG “Damage channels”).
+- **UI / channels (2026-10-19):** the results now include a channel attribution table —
+  jump, charge, gravity (TO/LND), meteor, solar flux, landing pressure and gateway. The
+  values are **model attribution after general h**, not a game channel readout, and they
+  sum to the unchanged total. The heat/whipple/radiation/gravity dropdowns still affect
+  mass and the shield record, but D applies only general shielding; channel-specific
+  mitigation is open (BACKLOG “Damage channels”).
+- **Radiation research (2026-07):** radiation is real on **TRANSIT** and inverse-square near
+  hot stars, but the Specialised Anti-Radiation Plate measured **zero effect** in every
+  controlled pair. Do not wire the 70%. A +100% Whipple ship had a ~9% lower meteor floor
+  than a different no-whipple ship; this needs a same-hull A/B before applying a whipple
+  factor. Capture data contains only a single `damage` field per segment — no channel sort.
 - NL-534 validation: predicted/observed 0.91–0.93 on the four radial legs; the a→h control
   (same distance, inward dive) matches within 1.7%.
 - Test11 (2026-10-18, HRT→OZ-189a BFT): planner 0.179% vs game 0.169% (0.010 pp residual).
