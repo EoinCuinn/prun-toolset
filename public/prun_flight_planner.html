@@ -161,7 +161,12 @@
 
     <!-- Ship (Hypothetical) -->
     <div class="card" id="hypoShipCard" style="display:none">
-      <div class="card-label">Ship — Hypothetical Build</div>
+      <div class="card-label">Ship — Hypothetical / Imported</div>
+      <div class="note" style="margin-bottom:6px">Import a game blueprint export (<code>BLUEPRINT_BLUEPRINT</code> .txt/.json) to use its exact OEM, volume, plate/SSC counts and FTL anchor. Changing a component afterwards returns to the estimated build.</div>
+      <button type="button" onclick="document.getElementById('bpImportFile').click()"
+        style="background:var(--bg2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 10px;cursor:pointer;font:inherit;">Import blueprint…</button>
+      <input id="bpImportFile" type="file" accept=".txt,.json,application/json" style="display:none" onchange="importBlueprintFile(this)">
+      <div id="bpImportStatus" class="note" style="margin-top:6px"></div>
       <div id="componentSelectors"></div>
       <div id="hypoMeta" class="ship-meta"></div>
     </div>
@@ -455,6 +460,225 @@ function hypoSelections() {
     drone:     gv('droneSel'),
   };
 }
+// ── Blueprint export importer ────────────────────────────────────────────────
+// Accepts a game BLUEPRINT_BLUEPRINT export (.txt/.json): a single object, an
+// array of records, or JSONL. The imported ship carries the export's exact OEM,
+// volume, plate/SSC counts, thrust/max-G, cargo capacity, shielding and FTL
+// anchor. Changing any component selector afterwards rebuilds the estimated
+// hypothetical ship (and clears the import status).
+const BP_SEL_ID = {
+  STL_ENGINE: 'engSel', STL_FUEL_TANK: 'stlTkSel', FTL_REACTOR: 'reactorSel',
+  FTL_FUEL_TANK: 'ftlTkSel', CARGO_BAY: 'cargoSel', HULL_TYPE: 'hullSel',
+  HEAT_SHIELD: 'heatSel', WHIPPLE_SHIELD: 'whipSel', GRAVITY_SHIELD: 'stabSel',
+  RADIATION_SHIELD: 'radSel', REPAIR_DRONES: 'droneSel', HIGH_G_SEATS: 'seatSel',
+};
+const BP_NAME_TICKER = {
+  glassEngine: 'GEN', fuelSavingEngine: 'FSE', standardEngine: 'ENG',
+  advancedEngine: 'AEN', hyperthrustEngine: 'HTE',
+  smallStlTank: 'SSL', mediumStlTank: 'MSL', largeStlTank: 'LSL',
+  standardReactor: 'RCT', quickChargeReactor: 'QCR', highPowerReactor: 'HPR', hyperPowerReactor: 'HYR',
+  smallFtlTank: 'SFL', mediumFtlTank: 'MFL', largeFtlTank: 'LFL',
+  tinyCargoBay: 'TCB', verySmallCargoBay: 'VSC', smallCargoBay: 'SCB',
+  mediumCargoBay: 'MCB', largeCargoBay: 'LCB', hugeCargoBay: 'HCB',
+  highVolumeCargoBay: 'VCB', highLoadCargoBay: 'WCB',
+  lightweightHullPlate: 'LHP', basicHullPlate: 'BHP', reinforcedHullPlate: 'RHP',
+  hardenedHullPlate: 'HHP', advancedHullPlate: 'AHP',
+  basicHeatShield: 'BPT', advancedHeatShield: 'APT',
+  basicWhippleShielding: 'BWH', advancedWhippleShielding: 'AWH',
+  stabilitySupportSystem: 'STS',
+  basicRadiationShielding: 'BRP', advancedRadiationShielding: 'ARP', specializedRadiationShielding: 'SRP',
+  smallShipRepairDroneUnit: 'RDS', largeShipRepairDroneUnit: 'RDL',
+  basicHighgSeats: 'BGS', advancedHighgSeats: 'AGS',
+};
+let _bpImportQueue = [];
+let _bpImportApplying = false;
+
+function bpEsc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function bpSetStatus(html, error) {
+  const el = document.getElementById('bpImportStatus');
+  if (!el) return;
+  el.innerHTML = html;
+  el.style.color = error ? 'var(--red)' : '';
+}
+function bpTicker(bp, sel) {
+  if (!sel || sel.option === 'NONE' || !sel.optionMaterialName) return '';
+  const q = (bp.billOfMaterial?.quantities || []).find(x =>
+    x.material?.name === sel.optionMaterialName || x.material?.id === sel.optionMaterialId);
+  return q?.material?.ticker || BP_NAME_TICKER[sel.optionMaterialName] || '';
+}
+function bpParseRecords(text) {
+  let parsed;
+  const cleaned = String(text).trim().replace(/^42(?=[\[{])/, '');   // tolerate a pasted WebSocket frame
+  try {
+    parsed = JSON.parse(cleaned);
+  } catch (e) {
+    const lines = cleaned.split(/\r?\n/).filter(l => l.trim())
+      .map(l => l.replace(/^42(?=[\[{])/, ''));
+    const objs = lines.map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+    if (!objs.length) throw e;
+    parsed = objs;
+  }
+  const arr = Array.isArray(parsed) ? parsed : [parsed];
+  const recs = arr.filter(x => x?.data?.naturalId && x.data.performance);
+  if (!recs.length) {
+    for (const x of arr) if (x?.naturalId && x.performance) recs.push({ type: 'BLUEPRINT_BLUEPRINT', data: x });
+  }
+  return recs;
+}
+function importBlueprintFile(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    input.value = '';
+    try { handleBlueprintText(String(reader.result || ''), file.name); }
+    catch (e) { bpSetStatus('Could not parse the blueprint file: ' + bpEsc(e.message), true); }
+  };
+  reader.onerror = () => bpSetStatus('Could not read the blueprint file.', true);
+  reader.readAsText(file);
+}
+function handleBlueprintText(text, sourceName) {
+  let recs;
+  try { recs = bpParseRecords(text); }
+  catch (e) { bpSetStatus('Not valid JSON: ' + bpEsc(e.message), true); return; }
+  if (!recs.length) { bpSetStatus('No BLUEPRINT_BLUEPRINT record with a performance block found.', true); return; }
+  _bpImportQueue = recs;
+  if (recs.length === 1) { applyImportedBlueprint(recs[0]); return; }
+  const opts = recs.map((r, i) => {
+    const d = r.data, p = d.performance;
+    return `<option value="${i}">${bpEsc(d.naturalId)} — ${bpEsc(d.name || '')} · V ${Math.round(p.totalVolume)} · ${Math.round(p.operatingEmptyMass)} t</option>`;
+  }).join('');
+  bpSetStatus(`Found ${recs.length} blueprints in ${bpEsc(sourceName || 'file')}: ` +
+    `<select id="bpImportPick" style="max-width:100%;margin:4px 0">${opts}</select> ` +
+    `<button type="button" onclick="importPickedBlueprint()" style="background:var(--bg2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:3px 8px;cursor:pointer;font:inherit">Import selected</button>`);
+}
+function importPickedBlueprint() {
+  const i = +(document.getElementById('bpImportPick')?.value || 0);
+  if (_bpImportQueue[i]) applyImportedBlueprint(_bpImportQueue[i]);
+}
+function bpClampSlider(id, max) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.max = String(Math.max(1, max));
+  if (+el.value > max) el.value = String(max);
+}
+function applyImportedBlueprint(rec) {
+  const bp = rec?.data || rec;
+  const perf = bp?.performance;
+  if (!bp?.naturalId || !perf) { bpSetStatus('Blueprint record has no performance block.', true); return; }
+
+  const bom = {};
+  for (const q of (bp.billOfMaterial?.quantities || [])) {
+    bom[q.material.ticker] = (bom[q.material.ticker] || 0) + q.amount;
+  }
+  const selections = {};
+  for (const [type, id] of Object.entries(BP_SEL_ID)) {
+    selections[id] = bpTicker(bp, (bp.selections || []).find(s => s.type === type));
+  }
+  if (!selections.hullSel || !selections.engSel) {
+    bpSetStatus('Blueprint has no supported hull or STL engine selection.', true);
+    return;
+  }
+
+  // Put the component selectors on screen first, then replace the computed ship
+  // with the export's exact values.
+  const missing = [];
+  _bpImportApplying = true;
+  try {
+    setMode('hypo');
+    for (const [id, ticker] of Object.entries(selections)) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+      if (ticker && ![...el.options].some(o => o.value === ticker)) missing.push(`${id}:${ticker}`);
+      el.value = ticker || '';
+    }
+    rebuildHypo();
+  } finally {
+    _bpImportApplying = false;
+  }
+  if (!_currentShip) { bpSetStatus('The imported selections did not produce a valid hull/engine build.', true); return; }
+
+  const reactorSel = (bp.selections || []).find(s => s.type === 'FTL_REACTOR');
+  const engineSel  = (bp.selections || []).find(s => s.type === 'STL_ENGINE');
+  const cargoSel   = (bp.selections || []).find(s => s.type === 'CARGO_BAY');
+  const P = reactorSel?.modifiers?.find(m => m.type === 'FTL_POWER')?.value ?? null;
+  const E = 100 * (bom.SFE || 0) + 175 * (bom.MFE || 0) + 300 * (bom.LFE || 0);
+  const emitterMass = 0.1 * (bom.SFE || 0) + 0.2 * (bom.MFE || 0) + 0.4 * (bom.LFE || 0);
+  const chargeFactor = reactorSel?.modifiers?.find(m => m.type === 'FTL_CHARGE_FACTOR')?.value
+    ?? (perf.emitterChargeTime > 0 ? (3 / 8) * E / perf.emitterChargeTime : null);
+  const flow = engineSel?.modifiers?.find(m => m.type === 'STL_USAGE')?.value
+    ?? COMPONENT_DATA.engine[selections.engSel]?.flow ?? _currentShip.stlFlowRate;
+  const engineName = COMPONENT_DATA.engine[selections.engSel]?.name || _currentShip.engineType;
+  const plateCount = ['BHP', 'LHP', 'RHP', 'HHP', 'AHP'].reduce((n, t) => n + (bom[t] || 0), 0) || _currentShip.plateCount;
+  const sscCount = bom.SSC || _currentShip.sscCount || 0;
+  const bridge = bom.BR2 ? 'BR2' : bom.BRS ? 'BRS' : bom.BR1 ? 'BR1' : _currentShip.autoBridge;
+  const quarters = bom.CQL ? 'CQL' : bom.CQM ? 'CQM' : bom.CQS ? 'CQS' : bom.CQT ? 'CQT' : _currentShip.autoQuarters;
+  const cargoCap = cargoSel?.modifiers?.find(m => m.type === 'CARGO_CAPACITY_WEIGHT')?.value ?? _currentShip.cargoCap;
+  const shield = { general: 0, heat: 0, whipple: 0, radiation: 0, gravity: 0 };
+  for (const id of ['hullSel', 'droneSel', 'heatSel', 'whipSel', 'stabSel', 'radSel']) {
+    const f = SHIELDING_FACTORS[selections[id]];
+    if (f) for (const k of Object.keys(shield)) if (f[k]) shield[k] += f[k];
+  }
+
+  const oem = perf.operatingEmptyMass > 0 ? perf.operatingEmptyMass : _currentShip.operatingEmptyMass;
+  const volume = perf.totalVolume > 0 ? perf.totalVolume : _currentShip.totalVolume;
+  const thrust = (perf.acceleration > 0 && oem > 0) ? perf.acceleration * oem : _currentShip.thrust;
+  const maxG = perf.maxGFactor > 0 ? perf.maxGFactor : _currentShip.maxGFactor;
+  const importKey = 'BPIMPORT:' + bp.naturalId + ':' + (bp.id || Date.now());
+  if (P && perf.ftlMaxSpeed > 0) {
+    _blueprintFtl[importKey] = {
+      P, E, f: chargeFactor, volume,
+      vmax: perf.ftlMaxSpeed * 3600, minUsage: perf.minReactorUsage, chargeTime: perf.emitterChargeTime,
+    };
+  }
+  if (maxG) _blueprintMaxG[importKey] = maxG;
+
+  _currentShip = {
+    ..._currentShip,
+    source: 'hypo',
+    label: `Imported ${bp.naturalId}`,
+    blueprintId: importKey,
+    importedNaturalId: bp.naturalId,
+    importedName: bp.name || '',
+    condition: 1,
+    operatingEmptyMass: oem,
+    totalVolume: volume,
+    volume,
+    plateCount: plateCount || _currentShip.plateCount,
+    sscCount,
+    autoBridge: bridge,
+    autoQuarters: quarters,
+    thrust,
+    maxGFactor: maxG,
+    reactorPower: P,
+    chargeFactor,
+    emitterPower: E,
+    importedEmitterMass: emitterMass,
+    stlFlowRate: flow,
+    engineType: engineName,
+    cargoCap,
+    shielding: shield,
+    importedPerformance: perf,
+    lookupMass: null,
+    lookupDeltaPct: null,
+    lookupMatch: null,
+  };
+
+  bpClampSlider('stlMassSlider', Math.round(perf.stlFuelCapacity || +document.getElementById('stlMassSlider').max || 1));
+  bpClampSlider('ftlMassSlider', Math.round(perf.ftlFuelCapacity || +document.getElementById('ftlMassSlider').max || 1));
+  bpClampSlider('cargoMassSlider', Math.max(1, Math.round(cargoCap || 5000)));
+  renderHypoMeta();
+  onLoadoutChange();
+  onRufChange();
+
+  const speed = perf.ftlMaxSpeed > 0 ? `${(perf.ftlMaxSpeed * 3600).toFixed(3)} pc/h` : 'no FTL';
+  const extra = missing.length ? ` · <span style="color:var(--yellow)">unsupported: ${bpEsc(missing.join(', '))}</span>` : '';
+  bpSetStatus(`Imported <strong>${bpEsc(bp.naturalId)}</strong> ${bpEsc(bp.name || '')} · V ${Math.round(volume)} m³ · ${oem.toFixed(1)} t · ${speed} · plates ${plateCount || '—'}, SSC ${sscCount || '—'}${extra}<br><span style="color:var(--text2)">Exact OEM/volume/plates/SSC/FTL anchor. Changing a component returns to the estimated build.</span>`);
+  if (_origin && _dest) calculate();
+}
+
 // FTL reactor ticker → ReactorPower (keys of FTL_REACTORS). From spec §3 reactor comments.
 const REACTOR_POWER = { QCR: 2000, RCT: 2400, HPR: 4800, HYR: 7200 };
 const G0 = 9.80665;  // m/s² — G-cap factor
@@ -1529,6 +1753,7 @@ function buildComponentSelectors() {
 }
 
 function rebuildHypo() {
+  if (!_bpImportApplying) bpSetStatus('', false);
   const val = id => document.getElementById(id)?.value || '';
   const C = COMPONENT_DATA;
 
@@ -1606,7 +1831,9 @@ function renderHypoMeta() {
     ['Thrust', `${s.thrust.toLocaleString()} N`],
     ['maxG', `${s.maxGFactor} → ${(s.maxGFactor * G0).toFixed(1)} m/s²`],
     ['Reactor P', s.reactorPower ? `${s.reactorPower} GW` : '<span style="color:var(--yellow)">none</span>'],
-    ['Emitters', '0.8 t assumed <span class="note">(0.5–2.6 t)</span>'],
+    ['Emitters', s.importedEmitterMass != null
+      ? `${s.importedEmitterMass.toFixed(1)} t (BOM)`
+      : '0.8 t assumed <span class="note">(0.5–2.6 t)</span>'],
   ];
   if (s.cargoCap) rows.push(['Cargo cap', `${s.cargoCap} t`]);
   rows.push(
@@ -1616,7 +1843,9 @@ function renderHypoMeta() {
     ['Bridge', `${s.autoBridge}`],
     ['Quarters', `${s.autoQuarters}`],
   );
-  const check = s.lookupMass == null
+  const check = s.importedNaturalId
+    ? `<div class="note" style="color:var(--green)">✓ imported ${bpEsc(s.importedNaturalId)} — exact game OEM/volume/plates/SSC/FTL anchor</div>`
+    : s.lookupMass == null
     ? '<div class="note" style="color:var(--yellow)">no captured blueprint matches this loadout — formula only</div>'
     : (Math.abs(s.lookupDeltaPct) > 1
         ? `<div class="note" style="color:var(--red)">⚠ formula vs captured blueprint ${s.lookupMatch}: ${s.lookupMass.toFixed(1)} t (${s.lookupDeltaPct >= 0 ? '+' : ''}${s.lookupDeltaPct.toFixed(2)}%) — DISAGREE &gt;1%</div>`
@@ -2288,7 +2517,7 @@ function primePlanetInSys(sysId) {
   <ul style="margin:6px 0 0;padding-left:18px;">
     <li>Flight time: STL ~1%, FTL anchored to blueprint speeds · well-leg fuel exact · D damage model (Marcus 2026-10-12) · empty mass 55/55 within 0.06% in the 2026-06-30 BP export sweep; volume 86/87 within 1%.</li>
     <li>Landing distance is a deterministic ±13.3% band (exact only if the mission seed is known) — the planner shows the mean.</li>
-    <li>Known gaps: ~2% high-fuf B2/B3 residual, unknown gateway damage. FTL uses blueprint ftlMaxSpeed/emitter anchors; a new hypothetical build has no emitter-count input, so its FTL speed is an estimate — use a saved blueprint for exact speed. Emitter mass is 0.8 t (sweep median); exact BOM emitter mass closes the empty-mass chain. Heat/whipple/radiation plate effects are not modelled; the anti-rad plate measured non-functional.</li>
+    <li>Known gaps: ~2% high-fuf B2/B3 residual, unknown gateway damage. FTL uses blueprint ftlMaxSpeed/emitter anchors; a new hypothetical build has no emitter-count input, so its FTL speed is an estimate — use the <strong>Import blueprint…</strong> path for exact speed. Emitter mass is 0.8 t (sweep median); exact BOM emitter mass closes the empty-mass chain. Heat/whipple/radiation plate effects are not modelled; the anti-rad plate measured non-functional.</li>
   </ul>
   <div style="margin-top:10px;color:var(--text);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Credits</div>
   <div style="margin-top:4px;">The flight physics stands on the work of <strong>Marcus Licinius Crassus</strong> (flight-dynamics papers, landing-distance PRNG law, the derived fuel constant), <strong>Taiyi Bureau</strong> (take-off/landing distance formulas, universe map), <strong>Aem</strong> (radiation &amp; landing-damage datasets), and the <strong>FIO</strong> community. Full write-ups &amp; credits: <a href="https://github.com/EoinCuinn/prun-toolset" target="_blank" rel="noopener" style="color:var(--accent);">the repo</a>.</div>

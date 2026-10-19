@@ -33,6 +33,12 @@ hull-damage projection with condition alerts.
   the exact emitter package + C3 within-class fit, FTL speed is within **0.01%** for
   classes with ≥2 anchors; the no-emitter estimate is unreliable (**−51%…+5%**), so a
   saved/imported blueprint anchor is required for exact speed.
+- **Blueprint import (2026-10-19):** hypothetical mode has an **Import blueprint…**
+  file picker for a game `BLUEPRINT_BLUEPRINT` export (single object, array, JSONL,
+  optional `42` WebSocket prefix). It maps the selections to the component dropdowns,
+  then uses the export's exact OEM, volume, plate/SSC counts, thrust/max-G, cargo
+  capacity, shielding and FTL P/E/f/vmax anchor. Changing a component returns to the
+  estimated hypothetical build and clears the import status.
 - **Empty mass & totalVolume (Open Mass; A6/A7 2026-10-19):** derived from the loadout,
   not a fitted aggregate. Volume 86/86 within 1%. **A6/A7 are now exact:** plates
   `ceil((36π)^(1/3)·V^(2/3)/10)` and SSC `ceil(V/21)` match **55/55** unique BP-export
@@ -255,7 +261,9 @@ transits).
 6. **Emitter package / FTL speed for new builds** — A6/A7 closed the plate/SSC rounding.
    The remaining empty-mass input is the auto-emitter set (0.5–2.6 t). The hypothetical
    builder has no emitter-count input, so its FTL speed without a blueprint anchor can be
-   off by **−51%…+5%**. Import a saved/exported blueprint, or add emitter selectors.
+   off by **−51%…+5%**. **Resolved for saved blueprints:** hypothetical mode now has an
+   **Import blueprint…** path that applies the export's exact structure and FTL anchor.
+   A brand-new hand-built design still needs an export or emitter selectors.
 7. **Vortex drive** — unmodelled (1 sample, BP-CLNY-0000); outside the twelve selectable fields.
 8. **Ship Builder ↔ Flight Planner** — to share one component/physics model (planned).
 9. **Dead code** — `engineFromThrust()` / `engineType` (landing rewrite) and

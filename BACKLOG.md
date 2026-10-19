@@ -139,7 +139,13 @@ type (0.5 AU vs 0.15 AU) and the z=0 charged distance.
   acceleration below the cap (e.g. the glass-engine build: 10.15 h / 1185.5 STL empty →
   10.22 h / 1224.9 at 100 t). Reports: `bp_config_lab.md`,
   `bp_config_lab_cargo100.md`, `bp_config_lab_cargo500.md`.
-  Next: a UI/CLI import path and validating the lab's damage deltas against in-game flights.
+  ✅ **BP import path built 2026-10-19.** Hypothetical mode has an **Import blueprint…**
+  file picker for `BLUEPRINT_BLUEPRINT` exports (single/array/JSONL). It applies the exact
+  OEM, volume, plate/SSC, thrust/max-G, cargo, shielding and FTL P/E/f/vmax anchor;
+  changing a component returns to the estimated builder. Validated against the lab: the
+  imported BHP1 build reproduces 19.79 h / 1146.1 STL / 512 FTL, and a glass-engine BP
+  gets its exact 9.087 pc/h instead of the ~4.41 pc/h no-emitter estimate.
+  Next: validate the lab's damage deltas against in-game flights.
 - 🟢 Planet ephemeris — 13/459 covered. [Part 3 "Planets"]
 - 🟢 Station orbit fitting — HRT + ANT done; MOR / BEN / HUB / ARC remaining. [Part 3 "Stations"]
 

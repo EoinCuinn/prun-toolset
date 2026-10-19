@@ -177,6 +177,7 @@ Note for anyone reproducing this: a regression over these fields is confounded a
 
 - **Real fleet** — pulls your ships direct from FIO Swagger API (`api.fnar.net`). Prefills blueprint, mass, thrust, flow rate, condition.
 - **Hypothetical** — component selector. Mix and match any hull/engine/tank/shielding combination to compare builds before committing. Empty mass and `totalVolume` are derived from the selections (see above) and shown alongside the plate/structural counts, so a build can be spot-checked against the in-game blueprint tester. A lookup of 61 captured blueprint combinations is kept as a secondary cross-check; any disagreement over 1% is flagged in the UI.
+- **Blueprint import** — inside hypothetical mode, load a game `BLUEPRINT_BLUEPRINT` export (`.txt`/`.json`; single record, array, or JSONL). The planner uses the export's exact OEM, volume, plate/SSC counts, thrust/max-G, cargo capacity, shielding and FTL anchor. Changing a component selector afterwards returns to the estimated hypothetical build. This is the exact-FTL path for custom blueprints; the estimated build cannot infer the emitter package.
 
 ### Data sources
 
