@@ -195,28 +195,30 @@ Hypothetical empty mass is derived from the twelve selectable components, not a 
 Every channel is a fraction of condition multiplied by `h = 1 − SHIELDING_GENERAL`.
 Shielding resolved per ship: real fleet → `BLUEPRINT_SHIELDING` (5 known blueprints; unknown
 → h=1); hypothetical → summed `SHIELDING_FACTORS` over the hull plate + selected damage/repair
-dropdowns (general is additive). Heat/whipple/radiation plate factors are not used by D.
+dropdowns (general is additive). General and whipple are used by D; heat/radiation/gravity
+factors are not.
 
 - **Jump:** `h·1e-5·pc` (no ρ or reactor dependence).
 - **Charge:** `h·5e-4·(ρ − E/P)` per lane jump; E = emitter power; snapshot fallback when unknown.
 - **Take-off:** `h·T·G(g)`.
 - **Landing:** `h·T·[G(g) + min(4e-7·P, 1e-5)]`.
-- **DEP / APP / TRANSIT:** `h·d·[2e-12 + 5e-12·ρ + 2e-22·√(F1·F2)]`, F =
-  `Luminosity·3.0605e25/r(km)²` at the 3-D start/end points.
+- **DEP / APP / TRANSIT:** `h·d·[2e-12 + 5e-12·ρ·(1−whipple) + 2e-22·√(F1·F2)]`, F =
+  `Luminosity·3.0605e25/r(km)²` at the 3-D start/end points. The flat `2e-12` meteor base
+  is unshieldable; whipple removes 50% (BWH) / 100% (AWH) of the density term only.
 - `G(g) = 1.5e-5 + 6e-5·(0.25−g)` for g<0.25; `1.5e-5 + 6e-6·(g−2.5)` for g>2.5; else 0.
 - **Gateway:** unknown; retains `GATEWAY_DMG = 5.247e-5` per hop (estimate).
 - **Condition feedback:** `projected = current − tripDamage`; alerts amber <80%, red <50%.
 - **UI / channels (2026-10-19):** the results now include a channel attribution table —
   jump, charge, gravity (TO/LND), meteor, solar flux, landing pressure and gateway. The
   values are **model attribution after general h**, not a game channel readout, and they
-  sum to the unchanged total. The heat/whipple/radiation/gravity dropdowns still affect
-  mass and the shield record, but D applies only general shielding; channel-specific
-  mitigation is open (BACKLOG “Damage channels”).
+  sum to the unchanged total. The meteor density term also uses whipple (BWH 50%, AWH
+  100%); heat/radiation/gravity mitigation is not applied (BACKLOG “Damage channels”).
 - **Radiation research (2026-07):** radiation is real on **TRANSIT** and inverse-square near
   hot stars, but the Specialised Anti-Radiation Plate measured **zero effect** in every
-  controlled pair. Do not wire the 70%. A +100% Whipple ship had a ~9% lower meteor floor
-  than a different no-whipple ship; this needs a same-hull A/B before applying a whipple
-  factor. Capture data contains only a single `damage` field per segment — no channel sort.
+  controlled pair. Do not wire the 70%. The follow-up **same-hull none/BWH/AWH A/B**
+  (2026-10-19) confirmed whipple removes 50%/100% of the density-dependent meteor term,
+  while the flat meteor base is unshieldable. Capture data contains only a single
+  `damage` field per segment — no channel sort.
 - NL-534 validation: predicted/observed 0.91–0.93 on the four radial legs; the a→h control
   (same distance, inward dive) matches within 1.7%.
 - Test11 (2026-10-18, HRT→OZ-189a BFT): planner 0.179% vs game 0.169% (0.010 pp residual).
@@ -226,7 +228,8 @@ dropdowns (general is additive). Heat/whipple/radiation plate factors are not us
 
 The D transit term includes solar flux `F = Luminosity·3.0605e25/r(km)²` at the 3-D endpoints.
 This supersedes the earlier path-integration approach. The anti-rad *plate* is confirmed
-non-functional in the captures, consistent with D using only `h = 1 − SHIELDING_GENERAL`.
+non-functional in the captures, consistent with D using general `h` and no radiation
+shield factor. Whipple is separate and applies only to the meteor density term.
 `research/radiation/` is retained as validation (NL-534 a→h control, WX-827 meteor-dominated
 transits).
 

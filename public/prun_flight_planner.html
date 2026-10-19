@@ -1239,17 +1239,24 @@ function solarFlux(luminosity, posM) {
 // DEP / APPROACH / TRANSIT damage: meteor + solar-flux channels.
 // Keep the components separate so the results can attribute damage, while the
 // total stays exactly the validated D-model figure.
-function transitDmgParts(dKm, density, luminosity, p1, p2, h) {
+function transitDmgParts(dKm, density, luminosity, p1, p2, h, whipple = 0) {
   const F1 = solarFlux(luminosity, p1);
   const F2 = solarFlux(luminosity, p2);
-  const meteorRate = 2e-12 + 5e-12 * Math.max(density || 0, 0);
+  const d = Math.max(density || 0, 0);
   const solarRate  = 2e-22 * Math.sqrt(F1 * F2);
-  const meteor = (h ?? 1) * dKm * meteorRate;
+  // The 2026-10-19 none/BWH/AWH A/B (same hull, EY-351 density 2.62) pins the
+  // whipple target: it removes 50%/100% of the DENSITY-dependent meteor term,
+  // while the flat 2e-12 base meteor term is unshieldable. At density 2.62 that
+  // is exactly the observed 43.4%/86.8% reduction of total meteor damage.
+  const wf = 1 - Math.min(1, Math.max(0, whipple || 0));
+  const meteorBase    = (h ?? 1) * dKm * 2e-12;
+  const meteorDensity = (h ?? 1) * dKm * 5e-12 * d * wf;
+  const meteor = meteorBase + meteorDensity;
   const solar  = (h ?? 1) * dKm * solarRate;
   return { meteor, solar, total: meteor + solar };
 }
-function transitDmg(dKm, density, luminosity, p1, p2, h) {
-  return transitDmgParts(dKm, density, luminosity, p1, p2, h).total;
+function transitDmg(dKm, density, luminosity, p1, p2, h, whipple = 0) {
+  return transitDmgParts(dKm, density, luminosity, p1, p2, h, whipple).total;
 }
 // Gravity-driven well-leg rate (per second), same thresholds as building materials.
 function gravityDmgRate(g) {
@@ -1305,6 +1312,8 @@ const BLUEPRINT_SHIELDING = {
 };
 // Per-component shielding factors (spec §3a). General is additive (hull plate + drones).
 // Hull plates are picked in the hull selector; drones/other shields in the damage dropdowns.
+// Whipple factors apply to the density-dependent meteor term only; the flat 2e-12
+// meteor base is unshieldable (2026-10-19 none/BWH/AWH same-hull A/B).
 const SHIELDING_FACTORS = {
   LHP: { general: -0.10 }, BHP: { general: 0.00 }, RHP: { general: 0.10 },
   HHP: { general: 0.15 },  AHP: { general: 0.30 },
@@ -2145,7 +2154,7 @@ async function calculate() {
         const depDensity = (_sysStats[_origin.sysId] || {}).meteoroidDensity || 0;
         const depLum = (_sysStats[_origin.sysId] || {}).luminosity || 0;
         const depParts = dep.chargedKm
-          ? transitDmgParts(dep.chargedKm, depDensity, depLum, base, gate, h)
+          ? transitDmgParts(dep.chargedKm, depDensity, depLum, base, gate, h, sh.whipple)
           : { meteor: 0, solar: 0, total: 0 };
         const depDmg = depParts.total;
         totalDmg += depDmg;
@@ -2339,7 +2348,7 @@ async function calculate() {
   const stlTransitDistKm = rendez ? rendez.chargedKm : stlDistKm;
   const stlLum = (_sysStats[_dest.sysId] || {}).luminosity || 0;
   if (stlTransitDistKm) {
-    const stlParts = transitDmgParts(stlTransitDistKm, density, stlLum, rendez?.start, rendez?.end, h);
+    const stlParts = transitDmgParts(stlTransitDistKm, density, stlLum, rendez?.start, rendez?.end, h, sh.whipple);
     stlDmg = stlParts.total;
     totalDmg += stlDmg;
     dmgChannels.meteor += stlParts.meteor;
@@ -2460,7 +2469,7 @@ async function calculate() {
     ['Jump wear',      dmgChannels.jump,            'general'],
     ['Charge wear',    dmgChannels.charge,          'general'],
     ['Gravity (TO/LND)', dmgChannels.gravity,       'general · STS untested'],
-    ['Meteor / transit', dmgChannels.meteor,        'general · whipple under test'],
+    ['Meteor / transit', dmgChannels.meteor,        `general + whipple ${Math.round((sh.whipple || 0) * 100)}% of density term`],
     ['Solar flux',     dmgChannels.solar,           'general · anti-rad inert'],
     ['Landing pressure', dmgChannels.landingPressure, 'general · heat untested'],
     ['Gateway',        dmgChannels.gateway,         'general · estimate'],
@@ -2474,7 +2483,7 @@ async function calculate() {
         ${dmgChannelRows.map(([label, val, note]) => `<tr><td style="padding:2px 0">${label}</td><td style="text-align:right;padding:2px 0">${fmtDmg(val)}</td><td style="padding:2px 0 2px 8px;color:var(--text2)">${note}</td></tr>`).join('')}
         <tr style="border-top:1px solid var(--border)"><td style="padding:3px 0;color:var(--text)">Total</td><td style="text-align:right;padding:3px 0;color:var(--text)">${fmtDmg(dmgChannelSum)}</td><td style="padding:3px 0 3px 8px;color:var(--text2)">h = ${h.toFixed(3)}${Math.abs(dmgChannelSum - totalDmg) > 1e-9 ? ' · ⚠ channel sum mismatch' : ''}</td></tr>
       </table>
-      <div class="note" style="margin-top:4px">All channels currently use general shielding only. Whipple (meteor), heat (landing pressure), radiation (solar) and gravity/STS are not applied: the radiation study found the specialised anti-rad plate inert; whipple/meteor is under test; heat and gravity are untested.</div>
+      <div class="note" style="margin-top:4px">Meteor has a flat unshieldable base plus a density term; BWH removes 50% and AWH 100% of the density term (validated 2026-10-19 at EY-351 density 2.62). Solar/radiation, heat (landing pressure) and gravity/STS mitigation are not applied: the specialised anti-rad plate measured inert; heat and gravity are untested.</div>
     </div>`;
 
   html += `<hr class="results-divider">
@@ -2486,7 +2495,7 @@ async function calculate() {
     ${totalFuelFtl > 0 ? `<div class="total-row"><span class="k">FTL Fuel Used</span><span class="v">${Math.round(totalFuelFtl).toLocaleString()} FF units</span></div>` : ''}
     ${shieldRec}
     ${dmgBreakdown}
-    <div class="note" style="margin-top:0.75rem">STL: transfer ellipse arc rendezvous solver (paper §8). TO/LDG: exact well-leg forms (A3/B3/A4). DEP/APP: B2/B3 wells-first split. FTL: J(1)=3600/ftlMaxSpeed, J(ρ)=J(1)·e^(β(1−ρ)); charge time (3/8)·P·ρ/f; charge fuel ⌊P·ρ·pc/333⌋; gateway 3 pc/hr + 1220s. Damage: D model, h = 1 − SHIELDING_GENERAL; the channel table is model attribution, not a game channel readout. Hull-plate and SSC counts use the exact A6/A7 forms (validated on 55 blueprint configurations, 2026-10-19).</div>
+    <div class="note" style="margin-top:0.75rem">STL: transfer ellipse arc rendezvous solver (paper §8). TO/LDG: exact well-leg forms (A3/B3/A4). DEP/APP: B2/B3 wells-first split. FTL: J(1)=3600/ftlMaxSpeed, J(ρ)=J(1)·e^(β(1−ρ)); charge time (3/8)·P·ρ/f; charge fuel ⌊P·ρ·pc/333⌋; gateway 3 pc/hr + 1220s. Damage: D model; general h = 1 − SHIELDING_GENERAL; the meteor density term also uses whipple (BWH 50%, AWH 100%); the channel table is model attribution, not a game channel readout. Hull-plate and SSC counts use the exact A6/A7 forms (validated on 55 blueprint configurations, 2026-10-19).</div>
   `;
 
   resEl.innerHTML = html;
@@ -2537,7 +2546,7 @@ function buildShieldRec(origin, dest, sameSys) {
   else if (maxDen > 2.0) recs.push('<span class="hz-badge hz-met">WHIPPLE</span>');
   if (!recs.length) return '';
   return `<div class="total-row" style="margin-top:4px"><span class="k">Route hazards</span><span class="v"><div class="hz">${recs.join(' ')}</div></span></div>
-    <div class="note" style="margin-top:2px">Damage uses the general hull factor h only; heat/whipple/radiation plate effects are not modelled (the anti-rad plate measured non-functional).</div>`;
+    <div class="note" style="margin-top:2px">Damage uses the general hull factor h; the meteor density term also uses whipple (BWH 50%, AWH 100%). Heat/radiation effects are not modelled (the anti-rad plate measured non-functional).</div>`;
 }
 
 function primePlanetInSys(sysId) {
@@ -2568,7 +2577,7 @@ function primePlanetInSys(sysId) {
   <ul style="margin:6px 0 0;padding-left:18px;">
     <li>Flight time: STL ~1%, FTL anchored to blueprint speeds · well-leg fuel exact · D damage model (Marcus 2026-10-12) · empty mass 55/55 within 0.06% in the 2026-06-30 BP export sweep; volume 86/87 within 1%.</li>
     <li>Landing distance is a deterministic ±13.3% band (exact only if the mission seed is known) — the planner shows the mean.</li>
-    <li>Known gaps: ~2% high-fuf B2/B3 residual, fuf .05 APP residual (−3.9% fuel / +3.3% time), low reactor usage (ρ≈.65) is not calibrated, unknown gateway damage. FTL uses blueprint ftlMaxSpeed/emitter anchors; a new hypothetical build has no emitter-count input, so its FTL speed is an estimate — use the <strong>Import blueprint…</strong> path for exact speed. Emitter mass is 0.8 t (sweep median); exact BOM emitter mass closes the empty-mass chain. Heat/whipple/radiation plate effects are not modelled; the anti-rad plate measured non-functional.</li>
+    <li>Known gaps: ~2% high-fuf B2/B3 residual, fuf .05 APP residual (−3.9% fuel / +3.3% time), low reactor usage (ρ≈.65) is not calibrated, unknown gateway damage. FTL uses blueprint ftlMaxSpeed/emitter anchors; a new hypothetical build has no emitter-count input, so its FTL speed is an estimate — use the <strong>Import blueprint…</strong> path for exact speed. Emitter mass is 0.8 t (sweep median); exact BOM emitter mass closes the empty-mass chain. Whipple now reduces the meteor density term (BWH 50%, AWH 100%); heat/radiation/gravity mitigation is still untested, and the anti-rad plate measured non-functional.</li>
   </ul>
   <div style="margin-top:10px;color:var(--text);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Credits</div>
   <div style="margin-top:4px;">The flight physics stands on the work of <strong>Marcus Licinius Crassus</strong> (flight-dynamics papers, landing-distance PRNG law, the derived fuel constant), <strong>Taiyi Bureau</strong> (take-off/landing distance formulas, universe map), <strong>Aem</strong> (radiation &amp; landing-damage datasets), and the <strong>FIO</strong> community. Full write-ups &amp; credits: <a href="https://github.com/EoinCuinn/prun-toolset" target="_blank" rel="noopener" style="color:var(--accent);">the repo</a>.</div>

@@ -159,9 +159,12 @@ type (0.5 AU vs 0.15 AU) and the z=0 charged distance.
   - **Radiation:** the 2026-07 radiation study showed radiation is real on **TRANSIT**
     (inverse-square near hot stars), but the Specialised Anti-Radiation Plate measured
     **zero effect** across every controlled pair. Do not wire the 70%.
-  - **Whipple/meteor:** Ship 2 (+100% Whipple) had a meteor floor 1.204e-5 vs Ship 1's
-    1.324e-5 (~9% lower) while radiation was unchanged. The ships were different
-    blueprints, so this needs a same-hull whipple-on/off A/B before applying a factor.
+  - ✅ **Whipple/meteor — validated and implemented 2026-10-19.** Same-hull
+    none / BWH / AWH A/B (BP-JRAJ-3531, BP-CRVM-2067, BP-PHCF-6272; EY-351 density
+    2.62): BWH removes **50%** and AWH removes **100% of the density-dependent meteor
+    term**; the flat `2e-12` meteor base is unshieldable. Planner totals after the
+    factor: none **0.289%** vs game 0.2884; BWH **0.245%** vs 0.2448; AWH **0.203%**
+    vs 0.2026. The departure/approach/transit split all follows the same rule.
   - **Heat / gravity:** untested. Heat should be tested on a high-pressure landing;
     gravity/STS on a high-g TO/LND.
   - **Capture data:** only a single `damage` field per segment; there is no per-channel
@@ -248,7 +251,7 @@ Marcus's review reopened several items. Current status after the 2026-10-18 pass
 | Phase 1 — G-cap | ✅ done | Blueprint `maxGFactor` + `blueprint_maxg.json`; FIO Acceleration is unclamped thrust/mass. |
 | Phase 3 — Acceleration Integration | 🟡 mostly | DEP/APP fuel-first split implemented; ~2% high-fuf residual and low-fuf floor remain. |
 | Open Mass — empty mass & volume | 🟢 mostly | A6/A7 exact and applied (55/55 BP-export configs); A8/F and emitter-count input remain. |
-| Phase 5 — Damage Model | 🟡 partial | Total D model implemented and Test11-validated (0.010 pp residual); channel breakdown display added 2026-10-19; heat/whipple/radiation/gravity mitigation still open. |
+| Phase 5 — Damage Model | 🟡 partial | Total D model + channel breakdown; whipple/meteor mitigation validated and implemented 2026-10-19; heat/radiation/gravity mitigation still open. |
 | Phase 6 — FTL & Gateway Routing | ✅ mostly | C1–C6 implemented; `j1` anchor for BP-FYSQ-7703; gateway damage unknown. |
 
 Already-aligned / no change: Phase 2, CS1, the release/review/attribution items (all genuinely done), ephemeris & station coverage (still in progress as the roadmap says).
