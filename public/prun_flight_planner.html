@@ -2426,6 +2426,14 @@ async function calculate() {
     else if (proj < 0.80)
       alertBanner = `<div class="note" style="margin-top:0.5rem;color:#fbbf24;font-weight:600">⚠ Ship condition will drop below 80% (${(proj*100).toFixed(1)}%) — speed penalty applies</div>`;
   }
+  // Inputs outside the calibrated regime: be explicit rather than silently extrapolate.
+  const rufSetting = +document.getElementById('rufSlider').value / 100;
+  const lowNotes = [];
+  if (!sameSys && rufSetting < 0.90) lowNotes.push(`low reactor usage (${(rufSetting*100).toFixed(0)}%) — FTL jump/charge/fuel are not calibrated below ~90%`);
+  if (fuf < 0.25) lowNotes.push(`very low fuel use (${fuf.toFixed(2)}) — the game's STL floor is not modelled below ~0.25`);
+  if (lowNotes.length) {
+    alertBanner += `<div class="note" style="margin-top:0.5rem;color:#fbbf24;font-weight:600">⚠ ${lowNotes.join(' · ')}. Treat these results as estimates.</div>`;
+  }
 
   html += `<hr class="results-divider">
     <div class="total-row"><span class="k">${timeLabel}</span><span class="v${stlTimeKnown ? '' : ' approx'}">${fmtMin(totalRealMin)}</span></div>
