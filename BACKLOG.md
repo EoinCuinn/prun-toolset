@@ -118,9 +118,13 @@ proxies that have closed forms. His suggested order is reflected below.
   changed the Big Hauler direct-route `fuf .05` result from **DEP fuel +89.7% / total
   STL +75.5% / ETA −0.64%** to **DEP fuel −1.26% / total STL −1.9% / ETA +0.07%**.
   Remaining at `.05`: APP fuel −4.6%, APP time +3.8% (small low-fuf residual).
-- ✅ **Big Hauler fuel sweep** (direct route, gateways off, ruf 100%): `fuf .25/.50/.75/1.00`
-  → STL **−0.85/−0.72/−0.67/−0.65%**, ETA **+0.01%**, FTL exact, damage 0.3% both.
-  `fuf .05` after the clamp fix → ETA **+0.07%**, STL **−1.9%**.
+- ✅ **Big Hauler fuel sweep** (direct route, gateways off, ruf 100%): after the APP
+  coefficient update **0.491 → 0.494**, `fuf .25/.50/.75/1.00` → STL
+  **−0.42/−0.23/−0.15/−0.10%**, ETA **+0.01%**, FTL exact, damage 0.3% both.
+  `fuf .05` → APP fuel **−3.9%**, APP time **+3.3%**, total STL **−1.46%**, ETA **+0.06%**.
+  The 0.494 coefficient is fitted from this sweep; it improves the direct-route average
+  (APP MAE 15.3 → 12.4 units across the non-gateway captures) but leaves a route-dependent
+  ~0.5–1.5% APP residual. Test11 total STL +0.42% (was +0.08%); BP-OMCU +2.29% (was +1.73%).
 - ✅ **Big Hauler reactor sweep** (`.975/.98/.987/.994/1.0`): FTL fuel and charge exact
   at every point; jump time worst **−0.38%** at `.975`; ETA worst **−0.37%**. High-ruf
   FTL is solid. Big Hauler cannot go lower — its `E/P` floor is **97.5%** — so low-rho

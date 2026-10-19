@@ -23,7 +23,8 @@ hull-damage projection with condition alerts.
   fuel-derived M.**
   Test11: 779.6 vs game 779 STL, ETA 6h20m57s vs 6h20m55s. The B2/B3 split is implemented
   (`DEP = min(dep cap, after-TO approach base)`, `APP = approach base`); a ~2% high-fuf
-  residual remains, plus a small APP residual at fuf .05.
+  residual remains, plus a small APP residual at fuf .05. The APP coefficient was refit
+  0.491 → 0.494 from the 2026-10-19 Big Hauler sweep.
 - **FTL (C, 2026-10-18):** blueprint-anchored `J(1)`; measured β; emitter-based charge
   time; charge fuel; slider floor `E/P`. A capture-calibrated `j1` anchor overrides a
   rounded panel `ftlMaxSpeed` (BP-FYSQ-7703: 1023.54 s/pc, effective 3.517 pc/h). See §6.
@@ -130,13 +131,15 @@ Duration: `t [real-s] = d / (2·accel·M) + 2·M` (paper §6, already wall-clock
 - **Fuel usage slider:** TO / LND / JUMP are invariant to `fuelUsageFactor`; DEP and APPROACH
   use the laws above. Old per-leg fuel slider removed; `fuelUsageFactor` input added
   (default 0.50, range 0.10–1.00).
-- **B2/B3 allocation (2026-10-18):** wells are taken first; `depCap = M_dep × flow/0.015`;
-  `appBase = (loaded − TO) × 0.491 × fuf`; then `DEP = min(depCap, appBase)` and `APP = appBase`.
-  The DEP time is re-derived from the allocated DEP fuel. This fixes the high-fuf case
-  (BP-OMCU: DEP +12.95% → +2.28%, total STL +6.51% → +1.73%). A ~2% high-fuf residual and a
-  small APP residual at fuf .05 remain. **2026-10-19:** the old `fuf` clamp at 0.1 was
-  removed (slider/game allow 0.05); Big Hauler `fuf .05` went from DEP fuel +89.7% /
-  total STL +75.5% to **−1.26% / −1.9%**, ETA −0.64% → **+0.07%**.
+- **B2/B3 allocation (2026-10-18; APP coefficient 2026-10-19):** wells are taken first;
+  `depCap = M_dep × flow/0.015`; `appBase = (loaded − TO) × 0.494 × fuf`; then
+  `DEP = min(depCap, appBase)` and `APP = appBase`. The DEP time is re-derived from the
+  allocated DEP fuel. The 0.494 coefficient is fitted from the Big Hauler fuf sweep
+  (old 0.491 was ~0.6% low). BP-OMCU: DEP +2.28%, total STL +2.29%. **2026-10-19:** the
+  old `fuf` clamp at 0.1 was removed (slider/game allow 0.05); Big Hauler `fuf .05` went
+  from DEP fuel +89.7% / total STL +75.5% to **−1.26% / −1.46%**, ETA −0.64% → **+0.06%**;
+  APP fuel/time at .05 remain **−3.9% / +3.3%**. At `fuf .25–1.0` total STL is within
+  **0.42%** and ETA +0.01%.
 - **Same-system TRANSIT fuel:** `(tank − TO − LND) × fuf`, unchanged (validated 2026-07-11).
 
 ### 6. FTL jump + gateway — calibrated (C, 2026-10-18)
@@ -254,9 +257,11 @@ transits).
 ## Open items / known issues
 
 1. **B2/B3 residual** — the split is implemented and fixes the high-fuf case, but BP-OMCU
-   remains ~2% high on DEP/total STL. The 2026-10-19 Big Hauler sweep shows `fuf .25–1.0`
-   within ~0.9% on STL and +0.01% ETA; `fuf .05` is within 1.9% STL / 0.07% ETA after the
-   0.1 clamp was removed, with a small APP fuel/time residual.
+   is ~2.3% high on total STL. The 2026-10-19 Big Hauler sweep shows `fuf .25–1.0` within
+   **0.42%** on STL and +0.01% ETA; `fuf .05` is within 1.46% STL / 0.06% ETA after the
+   0.1 clamp was removed, with a remaining APP fuel/time residual (−3.9% / +3.3%).
+   The APP coefficient 0.491 → 0.494 is fitted from that sweep; the residual is
+   route-dependent (~0.5–1.5%), so one global constant cannot make every route exact.
 2. **Gateway route legs** — the Use gateways toggle controls routing, but the pre-gateway
    TRANSIT/LOCK/DECAY and post-gateway departure are not modelled. Use a direct route for
    configuration validation.
