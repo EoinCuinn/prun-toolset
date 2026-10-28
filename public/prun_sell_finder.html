@@ -147,6 +147,15 @@
     letter-spacing: 0.08em;
   }
 
+  .exchange-station {
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--body, inherit);
+    letter-spacing: 0.02em;
+    color: var(--text2);
+    margin-left: 7px;
+  }
+
   .best-badge {
     font-size: 11px;
     font-weight: 700;
@@ -267,12 +276,18 @@
 <script>
 const EXCHANGES = ['IC1', 'NC1', 'NC2', 'CI1', 'CI2', 'AI1'];
 
+// Exchange code -> station name (shown beside the code so players know where it is)
+const EXCHANGE_NAMES = {
+  AI1: 'Antares', CI1: 'Benten', CI2: 'Arclight',
+  IC1: 'Hortus',  NC1: 'Moria',  NC2: 'Hubur',
+};
+
 // Exchange → system NaturalId mapping
 const EXCHANGE_SYSTEMS = {
   IC1: 'VH-331',  // Hortus
   NC1: 'OT-580',  // Moria
-  NC2: 'UV-351',  // Benten / Katoa
-  CI1: 'ZV-759',  // Antares II
+  NC2: 'TD-203',  // Hubur
+  CI1: 'UV-351',  // Benten
   CI2: 'AM-783',  // Arclight
   AI1: 'ZV-307',  // Antares I (Antares Station)
 };
@@ -442,7 +457,7 @@ async function search() {
     const b = bestEx.sim;
     const topPrice = bestEx.buyOrders[0]?.ItemCost || 0;
     html += `<div class="best-banner">
-      <div class="best-stat"><strong>${bestEx.exchange}</strong><span>Best Exchange</span></div>
+      <div class="best-stat"><strong>${bestEx.exchange} · ${EXCHANGE_NAMES[bestEx.exchange] || ''}</strong><span>Best Exchange</span></div>
       <div class="best-stat"><strong>${fmtPrice(topPrice)}</strong><span>Top Bid / unit</span></div>
       <div class="best-stat"><strong>${fmtPrice(b.avgPrice)}</strong><span>Avg Price (your qty)</span></div>
       <div class="best-stat"><strong>${fmtNum(b.filledQty)} / ${fmtNum(qty)}</strong><span>Units Fillable</span></div>
@@ -472,7 +487,7 @@ async function search() {
 
     html += `<div class="exchange-card ${isBest ? 'best' : ''} ${!hasDemand ? 'no-demand' : ''}">`;
     html += `<div class="exchange-header">
-      <span class="exchange-name">${ex.exchange}</span>
+      <span class="exchange-name">${ex.exchange}<span class="exchange-station">${EXCHANGE_NAMES[ex.exchange] || ''}</span></span>
       <div style="display:flex;align-items:center;gap:6px;">
         ${jumpLabel}
         ${isBest ? '<span class="best-badge">★ Best</span>' : ''}
