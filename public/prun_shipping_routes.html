@@ -128,8 +128,8 @@
 
 <div class="top">
   <h1>Shipping Routes</h1>
-  <span class="input-label">PUNoted key</span>
-  <input id="keyInput" type="password" placeholder="key to unlock">
+  <span class="input-label">Corp password</span>
+  <input id="keyInput" type="password" placeholder="password to unlock">
   <button class="primary" onclick="unlock()">UNLOCK</button>
   <button class="small danger" onclick="forgetKey()">FORGET</button>
   <a class="home-link" href="/home.html">⌂ Tools</a>
@@ -212,9 +212,9 @@
 </section>
 
 <script>
-const DATA_URL   = 'punoted_data.json';
-const VERIFY_URL = 'https://api.punoted.net/v1/ships/';   // browser-friendly: any valid key returns 200
-const KEY_SLOT   = 'prun_punoted_allkey';
+const ENC_URL   = 'punoted_data.enc.json';
+const PLAIN_URL = 'punoted_data.json';
+const PASS_SLOT = 'prun_shipping_pass';
 
 let DATA = { generated: null, routes: [], ships: [] };
 let ROWS = [];
@@ -223,36 +223,46 @@ let SHIP_SORT = { key: 'company', dir: 1 };
 let renderTimer = null;
 let TAB = 'routes';
 
-// ── load ─────────────────────────────────────────────────────────────────────
+// ── decrypt ──────────────────────────────────────────────────────────────────
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+
+async function decryptBundle(env, pass) {
+  const km = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+  const dk = await crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: b64(env.salt), iterations: env.iterations, hash: 'SHA-256' },
+    km, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(env.iv) }, dk, b64(env.data));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+
 async function fetchJSON(url) {
   const r = await fetch(url + '?t=' + Date.now(), { cache: 'no-store' });
   if (!r.ok) return null;
   return r.json();
 }
 
-// Any valid PUNoted key opens the page: we ask PUNoted's browser-friendly /v1
-// API to confirm the key, then load the shared data bundle.
+// The bundle is encrypted at build time with PAGE_PASS — a corp password, not a
+// PUNoted key. Wrong password: nothing decrypts.
 async function unlock() {
   const typed = document.getElementById('keyInput').value.trim();
-  const key   = typed || localStorage.getItem(KEY_SLOT) || '';
-  if (!key) { setStatus('', 'Enter your PUNoted key and press UNLOCK.'); return; }
+  const pass  = typed || localStorage.getItem(PASS_SLOT) || '';
 
-  setStatus('busy', 'Checking key with PUNoted…');
+  setStatus('busy', 'Loading…');
   try {
-    let vr;
-    try {
-      vr = await fetch(VERIFY_URL, { headers: { 'X-Data-Token': key } });
-    } catch (e) {
-      throw new Error('could not reach PUNoted to check the key');
+    const env = await fetchJSON(ENC_URL);
+    if (env) {
+      if (!pass) { setStatus('', 'Enter the corp password and press UNLOCK.'); return; }
+      let bundle;
+      try { bundle = await decryptBundle(env, pass); }
+      catch (e) { throw new Error('wrong password'); }
+      localStorage.setItem(PASS_SLOT, pass);
+      applyBundle(bundle);
+    } else {
+      const plain = await fetchJSON(PLAIN_URL);
+      if (!plain) throw new Error('no data file — it is generated on the next deploy');
+      applyBundle(plain);
+      setStatus('warn', 'This build has no PAGE_PASS set — the data file is unencrypted.');
     }
-    if (vr.status === 401 || vr.status === 403) throw new Error('PUNoted rejected that key');
-    if (!vr.ok) throw new Error('PUNoted key check returned ' + vr.status);
-
-    localStorage.setItem(KEY_SLOT, key);
-    setStatus('busy', 'Key accepted — loading data…');
-    const bundle = await fetchJSON(DATA_URL);
-    if (!bundle) throw new Error('no data file — it is generated on the next deploy');
-    applyBundle(bundle);
   } catch (e) {
     setStatus('err', 'Could not load: ' + e.message);
   }
@@ -271,15 +281,15 @@ function applyBundle(bundle) {
 }
 
 function forgetKey() {
-  localStorage.removeItem(KEY_SLOT);
+  localStorage.removeItem(PASS_SLOT);
   document.getElementById('keyInput').value = '';
   DATA = { generated: null, routes: [], ships: [] };
   ROWS = [];
   ['routesHost','fleetHost','shipsHost'].forEach(id =>
-    document.getElementById(id).innerHTML = '<div class="empty-state">Key forgotten. Enter it and press UNLOCK.</div>');
+    document.getElementById(id).innerHTML = '<div class="empty-state">Password forgotten. Enter it and press UNLOCK.</div>');
   ['statRoutes','statFlights','statStl','statFtl'].forEach(id => document.getElementById(id).textContent = '—');
   ['cntRoutes','cntFleet','cntShips'].forEach(id => document.getElementById(id).textContent = '');
-  setStatus('', 'Key forgotten.');
+  setStatus('', 'Password forgotten.');
 }
 
 // ── shaping ──────────────────────────────────────────────────────────────────
@@ -513,7 +523,7 @@ function setStatus(kind, msg) {
 
 // ── init ─────────────────────────────────────────────────────────────────────
 (function init() {
-  const saved = localStorage.getItem(KEY_SLOT);
+  const saved = localStorage.getItem(PASS_SLOT);
   if (saved) document.getElementById('keyInput').value = saved;
   unlock();
 })();
