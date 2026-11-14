@@ -6,218 +6,104 @@
 <title>PrUn Shipping Routes</title>
 <style>
   :root {
-    --bg: #0f1117;
-    --bg2: #181c27;
-    --bg3: #1e2333;
-    --border: #2a3045;
-    --border2: #3a4460;
-    --text: #e2e8f0;
-    --text2: #8892a4;
-    --text3: #555f72;
-    --accent: #4f8ef7;
-    --green: #4ade80;
-    --orange: #fb923c;
-    --red: #f87171;
-    --mono: 'Courier New', monospace;
-    --radius: 6px;
+    --bg: #0f1117; --bg2: #181c27; --bg3: #1e2333;
+    --border: #2a3045; --border2: #3a4460;
+    --text: #e2e8f0; --text2: #8892a4; --text3: #555f72;
+    --accent: #4f8ef7; --green: #4ade80; --orange: #fb923c; --red: #f87171;
+    --mono: 'Courier New', monospace; --radius: 6px;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
   body {
-    background: var(--bg);
-    color: var(--text);
+    background: var(--bg); color: var(--text);
     font-family: 'Segoe UI', system-ui, sans-serif;
-    font-size: 14px;
-    line-height: 1.5;
-    padding: 1.5rem;
-    max-width: 1500px;
-    margin: 0 auto;
+    font-size: 14px; line-height: 1.5; padding: 1.5rem;
+    max-width: 1500px; margin: 0 auto;
   }
 
   /* ── Header ── */
-  .top {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 1.25rem;
-  }
+  .top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
   h1 {
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text2);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-right: auto;
+    font-size: 13px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--text2);
+    display: flex; align-items: center; gap: 8px; margin-right: auto;
   }
-  h1::before {
-    content: '';
-    display: inline-block;
-    width: 8px; height: 8px;
-    background: var(--accent);
-    border-radius: 50%;
+  h1::before { content: ''; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
+  .input-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+  input[type="text"], input[type="password"] {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+    color: var(--text); padding: 8px 12px; font-size: 14px; font-family: var(--mono);
+    outline: none; transition: border-color 0.15s;
   }
-  input[type="text"] {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text);
-    padding: 8px 12px;
-    font-size: 14px;
-    font-family: var(--mono);
-    outline: none;
-    transition: border-color 0.15s;
-  }
-  input[type="text"]:focus { border-color: var(--accent); }
-
+  input[type="text"]:focus, input[type="password"]:focus { border-color: var(--accent); }
+  #keyInput { width: 220px; }
   button {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text);
-    padding: 8px 16px;
-    font-size: 14px;
-    font-family: inherit;
-    cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
-    white-space: nowrap;
+    background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius);
+    color: var(--text); padding: 8px 16px; font-size: 14px; font-family: inherit;
+    cursor: pointer; transition: background 0.15s, border-color 0.15s; white-space: nowrap;
   }
   button:hover { background: var(--border); border-color: var(--accent); }
-  button.primary {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-    font-weight: 600;
-  }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
   button.primary:hover { background: #6aa0f9; }
-  button.small {
-    padding: 6px 12px;
-    font-size: 12px;
-    font-family: var(--mono);
-    color: var(--text2);
-  }
+  button.small { padding: 6px 12px; font-size: 12px; font-family: var(--mono); color: var(--text2); }
   button.small:hover { color: var(--text); }
-
+  button.danger:hover { border-color: var(--red); color: var(--red); }
   .home-link {
-    margin-left: auto;
-    font-size: 11px;
-    font-family: var(--mono);
-    color: var(--text2);
-    text-decoration: none;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 8px 12px;
-    transition: border-color 0.15s, color 0.15s;
+    margin-left: auto; font-size: 11px; font-family: var(--mono); color: var(--text2);
+    text-decoration: none; border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 8px 12px; transition: border-color 0.15s, color 0.15s;
   }
   .home-link:hover { border-color: var(--accent); color: var(--accent); }
 
   /* ── Status ── */
-  .status {
-    font-size: 13px;
-    color: var(--text2);
-    margin-bottom: 1rem;
-    min-height: 16px;
-    font-family: var(--mono);
-  }
+  .status { font-size: 13px; color: var(--text2); margin-bottom: 1rem; min-height: 16px; font-family: var(--mono); }
   .spinner {
-    display: inline-block;
-    width: 10px; height: 10px;
-    margin-right: 6px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    vertical-align: -1px;
+    display: inline-block; width: 10px; height: 10px; margin-right: 6px;
+    border: 2px solid var(--border); border-top-color: var(--accent);
+    border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: -1px;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
+  /* ── Tabs ── */
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
+  .tab {
+    background: transparent; border: none; border-bottom: 2px solid transparent;
+    color: var(--text3); font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; padding: 8px 14px; border-radius: 0; cursor: pointer;
+  }
+  .tab:hover { color: var(--text); background: transparent; }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab .count { font-family: var(--mono); font-size: 11px; color: var(--text3); margin-left: 4px; }
+
   /* ── Stats ── */
   .stats-panel {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1rem 1.25rem;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: stretch;
-    flex-wrap: wrap;
+    background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 1rem 1.25rem; margin-bottom: 1rem; display: flex; align-items: stretch; flex-wrap: wrap;
   }
-  .stat-block {
-    padding: 0 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    border-right: 1px solid var(--border);
-  }
+  .stat-block { padding: 0 20px; display: flex; flex-direction: column; gap: 2px; border-right: 1px solid var(--border); }
   .stat-block:first-child { padding-left: 0; }
   .stat-block:last-child { border-right: none; padding-right: 0; }
-  .stat-label {
-    font-size: 11px;
-    color: var(--text3);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-  .stat-val {
-    font-size: 22px;
-    font-family: var(--mono);
-    color: var(--text);
-    line-height: 1.2;
-  }
+  .stat-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .stat-val { font-size: 22px; font-family: var(--mono); color: var(--text); line-height: 1.2; }
   .stat-sub { font-size: 12px; font-family: var(--mono); color: var(--text2); }
-  .stat-note {
-    font-size: 11px;
-    color: var(--text3);
-    max-width: 290px;
-    line-height: 1.45;
-  }
+  .stat-note { font-size: 11px; color: var(--text3); max-width: 290px; line-height: 1.45; }
 
   /* ── Filters ── */
-  .filter-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 0.75rem;
-  }
+  .filter-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 0.75rem; }
   .section-head {
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text3);
-    padding-right: 6px;
-    border-right: 1px solid var(--border);
+    font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text3); padding-right: 6px; border-right: 1px solid var(--border);
   }
   .entry-count { font-size: 12px; font-family: var(--mono); color: var(--text3); }
-  .filter-row input[type="text"] { width: 190px; }
+  .filter-row input[type="text"] { width: 180px; }
 
   /* ── Table ── */
-  .table-wrap {
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow-x: auto;
-    background: var(--bg2);
-  }
+  .table-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow-x: auto; background: var(--bg2); }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   th {
-    text-align: left;
-    padding: 8px;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--text3);
-    border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-    cursor: pointer;
-    user-select: none;
-    position: sticky;
-    top: 0;
-    background: var(--bg3);
+    text-align: left; padding: 8px; font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em; color: var(--text3);
+    border-bottom: 1px solid var(--border); white-space: nowrap; cursor: pointer;
+    user-select: none; position: sticky; top: 0; background: var(--bg3);
   }
   th:hover { color: var(--accent); }
   th.r, td.r { text-align: right; }
@@ -226,80 +112,188 @@
   tbody tr:last-child td { border-bottom: none; }
   tbody tr:hover td { background: var(--bg3); }
   tfoot td {
-    background: var(--bg3);
-    border-top: 1px solid var(--border2);
-    border-bottom: none;
-    font-size: 12px;
-    font-weight: 600;
-    font-family: var(--mono);
-    color: var(--text2);
-    padding: 8px;
+    background: var(--bg3); border-top: 1px solid var(--border2); border-bottom: none;
+    font-size: 12px; font-weight: 600; font-family: var(--mono); color: var(--text2); padding: 8px;
   }
   .col-route { font-family: var(--mono); }
   .col-num { font-family: var(--mono); text-align: right; }
   .col-mut { color: var(--text2); }
+  .yes { color: var(--green); }
+  .no { color: var(--text3); }
   .empty-state { padding: 32px 16px; text-align: center; color: var(--text3); font-size: 13px; font-family: var(--mono); }
+  .hidden { display: none; }
 </style>
 </head>
 <body>
 
 <div class="top">
   <h1>Shipping Routes</h1>
-  <button class="primary" onclick="loadData(true)">↺ RELOAD</button>
+  <span class="input-label">PUNoted key</span>
+  <input id="keyInput" type="password" placeholder="key to unlock">
+  <button class="primary" onclick="unlock()">UNLOCK</button>
+  <button class="small danger" onclick="forgetKey()">FORGET</button>
   <a class="home-link" href="/home.html">⌂ Tools</a>
 </div>
 
-<div class="status" id="statusBar">Loading route data…</div>
+<div class="status" id="statusBar">Loading…</div>
 
-<div class="stats-panel">
-  <div class="stat-block">
-    <div class="stat-label">Routes</div>
-    <div class="stat-val" id="statRoutes">—</div>
-    <div class="stat-sub" id="statRoutesSub">&nbsp;</div>
-  </div>
-  <div class="stat-block">
-    <div class="stat-label">Flights logged</div>
-    <div class="stat-val" id="statFlights">—</div>
-    <div class="stat-sub">across all routes</div>
-  </div>
-  <div class="stat-block">
-    <div class="stat-label">STL fuel</div>
-    <div class="stat-val" id="statStl">—</div>
-    <div class="stat-sub">all flights, all time</div>
-  </div>
-  <div class="stat-block">
-    <div class="stat-label">FTL fuel</div>
-    <div class="stat-val" id="statFtl">—</div>
-    <div class="stat-sub">all flights, all time</div>
-  </div>
-  <div class="stat-block">
-    <div class="stat-label">Note</div>
-    <div class="stat-note">COSM-wide, all-time aggregate from PUNoted — captured when this site was built. Every ship PUNoted tracks belongs to a COSM member company. The endpoint has no date filter.</div>
-  </div>
+<div class="tabs">
+  <button class="tab active" id="tab-routes" onclick="setTab('routes')">Routes <span class="count" id="cntRoutes"></span></button>
+  <button class="tab" id="tab-fleet" onclick="setTab('fleet')">Fleet <span class="count" id="cntFleet"></span></button>
+  <button class="tab" id="tab-ships" onclick="setTab('ships')">Ships <span class="count" id="cntShips"></span></button>
 </div>
 
-<div class="filter-row">
-  <span class="section-head">Routes</span>
-  <span class="entry-count" id="entryCount"></span>
-  <input id="filterOrigin" type="text" placeholder="filter origin…" oninput="scheduleRender()">
-  <input id="filterDest" type="text" placeholder="filter destination…" oninput="scheduleRender()">
-  <button class="small" onclick="clearFilters()">CLEAR</button>
-</div>
+<!-- ── ROUTES ── -->
+<section id="sec-routes">
+  <div class="stats-panel">
+    <div class="stat-block">
+      <div class="stat-label">Routes</div>
+      <div class="stat-val" id="statRoutes">—</div>
+      <div class="stat-sub" id="statRoutesSub">&nbsp;</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">Flights logged</div>
+      <div class="stat-val" id="statFlights">—</div>
+      <div class="stat-sub">across all routes</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">STL fuel</div>
+      <div class="stat-val" id="statStl">—</div>
+      <div class="stat-sub">all flights, all time</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">FTL fuel</div>
+      <div class="stat-val" id="statFtl">—</div>
+      <div class="stat-sub">all flights, all time</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">Note</div>
+      <div class="stat-note">COSM-wide, all-time aggregate from PUNoted — captured when this site was built. Every ship PUNoted tracks belongs to a COSM member company. The endpoint has no date filter.</div>
+    </div>
+  </div>
 
-<div class="table-wrap">
-  <div id="tableHost"><div class="empty-state">Loading…</div></div>
-</div>
+  <div class="filter-row">
+    <span class="section-head">Routes</span>
+    <span class="entry-count" id="entryCount"></span>
+    <input id="filterOrigin" type="text" placeholder="filter origin…" oninput="scheduleRender()">
+    <input id="filterDest" type="text" placeholder="filter destination…" oninput="scheduleRender()">
+    <button class="small" onclick="clearFilters()">CLEAR</button>
+  </div>
+
+  <div class="table-wrap">
+    <div id="routesHost"><div class="empty-state">No data. Enter your key and press UNLOCK.</div></div>
+  </div>
+</section>
+
+<!-- ── FLEET ── -->
+<section id="sec-fleet" class="hidden">
+  <div class="filter-row">
+    <span class="section-head">Hull classes</span>
+    <span class="entry-count" id="fleetCount"></span>
+  </div>
+  <div class="table-wrap">
+    <div id="fleetHost"><div class="empty-state">No data. Enter your key and press UNLOCK.</div></div>
+  </div>
+</section>
+
+<!-- ── SHIPS ── -->
+<section id="sec-ships" class="hidden">
+  <div class="filter-row">
+    <span class="section-head">Ships</span>
+    <span class="entry-count" id="shipsCount"></span>
+    <input id="filterShip" type="text" placeholder="filter ship…" oninput="scheduleRender()">
+    <input id="filterCompany" type="text" placeholder="filter company…" oninput="scheduleRender()">
+    <input id="filterClass" type="text" placeholder="filter class…" oninput="scheduleRender()">
+    <button class="small" onclick="clearFilters()">CLEAR</button>
+  </div>
+  <div class="table-wrap">
+    <div id="shipsHost"><div class="empty-state">No data. Enter your key and press UNLOCK.</div></div>
+  </div>
+</section>
 
 <script>
-const DATA_URL = 'punoted_routes.json';   // written by scripts/fetch-routes.mjs during the build
+const ENC_URL   = 'punoted_data.enc.json';
+const PLAIN_URL = 'punoted_data.json';
+const KEY_SLOT  = 'prun_punoted_allkey';
 
-let ROWS = [];                               // shaped route objects
-let SORT = { key: 'flight_count', dir: -1 }; // default: most-flown first
+let DATA = { generated: null, routes: [], ships: [] };
+let ROWS = [];
+let SORT = { key: 'flight_count', dir: -1 };
+let SHIP_SORT = { key: 'company', dir: 1 };
 let renderTimer = null;
+let TAB = 'routes';
+
+// ── decrypt ──────────────────────────────────────────────────────────────────
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+
+async function decryptBundle(env, pass) {
+  const km = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+  const dk = await crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: b64(env.salt), iterations: env.iterations, hash: 'SHA-256' },
+    km, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(env.iv) }, dk, b64(env.data));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+
+async function fetchJSON(url) {
+  const r = await fetch(url + '?t=' + Date.now(), { cache: 'no-store' });
+  if (!r.ok) return null;
+  return r.json();
+}
+
+// ── load ─────────────────────────────────────────────────────────────────────
+async function unlock() {
+  const typed = document.getElementById('keyInput').value.trim();
+  const key   = typed || localStorage.getItem(KEY_SLOT) || '';
+
+  setStatus('busy', 'Loading…');
+  try {
+    const env = await fetchJSON(ENC_URL);
+    if (env) {
+      if (!key) { setStatus('', 'Enter your PUNoted key and press UNLOCK.'); return; }
+      localStorage.setItem(KEY_SLOT, key);
+      let bundle;
+      try { bundle = await decryptBundle(env, key); }
+      catch (e) { throw new Error('key rejected — it does not unlock this data'); }
+      applyBundle(bundle);
+    } else {
+      const plain = await fetchJSON(PLAIN_URL);
+      if (!plain) throw new Error('no data file — it is generated on the next deploy');
+      applyBundle(plain);
+      setStatus('warn', 'Loaded unencrypted snapshot (built without a key) — ships and fleet may be missing.');
+    }
+  } catch (e) {
+    setStatus('err', 'Could not load: ' + e.message);
+  }
+}
+
+function applyBundle(bundle) {
+  DATA = { generated: bundle.generated || null, routes: bundle.routes || [], ships: bundle.ships || [] };
+  ROWS = shape(DATA.routes);
+  document.getElementById('cntRoutes').textContent = DATA.routes.length ? `(${fmtInt(DATA.routes.length)})` : '';
+  document.getElementById('cntFleet').textContent  = DATA.ships.length ? `(${fmtInt(fleetRows().length)})` : '';
+  document.getElementById('cntShips').textContent  = DATA.ships.length ? `(${fmtInt(DATA.ships.length)})` : '';
+  render();
+  const gen = DATA.generated ? new Date(DATA.generated) : null;
+  setStatus('ok', `Unlocked ${fmtInt(DATA.routes.length)} routes, ${fmtInt(DATA.ships.length)} ships` +
+    (gen ? ` — snapshot generated ${gen.toLocaleString()}` : '') + '.');
+}
+
+function forgetKey() {
+  localStorage.removeItem(KEY_SLOT);
+  document.getElementById('keyInput').value = '';
+  DATA = { generated: null, routes: [], ships: [] };
+  ROWS = [];
+  ['routesHost','fleetHost','shipsHost'].forEach(id =>
+    document.getElementById(id).innerHTML = '<div class="empty-state">Key forgotten. Enter it and press UNLOCK.</div>');
+  ['statRoutes','statFlights','statStl','statFtl'].forEach(id => document.getElementById(id).textContent = '—');
+  ['cntRoutes','cntFleet','cntShips'].forEach(id => document.getElementById(id).textContent = '');
+  setStatus('', 'Key forgotten.');
+}
 
 // ── shaping ──────────────────────────────────────────────────────────────────
 function shape(raw) {
-  const arr = Array.isArray(raw) ? raw : (Array.isArray(raw && raw.data) ? raw.data : []);
+  const arr = Array.isArray(raw) ? raw : [];
   return arr.map(r => {
     const count = +r.flight_count || 0;
     const stlF  = +r.avg_stltotalconsumption || 0;
@@ -309,15 +303,26 @@ function shape(raw) {
       destination_label: r.destination_label || '?',
       flight_count: count,
       avg_duration_minutes: +r.avg_duration_minutes || 0,
-      avg_stldistance: +r.avg_stldistance || 0,
-      avg_ftldistance: +r.avg_ftldistance || 0,
-      avg_stltotalconsumption: stlF,
-      avg_ftltotalconsumption: ftlF,
       stl_km: (+r.avg_stldistance || 0) / 1000,
       ftl_km: (+r.avg_ftldistance || 0) / 1000,
+      avg_stltotalconsumption: stlF,
+      avg_ftltotalconsumption: ftlF,
       total_fuel: count * (stlF + ftlF),
     };
   });
+}
+
+function fleetRows() {
+  const m = new Map();
+  for (const s of DATA.ships) {
+    const a = m.get(s.cls) || { cls: s.cls, n: 0, vol: 0, mass: 0, flow: 0, min: Infinity, max: 0 };
+    a.n++; a.vol += s.volume; a.mass += s.mass; a.flow += s.flow;
+    a.min = Math.min(a.min, s.volume); a.max = Math.max(a.max, s.volume);
+    m.set(s.cls, a);
+  }
+  return [...m.values()]
+    .sort((x, y) => y.n - x.n)
+    .map(a => ({ cls: a.cls, n: a.n, avol: a.vol / a.n, amass: a.mass / a.n, aflow: a.flow / a.n, min: a.min, max: a.max }));
 }
 
 // ── formatting ───────────────────────────────────────────────────────────────
@@ -335,32 +340,18 @@ function fmtDur(min) {
   return `${min}m`;
 }
 
-// ── data ─────────────────────────────────────────────────────────────────────
-async function loadData(force) {
-  setStatus('busy', 'Loading route data…');
-  try {
-    const url = DATA_URL + (force ? '?t=' + Date.now() : '');
-    const r = await fetch(url, { cache: force ? 'no-store' : 'default' });
-    if (!r.ok) {
-      if (r.status === 404) throw new Error('no snapshot found — it is generated on the next deploy');
-      throw new Error('HTTP ' + r.status);
-    }
-    const j = await r.json();
-    const raw = Array.isArray(j) ? j : j.routes;
-    if (!Array.isArray(raw) || !raw.length) throw new Error('snapshot is empty');
-
-    ROWS = shape(raw);
-    render();
-    const gen = j && j.generated ? new Date(j.generated) : null;
-    setStatus('ok', `Loaded ${fmtInt(ROWS.length)} routes` +
-      (gen ? ` — snapshot generated ${gen.toLocaleString()}` : '') + '.');
-  } catch (e) {
-    setStatus('err', 'Could not load route data: ' + e.message);
-  }
+// ── tabs ─────────────────────────────────────────────────────────────────────
+function setTab(t) {
+  TAB = t;
+  ['routes', 'fleet', 'ships'].forEach(x => {
+    document.getElementById('sec-' + x).classList.toggle('hidden', x !== t);
+    document.getElementById('tab-' + x).classList.toggle('active', x === t);
+  });
+  render();
 }
 
 // ── render ───────────────────────────────────────────────────────────────────
-const COLS = [
+const ROUTE_COLS = [
   { key: 'origin_label',         label: 'Origin',         type: 'text' },
   { key: 'destination_label',    label: 'Destination',    type: 'text' },
   { key: 'flight_count',         label: 'Flights',        type: 'int'  },
@@ -371,30 +362,43 @@ const COLS = [
   { key: 'avg_ftltotalconsumption', label: 'Avg FTL fuel', type: 'dec' },
   { key: 'total_fuel',           label: 'Total fuel',     type: 'int'  },
 ];
+const SHIP_COLS = [
+  { key: 'name',    label: 'Ship',       type: 'text' },
+  { key: 'cls',     label: 'Class',      type: 'text' },
+  { key: 'volume',  label: 'Hull volume', type: 'int' },
+  { key: 'mass',    label: 'Mass',       type: 'int' },
+  { key: 'flow',    label: 'STL flow',   type: 'dec' },
+  { key: 'company', label: 'Company',    type: 'text' },
+  { key: 'transit', label: 'In transit', type: 'bool' },
+];
 
 function scheduleRender() { clearTimeout(renderTimer); renderTimer = setTimeout(render, 120); }
 function clearFilters() {
-  document.getElementById('filterOrigin').value = '';
-  document.getElementById('filterDest').value = '';
+  ['filterOrigin','filterDest','filterShip','filterCompany','filterClass'].forEach(id => document.getElementById(id).value = '');
   render();
 }
 
 function render() {
+  if (TAB === 'routes') renderRoutes();
+  else if (TAB === 'fleet') renderFleet();
+  else renderShips();
+}
+
+function renderRoutes() {
+  if (!ROWS.length) return;
   const fo = document.getElementById('filterOrigin').value.trim().toLowerCase();
   const fd = document.getElementById('filterDest').value.trim().toLowerCase();
-
   let rows = ROWS;
   if (fo) rows = rows.filter(r => r.origin_label.toLowerCase().includes(fo));
   if (fd) rows = rows.filter(r => r.destination_label.toLowerCase().includes(fd));
 
-  const col = COLS.find(c => c.key === SORT.key) || COLS[2];
+  const col = ROUTE_COLS.find(c => c.key === SORT.key) || ROUTE_COLS[2];
   rows = rows.slice().sort((a, b) => {
     const va = a[col.key], vb = b[col.key];
     if (col.type === 'text') return SORT.dir * String(va).localeCompare(String(vb));
     return SORT.dir * (va - vb);
   });
 
-  // stats are always the full dataset, not the filtered view
   const totFlights = ROWS.reduce((s, r) => s + r.flight_count, 0);
   const totStl = ROWS.reduce((s, r) => s + r.flight_count * r.avg_stltotalconsumption, 0);
   const totFtl = ROWS.reduce((s, r) => s + r.flight_count * r.avg_ftltotalconsumption, 0);
@@ -413,14 +417,11 @@ function render() {
       default:     return `<td class="col-num">${fmtInt(r[c.key])}</td>`;
     }
   };
-
-  const head = COLS.map(c => {
+  const head = ROUTE_COLS.map(c => {
     const arrow = SORT.key === c.key ? `<span class="arrow">${SORT.dir < 0 ? '▼' : '▲'}</span>` : '';
-    return `<th class="${c.type === 'text' ? '' : 'r'}" onclick="sortBy('${c.key}')">${c.label}${arrow}</th>`;
+    return `<th class="${c.type === 'text' ? '' : 'r'}" onclick="sortRoutes('${c.key}')">${c.label}${arrow}</th>`;
   }).join('');
-
-  const body = rows.map(r => '<tr>' + COLS.map(c => cell(r, c)).join('') + '</tr>').join('');
-
+  const body = rows.map(r => '<tr>' + ROUTE_COLS.map(c => cell(r, c)).join('') + '</tr>').join('');
   const foot = `<tfoot><tr>
     <td colspan="2">TOTAL · ${fmtInt(rows.length)} routes</td>
     <td class="r">${fmtInt(rows.reduce((s, r) => s + r.flight_count, 0))}</td>
@@ -429,17 +430,84 @@ function render() {
     <td class="r">${fmtInt(rows.reduce((s, r) => s + r.flight_count * r.avg_ftltotalconsumption, 0))}</td>
     <td class="r">${fmtInt(rows.reduce((s, r) => s + r.total_fuel, 0))}</td>
   </tr></tfoot>`;
-
-  document.getElementById('tableHost').innerHTML =
+  document.getElementById('routesHost').innerHTML =
     `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody>${foot}</table>`;
 }
 
-function sortBy(key) {
+function sortRoutes(key) {
   if (SORT.key === key) SORT.dir *= -1;
   else {
     SORT.key = key;
-    const col = COLS.find(c => c.key === key);
-    SORT.dir = col && col.type === 'text' ? 1 : -1;   // text asc, numbers desc
+    const col = ROUTE_COLS.find(c => c.key === key);
+    SORT.dir = col && col.type === 'text' ? 1 : -1;
+  }
+  render();
+}
+
+function renderFleet() {
+  if (!DATA.ships.length) return;
+  const rows = fleetRows();
+  document.getElementById('fleetCount').textContent = `(${fmtInt(rows.length)} classes · ${fmtInt(DATA.ships.length)} ships)`;
+  const body = rows.map(r => `<tr>
+    <td class="col-route">${esc(r.cls)}</td>
+    <td class="col-num">${fmtInt(r.n)}</td>
+    <td class="col-num col-mut">${fmtInt(r.avol)}</td>
+    <td class="col-num col-mut">${fmtInt(r.amass)}</td>
+    <td class="col-num col-mut">${r.aflow.toFixed(4)}</td>
+    <td class="col-num col-mut">${fmtInt(r.min)}</td>
+    <td class="col-num col-mut">${fmtInt(r.max)}</td>
+  </tr>`).join('');
+  document.getElementById('fleetHost').innerHTML = `<table><thead><tr>
+    <th>Class</th><th class="r">Ships</th><th class="r">Avg hull volume</th>
+    <th class="r">Avg mass</th><th class="r">Avg STL flow</th>
+    <th class="r">Min vol</th><th class="r">Max vol</th>
+  </tr></thead><tbody>${body}</tbody>
+  <tfoot><tr><td>TOTAL</td><td class="r">${fmtInt(DATA.ships.length)}</td><td colspan="5"></td></tr></tfoot></table>`;
+}
+
+function renderShips() {
+  if (!DATA.ships.length) return;
+  const fs = document.getElementById('filterShip').value.trim().toLowerCase();
+  const fc = document.getElementById('filterCompany').value.trim().toLowerCase();
+  const fk = document.getElementById('filterClass').value.trim().toLowerCase();
+  let rows = DATA.ships;
+  if (fs) rows = rows.filter(s => s.name.toLowerCase().includes(fs));
+  if (fc) rows = rows.filter(s => s.company.toLowerCase().includes(fc));
+  if (fk) rows = rows.filter(s => s.cls.toLowerCase().includes(fk));
+
+  const col = SHIP_COLS.find(c => c.key === SHIP_SORT.key) || SHIP_COLS[5];
+  rows = rows.slice().sort((a, b) => {
+    const va = a[col.key], vb = b[col.key];
+    if (col.type === 'text') return SHIP_SORT.dir * String(va).localeCompare(String(vb));
+    if (col.type === 'bool') return SHIP_SORT.dir * ((va === vb) ? 0 : va ? -1 : 1);
+    return SHIP_SORT.dir * (va - vb);
+  });
+
+  document.getElementById('shipsCount').textContent = `(${fmtInt(rows.length)} of ${fmtInt(DATA.ships.length)})`;
+  const cell = (s, c) => {
+    switch (c.type) {
+      case 'text':   return `<td class="${c.key === 'name' ? 'col-route' : 'col-mut'}">${esc(s[c.key])}</td>`;
+      case 'bool':   return `<td class="${s[c.key] ? 'yes' : 'no'}">${s[c.key] ? 'yes' : 'no'}</td>`;
+      case 'dec':    return `<td class="col-num col-mut">${s[c.key].toFixed(4)}</td>`;
+      default:       return `<td class="col-num col-mut">${fmtInt(s[c.key])}</td>`;
+    }
+  };
+  const head = SHIP_COLS.map(c => {
+    const arrow = SHIP_SORT.key === c.key ? `<span class="arrow">${SHIP_SORT.dir < 0 ? '▼' : '▲'}</span>` : '';
+    const numeric = c.type !== 'text';
+    return `<th class="${numeric ? 'r' : ''}" onclick="sortShips('${c.key}')">${c.label}${arrow}</th>`;
+  }).join('');
+  const body = rows.map(s => '<tr>' + SHIP_COLS.map(c => cell(s, c)).join('') + '</tr>').join('');
+  document.getElementById('shipsHost').innerHTML =
+    `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+}
+
+function sortShips(key) {
+  if (SHIP_SORT.key === key) SHIP_SORT.dir *= -1;
+  else {
+    SHIP_SORT.key = key;
+    const col = SHIP_COLS.find(c => c.key === key);
+    SHIP_SORT.dir = col && col.type === 'text' ? 1 : -1;
   }
   render();
 }
@@ -449,11 +517,15 @@ const esc = s => String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;
 function setStatus(kind, msg) {
   const el = document.getElementById('statusBar');
   el.innerHTML = (kind === 'busy' ? '<span class="spinner"></span>' : '') + esc(msg);
-  el.style.color = kind === 'err' ? 'var(--red)' : 'var(--text2)';
+  el.style.color = kind === 'err' ? 'var(--red)' : (kind === 'warn' ? 'var(--orange)' : 'var(--text2)');
 }
 
 // ── init ─────────────────────────────────────────────────────────────────────
-loadData(false);
+(function init() {
+  const saved = localStorage.getItem(KEY_SLOT);
+  if (saved) document.getElementById('keyInput').value = saved;
+  unlock();
+})();
 </script>
 </body>
 </html>

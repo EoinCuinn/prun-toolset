@@ -18,7 +18,8 @@ dist-ssr
 public/config.js
 
 # Build-time snapshot of the PUNoted route table (regenerated on every build)
-public/punoted_routes.json
+public/punoted_data.json
+public/punoted_data.enc.json
 
 # Editor directories and files
 .vscode/*
