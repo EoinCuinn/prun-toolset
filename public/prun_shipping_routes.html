@@ -361,8 +361,13 @@ async function doRefresh() {
   setStatus('busy', 'Fetching routes from PUNoted…');
   try {
     const r = await fetch(API, { headers: { Authorization: `Bearer ${key}` } });
-    if (r.status === 401 || r.status === 403) throw new Error(`token rejected (${r.status}) — this endpoint needs the full-access key`);
-    if (!r.ok) throw new Error(`PUNoted error ${r.status}`);
+    if (!r.ok) {
+      let detail = '';
+      try { detail = (await r.json()).detail || ''; } catch (e) { /* non-JSON error */ }
+      if (r.status === 403 && /whitelist/i.test(detail)) throw new Error(detail + ' — PUNoted has to allow this site\'s origin.');
+      if (r.status === 401 || r.status === 403) throw new Error(`token rejected (${r.status})${detail ? ' — ' + detail : ''}`);
+      throw new Error(`PUNoted error ${r.status}${detail ? ' — ' + detail : ''}`);
+    }
     const raw = await r.json();
     const data = shape(raw);
     if (!data.length) throw new Error('response contained no routes');
