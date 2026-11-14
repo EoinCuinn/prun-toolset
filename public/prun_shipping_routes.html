@@ -1,169 +1,305 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PrUn Shipping Routes</title>
-  <style>
-    :root {
-      --bg: #0d0f10; --bg2: #141618; --bg3: #1a1d1f;
-      --border: #2a2d30; --border2: #3a3d40;
-      --accent: #4fc3f7; --green: #4caf50; --orange: #ff9800; --red: #f44336;
-      --text: #e0e0e0; --text2: #9e9e9e; --text3: #616161;
-      --mono: 'Courier New', monospace;
-      --cond: 'Arial Narrow', Arial, sans-serif;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--text); font-family: var(--cond); font-size: 13px; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PrUn Shipping Routes</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --bg2: #181c27;
+    --bg3: #1e2333;
+    --border: #2a3045;
+    --border2: #3a4460;
+    --text: #e2e8f0;
+    --text2: #8892a4;
+    --text3: #555f72;
+    --accent: #4f8ef7;
+    --green: #4ade80;
+    --orange: #fb923c;
+    --red: #f87171;
+    --mono: 'Courier New', monospace;
+    --radius: 6px;
+  }
 
-    .header {
-      background: var(--bg2); border-bottom: 1px solid var(--border);
-      padding: 8px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-    }
-    .page-title { font-size: 15px; font-weight: 700; letter-spacing: 1px; flex: 1; }
-    .input-group { display: flex; align-items: center; gap: 4px; }
-    .input-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
-    .header input {
-      background: var(--bg3); border: 1px solid var(--border); color: var(--text);
-      padding: 4px 8px; font-size: 12px; font-family: var(--mono); border-radius: 3px;
-    }
-    .header input:focus { outline: none; border-color: var(--accent); }
-    .btn {
-      background: var(--accent); color: #000; border: none; padding: 5px 12px;
-      font-size: 12px; font-weight: 700; font-family: var(--cond); cursor: pointer; border-radius: 3px;
-    }
-    .btn:hover { background: #81d4fa; }
-    .btn-sm {
-      background: transparent; color: var(--text2); border: 1px solid var(--border);
-      padding: 4px 10px; font-size: 11px; font-family: var(--cond); cursor: pointer; border-radius: 3px;
-    }
-    .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
-    .btn-danger {
-      background: transparent; color: var(--text3); border: 1px solid var(--border);
-      padding: 4px 10px; font-size: 11px; font-family: var(--cond); cursor: pointer; border-radius: 3px;
-    }
-    .btn-danger:hover { border-color: var(--red); color: var(--red); }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    .status-bar {
-      padding: 6px 16px; font-size: 11px; color: var(--text2);
-      border-bottom: 1px solid var(--border); min-height: 28px; display: flex; align-items: center; gap: 6px;
-    }
-    .spinner {
-      display: inline-block; width: 10px; height: 10px;
-      border: 2px solid var(--border); border-top-color: var(--accent);
-      border-radius: 50%; animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 1.5rem;
+    max-width: 1500px;
+    margin: 0 auto;
+  }
 
-    .main { padding: 16px; max-width: 1500px; margin: 0 auto; }
+  /* ── Header ── */
+  .top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+  h1 {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: auto;
+  }
+  h1::before {
+    content: '';
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+  .input-label {
+    font-size: 11px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  input[type="password"], input[type="text"] {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 8px 12px;
+    font-size: 14px;
+    font-family: var(--mono);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input[type="password"]:focus, input[type="text"]:focus { border-color: var(--accent); }
+  #keyInput { width: 220px; }
 
-    .stats-panel {
-      background: var(--bg2); border: 1px solid var(--border); border-radius: 4px;
-      padding: 12px 16px; margin-bottom: 14px;
-      display: flex; gap: 0; align-items: stretch; flex-wrap: wrap;
-    }
-    .stat-block {
-      padding: 0 20px; display: flex; flex-direction: column; gap: 3px;
-      border-right: 1px solid var(--border);
-    }
-    .stat-block:first-child { padding-left: 0; }
-    .stat-block:last-child { border-right: none; padding-right: 0; }
-    .stat-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
-    .stat-val { font-size: 20px; font-family: var(--mono); color: var(--text); line-height: 1.2; }
-    .stat-sub { font-size: 11px; color: var(--text2); font-family: var(--mono); }
-    .stat-note { font-size: 10px; color: var(--text3); max-width: 260px; line-height: 1.4; }
-    .good { color: var(--green); }
-    .warn { color: var(--orange); }
-    .dim { color: var(--text3); }
+  button {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 8px 16px;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+  button:hover { background: var(--border); border-color: var(--accent); }
+  button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-weight: 600;
+  }
+  button.primary:hover { background: #6aa0f9; }
+  button.small {
+    padding: 6px 12px;
+    font-size: 12px;
+    font-family: var(--mono);
+    color: var(--text2);
+  }
+  button.small:hover { color: var(--text); }
+  button.danger { color: var(--text3); }
+  button.danger:hover { border-color: var(--red); color: var(--red); }
 
-    .filter-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
-    .filter-row input {
-      background: var(--bg3); border: 1px solid var(--border); color: var(--text);
-      padding: 4px 8px; font-size: 12px; font-family: var(--mono); border-radius: 3px; width: 200px;
-    }
-    .filter-row input:focus { outline: none; border-color: var(--accent); }
-    .section-head { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text2); }
-    .entry-count { font-size: 11px; color: var(--text3); }
+  .home-link {
+    margin-left: auto;
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--text2);
+    text-decoration: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 12px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .home-link:hover { border-color: var(--accent); color: var(--accent); }
 
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    th {
-      text-align: left; padding: 5px 8px; font-size: 10px; text-transform: uppercase;
-      letter-spacing: 0.5px; color: var(--text3); border-bottom: 1px solid var(--border);
-      white-space: nowrap; cursor: pointer; user-select: none; position: sticky; top: 0; background: var(--bg);
-    }
-    th:hover { color: var(--accent); }
-    th.r { text-align: right; }
-    th .arrow { color: var(--accent); margin-left: 3px; }
-    td { padding: 5px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-    tr:last-child td { border-bottom: none; }
-    tbody tr:hover td { background: var(--bg2); }
-    tfoot td {
-      border-top: 1px solid var(--border2); font-weight: 700; font-family: var(--mono);
-      font-size: 11px; color: var(--text2); padding: 6px 8px; background: var(--bg2);
-    }
-    .col-route { font-family: var(--mono); font-size: 11px; }
-    .col-num { font-family: var(--mono); text-align: right; }
-    .col-mut { color: var(--text2); }
-    .empty-state { padding: 32px 16px; text-align: center; color: var(--text3); }
-  </style>
+  /* ── Status ── */
+  .status {
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 1rem;
+    min-height: 16px;
+    font-family: var(--mono);
+  }
+  .spinner {
+    display: inline-block;
+    width: 10px; height: 10px;
+    margin-right: 6px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: -1px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Stats ── */
+  .stats-panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+  .stat-block {
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border-right: 1px solid var(--border);
+  }
+  .stat-block:first-child { padding-left: 0; }
+  .stat-block:last-child { border-right: none; padding-right: 0; }
+  .stat-label {
+    font-size: 11px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .stat-val {
+    font-size: 22px;
+    font-family: var(--mono);
+    color: var(--text);
+    line-height: 1.2;
+  }
+  .stat-sub { font-size: 12px; font-family: var(--mono); color: var(--text2); }
+  .stat-note {
+    font-size: 11px;
+    color: var(--text3);
+    max-width: 270px;
+    line-height: 1.45;
+  }
+
+  /* ── Filters ── */
+  .filter-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+  }
+  .section-head {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding-right: 6px;
+    border-right: 1px solid var(--border);
+  }
+  .entry-count { font-size: 12px; font-family: var(--mono); color: var(--text3); }
+  .filter-row input[type="text"] { width: 190px; }
+
+  /* ── Table ── */
+  .table-wrap {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow-x: auto;
+    background: var(--bg2);
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    text-align: left;
+    padding: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    position: sticky;
+    top: 0;
+    background: var(--bg3);
+  }
+  th:hover { color: var(--accent); }
+  th.r, td.r { text-align: right; }
+  th .arrow { color: var(--accent); margin-left: 3px; }
+  td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--bg3); }
+  tfoot td {
+    background: var(--bg3);
+    border-top: 1px solid var(--border2);
+    border-bottom: none;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--mono);
+    color: var(--text2);
+    padding: 8px;
+  }
+  .col-route { font-family: var(--mono); }
+  .col-num { font-family: var(--mono); text-align: right; }
+  .col-mut { color: var(--text2); }
+  .empty-state { padding: 32px 16px; text-align: center; color: var(--text3); font-size: 13px; font-family: var(--mono); }
+</style>
 </head>
 <body>
 
-<div class="header">
-  <div class="page-title">SHIPPING ROUTES</div>
-  <div class="input-group">
-    <span class="input-label">PUNoted key</span>
-    <input id="keyInput" type="password" placeholder="full-access key" style="width:220px">
-  </div>
-  <button class="btn" onclick="doRefresh()">↺ REFRESH</button>
-  <button class="btn-danger" onclick="forgetKey()">FORGET KEY</button>
-  <a href="/home.html" style="background:var(--bg2);color:var(--accent);border:1px solid var(--border);border-radius:4px;padding:5px 12px;font-size:12px;font-family:var(--mono);text-decoration:none;letter-spacing:0.05em;margin-left:auto;">⌂ Tools</a>
+<div class="top">
+  <h1>Shipping Routes</h1>
+  <span class="input-label">PUNoted key</span>
+  <input id="keyInput" type="password" placeholder="full-access key">
+  <button class="primary" onclick="doRefresh()">↺ REFRESH</button>
+  <button class="small danger" onclick="forgetKey()">FORGET KEY</button>
+  <a class="home-link" href="/home.html">⌂ Tools</a>
 </div>
 
-<div class="status-bar" id="statusBar">Paste your full-access PUNoted key and hit REFRESH.</div>
+<div class="status" id="statusBar">Paste your full-access PUNoted key and hit REFRESH.</div>
 
-<div class="main">
-
-  <div class="stats-panel">
-    <div class="stat-block">
-      <div class="stat-label">Routes</div>
-      <div class="stat-val" id="statRoutes">—</div>
-      <div class="stat-sub" id="statRoutesSub">&nbsp;</div>
-    </div>
-    <div class="stat-block">
-      <div class="stat-label">Flights logged</div>
-      <div class="stat-val" id="statFlights">—</div>
-      <div class="stat-sub" id="statFlightsSub">&nbsp;</div>
-    </div>
-    <div class="stat-block">
-      <div class="stat-label">STL fuel</div>
-      <div class="stat-val" id="statStl">—</div>
-      <div class="stat-sub">all flights, all time</div>
-    </div>
-    <div class="stat-block">
-      <div class="stat-label">FTL fuel</div>
-      <div class="stat-val" id="statFtl">—</div>
-      <div class="stat-sub">all flights, all time</div>
-    </div>
-    <div class="stat-block">
-      <div class="stat-label">Note</div>
-      <div class="stat-note">COSM-wide, all-time aggregate from PUNoted — every ship it tracks belongs to a COSM member company. No date filter exists on this endpoint. Cached for 1 hour.</div>
-    </div>
+<div class="stats-panel">
+  <div class="stat-block">
+    <div class="stat-label">Routes</div>
+    <div class="stat-val" id="statRoutes">—</div>
+    <div class="stat-sub" id="statRoutesSub">&nbsp;</div>
   </div>
-
-  <div class="filter-row">
-    <span class="section-head">Routes</span>
-    <span class="entry-count" id="entryCount"></span>
-    <input id="filterOrigin" placeholder="filter origin…" oninput="scheduleRender()">
-    <input id="filterDest" placeholder="filter destination…" oninput="scheduleRender()">
-    <button class="btn-sm" onclick="clearFilters()">CLEAR</button>
+  <div class="stat-block">
+    <div class="stat-label">Flights logged</div>
+    <div class="stat-val" id="statFlights">—</div>
+    <div class="stat-sub">across all routes</div>
   </div>
-
-  <div class="table-wrap">
-    <div id="tableHost"><div class="empty-state">No data yet. Paste a key and hit REFRESH.</div></div>
+  <div class="stat-block">
+    <div class="stat-label">STL fuel</div>
+    <div class="stat-val" id="statStl">—</div>
+    <div class="stat-sub">all flights, all time</div>
   </div>
+  <div class="stat-block">
+    <div class="stat-label">FTL fuel</div>
+    <div class="stat-val" id="statFtl">—</div>
+    <div class="stat-sub">all flights, all time</div>
+  </div>
+  <div class="stat-block">
+    <div class="stat-label">Note</div>
+    <div class="stat-note">COSM-wide, all-time aggregate from PUNoted — every ship it tracks belongs to a COSM member company. No date filter exists on this endpoint. Cached for 1 hour.</div>
+  </div>
+</div>
 
+<div class="filter-row">
+  <span class="section-head">Routes</span>
+  <span class="entry-count" id="entryCount"></span>
+  <input id="filterOrigin" type="text" placeholder="filter origin…" oninput="scheduleRender()">
+  <input id="filterDest" type="text" placeholder="filter destination…" oninput="scheduleRender()">
+  <button class="small" onclick="clearFilters()">CLEAR</button>
+</div>
+
+<div class="table-wrap">
+  <div id="tableHost"><div class="empty-state">No data yet. Paste a key and hit REFRESH.</div></div>
 </div>
 
 <script>
@@ -243,13 +379,13 @@ async function doRefresh() {
 function loadFromCache() {
   try {
     const c = JSON.parse(localStorage.getItem(CACHE_SLOT) || 'null');
-    if (!c || !c.data) return false;
+    if (!c || !c.data) return null;
     ROWS = shape(c.data);
     render();
     const age = Date.now() - c.ts;
     setStatus('ok', `Showing cached data (${Math.round(age / 60000)} min old). REFRESH to update.`);
-    return true;
-  } catch (e) { return false; }
+    return age;
+  } catch (e) { return null; }
 }
 
 function forgetKey() {
@@ -265,15 +401,15 @@ function forgetKey() {
 
 // ── render ───────────────────────────────────────────────────────────────────
 const COLS = [
-  { key: 'origin_label',         label: 'Origin',        type: 'text' },
-  { key: 'destination_label',    label: 'Destination',   type: 'text' },
-  { key: 'flight_count',         label: 'Flights',       type: 'int'  },
-  { key: 'avg_duration_minutes', label: 'Avg duration',  type: 'dur'  },
-  { key: 'stl_km',               label: 'STL km',        type: 'dec'  },
-  { key: 'ftl_km',               label: 'FTL km',        type: 'dec'  },
+  { key: 'origin_label',         label: 'Origin',         type: 'text' },
+  { key: 'destination_label',    label: 'Destination',    type: 'text' },
+  { key: 'flight_count',         label: 'Flights',        type: 'int'  },
+  { key: 'avg_duration_minutes', label: 'Avg duration',   type: 'dur'  },
+  { key: 'stl_km',               label: 'STL km',         type: 'dec'  },
+  { key: 'ftl_km',               label: 'FTL km',         type: 'dec'  },
   { key: 'avg_stltotalconsumption', label: 'Avg STL fuel', type: 'dec' },
   { key: 'avg_ftltotalconsumption', label: 'Avg FTL fuel', type: 'dec' },
-  { key: 'total_fuel',           label: 'Total fuel',    type: 'int'  },
+  { key: 'total_fuel',           label: 'Total fuel',     type: 'int'  },
 ];
 
 function scheduleRender() { clearTimeout(renderTimer); renderTimer = setTimeout(render, 120); }
@@ -306,8 +442,7 @@ function render() {
   document.getElementById('statFlights').textContent = fmtInt(totFlights);
   document.getElementById('statStl').textContent     = fmtInt(totStl);
   document.getElementById('statFtl').textContent     = fmtInt(totFtl);
-  document.getElementById('statRoutesSub').textContent  = fo || fd ? `${fmtInt(rows.length)} shown` : 'all routes';
-  document.getElementById('statFlightsSub').textContent = 'across all routes';
+  document.getElementById('statRoutesSub').textContent = fo || fd ? `${fmtInt(rows.length)} shown` : 'all routes';
   document.getElementById('entryCount').textContent = `(${fmtInt(rows.length)} of ${fmtInt(ROWS.length)})`;
 
   const cell = (r, c) => {
@@ -328,11 +463,11 @@ function render() {
 
   const foot = `<tfoot><tr>
     <td colspan="2">TOTAL · ${fmtInt(rows.length)} routes</td>
-    <td class="col-num">${fmtInt(rows.reduce((s, r) => s + r.flight_count, 0))}</td>
+    <td class="r">${fmtInt(rows.reduce((s, r) => s + r.flight_count, 0))}</td>
     <td></td><td></td><td></td>
-    <td class="col-num">${fmtInt(rows.reduce((s, r) => s + r.flight_count * r.avg_stltotalconsumption, 0))}</td>
-    <td class="col-num">${fmtInt(rows.reduce((s, r) => s + r.flight_count * r.avg_ftltotalconsumption, 0))}</td>
-    <td class="col-num">${fmtInt(rows.reduce((s, r) => s + r.total_fuel, 0))}</td>
+    <td class="r">${fmtInt(rows.reduce((s, r) => s + r.flight_count * r.avg_stltotalconsumption, 0))}</td>
+    <td class="r">${fmtInt(rows.reduce((s, r) => s + r.flight_count * r.avg_ftltotalconsumption, 0))}</td>
+    <td class="r">${fmtInt(rows.reduce((s, r) => s + r.total_fuel, 0))}</td>
   </tr></tfoot>`;
 
   document.getElementById('tableHost').innerHTML =
@@ -354,7 +489,7 @@ const esc = s => String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;
 function setStatus(kind, msg) {
   const el = document.getElementById('statusBar');
   el.innerHTML = (kind === 'busy' ? '<span class="spinner"></span>' : '') + esc(msg);
-  el.style.color = kind === 'err' ? 'var(--red)' : (kind === 'ok' ? 'var(--text2)' : 'var(--text2)');
+  el.style.color = kind === 'err' ? 'var(--red)' : 'var(--text2)';
 }
 
 // ── init ─────────────────────────────────────────────────────────────────────
@@ -362,8 +497,8 @@ function setStatus(kind, msg) {
   const saved = localStorage.getItem(KEY_SLOT);
   if (saved) document.getElementById('keyInput').value = saved;
 
-  const hadCache = loadFromCache();
-  if (!hadCache && saved) doRefresh();          // cached view first, otherwise one fetch
+  const age = loadFromCache();
+  if (saved && (age === null || age > TTL_MS)) doRefresh();   // refresh when missing or stale
   else if (!saved) setStatus('', 'Paste your full-access PUNoted key and hit REFRESH.');
 
   document.getElementById('keyInput').addEventListener('keydown', e => { if (e.key === 'Enter') doRefresh(); });
