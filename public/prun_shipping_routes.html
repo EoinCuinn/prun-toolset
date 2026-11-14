@@ -47,12 +47,6 @@
   button.small { padding: 6px 12px; font-size: 12px; font-family: var(--mono); color: var(--text2); }
   button.small:hover { color: var(--text); }
   button.danger:hover { border-color: var(--red); color: var(--red); }
-  .home-link {
-    margin-left: auto; font-size: 11px; font-family: var(--mono); color: var(--text2);
-    text-decoration: none; border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 8px 12px; transition: border-color 0.15s, color 0.15s;
-  }
-  .home-link:hover { border-color: var(--accent); color: var(--accent); }
 
   /* ── Status ── */
   .status { font-size: 13px; color: var(--text2); margin-bottom: 1rem; min-height: 16px; font-family: var(--mono); }
@@ -132,7 +126,6 @@
   <input id="keyInput" type="password" placeholder="password to unlock">
   <button class="primary" onclick="unlock()">UNLOCK</button>
   <button class="small danger" onclick="forgetKey()">FORGET</button>
-  <a class="home-link" href="/home.html">⌂ Tools</a>
 </div>
 
 <div class="status" id="statusBar">Loading…</div>
