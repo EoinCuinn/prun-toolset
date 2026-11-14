@@ -303,8 +303,8 @@
 </div>
 
 <script>
-const API        = 'https://api.punoted.net/public/flights';
-const KEY_SLOT   = 'prun_punoted_allkey';   // full-access key, separate from the Flight Log's play-session token
+const PROXY      = 'https://prun-shipping-proxy.onrender.com/routes';  // server-side fetch of PUNoted /public/flights
+const KEY_SLOT   = 'prun_punoted_allkey';   // the key the proxy expects; kept separate from the Flight Log's token
 const CACHE_SLOT = 'prun_shippingroutes_cache';
 const TTL_MS     = 60 * 60 * 1000;           // 1 hour
 
@@ -358,15 +358,17 @@ async function doRefresh() {
   if (!key) { setStatus('err', 'Enter your full-access PUNoted key first.'); return; }
   localStorage.setItem(KEY_SLOT, key);
 
-  setStatus('busy', 'Fetching routes from PUNoted…');
+  setStatus('busy', 'Fetching routes… (first load can take ~30s while the proxy wakes up)');
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 90000);
   try {
-    const r = await fetch(API, { headers: { Authorization: `Bearer ${key}` } });
+    const r = await fetch(PROXY, { headers: { 'X-Prun-Key': key }, signal: ctrl.signal });
     if (!r.ok) {
       let detail = '';
       try { detail = (await r.json()).detail || ''; } catch (e) { /* non-JSON error */ }
-      if (r.status === 403 && /whitelist/i.test(detail)) throw new Error(detail + ' — PUNoted has to allow this site\'s origin.');
-      if (r.status === 401 || r.status === 403) throw new Error(`token rejected (${r.status})${detail ? ' — ' + detail : ''}`);
-      throw new Error(`PUNoted error ${r.status}${detail ? ' — ' + detail : ''}`);
+      if (r.status === 401) throw new Error('key rejected by the proxy — use the key configured in Render');
+      if (r.status === 503) throw new Error('the proxy has no PUNOTED_KEY set in Render');
+      throw new Error(`proxy error ${r.status}${detail ? ' — ' + detail : ''}`);
     }
     const raw = await r.json();
     const data = shape(raw);
@@ -377,7 +379,10 @@ async function doRefresh() {
     render();
     setStatus('ok', `Loaded ${fmtInt(ROWS.length)} routes from PUNoted.`);
   } catch (e) {
-    setStatus('err', 'Fetch failed: ' + e.message);
+    if (e.name === 'AbortError') setStatus('err', 'The proxy is still waking up (free Render services sleep when idle). Try again in a minute.');
+    else setStatus('err', 'Fetch failed: ' + e.message);
+  } finally {
+    clearTimeout(timer);
   }
 }
 

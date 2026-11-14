@@ -1,6 +1,7 @@
-# Render Blueprint — deploys the toolset as a free Static Site (no server).
+# Render Blueprint — static site + one small proxy service.
 # Vite builds the MAP (React) app and copies every tool in public/ into dist/.
-# Render serves dist/ from its CDN at the root of the site URL.
+# The proxy exists only for the Shipping Routes page: PUNoted's /public/flights
+# rejects browser origins, so the fetch is done server-side (see server/index.js).
 services:
   - type: web
     name: prun-toolset
@@ -8,3 +9,17 @@ services:
     buildCommand: npm install && npm run build
     staticPublishPath: dist
     autoDeploy: true   # rebuild automatically on every push to the connected branch
+
+  - type: web
+    name: prun-shipping-proxy
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: PUNOTED_KEY
+        sync: false          # set the value in the Render dashboard, never in the repo
+      - key: ALLOWED_ORIGINS
+        value: https://prun-toolset.onrender.com
