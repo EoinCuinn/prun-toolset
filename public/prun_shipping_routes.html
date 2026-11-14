@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PrUn Shipping Routes</title>
+  <style>
+    :root {
+      --bg: #0d0f10; --bg2: #141618; --bg3: #1a1d1f;
+      --border: #2a2d30; --border2: #3a3d40;
+      --accent: #4fc3f7; --green: #4caf50; --orange: #ff9800; --red: #f44336;
+      --text: #e0e0e0; --text2: #9e9e9e; --text3: #616161;
+      --mono: 'Courier New', monospace;
+      --cond: 'Arial Narrow', Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: var(--cond); font-size: 13px; }
+
+    .header {
+      background: var(--bg2); border-bottom: 1px solid var(--border);
+      padding: 8px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+    .page-title { font-size: 15px; font-weight: 700; letter-spacing: 1px; flex: 1; }
+    .input-group { display: flex; align-items: center; gap: 4px; }
+    .input-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
+    .header input {
+      background: var(--bg3); border: 1px solid var(--border); color: var(--text);
+      padding: 4px 8px; font-size: 12px; font-family: var(--mono); border-radius: 3px;
+    }
+    .header input:focus { outline: none; border-color: var(--accent); }
+    .btn {
+      background: var(--accent); color: #000; border: none; padding: 5px 12px;
+      font-size: 12px; font-weight: 700; font-family: var(--cond); cursor: pointer; border-radius: 3px;
+    }
+    .btn:hover { background: #81d4fa; }
+    .btn-sm {
+      background: transparent; color: var(--text2); border: 1px solid var(--border);
+      padding: 4px 10px; font-size: 11px; font-family: var(--cond); cursor: pointer; border-radius: 3px;
+    }
+    .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-danger {
+      background: transparent; color: var(--text3); border: 1px solid var(--border);
+      padding: 4px 10px; font-size: 11px; font-family: var(--cond); cursor: pointer; border-radius: 3px;
+    }
+    .btn-danger:hover { border-color: var(--red); color: var(--red); }
+
+    .status-bar {
+      padding: 6px 16px; font-size: 11px; color: var(--text2);
+      border-bottom: 1px solid var(--border); min-height: 28px; display: flex; align-items: center; gap: 6px;
+    }
+    .spinner {
+      display: inline-block; width: 10px; height: 10px;
+      border: 2px solid var(--border); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .main { padding: 16px; max-width: 1500px; margin: 0 auto; }
+
+    .stats-panel {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 4px;
+      padding: 12px 16px; margin-bottom: 14px;
+      display: flex; gap: 0; align-items: stretch; flex-wrap: wrap;
+    }
+    .stat-block {
+      padding: 0 20px; display: flex; flex-direction: column; gap: 3px;
+      border-right: 1px solid var(--border);
+    }
+    .stat-block:first-child { padding-left: 0; }
+    .stat-block:last-child { border-right: none; padding-right: 0; }
+    .stat-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-val { font-size: 20px; font-family: var(--mono); color: var(--text); line-height: 1.2; }
+    .stat-sub { font-size: 11px; color: var(--text2); font-family: var(--mono); }
+    .stat-note { font-size: 10px; color: var(--text3); max-width: 260px; line-height: 1.4; }
+    .good { color: var(--green); }
+    .warn { color: var(--orange); }
+    .dim { color: var(--text3); }
+
+    .filter-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+    .filter-row input {
+      background: var(--bg3); border: 1px solid var(--border); color: var(--text);
+      padding: 4px 8px; font-size: 12px; font-family: var(--mono); border-radius: 3px; width: 200px;
+    }
+    .filter-row input:focus { outline: none; border-color: var(--accent); }
+    .section-head { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text2); }
+    .entry-count { font-size: 11px; color: var(--text3); }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th {
+      text-align: left; padding: 5px 8px; font-size: 10px; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--text3); border-bottom: 1px solid var(--border);
+      white-space: nowrap; cursor: pointer; user-select: none; position: sticky; top: 0; background: var(--bg);
+    }
+    th:hover { color: var(--accent); }
+    th.r { text-align: right; }
+    th .arrow { color: var(--accent); margin-left: 3px; }
+    td { padding: 5px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: var(--bg2); }
+    tfoot td {
+      border-top: 1px solid var(--border2); font-weight: 700; font-family: var(--mono);
+      font-size: 11px; color: var(--text2); padding: 6px 8px; background: var(--bg2);
+    }
+    .col-route { font-family: var(--mono); font-size: 11px; }
+    .col-num { font-family: var(--mono); text-align: right; }
+    .col-mut { color: var(--text2); }
+    .empty-state { padding: 32px 16px; text-align: center; color: var(--text3); }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="page-title">SHIPPING ROUTES</div>
+  <div class="input-group">
+    <span class="input-label">PUNoted key</span>
+    <input id="keyInput" type="password" placeholder="full-access key" style="width:220px">
+  </div>
+  <button class="btn" onclick="doRefresh()">↺ REFRESH</button>
+  <button class="btn-danger" onclick="forgetKey()">FORGET KEY</button>
+  <a href="/home.html" style="background:var(--bg2);color:var(--accent);border:1px solid var(--border);border-radius:4px;padding:5px 12px;font-size:12px;font-family:var(--mono);text-decoration:none;letter-spacing:0.05em;margin-left:auto;">⌂ Tools</a>
+</div>
+
+<div class="status-bar" id="statusBar">Paste your full-access PUNoted key and hit REFRESH.</div>
+
+<div class="main">
+
+  <div class="stats-panel">
+    <div class="stat-block">
+      <div class="stat-label">Routes</div>
+      <div class="stat-val" id="statRoutes">—</div>
+      <div class="stat-sub" id="statRoutesSub">&nbsp;</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">Flights logged</div>
+      <div class="stat-val" id="statFlights">—</div>
+      <div class="stat-sub" id="statFlightsSub">&nbsp;</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">STL fuel</div>
+      <div class="stat-val" id="statStl">—</div>
+      <div class="stat-sub">all flights, all time</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">FTL fuel</div>
+      <div class="stat-val" id="statFtl">—</div>
+      <div class="stat-sub">all flights, all time</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">Note</div>
+      <div class="stat-note">COSM-wide, all-time aggregate from PUNoted — every ship it tracks belongs to a COSM member company. No date filter exists on this endpoint. Cached for 1 hour.</div>
+    </div>
+  </div>
+
+  <div class="filter-row">
+    <span class="section-head">Routes</span>
+    <span class="entry-count" id="entryCount"></span>
+    <input id="filterOrigin" placeholder="filter origin…" oninput="scheduleRender()">
+    <input id="filterDest" placeholder="filter destination…" oninput="scheduleRender()">
+    <button class="btn-sm" onclick="clearFilters()">CLEAR</button>
+  </div>
+
+  <div class="table-wrap">
+    <div id="tableHost"><div class="empty-state">No data yet. Paste a key and hit REFRESH.</div></div>
+  </div>
+
+</div>
+
+<script>
+const API        = 'https://api.punoted.net/public/flights';
+const KEY_SLOT   = 'prun_punoted_allkey';   // full-access key, separate from the Flight Log's play-session token
+const CACHE_SLOT = 'prun_shippingroutes_cache';
+const TTL_MS     = 60 * 60 * 1000;           // 1 hour
+
+let ROWS = [];                               // shaped route objects
+let SORT = { key: 'flight_count', dir: -1 }; // default: most-flown first
+let renderTimer = null;
+
+// ── shaping ──────────────────────────────────────────────────────────────────
+function shape(raw) {
+  const arr = Array.isArray(raw) ? raw : (Array.isArray(raw && raw.data) ? raw.data : []);
+  return arr.map(r => {
+    const count = +r.flight_count || 0;
+    const stlF  = +r.avg_stltotalconsumption || 0;
+    const ftlF  = +r.avg_ftltotalconsumption || 0;
+    return {
+      origin_label: r.origin_label || '?',
+      destination_label: r.destination_label || '?',
+      flight_count: count,
+      avg_duration_minutes: +r.avg_duration_minutes || 0,
+      avg_stldistance: +r.avg_stldistance || 0,
+      avg_ftldistance: +r.avg_ftldistance || 0,
+      avg_stltotalconsumption: stlF,
+      avg_ftltotalconsumption: ftlF,
+      stl_km: (+r.avg_stldistance || 0) / 1000,
+      ftl_km: (+r.avg_ftldistance || 0) / 1000,
+      total_fuel: count * (stlF + ftlF),
+    };
+  });
+}
+
+// ── formatting ───────────────────────────────────────────────────────────────
+const fmtInt = n => Math.round(n).toLocaleString('en-US');
+function fmtDec(n) {
+  if (!isFinite(n)) return '—';
+  const r = Math.round(n * 10) / 10;
+  const s = Number.isInteger(r) ? String(r) : r.toFixed(1);
+  return s.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+function fmtDur(min) {
+  min = Math.round(min);
+  if (min >= 1440) { const d = Math.floor(min / 1440), h = Math.round((min % 1440) / 60); return `${d}d ${h}h`; }
+  if (min >= 60)   { const h = Math.floor(min / 60), m = min % 60; return `${h}h ${m}m`; }
+  return `${min}m`;
+}
+
+// ── data ─────────────────────────────────────────────────────────────────────
+function getKey() { return document.getElementById('keyInput').value.trim() || localStorage.getItem(KEY_SLOT) || ''; }
+
+async function doRefresh() {
+  const key = getKey();
+  if (!key) { setStatus('err', 'Enter your full-access PUNoted key first.'); return; }
+  localStorage.setItem(KEY_SLOT, key);
+
+  setStatus('busy', 'Fetching routes from PUNoted…');
+  try {
+    const r = await fetch(API, { headers: { Authorization: `Bearer ${key}` } });
+    if (r.status === 401 || r.status === 403) throw new Error(`token rejected (${r.status}) — this endpoint needs the full-access key`);
+    if (!r.ok) throw new Error(`PUNoted error ${r.status}`);
+    const raw = await r.json();
+    const data = shape(raw);
+    if (!data.length) throw new Error('response contained no routes');
+
+    ROWS = data;
+    try { localStorage.setItem(CACHE_SLOT, JSON.stringify({ ts: Date.now(), data: raw })); } catch (e) { /* quota — live data still shown */ }
+    render();
+    setStatus('ok', `Loaded ${fmtInt(ROWS.length)} routes from PUNoted.`);
+  } catch (e) {
+    setStatus('err', 'Fetch failed: ' + e.message);
+  }
+}
+
+function loadFromCache() {
+  try {
+    const c = JSON.parse(localStorage.getItem(CACHE_SLOT) || 'null');
+    if (!c || !c.data) return false;
+    ROWS = shape(c.data);
+    render();
+    const age = Date.now() - c.ts;
+    setStatus('ok', `Showing cached data (${Math.round(age / 60000)} min old). REFRESH to update.`);
+    return true;
+  } catch (e) { return false; }
+}
+
+function forgetKey() {
+  localStorage.removeItem(KEY_SLOT);
+  localStorage.removeItem(CACHE_SLOT);
+  document.getElementById('keyInput').value = '';
+  ROWS = [];
+  document.getElementById('tableHost').innerHTML = '<div class="empty-state">Key and cache cleared.</div>';
+  ['statRoutes','statFlights','statStl','statFtl'].forEach(id => document.getElementById(id).textContent = '—');
+  document.getElementById('entryCount').textContent = '';
+  setStatus('', 'Key and cache cleared.');
+}
+
+// ── render ───────────────────────────────────────────────────────────────────
+const COLS = [
+  { key: 'origin_label',         label: 'Origin',        type: 'text' },
+  { key: 'destination_label',    label: 'Destination',   type: 'text' },
+  { key: 'flight_count',         label: 'Flights',       type: 'int'  },
+  { key: 'avg_duration_minutes', label: 'Avg duration',  type: 'dur'  },
+  { key: 'stl_km',               label: 'STL km',        type: 'dec'  },
+  { key: 'ftl_km',               label: 'FTL km',        type: 'dec'  },
+  { key: 'avg_stltotalconsumption', label: 'Avg STL fuel', type: 'dec' },
+  { key: 'avg_ftltotalconsumption', label: 'Avg FTL fuel', type: 'dec' },
+  { key: 'total_fuel',           label: 'Total fuel',    type: 'int'  },
+];
+
+function scheduleRender() { clearTimeout(renderTimer); renderTimer = setTimeout(render, 120); }
+function clearFilters() {
+  document.getElementById('filterOrigin').value = '';
+  document.getElementById('filterDest').value = '';
+  render();
+}
+
+function render() {
+  const fo = document.getElementById('filterOrigin').value.trim().toLowerCase();
+  const fd = document.getElementById('filterDest').value.trim().toLowerCase();
+
+  let rows = ROWS;
+  if (fo) rows = rows.filter(r => r.origin_label.toLowerCase().includes(fo));
+  if (fd) rows = rows.filter(r => r.destination_label.toLowerCase().includes(fd));
+
+  const col = COLS.find(c => c.key === SORT.key) || COLS[2];
+  rows = rows.slice().sort((a, b) => {
+    const va = a[col.key], vb = b[col.key];
+    if (col.type === 'text') return SORT.dir * String(va).localeCompare(String(vb));
+    return SORT.dir * (va - vb);
+  });
+
+  // stats are always the full dataset, not the filtered view
+  const totFlights = ROWS.reduce((s, r) => s + r.flight_count, 0);
+  const totStl = ROWS.reduce((s, r) => s + r.flight_count * r.avg_stltotalconsumption, 0);
+  const totFtl = ROWS.reduce((s, r) => s + r.flight_count * r.avg_ftltotalconsumption, 0);
+  document.getElementById('statRoutes').textContent  = fmtInt(ROWS.length);
+  document.getElementById('statFlights').textContent = fmtInt(totFlights);
+  document.getElementById('statStl').textContent     = fmtInt(totStl);
+  document.getElementById('statFtl').textContent     = fmtInt(totFtl);
+  document.getElementById('statRoutesSub').textContent  = fo || fd ? `${fmtInt(rows.length)} shown` : 'all routes';
+  document.getElementById('statFlightsSub').textContent = 'across all routes';
+  document.getElementById('entryCount').textContent = `(${fmtInt(rows.length)} of ${fmtInt(ROWS.length)})`;
+
+  const cell = (r, c) => {
+    switch (c.type) {
+      case 'text': return `<td class="col-route">${esc(r[c.key])}</td>`;
+      case 'dur':  return `<td class="col-num" title="${fmtInt(r[c.key])} min">${fmtDur(r[c.key])}</td>`;
+      case 'dec':  return `<td class="col-num col-mut">${fmtDec(r[c.key])}</td>`;
+      default:     return `<td class="col-num">${fmtInt(r[c.key])}</td>`;
+    }
+  };
+
+  const head = COLS.map(c => {
+    const arrow = SORT.key === c.key ? `<span class="arrow">${SORT.dir < 0 ? '▼' : '▲'}</span>` : '';
+    return `<th class="${c.type === 'text' ? '' : 'r'}" onclick="sortBy('${c.key}')">${c.label}${arrow}</th>`;
+  }).join('');
+
+  const body = rows.map(r => '<tr>' + COLS.map(c => cell(r, c)).join('') + '</tr>').join('');
+
+  const foot = `<tfoot><tr>
+    <td colspan="2">TOTAL · ${fmtInt(rows.length)} routes</td>
+    <td class="col-num">${fmtInt(rows.reduce((s, r) => s + r.flight_count, 0))}</td>
+    <td></td><td></td><td></td>
+    <td class="col-num">${fmtInt(rows.reduce((s, r) => s + r.flight_count * r.avg_stltotalconsumption, 0))}</td>
+    <td class="col-num">${fmtInt(rows.reduce((s, r) => s + r.flight_count * r.avg_ftltotalconsumption, 0))}</td>
+    <td class="col-num">${fmtInt(rows.reduce((s, r) => s + r.total_fuel, 0))}</td>
+  </tr></tfoot>`;
+
+  document.getElementById('tableHost').innerHTML =
+    `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody>${foot}</table>`;
+}
+
+function sortBy(key) {
+  if (SORT.key === key) SORT.dir *= -1;
+  else {
+    SORT.key = key;
+    const col = COLS.find(c => c.key === key);
+    SORT.dir = col && col.type === 'text' ? 1 : -1;   // text asc, numbers desc
+  }
+  render();
+}
+
+const esc = s => String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+
+function setStatus(kind, msg) {
+  const el = document.getElementById('statusBar');
+  el.innerHTML = (kind === 'busy' ? '<span class="spinner"></span>' : '') + esc(msg);
+  el.style.color = kind === 'err' ? 'var(--red)' : (kind === 'ok' ? 'var(--text2)' : 'var(--text2)');
+}
+
+// ── init ─────────────────────────────────────────────────────────────────────
+(function init() {
+  const saved = localStorage.getItem(KEY_SLOT);
+  if (saved) document.getElementById('keyInput').value = saved;
+
+  const hadCache = loadFromCache();
+  if (!hadCache && saved) doRefresh();          // cached view first, otherwise one fetch
+  else if (!saved) setStatus('', 'Paste your full-access PUNoted key and hit REFRESH.');
+
+  document.getElementById('keyInput').addEventListener('keydown', e => { if (e.key === 'Enter') doRefresh(); });
+})();
+</script>
+</body>
+</html>
