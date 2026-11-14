@@ -5,18 +5,14 @@
 //   /internal/ships/  — corp fleet (the data behind the Excel Fleet/Ships
 //                       sheets). REQUIRES the key: 401 without it.
 // Running during the build is the script path, so neither origin block applies.
-//
-// If PUNOTED_KEY is set, the bundle is encrypted with it (PBKDF2 + AES-GCM)
-// and the page asks for the key to unlock it. Without the key the build still
-// produces the routes, unencrypted, and the page says ships/fleet are missing.
+// The bundle is written plainly; the page asks each visitor for their own
+// PUNoted key and validates it against the browser-friendly /v1 API.
 import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { pbkdf2Sync, randomBytes, createCipheriv } from 'node:crypto';
 
 const HERE       = dirname(fileURLToPath(import.meta.url));
 const PLAIN_OUT  = resolve(HERE, '../public/punoted_data.json');
-const ENC_OUT    = resolve(HERE, '../public/punoted_data.enc.json');
 const ROUTES_URL = 'https://api.punoted.net/public/flights/';
 const SHIPS_URL  = 'https://api.punoted.net/internal/ships/';
 const KEY        = (process.env.PUNOTED_KEY || '').trim();
@@ -72,24 +68,5 @@ if (!routes) {
 }
 
 const bundle = { generated: new Date().toISOString(), routes, ships };
-
-// ── write ───────────────────────────────────────────────────────────────────
-if (KEY && ships) {
-  const salt = randomBytes(16);
-  const iv   = randomBytes(12);
-  const dk   = pbkdf2Sync(KEY, salt, 200000, 32, 'sha256');
-  const c    = createCipheriv('aes-256-gcm', dk, iv);
-  const ct   = Buffer.concat([c.update(JSON.stringify(bundle), 'utf8'), c.final()]);
-  const tag  = c.getAuthTag();
-  writeFileSync(ENC_OUT, JSON.stringify({
-    v: 1,
-    kdf: 'PBKDF2-SHA256', iterations: 200000, cipher: 'AES-256-GCM',
-    salt: salt.toString('base64'),
-    iv: iv.toString('base64'),
-    data: Buffer.concat([ct, tag]).toString('base64'),
-  }));
-  console.log('[data] wrote encrypted bundle (key required to open)');
-} else {
-  writeFileSync(PLAIN_OUT, JSON.stringify(bundle));
-  console.log('[data] wrote plain bundle (no key at build)');
-}
+writeFileSync(PLAIN_OUT, JSON.stringify(bundle));
+console.log(`[data] wrote bundle (routes ${routes.length}, ships ${ships ? ships.length : 0})`);

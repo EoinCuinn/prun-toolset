@@ -212,9 +212,9 @@
 </section>
 
 <script>
-const ENC_URL   = 'punoted_data.enc.json';
-const PLAIN_URL = 'punoted_data.json';
-const KEY_SLOT  = 'prun_punoted_allkey';
+const DATA_URL   = 'punoted_data.json';
+const VERIFY_URL = 'https://api.punoted.net/v1/ships/';   // browser-friendly: any valid key returns 200
+const KEY_SLOT   = 'prun_punoted_allkey';
 
 let DATA = { generated: null, routes: [], ships: [] };
 let ROWS = [];
@@ -223,45 +223,36 @@ let SHIP_SORT = { key: 'company', dir: 1 };
 let renderTimer = null;
 let TAB = 'routes';
 
-// ── decrypt ──────────────────────────────────────────────────────────────────
-const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
-
-async function decryptBundle(env, pass) {
-  const km = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
-  const dk = await crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt: b64(env.salt), iterations: env.iterations, hash: 'SHA-256' },
-    km, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
-  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(env.iv) }, dk, b64(env.data));
-  return JSON.parse(new TextDecoder().decode(pt));
-}
-
+// ── load ─────────────────────────────────────────────────────────────────────
 async function fetchJSON(url) {
   const r = await fetch(url + '?t=' + Date.now(), { cache: 'no-store' });
   if (!r.ok) return null;
   return r.json();
 }
 
-// ── load ─────────────────────────────────────────────────────────────────────
+// Any valid PUNoted key opens the page: we ask PUNoted's browser-friendly /v1
+// API to confirm the key, then load the shared data bundle.
 async function unlock() {
   const typed = document.getElementById('keyInput').value.trim();
   const key   = typed || localStorage.getItem(KEY_SLOT) || '';
+  if (!key) { setStatus('', 'Enter your PUNoted key and press UNLOCK.'); return; }
 
-  setStatus('busy', 'Loading…');
+  setStatus('busy', 'Checking key with PUNoted…');
   try {
-    const env = await fetchJSON(ENC_URL);
-    if (env) {
-      if (!key) { setStatus('', 'Enter your PUNoted key and press UNLOCK.'); return; }
-      localStorage.setItem(KEY_SLOT, key);
-      let bundle;
-      try { bundle = await decryptBundle(env, key); }
-      catch (e) { throw new Error('key rejected — it does not unlock this data'); }
-      applyBundle(bundle);
-    } else {
-      const plain = await fetchJSON(PLAIN_URL);
-      if (!plain) throw new Error('no data file — it is generated on the next deploy');
-      applyBundle(plain);
-      setStatus('warn', 'Loaded unencrypted snapshot (built without a key) — ships and fleet may be missing.');
+    let vr;
+    try {
+      vr = await fetch(VERIFY_URL, { headers: { 'X-Data-Token': key } });
+    } catch (e) {
+      throw new Error('could not reach PUNoted to check the key');
     }
+    if (vr.status === 401 || vr.status === 403) throw new Error('PUNoted rejected that key');
+    if (!vr.ok) throw new Error('PUNoted key check returned ' + vr.status);
+
+    localStorage.setItem(KEY_SLOT, key);
+    setStatus('busy', 'Key accepted — loading data…');
+    const bundle = await fetchJSON(DATA_URL);
+    if (!bundle) throw new Error('no data file — it is generated on the next deploy');
+    applyBundle(bundle);
   } catch (e) {
     setStatus('err', 'Could not load: ' + e.message);
   }
