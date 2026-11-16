@@ -19,8 +19,8 @@ const PASS       = (process.env.PAGE_PASS || '').trim();
 if (PASS) console.log(`[data] PAGE_PASS length: ${PASS.length}`);
 
 // ── ships: paused ───────────────────────────────────────────────────────────
-// PUNoted's owner flagged /internal/ships as frontend-only and not meant for
-// outside use (2026-11-16). Not called until a protected corp-wide endpoint
+// PUNoted's owner flagged its frontend-only fleet endpoint as not meant for
+// outside tools (2026-11-16). Not called until a protected corp-wide endpoint
 // exists. Re-enable here when it does.
 const ships = null;
 
