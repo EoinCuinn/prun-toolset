@@ -20,6 +20,10 @@ const SHIPS_URL  = 'https://api.punoted.net/internal/ships/';
 const KEY        = (process.env.PUNOTED_KEY || '').trim();
 const PASS       = (process.env.PAGE_PASS || '').trim();
 
+// Length only — never the value. Lets a deploy log show which password the
+// build actually used (e.g. after an env-var change that didn't apply yet).
+if (PASS) console.log(`[data] PAGE_PASS length: ${PASS.length}`);
+
 async function getJSON(url, headers = {}) {
   const r = await fetch(url, {
     headers: { 'User-Agent': 'prun-toolset-build', ...headers },
