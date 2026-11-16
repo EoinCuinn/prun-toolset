@@ -1,10 +1,7 @@
 // Build-time data snapshot for the Shipping Routes page.
 //
-// Two PUNoted endpoints, both of which reject browser origins:
-//   /public/flights/  — corp-wide route table. No key needed.
-//   /internal/ships/  — corp fleet (the data behind the Excel Fleet/Ships
-//                       sheets). REQUIRES the key: 401 without it.
-// Running during the build is the script path, so neither origin block applies.
+// Source: PUNoted /public/flights/ — corp-wide route table. It rejects browser
+// origins, so it is fetched here, during the build (no Origin header).
 // The bundle is encrypted with PAGE_PASS (a corp password, NOT the PUNoted key)
 // so the stored file is unreadable without it.
 import { writeFileSync } from 'node:fs';
@@ -16,13 +13,16 @@ const HERE       = dirname(fileURLToPath(import.meta.url));
 const PLAIN_OUT  = resolve(HERE, '../public/punoted_data.json');
 const ENC_OUT    = resolve(HERE, '../public/punoted_data.enc.json');
 const ROUTES_URL = 'https://api.punoted.net/public/flights/';
-const SHIPS_URL  = 'https://api.punoted.net/internal/ships/';
-const KEY        = (process.env.PUNOTED_KEY || '').trim();
 const PASS       = (process.env.PAGE_PASS || '').trim();
 
-// Length only — never the value. Lets a deploy log show which password the
-// build actually used (e.g. after an env-var change that didn't apply yet).
+// Length only — never the value, so a deploy log shows which password a build used.
 if (PASS) console.log(`[data] PAGE_PASS length: ${PASS.length}`);
+
+// ── ships: paused ───────────────────────────────────────────────────────────
+// PUNoted's owner flagged /internal/ships as frontend-only and not meant for
+// outside use (2026-11-16). Not called until a protected corp-wide endpoint
+// exists. Re-enable here when it does.
+const ships = null;
 
 async function getJSON(url, headers = {}) {
   const r = await fetch(url, {
@@ -47,27 +47,7 @@ for (let i = 1; i <= 3 && !routes; i++) {
 }
 
 // ── ships (key) ─────────────────────────────────────────────────────────────
-let ships = null;
-if (KEY) {
-  try {
-    const raw = await getJSON(SHIPS_URL, { Authorization: `Bearer ${KEY}` });
-    const list = Array.isArray(raw) ? raw : (raw.ships || raw.data || []);
-    ships = list.map(s => ({
-      name: s.name || s.displayname || '?',
-      cls: s.ship_type || 'UNKNOWN',
-      volume: +s.volume || 0,
-      mass: +s.mass || 0,
-      flow: +s.stlfuelflowrate || 0,
-      company: s.companycode || '?',
-      transit: !!s.flightid,
-    }));
-    console.log(`[data] ships: ${ships.length}`);
-  } catch (e) {
-    console.warn(`[data] ships failed: ${e.message}`);
-  }
-} else {
-  console.warn('[data] PUNOTED_KEY not set — ships/fleet will be missing');
-}
+// (paused — see the note above; `ships` stays null until a protected endpoint exists)
 
 if (!routes) {
   console.warn('[data] no routes; nothing written');

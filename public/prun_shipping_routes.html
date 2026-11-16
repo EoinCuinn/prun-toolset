@@ -269,8 +269,14 @@ function applyBundle(bundle) {
   document.getElementById('cntFleet').textContent  = DATA.ships.length ? `(${fmtInt(fleetRows().length)})` : '';
   document.getElementById('cntShips').textContent  = DATA.ships.length ? `(${fmtInt(DATA.ships.length)})` : '';
   render();
+  if (!DATA.ships.length) {
+    const msg = '<div class="empty-state">Corp fleet data is paused — PUNoted has to expose a protected endpoint for it. The Routes tab is complete.</div>';
+    document.getElementById('fleetHost').innerHTML = msg;
+    document.getElementById('shipsHost').innerHTML = msg;
+  }
   const gen = DATA.generated ? new Date(DATA.generated) : null;
-  setStatus('ok', `Unlocked ${fmtInt(DATA.routes.length)} routes, ${fmtInt(DATA.ships.length)} ships` +
+  setStatus('ok', `Unlocked ${fmtInt(DATA.routes.length)} routes` +
+    (DATA.ships.length ? `, ${fmtInt(DATA.ships.length)} ships` : ' — fleet data paused') +
     (gen ? ` — snapshot generated ${gen.toLocaleString()}` : '') + '.');
 }
 
