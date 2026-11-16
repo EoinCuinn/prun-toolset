@@ -50,8 +50,10 @@ for (let i = 1; i <= 3 && !routes; i++) {
 // (paused — see the note above; `ships` stays null until a protected endpoint exists)
 
 if (!routes) {
-  console.warn('[data] no routes; nothing written');
-  process.exit(0);
+  // Fail the build rather than publish a site with no data file: Render keeps
+  // the previous successful deploy live, so the last good snapshot survives.
+  console.error('[data] no routes after retries — failing the build to keep the previous deploy live');
+  process.exit(1);
 }
 
 const bundle = { generated: new Date().toISOString(), routes, ships };
