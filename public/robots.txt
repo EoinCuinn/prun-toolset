@@ -1,0 +1,6 @@
+# Keep the unlisted Shipping Routes page and its data out of search engines.
+# Advisory only — it does not restrict access; the page is password-gated.
+User-agent: *
+Disallow: /prun_shipping_routes.html
+Disallow: /punoted_data.json
+Disallow: /punoted_data.enc.json
