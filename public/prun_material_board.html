@@ -232,7 +232,7 @@ const FIO_BASE = 'https://rest.fnar.net';
 const PN_BASE  = 'https://api.punoted.net/v1';
 const CACHE_TTL = 5 * 60 * 1000;
 const LS = { fio: 'prun_apikey', pn: 'prun_punoted_allkey', user: 'prun_cis_user', cfg: 'prun_cis_cfg' };
-const BUILD = '2026-11-21e';
+const BUILD = '2026-11-21f';
 // Temporary: hide counterparty names until they are supplied.
 const MASK_COUNTERPARTY = true;   // shown in the header so a stale cached page is obvious
 
@@ -720,6 +720,25 @@ async function cxPrice(ticker, dir) {
   return +p;
 }
 
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (e) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand('copy');
+      ta.remove();
+      return ok;
+    } catch (e2) { return false; }
+  }
+}
+
 async function exportCommit(idx) {
   const c = CFG.commitments[idx];
   if (!c) return;
@@ -759,14 +778,17 @@ async function exportCommit(idx) {
     <pre class="export-pre">${esc(EXPORT.json)}</pre>
     <div class="mono" style="padding:0 12px 12px;font-size:12px;">Paste line at execution: <span class="muted">${esc(EXPORT.paste)}</span></div>
   </div>`;
-  setStatus('ok', `XIT package ready — price ${price} from ${src}.`);
+  const copied = await copyText(EXPORT.json);
+  setStatus(copied ? 'ok' : 'err',
+    copied
+      ? `Package copied — price ${price} from ${src}. The paste line is shown below.`
+      : `Package built (price ${price} from ${src}) but the clipboard was blocked — use COPY PACKAGE.`);
 }
 
-function copyExport(which) {
+async function copyExport(which) {
   const text = which === 'paste' ? EXPORT.paste : EXPORT.json;
-  navigator.clipboard.writeText(text).then(
-    () => setStatus('ok', which === 'paste' ? 'Paste line copied.' : 'Package copied.'),
-    () => setStatus('err', 'Clipboard copy failed.'));
+  const ok = await copyText(text);
+  setStatus(ok ? 'ok' : 'err', ok ? (which === 'paste' ? 'Paste line copied.' : 'Package copied.') : 'Clipboard copy failed.');
 }
 
 // ── commitments summary ─────────────────────────────────────────────────────
@@ -793,7 +815,7 @@ function renderCommitments() {
       <td class="r mono">${fmt1(r.unitsDue)}</td>
       <td class="r mono muted">${fmt1(r.have)}</td>
       <td class="r mono ${r.pending ? 'dim' : (r.gap >= 0 ? 'good' : 'bad')}">${r.pending ? 'starts ' + esc(dateOf(r.starts)) : ((r.gap >= 0 ? '+' : '') + fmt1(r.gap))}</td>
-      <td><button class="small" onclick="exportCommit(${r.idx})">XIT</button></td>
+      <td><button class="small" title="Build and copy the XIT package" onclick="exportCommit(${r.idx})">XIT</button></td>
     </tr>`).join('')}</tbody>
     <tfoot><tr><td colspan="6">${rows.length} commitment${rows.length === 1 ? '' : 's'}${shortCount ? ` · ${shortCount} short` : ' · all covered'}</td><td colspan="4"></td></tr></tfoot>
   </table>`;
