@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PrUn Material Board</title>
+<style>
+  :root {
+    --bg: #0f1117; --bg2: #181c27; --bg3: #1e2333;
+    --border: #2a3045; --border2: #3a4460;
+    --text: #e2e8f0; --text2: #8892a4; --text3: #555f72;
+    --accent: #4f8ef7; --green: #4ade80; --orange: #fb923c; --red: #f87171; --yellow: #facc15;
+    --mono: 'Courier New', monospace; --radius: 6px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px; line-height: 1.5; padding: 1.5rem;
+    max-width: 1500px; margin: 0 auto;
+  }
+
+  /* ── header ── */
+  .top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+  h1 {
+    font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--text2); display: flex; align-items: center; gap: 8px; margin-right: auto;
+  }
+  h1::before { content: ''; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
+  .input-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+  input, select {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+    color: var(--text); padding: 8px 10px; font-size: 13px; font-family: var(--mono); outline: none;
+    transition: border-color 0.15s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  button {
+    background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius);
+    color: var(--text); padding: 8px 14px; font-size: 13px; font-family: inherit; cursor: pointer;
+    transition: background 0.15s, border-color 0.15s; white-space: nowrap;
+  }
+  button:hover { background: var(--border); border-color: var(--accent); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  button.primary:hover { background: #6aa0f9; }
+  button.small { padding: 5px 10px; font-size: 12px; font-family: var(--mono); color: var(--text2); }
+
+  /* ── status ── */
+  .status { font-size: 13px; color: var(--text2); margin-bottom: 1rem; min-height: 16px; font-family: var(--mono); }
+  .spinner { display:inline-block; width:10px; height:10px; margin-right:6px; border:2px solid var(--border);
+             border-top-color: var(--accent); border-radius:50%; animation: spin .8s linear infinite; vertical-align:-1px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── panels ── */
+  .panel { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .panel-title, .section-head {
+    font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text3); margin-bottom: 0.75rem;
+  }
+
+  .query-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  #matInput { width: 240px; text-transform: uppercase; }
+  #qtyInput { width: 110px; }
+
+  /* ── stats ── */
+  .stats-panel {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 1rem 1.25rem; margin-bottom: 1rem; display: flex; align-items: stretch; flex-wrap: wrap;
+  }
+  .stat-block { padding: 0 20px; display: flex; flex-direction: column; gap: 2px; border-right: 1px solid var(--border); }
+  .stat-block:first-child { padding-left: 0; }
+  .stat-block:last-child { border-right: none; padding-right: 0; }
+  .stat-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .stat-val { font-size: 22px; font-family: var(--mono); color: var(--text); line-height: 1.2; }
+  .stat-sub { font-size: 12px; font-family: var(--mono); color: var(--text2); }
+  .good { color: var(--green); }
+  .warn { color: var(--orange); }
+  .bad { color: var(--red); }
+
+  /* ── tables ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+  .table-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow-x: auto; background: var(--bg2); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    text-align: left; padding: 8px; font-size: 12px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--text3); border-bottom: 1px solid var(--border);
+    white-space: nowrap; background: var(--bg3);
+  }
+  th.r, td.r { text-align: right; }
+  td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--bg3); }
+  tfoot td { background: var(--bg3); border-top: 1px solid var(--border2); border-bottom: none;
+             font-size: 12px; font-weight: 600; font-family: var(--mono); color: var(--text2); padding: 8px; }
+  .mono { font-family: var(--mono); }
+  .muted { color: var(--text2); }
+  .dim { color: var(--text3); }
+  .empty-state { padding: 24px 16px; text-align: center; color: var(--text3); font-size: 13px; font-family: var(--mono); }
+  .hidden { display: none; }
+
+  .answer-line { font-size: 16px; margin-top: 0.75rem; min-height: 22px; }
+  .answer-line .yes { color: var(--green); font-weight: 700; }
+  .answer-line .no { color: var(--red); font-weight: 700; }
+
+  details summary { cursor: pointer; color: var(--text2); font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; }
+  textarea { width: 100%; min-height: 200px; background: var(--bg); border: 1px solid var(--border);
+             border-radius: var(--radius); color: var(--text); font-family: var(--mono); font-size: 12px; padding: 10px; }
+  .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 12px 0; }
+  .settings-grid label { display: block; font-size: 11px; color: var(--text3); text-transform: uppercase;
+                         letter-spacing: 0.08em; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <h1>Material Board</h1>
+  <span class="input-label">Player</span>
+  <input id="userInput" value="eoincuinn" style="width:120px">
+  <span class="input-label">FIO key</span>
+  <input id="fioKeyInput" type="password" placeholder="FIO REST key" style="width:170px">
+  <span class="input-label">PUNoted</span>
+  <input id="pnKeyInput" type="password" placeholder="token" style="width:150px">
+  <button class="primary" onclick="loadAll(true)">↺ LOAD</button>
+</div>
+
+<div class="status" id="statusBar">Enter your keys and press LOAD.</div>
+
+<div class="panel">
+  <div class="query-row">
+    <input id="matInput" list="matList" placeholder="material (e.g. COF)" autocomplete="off">
+    <datalist id="matList"></datalist>
+    <span style="flex:1"></span>
+    <input id="qtyInput" type="number" min="0" placeholder="qty">
+    <select id="destSelect">
+      <option value="to corp">to corp</option>
+      <option value="to CX">to CX</option>
+      <option value="to another player">to another player</option>
+    </select>
+    <button onclick="sellCheck()">SELL CHECK</button>
+  </div>
+  <div class="answer-line" id="answerLine"></div>
+</div>
+
+<div class="stats-panel" id="statsPanel">
+  <div class="stat-block"><div class="stat-label">Stock</div><div class="stat-val" id="sStock">—</div><div class="stat-sub" id="sStockSub">&nbsp;</div></div>
+  <div class="stat-block"><div class="stat-label">Net / day</div><div class="stat-val" id="sNet">—</div><div class="stat-sub" id="sNetSub">&nbsp;</div></div>
+  <div class="stat-block"><div class="stat-label">Days of cover</div><div class="stat-val" id="sCover">—</div><div class="stat-sub" id="sCoverSub">&nbsp;</div></div>
+  <div class="stat-block"><div class="stat-label">Free to sell</div><div class="stat-val" id="sFree">—</div><div class="stat-sub" id="sFreeSub">&nbsp;</div></div>
+  <div class="stat-block"><div class="stat-label">Open in / out</div><div class="stat-val" id="sCont">—</div><div class="stat-sub" id="sContSub">&nbsp;</div></div>
+</div>
+
+<div class="grid-2">
+  <div class="panel">
+    <div class="section-head">Stock by location</div>
+    <div class="table-wrap"><div id="stockHost"><div class="empty-state">Pick a material.</div></div></div>
+  </div>
+  <div class="panel">
+    <div class="section-head">Burn by planet</div>
+    <div class="table-wrap"><div id="burnHost"><div class="empty-state">Pick a material.</div></div></div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="section-head">Open contracts</div>
+  <div class="table-wrap"><div id="contractHost"><div class="empty-state">Pick a material.</div></div></div>
+</div>
+
+<div class="grid-2">
+  <div class="panel">
+    <div class="section-head">Standing commitments</div>
+    <div class="table-wrap"><div id="commitHost"><div class="empty-state">Pick a material.</div></div></div>
+  </div>
+  <div class="panel">
+    <div class="section-head">Reserve</div>
+    <div class="table-wrap"><div id="reserveHost"><div class="empty-state">Pick a material.</div></div></div>
+  </div>
+</div>
+
+<div class="panel">
+  <details>
+    <summary>Settings — horizon, commitments, reserve overrides</summary>
+    <div class="settings-grid">
+      <div><label>Horizon (days)</label><input id="horizonInput" type="number" min="1" max="60" value="7" style="width:100%"></div>
+      <div><label>Reserve: days of usage</label><input id="reserveUseInput" type="number" min="1" max="120" value="30" style="width:100%"></div>
+      <div><label>Reserve: days of production</label><input id="reserveProdInput" type="number" min="1" max="120" value="20" style="width:100%"></div>
+    </div>
+    <label style="display:block;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">
+      Config JSON — commitments [{counterparty, material, units, per: "day"|"week", activeFrom?}] and reserve {TICKER: units}
+    </label>
+    <textarea id="cfgText"></textarea>
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <button class="small" onclick="saveConfig()">SAVE CONFIG</button>
+      <button class="small" onclick="resetConfig()">RESET TO DEFAULT</button>
+    </div>
+  </details>
+</div>
+
+<div class="panel">
+  <details>
+    <summary>Below reserve right now</summary>
+    <div class="table-wrap" style="margin-top:10px;"><div id="alertHost"><div class="empty-state">Load data to see this.</div></div></div>
+  </details>
+</div>
+
+<script>
+const FIO_BASE = 'https://rest.fnar.net';
+const PN_BASE  = 'https://api.punoted.net/v1';
+const CACHE_TTL = 5 * 60 * 1000;
+const LS = { fio: 'prun_apikey', pn: 'prun_punoted_allkey', user: 'prun_cis_user', cfg: 'prun_cis_cfg' };
+
+const DEFAULT_CFG = {
+  horizonDays: 7,
+  reserveDays: { usage: 30, production: 20 },
+  commitments: [
+    { counterparty: 'Syrim',        material: 'RAT', units: 3500, per: 'week' },
+    { counterparty: 'Syrim',        material: 'DW',  units: 3500, per: 'week' },
+    { counterparty: 'Purpleorange', material: 'PSL', units: 450,  per: 'week' },
+    { counterparty: 'Purpleorange', material: 'PSM', units: 450,  per: 'week' },
+    { counterparty: 'GuyKid',       material: 'DCM', units: 14,   per: 'day', activeFrom: '2026-11-22' },
+    { counterparty: 'Corp',         material: 'PG',  units: 4000, per: 'day' },
+  ],
+  reserve: {},
+};
+
+let MATERIALS = [];
+let DATA = null;
+let CFG = JSON.parse(JSON.stringify(DEFAULT_CFG));
+let CURRENT = null;
+
+const $ = id => document.getElementById(id);
+const fmt = n => Math.round(n).toLocaleString('en-US');
+const fmt1 = n => (Math.round(n * 10) / 10).toLocaleString('en-US');
+function dateOf(v) {
+  if (!v) return '—';
+  const d = typeof v === 'number' ? new Date(v) : new Date(String(v));
+  return isNaN(d) ? String(v).slice(0, 10) : d.toISOString().slice(0, 10);
+}
+const esc = s => String(s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+
+function setStatus(kind, msg) {
+  const el = $('statusBar');
+  el.innerHTML = (kind === 'busy' ? '<span class="spinner"></span>' : '') + esc(msg);
+  el.style.color = kind === 'err' ? 'var(--red)' : 'var(--text2)';
+}
+
+// ── config ──────────────────────────────────────────────────────────────────
+function loadConfig() {
+  try {
+    const raw = localStorage.getItem(LS.cfg);
+    if (raw) CFG = Object.assign({}, DEFAULT_CFG, JSON.parse(raw));
+  } catch (e) { CFG = JSON.parse(JSON.stringify(DEFAULT_CFG)); }
+  renderConfig();
+}
+function renderConfig() {
+  $('horizonInput').value = CFG.horizonDays;
+  $('reserveUseInput').value = CFG.reserveDays.usage;
+  $('reserveProdInput').value = CFG.reserveDays.production;
+  $('cfgText').value = JSON.stringify({ commitments: CFG.commitments, reserve: CFG.reserve }, null, 2);
+}
+function saveConfig() {
+  try {
+    const parsed = JSON.parse($('cfgText').value);
+    CFG.horizonDays = +$('horizonInput').value || 7;
+    CFG.reserveDays = { usage: +$('reserveUseInput').value || 30, production: +$('reserveProdInput').value || 20 };
+    CFG.commitments = Array.isArray(parsed.commitments) ? parsed.commitments : [];
+    CFG.reserve = parsed.reserve && typeof parsed.reserve === 'object' ? parsed.reserve : {};
+    localStorage.setItem(LS.cfg, JSON.stringify(CFG));
+    setStatus('ok', 'Config saved.');
+    if (DATA) { refresh(); }
+  } catch (e) { setStatus('err', 'Config JSON is invalid: ' + e.message); }
+}
+function resetConfig() {
+  CFG = JSON.parse(JSON.stringify(DEFAULT_CFG));
+  localStorage.removeItem(LS.cfg);
+  renderConfig();
+  if (DATA) refresh();
+}
+
+// ── data ────────────────────────────────────────────────────────────────────
+async function fetchJSON(url, headers) {
+  const r = await fetch(url, { headers });
+  if (!r.ok) throw new Error(url.replace(FIO_BASE, '').replace(PN_BASE, '') + ' -> HTTP ' + r.status);
+  return r.json();
+}
+
+async function loadAll(force) {
+  const user = $('userInput').value.trim();
+  const fioKey = $('fioKeyInput').value.trim() || localStorage.getItem(LS.fio) || '';
+  const pnKey  = $('pnKeyInput').value.trim()  || localStorage.getItem(LS.pn)  || '';
+  if (!user) { setStatus('err', 'Enter your player name.'); return; }
+  if (!fioKey) { setStatus('err', 'Enter your FIO key.'); return; }
+  localStorage.setItem(LS.user, user);
+  localStorage.setItem(LS.fio, fioKey);
+  if (pnKey) localStorage.setItem(LS.pn, pnKey);
+
+  if (!MATERIALS.length) {
+    try {
+      MATERIALS = await (await fetch('material_data.json', { cache: 'force-cache' })).json();
+      $('matList').innerHTML = MATERIALS.map(m => `<option value="${esc(m.Ticker)}">${esc(m.Name)}</option>`).join('');
+    } catch (e) { /* autocomplete only */ }
+  }
+
+  const cacheKey = 'prun_mb_cache_' + user.toLowerCase();
+  if (!force) {
+    try {
+      const c = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+      if (c && Date.now() - c.ts < CACHE_TTL) { DATA = c; finishLoad('cached'); return; }
+    } catch (e) { /* ignore */ }
+  }
+
+  setStatus('busy', 'Loading storage, contracts and burn data…');
+  try {
+    const [storage, contracts, burn] = await Promise.all([
+      fetchJSON(`${FIO_BASE}/storage/${encodeURIComponent(user)}`, { Authorization: fioKey }),
+      fetchJSON(`${FIO_BASE}/contract/allcontracts/${encodeURIComponent(user)}`, { Authorization: fioKey }),
+      pnKey ? fetchJSON(`${PN_BASE}/production/user/burn`, { 'X-Data-Token': pnKey }) : Promise.resolve(null),
+    ]);
+    DATA = {
+      ts: Date.now(),
+      storage: Array.isArray(storage) ? storage : (storage.Data || []),
+      contracts: Array.isArray(contracts) ? contracts : (contracts.Data || []),
+      burn: burn || null,
+    };
+    try { localStorage.setItem(cacheKey, JSON.stringify(DATA)); } catch (e) { /* quota */ }
+    finishLoad('live');
+  } catch (e) {
+    setStatus('err', 'Load failed: ' + e.message);
+  }
+}
+
+function finishLoad(kind) {
+  const when = new Date(DATA.ts).toLocaleTimeString();
+  const pn = DATA.burn ? 'burn ✓' : 'no PUNoted token — no burn data';
+  setStatus('ok', `Loaded ${DATA.storage.length} storages, ${DATA.contracts.length} contracts, ${pn} — ${when}${kind === 'cached' ? ' (cached)' : ''}.`);
+  renderAlerts();
+  if (CURRENT) refresh();
+}
+
+// ── helpers ─────────────────────────────────────────────────────────────────
+const TYPE_LABEL = {
+  SHIP_STORE: 'Ship',
+  WAREHOUSE_STORE: 'Warehouse',
+  STORE: 'Store',
+  STL_FUEL_STORE: 'STL fuel',
+  FTL_FUEL_STORE: 'FTL fuel',
+};
+
+function stockRows(ticker) {
+  const rows = [];
+  for (const st of DATA.storage) {
+    let amt = 0;
+    for (const it of (st.StorageItems || [])) if (it.MaterialTicker === ticker) amt += (+it.Amount || 0);
+    if (amt > 0) rows.push({ name: st.Name || '?', type: TYPE_LABEL[st.Type] || st.Type || '—', amt });
+  }
+  return rows.sort((a, b) => b.amt - a.amt);
+}
+const stockOf = ticker => stockRows(ticker).reduce((s, r) => s + r.amt, 0);
+
+function burnRows(ticker) {
+  const rows = [];
+  if (!DATA.burn) return rows;
+  for (const planet of Object.keys(DATA.burn)) {
+    let p = 0, c = 0;
+    for (const r of (DATA.burn[planet] || [])) if (r.MaterialTicker === ticker) { p += +r.Production || 0; c += +r.Consumption || 0; }
+    if (p || c) rows.push({ planet, prod: p, cons: c, net: p - c });
+  }
+  return rows.sort((a, b) => a.net - b.net);
+}
+function burnTotals(ticker) {
+  const rows = burnRows(ticker);
+  return { prod: rows.reduce((s, r) => s + r.prod, 0), cons: rows.reduce((s, r) => s + r.cons, 0) };
+}
+
+// Party is the COUNTERPARTY's role: CUSTOMER = they buy from us (we deliver).
+function contractRows(ticker) {
+  const rows = [];
+  for (const c of DATA.contracts) {
+    const status = String(c.Status || '').toUpperCase();
+    if (['CLOSED', 'CANCELLED', 'TERMINATED'].includes(status)) continue;
+    for (const k of (c.Conditions || [])) {
+      if (String(k.Type || '').toUpperCase() !== 'DELIVERY') continue;
+      const t = k.MaterialTicker || k.QuantityMaterialTicker;
+      if (t !== ticker) continue;
+      if (String(k.Status || '').toUpperCase() === 'FULFILLED') continue;
+      const amt = +(k.MaterialAmount || k.QuantityAmount || 0);
+      if (!amt) continue;
+      const party = String(c.Party || '').toUpperCase();
+      rows.push({
+        dir: party === 'CUSTOMER' ? 'out' : 'in',
+        partner: c.PartnerName || c.PartnerCode || '?',
+        amt,
+        due: c.DueDate || k.Deadline || c.DateEpochMs || '',
+        status: c.Status || '',
+        dest: k.DestinationAddressName || k.AddressName || k.DestinationAddressNaturalId || '',
+      });
+    }
+  }
+  return rows;
+}
+
+function commitmentsFor(ticker) {
+  const rows = [];
+  for (const c of CFG.commitments) {
+    if (String(c.material || '').toUpperCase() !== ticker) continue;
+    if (c.activeFrom && new Date(c.activeFrom) > new Date()) continue;
+    const units = +c.units || 0;
+    const overHorizon = c.per === 'week' ? units * (CFG.horizonDays / 7) : units * CFG.horizonDays;
+    rows.push({ who: c.counterparty, units, per: c.per, overHorizon });
+  }
+  return rows;
+}
+
+function reserveFor(ticker, cons, prod) {
+  if (Object.prototype.hasOwnProperty.call(CFG.reserve, ticker)) return { value: +CFG.reserve[ticker] || 0, override: true };
+  if (cons > 0) return { value: cons * CFG.reserveDays.usage, override: false };
+  if (prod > 0) return { value: prod * CFG.reserveDays.production, override: false };
+  return { value: 0, override: false };
+}
+
+// ── render ──────────────────────────────────────────────────────────────────
+function normalizeTicker(v) {
+  const s = String(v || '').trim().toUpperCase();
+  return (s.match(/^[A-Z0-9]{1,4}/) || [''])[0];
+}
+
+function refresh() {
+  const ticker = CURRENT;
+  const stock = stockOf(ticker);
+  const { prod, cons } = burnTotals(ticker);
+  const cRows = contractRows(ticker);
+  const incoming = cRows.filter(r => r.dir === 'in').reduce((s, r) => s + r.amt, 0);
+  const outgoing = cRows.filter(r => r.dir === 'out').reduce((s, r) => s + r.amt, 0);
+  const commits = commitmentsFor(ticker);
+  const commitTotal = commits.reduce((s, r) => s + r.overHorizon, 0);
+  const reserve = reserveFor(ticker, cons, prod);
+  const horizon = CFG.horizonDays;
+  const production = prod * horizon;
+  const free = stock + incoming + production - outgoing - commitTotal - reserve.value;
+  const net = prod - cons;
+
+  $('sStock').textContent = fmt(stock);
+  $('sStockSub').textContent = `${stockRows(ticker).length} location${stockRows(ticker).length === 1 ? '' : 's'}`;
+  $('sNet').textContent = (net >= 0 ? '+' : '') + fmt1(net);
+  $('sNetSub').textContent = DATA.burn ? `${fmt1(prod)} made · ${fmt1(cons)} used` : 'no burn data';
+  $('sNet').className = 'stat-val ' + (net >= 0 ? 'good' : 'bad');
+
+  if (net < 0) {
+    const cover = stock / -net;
+    $('sCover').textContent = fmt1(cover) + 'd';
+    $('sCoverSub').textContent = 'at current net draw';
+    $('sCover').className = 'stat-val ' + (cover < 7 ? 'bad' : cover < 14 ? 'warn' : 'good');
+  } else {
+    $('sCover').textContent = '∞';
+    $('sCoverSub').textContent = 'production covers demand';
+    $('sCover').className = 'stat-val good';
+  }
+
+  $('sFree').textContent = fmt(free);
+  $('sFreeSub').textContent = `${horizon}d horizon, reserve ${fmt(reserve.value)}`;
+  $('sFree').className = 'stat-val ' + (free > 0 ? 'good' : 'bad');
+
+  $('sCont').textContent = `${fmt(incoming)} / ${fmt(outgoing)}`;
+  $('sContSub').textContent = `${cRows.filter(r => r.dir === 'in').length} in · ${cRows.filter(r => r.dir === 'out').length} out`;
+
+  // stock table
+  const sRows = stockRows(ticker);
+  $('stockHost').innerHTML = sRows.length
+    ? `<table><thead><tr><th>Location</th><th>Type</th><th class="r">Amount</th></tr></thead><tbody>
+       ${sRows.map(r => `<tr><td class="mono">${esc(r.name)}</td><td class="muted">${esc(r.type)}</td><td class="r mono">${fmt(r.amt)}</td></tr>`).join('')}
+       </tbody><tfoot><tr><td colspan="2">TOTAL</td><td class="r">${fmt(stock)}</td></tr></tfoot></table>`
+    : '<div class="empty-state">No stock of this material.</div>';
+
+  // burn table
+  const bRows = burnRows(ticker);
+  $('burnHost').innerHTML = bRows.length
+    ? `<table><thead><tr><th>Planet</th><th class="r">Prod/day</th><th class="r">Use/day</th><th class="r">Net/day</th></tr></thead><tbody>
+       ${bRows.map(r => `<tr><td class="mono">${esc(r.planet)}</td><td class="r mono muted">${fmt1(r.prod)}</td><td class="r mono muted">${fmt1(r.cons)}</td><td class="r mono ${r.net >= 0 ? 'good' : 'bad'}">${r.net >= 0 ? '+' : ''}${fmt1(r.net)}</td></tr>`).join('')}
+       </tbody><tfoot><tr><td>TOTAL</td><td class="r">${fmt1(prod)}</td><td class="r">${fmt1(cons)}</td><td class="r">${net >= 0 ? '+' : ''}${fmt1(net)}</td></tr></tfoot></table>`
+    : '<div class="empty-state">No production or consumption of this material.</div>';
+
+  // contracts table
+  $('contractHost').innerHTML = cRows.length
+    ? `<table><thead><tr><th>Direction</th><th>Partner</th><th>Destination</th><th>Status</th><th>Due</th><th class="r">Amount</th></tr></thead><tbody>
+       ${cRows.map(r => `<tr>
+          <td class="${r.dir === 'in' ? 'good' : 'warn'}">${r.dir === 'in' ? '← in' : '→ out'}</td>
+          <td class="mono">${esc(r.partner)}</td>
+          <td class="muted">${esc(r.dest || '—')}</td>
+          <td class="muted">${esc(r.status || '—')}</td>
+          <td class="muted mono">${esc(dateOf(r.due))}</td>
+          <td class="r mono">${fmt(r.amt)}</td></tr>`).join('')}
+       </tbody><tfoot><tr><td colspan="5">TOTAL</td><td class="r">in ${fmt(incoming)} · out ${fmt(outgoing)}</td></tr></tfoot></table>`
+    : '<div class="empty-state">No open deliveries of this material.</div>';
+
+  // commitments
+  $('commitHost').innerHTML = commits.length
+    ? `<table><thead><tr><th>Counterparty</th><th class="r">Rate</th><th class="r">Over ${horizon}d</th></tr></thead><tbody>
+       ${commits.map(r => `<tr><td class="mono">${esc(r.who)}</td><td class="r mono muted">${fmt(r.units)}/${r.per}</td><td class="r mono">${fmt1(r.overHorizon)}</td></tr>`).join('')}
+       </tbody><tfoot><tr><td colspan="2">TOTAL</td><td class="r">${fmt1(commitTotal)}</td></tr></tfoot></table>`
+    : '<div class="empty-state">No standing commitments for this material.</div>';
+
+  // reserve
+  $('reserveHost').innerHTML = `<table><thead><tr><th>Basis</th><th class="r">Units</th></tr></thead><tbody>
+      <tr><td class="muted">${reserve.override ? 'Override (config)' : cons > 0 ? `Default — ${CFG.reserveDays.usage} days of usage` : prod > 0 ? `Default — ${CFG.reserveDays.production} days of production` : 'No burn data or override'}</td><td class="r mono">${fmt(reserve.value)}</td></tr>
+      <tr><td class="muted">Stock now</td><td class="r mono">${fmt(stock)}</td></tr>
+      <tr><td class="muted">${stock >= reserve.value ? 'Above reserve by' : 'Below reserve by'}</td><td class="r mono ${stock >= reserve.value ? 'good' : 'bad'}">${fmt(Math.abs(stock - reserve.value))}</td></tr>
+    </tbody></table>`;
+}
+
+function selectMaterial(ticker) {
+  CURRENT = ticker;
+  refresh();
+}
+
+function sellCheck() {
+  if (!DATA) { setStatus('err', 'Press LOAD first.'); return; }
+  const ticker = normalizeTicker($('matInput').value);
+  if (!ticker) { setStatus('err', 'Enter a material ticker.'); return; }
+  const qty = +$('qtyInput').value || 0;
+  const dest = $('destSelect').value;
+  selectMaterial(ticker);
+
+  const stock = stockOf(ticker);
+  const { prod, cons } = burnTotals(ticker);
+  const cRows = contractRows(ticker);
+  const incoming = cRows.filter(r => r.dir === 'in').reduce((s, r) => s + r.amt, 0);
+  const outgoing = cRows.filter(r => r.dir === 'out').reduce((s, r) => s + r.amt, 0);
+  const commitTotal = commitmentsFor(ticker).reduce((s, r) => s + r.overHorizon, 0);
+  const reserve = reserveFor(ticker, cons, prod).value;
+  const free = stock + incoming + prod * CFG.horizonDays - outgoing - commitTotal - reserve;
+
+  $('answerLine').innerHTML = qty <= free
+    ? `<span class="yes">Yes</span> — sell ${fmt(qty)} ${esc(ticker)} ${esc(dest)}; ${fmt(free - qty)} left over reserve.`
+    : `<span class="no">No</span> — selling ${fmt(qty)} ${esc(ticker)} ${esc(dest)} leaves you ${fmt(qty - free)} short; you can sell ${fmt(Math.max(0, free))}.`;
+}
+
+function renderAlerts() {
+  if (!DATA) return;
+  const tickers = new Set(Object.keys(CFG.reserve));
+  if (DATA.burn) for (const p of Object.keys(DATA.burn)) for (const r of (DATA.burn[p] || [])) tickers.add(r.MaterialTicker);
+
+  const rows = [];
+  for (const t of tickers) {
+    const stock = stockOf(t);
+    const { prod, cons } = burnTotals(t);
+    const reserve = reserveFor(t, cons, prod).value;
+    if (reserve > 0 && stock < reserve) rows.push({ t, stock, reserve, deficit: reserve - stock });
+  }
+  rows.sort((a, b) => b.deficit - a.deficit);
+
+  $('alertHost').innerHTML = rows.length
+    ? `<table><thead><tr><th>Material</th><th class="r">Stock</th><th class="r">Reserve</th><th class="r">Deficit</th></tr></thead><tbody>
+       ${rows.slice(0, 20).map(r => `<tr><td class="mono" style="color:var(--yellow)">${esc(r.t)}</td><td class="r mono">${fmt(r.stock)}</td><td class="r mono muted">${fmt(r.reserve)}</td><td class="r mono bad">−${fmt(r.deficit)}</td></tr>`).join('')}
+       </tbody></table>`
+    : '<div class="empty-state">Nothing below reserve.</div>';
+}
+
+// ── init ────────────────────────────────────────────────────────────────────
+(function init() {
+  loadConfig();
+  const user = localStorage.getItem(LS.user); if (user) $('userInput').value = user;
+  const fio = localStorage.getItem(LS.fio);  if (fio)  $('fioKeyInput').value = fio;
+  const pn  = localStorage.getItem(LS.pn);   if (pn)   $('pnKeyInput').value  = pn;
+
+  $('horizonInput').addEventListener('change', () => { CFG.horizonDays = +$('horizonInput').value || 7; if (DATA && CURRENT) refresh(); });
+  $('matInput').addEventListener('keydown', e => { if (e.key === 'Enter') sellCheck(); });
+  $('qtyInput').addEventListener('keydown', e => { if (e.key === 'Enter') sellCheck(); });
+  $('matInput').addEventListener('change', () => { const t = normalizeTicker($('matInput').value); if (t && DATA) selectMaterial(t); });
+
+  if (fio) loadAll(false);
+})();
+</script>
+</body>
+</html>
