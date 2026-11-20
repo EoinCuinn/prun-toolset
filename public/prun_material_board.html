@@ -117,6 +117,7 @@
 
 <div class="top">
   <h1>Material Board</h1>
+  <span id="buildTag" class="dim" style="font-size:10px;font-family:var(--mono);"></span>
   <span class="input-label">Player</span>
   <input id="userInput" value="eoincuinn" style="width:110px">
   <span class="input-label">FIO key</span>
@@ -166,6 +167,7 @@ const FIO_BASE = 'https://rest.fnar.net';
 const PN_BASE  = 'https://api.punoted.net/v1';
 const CACHE_TTL = 5 * 60 * 1000;
 const LS = { fio: 'prun_apikey', pn: 'prun_punoted_allkey', user: 'prun_cis_user', cfg: 'prun_cis_cfg' };
+const BUILD = '2026-11-20c';   // shown in the header so a stale cached page is obvious
 
 const DEFAULT_CFG = {
   horizonDays: 7,
@@ -593,6 +595,7 @@ function sellCheck(t) {
 
 // ── init ────────────────────────────────────────────────────────────────────
 (function init() {
+  document.getElementById('buildTag').textContent = BUILD;
   loadConfig();
   const user = localStorage.getItem(LS.user); if (user) $('userInput').value = user;
   const fio = localStorage.getItem(LS.fio);  if (fio)  $('fioKeyInput').value = fio;
