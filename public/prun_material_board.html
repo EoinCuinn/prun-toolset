@@ -110,6 +110,8 @@
   .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 12px 0; }
   .settings-grid label { display: block; font-size: 11px; color: var(--text3); text-transform: uppercase;
                          letter-spacing: 0.08em; margin-bottom: 4px; }
+  .export-pre { margin: 0 12px 8px; padding: 10px; background: var(--bg); border: 1px solid var(--border);
+                border-radius: var(--radius); font-family: var(--mono); font-size: 11px; white-space: pre-wrap; word-break: break-all; }
   .editor-add { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; align-items: center; }
   .editor-add input, .editor-add select { padding: 5px 7px; font-size: 12px; }
   #editorHost table { font-size: 12px; }
@@ -176,6 +178,7 @@
   </div>
   <div class="panel-body" id="body-commitments">
     <div class="table-wrap"><div id="commitSummary"><div class="empty-state">Load your keys to see commitments.</div></div></div>
+    <div id="exportPanel" class="hidden"></div>
   </div>
 </div>
 
@@ -195,8 +198,10 @@
       <input id="newPerson" placeholder="person" style="width:120px">
       <input id="newLocation" placeholder="location" style="width:120px">
       <select id="newCont"><option value="">cont —</option><option value="me">I raise</option><option value="them">they raise</option></select>
+      <select id="newDir"><option value="sell">sell</option><option value="buy">buy</option></select>
       <input id="newMaterial" list="matList" placeholder="material" style="width:90px">
       <input id="newUnits" type="number" min="0" placeholder="rate" style="width:80px">
+      <input id="newPrice" type="number" min="0" step="0.01" placeholder="price" style="width:80px">
       <select id="newPer"><option value="week">/week</option><option value="day">/day</option></select>
       <select id="newDue"><option>Mon</option><option>Tue</option><option>Wed</option><option>Thu</option><option>Fri</option><option>Sat</option><option>Sun</option></select>
       <input id="newStart" type="date" title="starts (optional)" style="width:135px">
@@ -227,22 +232,23 @@ const FIO_BASE = 'https://rest.fnar.net';
 const PN_BASE  = 'https://api.punoted.net/v1';
 const CACHE_TTL = 5 * 60 * 1000;
 const LS = { fio: 'prun_apikey', pn: 'prun_punoted_allkey', user: 'prun_cis_user', cfg: 'prun_cis_cfg' };
-const BUILD = '2026-11-21c';
+const BUILD = '2026-11-21d';
 // Temporary: hide counterparty names until they are supplied.
 const MASK_COUNTERPARTY = true;   // shown in the header so a stale cached page is obvious
 
 const DEFAULT_CFG = {
   horizonDays: 7,
+  defaultExchange: 'IC1',
   reserveDays: { usage: 16, production: 16 },
   commitments: [
-    { counterparty: 'COSM player', material: 'RAT', units: 3500, per: 'week', due: 'Mon', location: '', cont: '' },
-    { counterparty: 'COSM player', material: 'DW',  units: 3500, per: 'week', due: 'Mon', location: '', cont: '' },
-    { counterparty: 'COSM player', material: 'PSL', units: 450,  per: 'week', due: 'Sat', location: '', cont: '' },
-    { counterparty: 'COSM player', material: 'PSM', units: 450,  per: 'week', due: 'Sat', location: '', cont: '' },
-    { counterparty: 'COSM player', material: 'DCM', units: 14,   per: 'day',  due: 'Sat', location: '', cont: '', activeFrom: '2026-11-22' },
-    { counterparty: 'COSM player', material: 'PG',  units: 4000, per: 'day',  due: 'Mon', location: '', cont: '' },
-    { counterparty: 'COSM player', material: 'BTS', units: 750,  per: 'week', due: 'Sat', location: 'Helion Prime', cont: 'me' },
-    { counterparty: 'COSM player', material: 'GL',  units: 300,  per: 'week', due: 'Sat', location: '', cont: '' },
+    { counterparty: 'COSM player', material: 'RAT', units: 3500, per: 'week', due: 'Mon', dir: 'sell', price: 0, location: '', cont: '' },
+    { counterparty: 'COSM player', material: 'DW',  units: 3500, per: 'week', due: 'Mon', dir: 'sell', price: 0, location: '', cont: '' },
+    { counterparty: 'COSM player', material: 'PSL', units: 450,  per: 'week', due: 'Sat', dir: 'sell', price: 0, location: '', cont: '' },
+    { counterparty: 'COSM player', material: 'PSM', units: 450,  per: 'week', due: 'Sat', dir: 'sell', price: 0, location: '', cont: '' },
+    { counterparty: 'COSM player', material: 'DCM', units: 14,   per: 'day',  due: 'Sat', dir: 'sell', price: 0, location: '', cont: '', activeFrom: '2026-11-22' },
+    { counterparty: 'COSM player', material: 'PG',  units: 4000, per: 'day',  due: 'Mon', dir: 'sell', price: 0, location: '', cont: '' },
+    { counterparty: 'COSM player', material: 'BTS', units: 750,  per: 'week', due: 'Sat', dir: 'sell', price: 0, location: 'Helion Prime', cont: 'me' },
+    { counterparty: 'COSM player', material: 'GL',  units: 300,  per: 'week', due: 'Sat', dir: 'sell', price: 0, location: '', cont: '' },
   ],
   reserve: {},
 };
@@ -364,7 +370,7 @@ function renderEditor() {
   const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   const dayOpts = cur => days.map(d => `<option ${d === cur ? 'selected' : ''}>${d}</option>`).join('');
   host.innerHTML = `<table><thead><tr>
-      <th>Person</th><th>Location</th><th>Cont</th><th>Material</th><th class="r">Rate</th><th>Per</th><th>Due</th><th>Starts</th><th>Note</th><th></th>
+      <th>Person</th><th>Location</th><th>Cont</th><th>Dir</th><th>Material</th><th class="r">Rate</th><th class="r">Price</th><th>Per</th><th>Due</th><th>Starts</th><th>Note</th><th></th>
     </tr></thead><tbody>
     ${list.map((c, i) => `<tr>
       <td><input value="${esc(c.counterparty || '')}" onchange="updateCommit(${i},'counterparty',this.value)"></td>
@@ -374,8 +380,13 @@ function renderEditor() {
         <option value="me" ${c.cont === 'me' ? 'selected' : ''}>I raise</option>
         <option value="them" ${c.cont === 'them' ? 'selected' : ''}>they raise</option>
       </select></td>
+      <td><select onchange="updateCommit(${i},'dir',this.value)">
+        <option value="sell" ${c.dir !== 'buy' ? 'selected' : ''}>sell</option>
+        <option value="buy" ${c.dir === 'buy' ? 'selected' : ''}>buy</option>
+      </select></td>
       <td><input list="matList" value="${esc(c.material || '')}" onchange="updateCommit(${i},'material',this.value.toUpperCase())"></td>
       <td class="r"><input type="number" min="0" value="${c.units != null ? c.units : ''}" onchange="updateCommit(${i},'units',+this.value||0)"></td>
+      <td class="r"><input type="number" min="0" step="0.01" value="${c.price ? c.price : ''}" onchange="updateCommit(${i},'price',+this.value||0)"></td>
       <td><select onchange="updateCommit(${i},'per',this.value)">
         <option value="week" ${c.per !== 'day' ? 'selected' : ''}>/week</option>
         <option value="day" ${c.per === 'day' ? 'selected' : ''}>/day</option>
@@ -415,13 +426,15 @@ function addCommit() {
     material, units,
     per: $('newPer').value,
     due: $('newDue').value,
+    dir: $('newDir').value,
+    price: +$('newPrice').value || 0,
     activeFrom: $('newStart').value || undefined,
     note: $('newNote').value.trim() || undefined,
   });
   persistCommitments();
   renderEditor();
-  ['newPerson','newLocation','newMaterial','newUnits','newStart','newNote'].forEach(id => $(id).value = '');
-  $('newCont').value = ''; $('newPer').value = 'week'; $('newDue').value = 'Sat';
+  ['newPerson','newLocation','newMaterial','newUnits','newPrice','newStart','newNote'].forEach(id => $(id).value = '');
+  $('newCont').value = ''; $('newDir').value = 'sell'; $('newPer').value = 'week'; $('newDue').value = 'Sat';
   setStatus('ok', `Added ${material} commitment.`);
 }
 
@@ -594,16 +607,19 @@ function contractRows(t) {
 }
 function commitmentsFor(t) {
   const rows = [];
-  for (const c of CFG.commitments) {
-    if (String(c.material || '').toUpperCase() !== t) continue;
+  CFG.commitments.forEach((c, idx) => {
+    if (String(c.material || '').toUpperCase() !== t) return;
     const pending = c.activeFrom ? new Date(c.activeFrom) > new Date() : false;
     const units = +c.units || 0;
     const due = c.due || 'Sat';
     const days = daysUntilWeekday(due);
     const unitsDue = c.per === 'week' ? units : units * 7;   // a week's worth for daily rates
     const overHorizon = c.per === 'week' ? units * (CFG.horizonDays / 7) : units * CFG.horizonDays;
-    rows.push({ who: c.counterparty, units, per: c.per, due, days, unitsDue, overHorizon, note: c.note || '', pending, starts: c.activeFrom || '', location: c.location || '', cont: c.cont || '' });
-  }
+    rows.push({ idx, who: c.counterparty, units, per: c.per, due, days, unitsDue, overHorizon,
+                note: c.note || '', pending, starts: c.activeFrom || '',
+                location: c.location || '', cont: c.cont || '',
+                dir: c.dir || 'sell', price: +c.price || 0 });
+  });
   return rows.sort((a, b) => a.days - b.days);
 }
 function reserveFor(t, cons, prod) {
@@ -681,6 +697,72 @@ function buildModel() {
   renderCommitments();
 }
 
+// ── XIT export ──────────────────────────────────────────────────────────────
+let EXPORT = { json: '', paste: '' };
+let CX_CACHE = null;
+
+async function cxPrice(ticker, dir) {
+  if (!CX_CACHE) {
+    const r = await fetch('https://rest.fnar.net/cx/prices');
+    if (!r.ok) throw new Error('CX prices HTTP ' + r.status);
+    CX_CACHE = await r.json();
+  }
+  const ex = String(CFG.defaultExchange || 'IC1').toUpperCase();
+  const rows = CX_CACHE.filter(x => x.MaterialTicker === ticker);
+  const row = rows.find(x => String(x.ExchangeCode).toUpperCase() === ex) || rows[0];
+  if (!row) throw new Error('no CX price for ' + ticker);
+  const p = dir === 'buy' ? (row.Ask || row.Price) : (row.Bid || row.Price);
+  return Math.round((+p || 0) * 100) / 100;
+}
+
+async function exportCommit(idx) {
+  const c = CFG.commitments[idx];
+  if (!c) return;
+  setStatus('busy', 'Preparing XIT export…');
+  let price = +c.price || 0;
+  let src = 'commitment override';
+  if (!price) {
+    try { price = await cxPrice(c.material, c.dir); src = 'CX ' + (CFG.defaultExchange || 'IC1'); }
+    catch (e) { setStatus('err', 'No price available: ' + e.message); return; }
+  }
+  if (!price) { setStatus('err', 'No price for ' + c.material + ' — set one on the commitment.'); return; }
+
+  const units = c.per === 'week' ? (+c.units || 0) : (+c.units || 0) * 7;
+  const pkg = {
+    actions: [{
+      type: 'CONT Trade', group: 'G1',
+      contLocation: c.location || 'Configure on Execution',
+      contTradeType: c.dir === 'buy' ? 'BUYING' : 'SELLING',
+      daysToFulfill: 3, currency: 'AIC',
+    }],
+    global: { name: `Material Board — ${c.material} ${units}` },
+    groups: [{ type: 'Paste', name: 'G1' }],
+  };
+  EXPORT.json = JSON.stringify(pkg);
+  EXPORT.paste = `${c.material} ${units} ${price}`;
+
+  const host = $('exportPanel');
+  host.classList.remove('hidden');
+  host.innerHTML = `<div class="subpanel" style="margin-top:12px;">
+    <div class="subpanel-title">XIT export — ${esc(c.material)} ${fmt(units)} (${esc(src)})</div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin:10px 12px;">
+      <button class="small" onclick="copyExport('json')">COPY PACKAGE</button>
+      <button class="small" onclick="copyExport('paste')">COPY PASTE LINE</button>
+      <span class="muted" style="font-size:12px;">price ${price}</span>
+    </div>
+    <pre class="export-pre">${esc(EXPORT.json)}</pre>
+    <div class="mono" style="padding:0 12px 12px;font-size:12px;">Paste line at execution: <span class="muted">${esc(EXPORT.paste)}</span></div>
+  </div>`;
+  setStatus('ok', `XIT package ready — price ${price} from ${src}.`);
+}
+
+function copyExport(which) {
+  const text = which === 'paste' ? EXPORT.paste : EXPORT.json;
+  navigator.clipboard.writeText(text).then(
+    () => setStatus('ok', which === 'paste' ? 'Paste line copied.' : 'Package copied.'),
+    () => setStatus('err', 'Clipboard copy failed.'));
+}
+
 // ── commitments summary ─────────────────────────────────────────────────────
 function renderCommitments() {
   if (!DATA) return;
@@ -694,7 +776,7 @@ function renderCommitments() {
   const cc = $('commitCount'); if (cc) cc.textContent = `${rows.length}`;
 
   host.innerHTML = `<table>
-    <thead><tr><th>Due</th><th>Material</th><th>Person</th><th>Location</th><th>Cont</th><th class="r">Rate</th><th class="r">Units due</th><th class="r">Have by then</th><th class="r">Gap</th></tr></thead>
+    <thead><tr><th>Due</th><th>Material</th><th>Person</th><th>Location</th><th>Cont</th><th class="r">Rate</th><th class="r">Units due</th><th class="r">Have by then</th><th class="r">Gap</th><th></th></tr></thead>
     <tbody>${rows.map(r => `<tr>
       <td class="muted">${esc(r.due)}${r.days === 0 ? ' (today)' : ` (${r.days}d)`}</td>
       <td><span class="mat">${esc(r.ticker)}</span> <span class="mat-name">${esc(r.name)}</span></td>
@@ -705,8 +787,9 @@ function renderCommitments() {
       <td class="r mono">${fmt1(r.unitsDue)}</td>
       <td class="r mono muted">${fmt1(r.have)}</td>
       <td class="r mono ${r.pending ? 'dim' : (r.gap >= 0 ? 'good' : 'bad')}">${r.pending ? 'starts ' + esc(dateOf(r.starts)) : ((r.gap >= 0 ? '+' : '') + fmt1(r.gap))}</td>
+      <td><button class="small" onclick="exportCommit(${r.idx})">XIT</button></td>
     </tr>`).join('')}</tbody>
-    <tfoot><tr><td colspan="5">${rows.length} commitment${rows.length === 1 ? '' : 's'}${shortCount ? ` · ${shortCount} short` : ' · all covered'}</td><td colspan="4"></td></tr></tfoot>
+    <tfoot><tr><td colspan="6">${rows.length} commitment${rows.length === 1 ? '' : 's'}${shortCount ? ` · ${shortCount} short` : ' · all covered'}</td><td colspan="4"></td></tr></tfoot>
   </table>`;
 }
 

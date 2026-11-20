@@ -266,6 +266,7 @@ This project would not exist without:
 - **Zillatron27** — [drydock](https://github.com/Zillatron27/drydock) — the ship component data the Ship Builder was originally built from.
 - **Aem | SR** — radiation damage formula, ~60-point landing damage dataset, KI-439 70-flight fuel log. Empirical backbone of the damage calibration arc.
 - **xflasar** (`xSupeFly` on Discord) — [PUNoted](https://github.com/xflasar), the live flight-data API (`api.punoted.net`) that powers the Flight Log tool — ships and in-progress flights with exact timestamps.
+- **Refined PrUn** — [refined-prun](https://github.com/Cosmocene-Combine/refined-prun) (MIT: Yarek Tyshchenko, Samuel Burnes, Andrei Andreev) — the XIT ACT action-package format, including `CONT Trade`, `CX Buy` and `MTRA`, which the Material Board export follows; the XIT command system itself originates from this extension.
 - **Jan Placht** — [PRUNplanner](https://github.com/PRUNplanner/frontend) (MIT) — the HQ upgrade cost table was cross-checked against it, and the XIT ACT export format used across the buy/transfer tools follows its working implementation.
 
 ---
