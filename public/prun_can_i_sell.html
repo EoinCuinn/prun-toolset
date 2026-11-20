@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PrUn Can I Sell?</title>
+<style>
+  :root {
+    --bg: #0f1117; --bg2: #181c27; --bg3: #1e2333;
+    --border: #2a3045; --border2: #3a4460;
+    --text: #e2e8f0; --text2: #8892a4; --text3: #555f72;
+    --accent: #4f8ef7; --green: #4ade80; --orange: #fb923c; --red: #f87171; --yellow: #facc15;
+    --mono: 'Courier New', monospace; --radius: 6px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px; line-height: 1.5; padding: 1.5rem;
+    max-width: 1100px; margin: 0 auto;
+  }
+
+  .top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+  h1 { font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text2);
+       display: flex; align-items: center; gap: 8px; margin-right: auto; }
+  h1::before { content: ''; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
+  .input-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+  input, select {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+    color: var(--text); padding: 8px 10px; font-size: 13px; font-family: var(--mono); outline: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  button {
+    background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius);
+    color: var(--text); padding: 8px 14px; font-size: 13px; font-family: inherit; cursor: pointer;
+  }
+  button:hover { background: var(--border); border-color: var(--accent); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  button.primary:hover { background: #6aa0f9; }
+  button.small { padding: 5px 10px; font-size: 12px; font-family: var(--mono); color: var(--text2); }
+
+  .status { font-size: 13px; color: var(--text2); margin-bottom: 1rem; min-height: 16px; font-family: var(--mono); }
+  .spinner { display:inline-block; width:10px; height:10px; margin-right:6px; border:2px solid var(--border);
+             border-top-color: var(--accent); border-radius:50%; animation: spin .8s linear infinite; vertical-align:-1px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .panel { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .panel-title { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--text3); margin-bottom: .75rem; }
+
+  .query-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  #matInput { width: 200px; text-transform: uppercase; }
+  #qtyInput { width: 120px; }
+
+  .answer { font-size: 20px; line-height: 1.4; }
+  .answer .yes { color: var(--green); font-weight: 700; }
+  .answer .no { color: var(--red); font-weight: 700; }
+  .answer .num { font-family: var(--mono); }
+
+  .breakdown { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-top: 1rem; }
+  .bcell { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: .6rem .75rem; }
+  .bcell .lbl { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: .08em; }
+  .bcell .val { font-size: 17px; font-family: var(--mono); }
+  .bcell.pos .val { color: var(--green); }
+  .bcell.neg .val { color: var(--orange); }
+  .bcell.keep .val { color: var(--accent); }
+
+  .note { font-size: 12px; color: var(--text3); margin-top: .75rem; }
+  .alert-list { display: flex; flex-direction: column; gap: 6px; }
+  .alert-row { display: flex; justify-content: space-between; gap: 12px; font-family: var(--mono); font-size: 13px;
+               border-bottom: 1px solid var(--border); padding: 5px 0; }
+  .alert-row .mat { color: var(--yellow); }
+  .alert-row .def { color: var(--red); }
+  .muted { color: var(--text3); }
+  .hidden { display: none; }
+  details summary { cursor: pointer; color: var(--text2); font-size: 12px; text-transform: uppercase; letter-spacing: .1em; }
+  textarea { width: 100%; min-height: 220px; background: var(--bg); border: 1px solid var(--border);
+             border-radius: var(--radius); color: var(--text); font-family: var(--mono); font-size: 12px; padding: 10px; }
+  .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 12px 0; }
+  .settings-grid label { display: block; font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <h1>Can I Sell?</h1>
+  <span class="input-label">Player</span>
+  <input id="userInput" value="eoincuinn" style="width:120px">
+  <span class="input-label">FIO key</span>
+  <input id="fioKeyInput" type="password" placeholder="FIO REST key" style="width:180px">
+  <span class="input-label">PUNoted</span>
+  <input id="pnKeyInput" type="password" placeholder="token" style="width:160px">
+  <button class="primary" onclick="loadAll(true)">↺ LOAD</button>
+</div>
+
+<div class="status" id="statusBar">Enter your keys and press LOAD.</div>
+
+<div class="panel">
+  <div class="panel-title">Question</div>
+  <div class="query-row">
+    <input id="matInput" list="matList" placeholder="material" autocomplete="off">
+    <datalist id="matList"></datalist>
+    <input id="qtyInput" type="number" min="0" placeholder="quantity">
+    <select id="destSelect">
+      <option value="Corp">to corp</option>
+      <option value="CX">to CX</option>
+      <option value="Another player">to another player</option>
+    </select>
+    <button class="primary" onclick="ask()">ASK</button>
+  </div>
+</div>
+
+<div class="panel hidden" id="answerPanel">
+  <div class="answer" id="answerText"></div>
+  <div class="breakdown" id="breakdown"></div>
+  <div class="note" id="answerNote"></div>
+</div>
+
+<div class="panel hidden" id="alertsPanel">
+  <div class="panel-title">Below reserve right now</div>
+  <div class="alert-list" id="alertList"></div>
+</div>
+
+<div class="panel">
+  <details>
+    <summary>Settings — commitments, horizon, reserves</summary>
+    <div class="settings-grid">
+      <div>
+        <label>Horizon (days)</label>
+        <input id="horizonInput" type="number" min="1" max="60" value="7" style="width:100%">
+      </div>
+      <div>
+        <label>Days of usage for reserve default</label>
+        <input id="reserveUseInput" type="number" min="1" max="120" value="30" style="width:100%">
+      </div>
+      <div>
+        <label>Days of production for reserve default</label>
+        <input id="reserveProdInput" type="number" min="1" max="120" value="20" style="width:100%">
+      </div>
+    </div>
+    <label style="display:block;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">
+      Config (JSON) — commitments [{counterparty, material, units, per: "day"|"week"}] and reserve overrides {TICKER: units}
+    </label>
+    <textarea id="cfgText"></textarea>
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <button class="small" onclick="saveConfig()">SAVE CONFIG</button>
+      <button class="small" onclick="resetConfig()">RESET TO DEFAULT</button>
+    </div>
+  </details>
+</div>
+
+<script>
+const FIO_BASE = 'https://rest.fnar.net';
+const PN_BASE  = 'https://api.punoted.net/v1';
+const CACHE_TTL = 5 * 60 * 1000;
+
+const LS = {
+  fio:  'prun_apikey',
+  pn:   'prun_punoted_allkey',
+  user: 'prun_cis_user',
+  cfg:  'prun_cis_cfg',
+};
+
+const DEFAULT_CFG = {
+  horizonDays: 7,
+  reserveDays: { usage: 30, production: 20 },
+  commitments: [
+    { counterparty: 'Syrim',        material: 'RAT', units: 3500, per: 'week' },
+    { counterparty: 'Syrim',        material: 'DW',  units: 3500, per: 'week' },
+    { counterparty: 'Purpleorange', material: 'PSL', units: 450,  per: 'week' },
+    { counterparty: 'Purpleorange', material: 'PSM', units: 450,  per: 'week' },
+    { counterparty: 'GuyKid',       material: 'DCM', units: 14,   per: 'day', activeFrom: '2026-11-22' },
+    { counterparty: 'Corp',         material: 'PG',  units: 4000, per: 'day'  },
+  ],
+  reserve: {},
+};
+
+let MATERIALS = [];            // [{Ticker, Name}]
+let DATA = null;               // { storage, contracts, burn, ts }
+let CFG = JSON.parse(JSON.stringify(DEFAULT_CFG));
+
+// ── helpers ─────────────────────────────────────────────────────────────────
+const fmt = n => Math.round(n).toLocaleString('en-US');
+const fmt1 = n => (Math.round(n * 10) / 10).toLocaleString('en-US');
+const $ = id => document.getElementById(id);
+function setStatus(kind, msg) {
+  const el = $('statusBar');
+  el.innerHTML = (kind === 'busy' ? '<span class="spinner"></span>' : '') + esc(msg);
+  el.style.color = kind === 'err' ? 'var(--red)' : (kind === 'ok' ? 'var(--text2)' : 'var(--text2)');
+}
+const esc = s => String(s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+
+function cfgKey(user) { return 'prun_cis_cache_' + user.toLowerCase(); }
+
+function loadConfig() {
+  try {
+    const raw = localStorage.getItem(LS.cfg);
+    if (raw) CFG = Object.assign({}, DEFAULT_CFG, JSON.parse(raw));
+  } catch (e) { CFG = JSON.parse(JSON.stringify(DEFAULT_CFG)); }
+  renderConfig();
+}
+
+function renderConfig() {
+  $('horizonInput').value = CFG.horizonDays;
+  $('reserveUseInput').value = CFG.reserveDays.usage;
+  $('reserveProdInput').value = CFG.reserveDays.production;
+  $('cfgText').value = JSON.stringify({ commitments: CFG.commitments, reserve: CFG.reserve }, null, 2);
+}
+
+function saveConfig() {
+  try {
+    const parsed = JSON.parse($('cfgText').value);
+    CFG.horizonDays = +$('horizonInput').value || 7;
+    CFG.reserveDays = {
+      usage: +$('reserveUseInput').value || 30,
+      production: +$('reserveProdInput').value || 20,
+    };
+    CFG.commitments = Array.isArray(parsed.commitments) ? parsed.commitments : [];
+    CFG.reserve = parsed.reserve && typeof parsed.reserve === 'object' ? parsed.reserve : {};
+    localStorage.setItem(LS.cfg, JSON.stringify(CFG));
+    setStatus('ok', 'Config saved.');
+    if (DATA) { renderAlerts(); }
+  } catch (e) {
+    setStatus('err', 'Config JSON is invalid: ' + e.message);
+  }
+}
+
+function resetConfig() {
+  CFG = JSON.parse(JSON.stringify(DEFAULT_CFG));
+  localStorage.removeItem(LS.cfg);
+  renderConfig();
+  setStatus('ok', 'Config reset to default.');
+  if (DATA) renderAlerts();
+}
+
+// ── loading ─────────────────────────────────────────────────────────────────
+async function fetchJSON(url, headers) {
+  const r = await fetch(url, { headers });
+  if (!r.ok) throw new Error(url.replace(FIO_BASE, '').replace(PN_BASE, '') + ' -> HTTP ' + r.status);
+  return r.json();
+}
+
+async function loadAll(force) {
+  const user  = $('userInput').value.trim();
+  const fioKey = $('fioKeyInput').value.trim() || localStorage.getItem(LS.fio) || '';
+  const pnKey  = $('pnKeyInput').value.trim()  || localStorage.getItem(LS.pn)  || '';
+  if (!user) { setStatus('err', 'Enter your player name.'); return; }
+  if (!fioKey) { setStatus('err', 'Enter your FIO key.'); return; }
+
+  localStorage.setItem(LS.user, user);
+  localStorage.setItem(LS.fio, fioKey);
+  if (pnKey) localStorage.setItem(LS.pn, pnKey);
+
+  // materials list (site-local, cached by the browser)
+  if (!MATERIALS.length) {
+    try {
+      MATERIALS = await (await fetch('material_data.json', { cache: 'force-cache' })).json();
+      $('matList').innerHTML = MATERIALS.map(m => `<option value="${esc(m.Ticker)}">${esc(m.Name)}</option>`).join('');
+    } catch (e) { /* autocomplete only */ }
+  }
+
+  const cacheKey = cfgKey(user);
+  if (!force) {
+    try {
+      const c = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+      if (c && Date.now() - c.ts < CACHE_TTL) {
+        DATA = c;
+        finishLoad('cached');
+        return;
+      }
+    } catch (e) { /* ignore */ }
+  }
+
+  setStatus('busy', 'Loading storage, contracts and burn data…');
+  try {
+    const [storage, contracts, burn] = await Promise.all([
+      fetchJSON(`${FIO_BASE}/storage/${encodeURIComponent(user)}`, { Authorization: fioKey }),
+      fetchJSON(`${FIO_BASE}/contract/allcontracts/${encodeURIComponent(user)}`, { Authorization: fioKey }),
+      pnKey ? fetchJSON(`${PN_BASE}/production/user/burn`, { 'X-Data-Token': pnKey }) : Promise.resolve(null),
+    ]);
+    DATA = {
+      ts: Date.now(),
+      storage: Array.isArray(storage) ? storage : (storage.Data || []),
+      contracts: Array.isArray(contracts) ? contracts : (contracts.Data || []),
+      burn: burn || null,
+    };
+    try { localStorage.setItem(cacheKey, JSON.stringify(DATA)); } catch (e) { /* quota */ }
+    finishLoad('live');
+  } catch (e) {
+    setStatus('err', 'Load failed: ' + e.message);
+  }
+}
+
+function finishLoad(kind) {
+  const when = new Date(DATA.ts).toLocaleTimeString();
+  const pn = DATA.burn ? 'burn data ✓' : 'no PUNoted key — production/consumption unavailable';
+  setStatus('ok', `Loaded ${DATA.storage.length} storages, ${DATA.contracts.length} contracts, ${pn} — as of ${when}${kind === 'cached' ? ' (cached)' : ''}.`);
+  renderAlerts();
+}
+
+// ── aggregation ─────────────────────────────────────────────────────────────
+function stockOf(ticker) {
+  let total = 0;
+  for (const st of DATA.storage) {
+    for (const it of (st.StorageItems || [])) {
+      if (it.MaterialTicker === ticker) total += (+it.Amount || 0);
+    }
+  }
+  return total;
+}
+
+function stockByLocation(ticker) {
+  const out = [];
+  for (const st of DATA.storage) {
+    let amt = 0;
+    for (const it of (st.StorageItems || [])) if (it.MaterialTicker === ticker) amt += (+it.Amount || 0);
+    if (amt > 0) out.push({ name: st.LocationName || st.Name || '?', amt });
+  }
+  return out.sort((a, b) => b.amt - a.amt);
+}
+
+// Party is the COUNTERPARTY's role: CUSTOMER = they buy from us (we deliver).
+function contractFlows(ticker) {
+  let incoming = 0, outgoing = 0;
+  const rows = [];
+  for (const c of DATA.contracts) {
+    const status = String(c.Status || '').toUpperCase();
+    if (['CLOSED', 'CANCELLED', 'TERMINATED'].includes(status)) continue;
+    for (const k of (c.Conditions || [])) {
+      if (String(k.Type || '').toUpperCase() !== 'DELIVERY') continue;
+      const t = k.MaterialTicker || k.QuantityMaterialTicker;
+      if (t !== ticker) continue;
+      if (String(k.Status || '').toUpperCase() === 'FULFILLED') continue;
+      const amt = +(k.MaterialAmount || k.QuantityAmount || 0);
+      if (!amt) continue;
+      const party = String(c.Party || '').toUpperCase();
+      // CUSTOMER = counterparty buys = we deliver (outgoing)
+      if (party === 'CUSTOMER') { outgoing += amt; rows.push({ dir: 'out', partner: c.PartnerName || c.PartnerCode || '?', amt }); }
+      else { incoming += amt; rows.push({ dir: 'in', partner: c.PartnerName || c.PartnerCode || '?', amt }); }
+    }
+  }
+  return { incoming, outgoing, rows };
+}
+
+function burnOf(ticker) {
+  let prod = 0, cons = 0;
+  if (DATA.burn) {
+    for (const planet of Object.keys(DATA.burn)) {
+      for (const row of (DATA.burn[planet] || [])) {
+        if (row.MaterialTicker !== ticker) continue;
+        prod += +row.Production || 0;
+        cons += +row.Consumption || 0;
+      }
+    }
+  }
+  return { prod, cons };
+}
+
+function reserveFor(ticker, consPerDay, prodPerDay) {
+  if (Object.prototype.hasOwnProperty.call(CFG.reserve, ticker)) return +CFG.reserve[ticker] || 0;
+  if (consPerDay > 0) return consPerDay * CFG.reserveDays.usage;
+  if (prodPerDay > 0) return prodPerDay * CFG.reserveDays.production;
+  return 0;
+}
+
+function commitmentsFor(ticker) {
+  let total = 0;
+  const rows = [];
+  for (const c of CFG.commitments) {
+    if (String(c.material || '').toUpperCase() !== ticker) continue;
+    if (c.activeFrom && new Date(c.activeFrom) > new Date()) continue;   // not started yet
+    const units = +c.units || 0;
+    const overHorizon = c.per === 'week' ? units * (CFG.horizonDays / 7) : units * CFG.horizonDays;
+    total += overHorizon;
+    rows.push({ who: c.counterparty, units, per: c.per, overHorizon });
+  }
+  return { total, rows };
+}
+
+// ── answer ──────────────────────────────────────────────────────────────────
+function ask() {
+  if (!DATA) { setStatus('err', 'Press LOAD first.'); return; }
+  const ticker = $('matInput').value.trim().toUpperCase();
+  const qty = +$('qtyInput').value || 0;
+  const dest = $('destSelect').value;
+  if (!ticker) { setStatus('err', 'Enter a material ticker.'); return; }
+
+  const stock = stockOf(ticker);
+  const flows = contractFlows(ticker);
+  const { prod, cons } = burnOf(ticker);
+  const horizon = CFG.horizonDays;
+  const production = prod * horizon;
+  const commit = commitmentsFor(ticker);
+  const reserve = reserveFor(ticker, cons, prod);
+
+  const free = stock + flows.incoming + production - flows.outgoing - commit.total - reserve;
+  const canSell = Math.min(qty, free);
+  const ok = qty <= free;
+
+  $('answerPanel').classList.remove('hidden');
+  $('answerText').innerHTML = ok
+    ? `Yes — you can sell <span class="num">${fmt(qty)}</span> ${esc(ticker)} ${esc(dest)}. ` +
+      `<span class="num">${fmt(free - qty)}</span> left over reserve.`
+    : `No — selling <span class="num">${fmt(qty)}</span> ${esc(ticker)} would leave you ` +
+      `<span class="num">${fmt(qty - free)}</span> short. You can sell <span class="num">${fmt(Math.max(0, free))}</span>.`;
+
+  const cells = [
+    { lbl: 'Stock', val: stock, cls: 'pos' },
+    { lbl: `Incoming (contracts)`, val: flows.incoming, cls: 'pos' },
+    { lbl: `Production (${horizon}d)`, val: production, cls: 'pos' },
+    { lbl: 'Outgoing (contracts)', val: -flows.outgoing, cls: 'neg' },
+    { lbl: `Commitments (${horizon}d)`, val: -commit.total, cls: 'neg' },
+    { lbl: 'Reserve', val: -reserve, cls: 'keep' },
+    { lbl: 'Free', val: free, cls: free >= 0 ? 'pos' : 'neg' },
+  ];
+  $('breakdown').innerHTML = cells.map(c =>
+    `<div class="bcell ${c.cls}"><div class="lbl">${esc(c.lbl)}</div><div class="val">${fmt(c.val)}</div></div>`
+  ).join('');
+
+  const bits = [];
+  if (prod || cons) bits.push(`burn: ${fmt1(prod)}/day produced, ${fmt1(cons)}/day consumed`);
+  if (cons > prod && qty > free) bits.push(`shortfall ≈ ${fmt1((qty - free) / (cons - prod))} days of net consumption`);
+  const locs = stockByLocation(ticker).slice(0, 6);
+  if (locs.length) bits.push('stock: ' + locs.map(l => `${l.name} ${fmt(l.amt)}`).join(' · '));
+  if (commit.rows.length) bits.push('commitments: ' + commit.rows.map(r => `${r.who} ${fmt(r.units)}/${r.per}`).join(' · '));
+  const crows = flows.rows.slice(0, 6).map(r => `${r.dir === 'in' ? '←' : '→'} ${r.partner} ${fmt(r.amt)}`);
+  if (crows.length) bits.push('contracts: ' + crows.join(' · '));
+  $('answerNote').textContent = bits.join(' | ');
+}
+
+// ── below-reserve alerts ────────────────────────────────────────────────────
+function renderAlerts() {
+  if (!DATA) return;
+  const tickers = new Set(Object.keys(CFG.reserve));
+  if (DATA.burn) for (const p of Object.keys(DATA.burn)) for (const r of (DATA.burn[p] || [])) tickers.add(r.MaterialTicker);
+
+  const rows = [];
+  for (const t of tickers) {
+    const stock = stockOf(t);
+    const { prod, cons } = burnOf(t);
+    const reserve = reserveFor(t, cons, prod);
+    if (reserve > 0 && stock < reserve) rows.push({ t, stock, reserve, deficit: reserve - stock });
+  }
+  rows.sort((a, b) => b.deficit - a.deficit);
+
+  $('alertsPanel').classList.toggle('hidden', rows.length === 0);
+  $('alertList').innerHTML = rows.slice(0, 15).map(r =>
+    `<div class="alert-row"><span class="mat">${esc(r.t)}</span>
+     <span class="muted">stock ${fmt(r.stock)} / reserve ${fmt(r.reserve)}</span>
+     <span class="def">−${fmt(r.deficit)}</span></div>`
+  ).join('');
+}
+
+// ── init ────────────────────────────────────────────────────────────────────
+(function init() {
+  loadConfig();
+  const user = localStorage.getItem(LS.user);
+  if (user) $('userInput').value = user;
+  const fio = localStorage.getItem(LS.fio); if (fio) $('fioKeyInput').value = fio;
+  const pn  = localStorage.getItem(LS.pn);  if (pn)  $('pnKeyInput').value  = pn;
+  $('horizonInput').addEventListener('change', () => { CFG.horizonDays = +$('horizonInput').value || 7; if (DATA) { renderAlerts(); } });
+  $('matInput').addEventListener('keydown', e => { if (e.key === 'Enter') ask(); });
+  $('qtyInput').addEventListener('keydown', e => { if (e.key === 'Enter') ask(); });
+  if (fio) loadAll(false);
+})();
+</script>
+</body>
+</html>
