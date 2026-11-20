@@ -118,6 +118,7 @@
 <div class="top">
   <h1>Material Board</h1>
   <span id="buildTag" class="dim" style="font-size:10px;font-family:var(--mono);"></span>
+  <span id="cfgTag" class="dim" style="font-size:10px;font-family:var(--mono);"></span>
   <span class="input-label">Player</span>
   <input id="userInput" value="eoincuinn" style="width:110px">
   <span class="input-label">FIO key</span>
@@ -167,7 +168,7 @@ const FIO_BASE = 'https://rest.fnar.net';
 const PN_BASE  = 'https://api.punoted.net/v1';
 const CACHE_TTL = 5 * 60 * 1000;
 const LS = { fio: 'prun_apikey', pn: 'prun_punoted_allkey', user: 'prun_cis_user', cfg: 'prun_cis_cfg' };
-const BUILD = '2026-11-20g';   // shown in the header so a stale cached page is obvious
+const BUILD = '2026-11-20h';   // shown in the header so a stale cached page is obvious
 
 const DEFAULT_CFG = {
   horizonDays: 7,
@@ -210,11 +211,14 @@ function setStatus(kind, msg) {
 
 // ── config ──────────────────────────────────────────────────────────────────
 function loadConfig() {
+  let saved = false;
   try {
     const raw = localStorage.getItem(LS.cfg);
-    if (raw) CFG = Object.assign({}, DEFAULT_CFG, JSON.parse(raw));
+    if (raw) { CFG = Object.assign({}, DEFAULT_CFG, JSON.parse(raw)); saved = true; }
   } catch (e) { CFG = JSON.parse(JSON.stringify(DEFAULT_CFG)); }
   renderConfig();
+  const tag = document.getElementById('cfgTag');
+  if (tag) tag.textContent = saved ? 'cfg: saved' : 'cfg: defaults';
 }
 function renderConfig() {
   $('horizonInput').value = CFG.horizonDays;
@@ -222,6 +226,11 @@ function renderConfig() {
   $('reserveProdInput').value = CFG.reserveDays.production;
   $('cfgText').value = JSON.stringify({ commitments: CFG.commitments, reserve: CFG.reserve }, null, 2);
 }
+function markSaved() {
+  const tag = document.getElementById('cfgTag');
+  if (tag) tag.textContent = 'cfg: saved';
+}
+
 function persistSettings() {
   CFG.horizonDays = +$('horizonInput').value || 7;
   CFG.reserveDays = {
@@ -229,6 +238,7 @@ function persistSettings() {
     production: +$('reserveProdInput').value || 0,
   };
   localStorage.setItem(LS.cfg, JSON.stringify(CFG));
+  markSaved();
   if (DATA) buildModel();
 }
 
@@ -240,6 +250,7 @@ function saveConfig() {
     CFG.commitments = Array.isArray(parsed.commitments) ? parsed.commitments : [];
     CFG.reserve = parsed.reserve && typeof parsed.reserve === 'object' ? parsed.reserve : {};
     localStorage.setItem(LS.cfg, JSON.stringify(CFG));
+    markSaved();
     setStatus('ok', 'Config saved.');
     if (DATA) buildModel();
   } catch (e) { setStatus('err', 'Config JSON is invalid: ' + e.message); }
@@ -247,6 +258,8 @@ function saveConfig() {
 function resetConfig() {
   CFG = JSON.parse(JSON.stringify(DEFAULT_CFG));
   localStorage.removeItem(LS.cfg);
+  const tag = document.getElementById('cfgTag');
+  if (tag) tag.textContent = 'cfg: defaults';
   renderConfig();
   if (DATA) buildModel();
 }
