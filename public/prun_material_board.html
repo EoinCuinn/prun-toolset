@@ -20,18 +20,14 @@
     max-width: 1500px; margin: 0 auto;
   }
 
-  /* ── header ── */
   .top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
-  h1 {
-    font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
-    color: var(--text2); display: flex; align-items: center; gap: 8px;
-  }
+  h1 { font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+       color: var(--text2); display: flex; align-items: center; gap: 8px; }
   h1::before { content: ''; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
   .input-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
   input, select {
     background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
     color: var(--text); padding: 8px 10px; font-size: 13px; font-family: var(--mono); outline: none;
-    transition: border-color 0.15s;
   }
   input:focus, select:focus, textarea:focus { border-color: var(--accent); }
   button {
@@ -43,64 +39,70 @@
   button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
   button.primary:hover { background: #6aa0f9; }
   button.small { padding: 5px 10px; font-size: 12px; font-family: var(--mono); color: var(--text2); }
+  button.chip { padding: 5px 12px; font-size: 12px; border-radius: 999px; color: var(--text2); }
+  button.chip.active { border-color: var(--accent); color: var(--accent); background: rgba(79,142,247,0.08); }
 
-  /* ── status ── */
   .status { font-size: 13px; color: var(--text2); margin-bottom: 1rem; min-height: 16px; font-family: var(--mono); }
   .spinner { display:inline-block; width:10px; height:10px; margin-right:6px; border:2px solid var(--border);
              border-top-color: var(--accent); border-radius:50%; animation: spin .8s linear infinite; vertical-align:-1px; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ── panels ── */
-  .panel { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1rem; }
-  .panel-title, .section-head {
-    font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
-    color: var(--text3); margin-bottom: 0.75rem;
-  }
+  .toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 0.75rem; }
+  .toolbar input[type="text"] { width: 240px; }
+  .count { font-size: 12px; font-family: var(--mono); color: var(--text3); margin-left: auto; }
 
-  .query-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-  #matInput { width: 240px; text-transform: uppercase; }
-  #qtyInput { width: 110px; }
-
-  /* ── stats ── */
-  .stats-panel {
-    background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 1rem 1.25rem; margin-bottom: 1rem; display: flex; align-items: stretch; flex-wrap: wrap;
-  }
-  .stat-block { padding: 0 20px; display: flex; flex-direction: column; gap: 2px; border-right: 1px solid var(--border); }
-  .stat-block:first-child { padding-left: 0; }
-  .stat-block:last-child { border-right: none; padding-right: 0; }
-  .stat-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
-  .stat-val { font-size: 22px; font-family: var(--mono); color: var(--text); line-height: 1.2; }
-  .stat-sub { font-size: 12px; font-family: var(--mono); color: var(--text2); }
-  .good { color: var(--green); }
-  .warn { color: var(--orange); }
-  .bad { color: var(--red); }
-
-  /* ── tables ── */
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-  @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
-  .table-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow-x: auto; background: var(--bg2); }
+  /* ── material list ── */
+  .list-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--bg2); }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   th {
-    text-align: left; padding: 8px; font-size: 12px; font-weight: 600; text-transform: uppercase;
+    text-align: left; padding: 9px 10px; font-size: 12px; font-weight: 600; text-transform: uppercase;
     letter-spacing: 0.06em; color: var(--text3); border-bottom: 1px solid var(--border);
-    white-space: nowrap; background: var(--bg3);
+    white-space: nowrap; background: var(--bg3); cursor: pointer; user-select: none;
   }
+  th.plain { cursor: default; }
+  th:hover:not(.plain) { color: var(--accent); }
   th.r, td.r { text-align: right; }
-  td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-  tbody tr:last-child td { border-bottom: none; }
-  tbody tr:hover td { background: var(--bg3); }
-  tfoot td { background: var(--bg3); border-top: 1px solid var(--border2); border-bottom: none;
-             font-size: 12px; font-weight: 600; font-family: var(--mono); color: var(--text2); padding: 8px; }
+  th .arrow { color: var(--accent); margin-left: 4px; }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tbody tr.data-row { cursor: pointer; }
+  tbody tr.data-row:hover td { background: var(--bg3); }
+  tbody tr.data-row:last-child td { border-bottom: 1px solid var(--border); }
+  tbody tr.data-row.open td { background: var(--bg3); border-bottom-color: transparent; }
+  .caret { display: inline-block; width: 10px; color: var(--text3); transition: transform 0.15s; }
+  tr.open .caret { transform: rotate(90deg); color: var(--accent); }
+  .mat { font-family: var(--mono); font-weight: 700; }
+  .mat-name { font-size: 11px; color: var(--text3); }
   .mono { font-family: var(--mono); }
   .muted { color: var(--text2); }
   .dim { color: var(--text3); }
-  .empty-state { padding: 24px 16px; text-align: center; color: var(--text3); font-size: 13px; font-family: var(--mono); }
-  .hidden { display: none; }
+  .good { color: var(--green); }
+  .warn { color: var(--orange); }
+  .bad { color: var(--red); }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+  .empty-state { padding: 32px 16px; text-align: center; color: var(--text3); font-size: 13px; font-family: var(--mono); }
 
-  .answer-line { font-size: 16px; margin-top: 0.75rem; min-height: 22px; }
-  .answer-line .yes { color: var(--green); font-weight: 700; }
-  .answer-line .no { color: var(--red); font-weight: 700; }
+  /* ── expanded detail ── */
+  .detail-cell { padding: 0 !important; background: var(--bg); border-bottom: 1px solid var(--border2) !important; }
+  .detail { padding: 14px 16px 18px; }
+  .detail-head { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+  .detail-head .dstat { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; }
+  .detail-head .dval { font-size: 16px; font-family: var(--mono); }
+  .detail-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 900px) { .detail-cols { grid-template-columns: 1fr; } }
+  .subpanel { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .subpanel-title { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+                    color: var(--text3); padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--bg3); }
+  .subpanel table { font-size: 12px; }
+  .subpanel th { background: transparent; border-bottom: 1px solid var(--border); padding: 6px 12px; cursor: default; font-size: 11px; }
+  .subpanel td { padding: 6px 12px; }
+  tfoot td { background: var(--bg3); border-top: 1px solid var(--border2); border-bottom: none;
+             font-size: 11px; font-weight: 600; font-family: var(--mono); color: var(--text2); }
+
+  .sell-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
+  .sell-row input[type="number"] { width: 110px; }
+  .sell-answer { font-size: 14px; margin-top: 8px; min-height: 20px; }
+  .sell-answer .yes { color: var(--green); font-weight: 700; }
+  .sell-answer .no { color: var(--red); font-weight: 700; }
 
   details summary { cursor: pointer; color: var(--text2); font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; }
   textarea { width: 100%; min-height: 200px; background: var(--bg); border: 1px solid var(--border);
@@ -108,6 +110,7 @@
   .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 12px 0; }
   .settings-grid label { display: block; font-size: 11px; color: var(--text3); text-transform: uppercase;
                          letter-spacing: 0.08em; margin-bottom: 4px; }
+  .panel { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-top: 1rem; }
 </style>
 </head>
 <body>
@@ -115,65 +118,28 @@
 <div class="top">
   <h1>Material Board</h1>
   <span class="input-label">Player</span>
-  <input id="userInput" value="eoincuinn" style="width:120px">
+  <input id="userInput" value="eoincuinn" style="width:110px">
   <span class="input-label">FIO key</span>
-  <input id="fioKeyInput" type="password" placeholder="FIO REST key" style="width:170px">
+  <input id="fioKeyInput" type="password" placeholder="FIO REST key" style="width:160px">
   <span class="input-label">PUNoted</span>
-  <input id="pnKeyInput" type="password" placeholder="token" style="width:150px">
+  <input id="pnKeyInput" type="password" placeholder="token" style="width:140px">
   <button class="primary" onclick="loadAll(true)">↺ LOAD</button>
 </div>
 
 <div class="status" id="statusBar">Enter your keys and press LOAD.</div>
 
-<div class="panel">
-  <div class="query-row">
-    <input id="matInput" list="matList" placeholder="material (e.g. COF)" autocomplete="off">
-    <datalist id="matList"></datalist>
-    <span style="flex:1"></span>
-    <input id="qtyInput" type="number" min="0" placeholder="qty">
-    <select id="destSelect">
-      <option value="to corp">to corp</option>
-      <option value="to CX">to CX</option>
-      <option value="to another player">to another player</option>
-    </select>
-    <button onclick="sellCheck()">SELL CHECK</button>
-  </div>
-  <div class="answer-line" id="answerLine"></div>
+<div class="toolbar">
+  <input id="searchInput" type="text" placeholder="search material…" oninput="render()">
+  <button class="chip active" data-filter="all" onclick="setFilter('all')">All</button>
+  <button class="chip" data-filter="below" onclick="setFilter('below')">Below reserve</button>
+  <button class="chip" data-filter="fast" onclick="setFilter('fast')">Selling too fast</button>
+  <button class="chip" data-filter="contracts" onclick="setFilter('contracts')">Has contracts</button>
+  <button class="chip" data-filter="nostock" onclick="setFilter('nostock')">No stock</button>
+  <span class="count" id="countLabel"></span>
 </div>
 
-<div class="stats-panel" id="statsPanel">
-  <div class="stat-block"><div class="stat-label">Stock</div><div class="stat-val" id="sStock">—</div><div class="stat-sub" id="sStockSub">&nbsp;</div></div>
-  <div class="stat-block"><div class="stat-label">Net / day</div><div class="stat-val" id="sNet">—</div><div class="stat-sub" id="sNetSub">&nbsp;</div></div>
-  <div class="stat-block"><div class="stat-label">Days of cover</div><div class="stat-val" id="sCover">—</div><div class="stat-sub" id="sCoverSub">&nbsp;</div></div>
-  <div class="stat-block"><div class="stat-label">Free to sell</div><div class="stat-val" id="sFree">—</div><div class="stat-sub" id="sFreeSub">&nbsp;</div></div>
-  <div class="stat-block"><div class="stat-label">Open in / out</div><div class="stat-val" id="sCont">—</div><div class="stat-sub" id="sContSub">&nbsp;</div></div>
-</div>
-
-<div class="grid-2">
-  <div class="panel">
-    <div class="section-head">Stock by location</div>
-    <div class="table-wrap"><div id="stockHost"><div class="empty-state">Pick a material.</div></div></div>
-  </div>
-  <div class="panel">
-    <div class="section-head">Burn by planet</div>
-    <div class="table-wrap"><div id="burnHost"><div class="empty-state">Pick a material.</div></div></div>
-  </div>
-</div>
-
-<div class="panel">
-  <div class="section-head">Open contracts</div>
-  <div class="table-wrap"><div id="contractHost"><div class="empty-state">Pick a material.</div></div></div>
-</div>
-
-<div class="grid-2">
-  <div class="panel">
-    <div class="section-head">Standing commitments</div>
-    <div class="table-wrap"><div id="commitHost"><div class="empty-state">Pick a material.</div></div></div>
-  </div>
-  <div class="panel">
-    <div class="section-head">Reserve</div>
-    <div class="table-wrap"><div id="reserveHost"><div class="empty-state">Pick a material.</div></div></div>
-  </div>
+<div class="list-wrap">
+  <div id="listHost"><div class="empty-state">Load your keys to see every material you make, use, hold or owe.</div></div>
 </div>
 
 <div class="panel">
@@ -192,13 +158,6 @@
       <button class="small" onclick="saveConfig()">SAVE CONFIG</button>
       <button class="small" onclick="resetConfig()">RESET TO DEFAULT</button>
     </div>
-  </details>
-</div>
-
-<div class="panel">
-  <details>
-    <summary>Below reserve right now</summary>
-    <div class="table-wrap" style="margin-top:10px;"><div id="alertHost"><div class="empty-state">Load data to see this.</div></div></div>
   </details>
 </div>
 
@@ -225,18 +184,20 @@ const DEFAULT_CFG = {
 let MATERIALS = [];
 let DATA = null;
 let CFG = JSON.parse(JSON.stringify(DEFAULT_CFG));
-let CURRENT = null;
+let MODEL = [];          // computed rows
+let SORT = { key: 'status', dir: 1 };
+let FILTER = 'all';
+let OPEN = null;         // expanded ticker
 
 const $ = id => document.getElementById(id);
 const fmt = n => Math.round(n).toLocaleString('en-US');
 const fmt1 = n => (Math.round(n * 10) / 10).toLocaleString('en-US');
+const esc = s => String(s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 function dateOf(v) {
   if (!v) return '—';
   const d = typeof v === 'number' ? new Date(v) : new Date(String(v));
   return isNaN(d) ? String(v).slice(0, 10) : d.toISOString().slice(0, 10);
 }
-const esc = s => String(s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-
 function setStatus(kind, msg) {
   const el = $('statusBar');
   el.innerHTML = (kind === 'busy' ? '<span class="spinner"></span>' : '') + esc(msg);
@@ -266,23 +227,22 @@ function saveConfig() {
     CFG.reserve = parsed.reserve && typeof parsed.reserve === 'object' ? parsed.reserve : {};
     localStorage.setItem(LS.cfg, JSON.stringify(CFG));
     setStatus('ok', 'Config saved.');
-    if (DATA) { refresh(); }
+    if (DATA) buildModel();
   } catch (e) { setStatus('err', 'Config JSON is invalid: ' + e.message); }
 }
 function resetConfig() {
   CFG = JSON.parse(JSON.stringify(DEFAULT_CFG));
   localStorage.removeItem(LS.cfg);
   renderConfig();
-  if (DATA) refresh();
+  if (DATA) buildModel();
 }
 
-// ── data ────────────────────────────────────────────────────────────────────
+// ── loading ─────────────────────────────────────────────────────────────────
 async function fetchJSON(url, headers) {
   const r = await fetch(url, { headers });
   if (!r.ok) throw new Error(url.replace(FIO_BASE, '').replace(PN_BASE, '') + ' -> HTTP ' + r.status);
   return r.json();
 }
-
 async function loadAll(force) {
   const user = $('userInput').value.trim();
   const fioKey = $('fioKeyInput').value.trim() || localStorage.getItem(LS.fio) || '';
@@ -296,8 +256,7 @@ async function loadAll(force) {
   if (!MATERIALS.length) {
     try {
       MATERIALS = await (await fetch('material_data.json', { cache: 'force-cache' })).json();
-      $('matList').innerHTML = MATERIALS.map(m => `<option value="${esc(m.Ticker)}">${esc(m.Name)}</option>`).join('');
-    } catch (e) { /* autocomplete only */ }
+    } catch (e) { /* names are cosmetic */ }
   }
 
   const cacheKey = 'prun_mb_cache_' + user.toLowerCase();
@@ -327,69 +286,57 @@ async function loadAll(force) {
     setStatus('err', 'Load failed: ' + e.message);
   }
 }
-
 function finishLoad(kind) {
   const when = new Date(DATA.ts).toLocaleTimeString();
   const pn = DATA.burn ? 'burn ✓' : 'no PUNoted token — no burn data';
   setStatus('ok', `Loaded ${DATA.storage.length} storages, ${DATA.contracts.length} contracts, ${pn} — ${when}${kind === 'cached' ? ' (cached)' : ''}.`);
-  renderAlerts();
-  if (CURRENT) refresh();
+  buildModel();
 }
 
-// ── helpers ─────────────────────────────────────────────────────────────────
+// ── per-material data ───────────────────────────────────────────────────────
 const TYPE_LABEL = {
-  SHIP_STORE: 'Ship',
-  WAREHOUSE_STORE: 'Warehouse',
-  STORE: 'Store',
-  STL_FUEL_STORE: 'STL fuel',
-  FTL_FUEL_STORE: 'FTL fuel',
+  SHIP_STORE: 'Ship', WAREHOUSE_STORE: 'Warehouse', STORE: 'Store',
+  STL_FUEL_STORE: 'STL fuel', FTL_FUEL_STORE: 'FTL fuel',
 };
+const nameOf = t => (MATERIALS.find(m => m.Ticker === t) || {}).Name || '';
 
-function stockRows(ticker) {
+function stockRows(t) {
   const rows = [];
   for (const st of DATA.storage) {
     let amt = 0;
     for (const it of (st.StorageItems || [])) {
-      if (it.MaterialTicker !== ticker) continue;
+      if (it.MaterialTicker !== t) continue;
       amt += +(it.MaterialAmount != null ? it.MaterialAmount : it.Amount) || 0;
     }
     if (amt > 0) rows.push({ name: st.Name || '?', type: TYPE_LABEL[st.Type] || st.Type || '—', amt });
   }
   return rows.sort((a, b) => b.amt - a.amt);
 }
-const stockOf = ticker => stockRows(ticker).reduce((s, r) => s + r.amt, 0);
-
-function burnRows(ticker) {
+function burnRows(t) {
   const rows = [];
   if (!DATA.burn) return rows;
   for (const planet of Object.keys(DATA.burn)) {
     let p = 0, c = 0;
-    for (const r of (DATA.burn[planet] || [])) if (r.MaterialTicker === ticker) { p += +r.Production || 0; c += +r.Consumption || 0; }
+    for (const r of (DATA.burn[planet] || [])) if (r.MaterialTicker === t) { p += +r.Production || 0; c += +r.Consumption || 0; }
     if (p || c) rows.push({ planet, prod: p, cons: c, net: p - c });
   }
   return rows.sort((a, b) => a.net - b.net);
 }
-function burnTotals(ticker) {
-  const rows = burnRows(ticker);
-  return { prod: rows.reduce((s, r) => s + r.prod, 0), cons: rows.reduce((s, r) => s + r.cons, 0) };
-}
-
 // Party is the COUNTERPARTY's role: CUSTOMER = they buy from us (we deliver).
-function contractRows(ticker) {
+function contractRows(t) {
   const rows = [];
   for (const c of DATA.contracts) {
     const status = String(c.Status || '').toUpperCase();
     if (['CLOSED', 'CANCELLED', 'TERMINATED'].includes(status)) continue;
     for (const k of (c.Conditions || [])) {
       if (String(k.Type || '').toUpperCase() !== 'DELIVERY') continue;
-      const t = k.MaterialTicker || k.QuantityMaterialTicker;
-      if (t !== ticker) continue;
+      const tk = k.MaterialTicker || k.QuantityMaterialTicker;
+      if (tk !== t) continue;
       if (String(k.Status || '').toUpperCase() === 'FULFILLED') continue;
       const amt = +(k.MaterialAmount || k.QuantityAmount || 0);
       if (!amt) continue;
-      const party = String(c.Party || '').toUpperCase();
       rows.push({
-        dir: party === 'CUSTOMER' ? 'out' : 'in',
+        dir: String(c.Party || '').toUpperCase() === 'CUSTOMER' ? 'out' : 'in',
         partner: c.PartnerName || c.PartnerCode || '?',
         amt,
         due: c.DueDate || k.Deadline || c.DateEpochMs || '',
@@ -400,11 +347,10 @@ function contractRows(ticker) {
   }
   return rows;
 }
-
-function commitmentsFor(ticker) {
+function commitmentsFor(t) {
   const rows = [];
   for (const c of CFG.commitments) {
-    if (String(c.material || '').toUpperCase() !== ticker) continue;
+    if (String(c.material || '').toUpperCase() !== t) continue;
     if (c.activeFrom && new Date(c.activeFrom) > new Date()) continue;
     const units = +c.units || 0;
     const overHorizon = c.per === 'week' ? units * (CFG.horizonDays / 7) : units * CFG.horizonDays;
@@ -412,149 +358,215 @@ function commitmentsFor(ticker) {
   }
   return rows;
 }
-
-function reserveFor(ticker, cons, prod) {
-  if (Object.prototype.hasOwnProperty.call(CFG.reserve, ticker)) return { value: +CFG.reserve[ticker] || 0, override: true };
+function reserveFor(t, cons, prod) {
+  if (Object.prototype.hasOwnProperty.call(CFG.reserve, t)) return { value: +CFG.reserve[t] || 0, override: true };
   if (cons > 0) return { value: cons * CFG.reserveDays.usage, override: false };
   if (prod > 0) return { value: prod * CFG.reserveDays.production, override: false };
   return { value: 0, override: false };
 }
 
-// ── render ──────────────────────────────────────────────────────────────────
-function normalizeTicker(v) {
-  const s = String(v || '').trim().toUpperCase();
-  return (s.match(/^[A-Z0-9]{1,4}/) || [''])[0];
-}
-
-function refresh() {
-  const ticker = CURRENT;
-  const stock = stockOf(ticker);
-  const { prod, cons } = burnTotals(ticker);
-  const cRows = contractRows(ticker);
-  const incoming = cRows.filter(r => r.dir === 'in').reduce((s, r) => s + r.amt, 0);
-  const outgoing = cRows.filter(r => r.dir === 'out').reduce((s, r) => s + r.amt, 0);
-  const commits = commitmentsFor(ticker);
-  const commitTotal = commits.reduce((s, r) => s + r.overHorizon, 0);
-  const reserve = reserveFor(ticker, cons, prod);
-  const horizon = CFG.horizonDays;
-  const production = prod * horizon;
-  const free = stock + incoming + production - outgoing - commitTotal - reserve.value;
-  const net = prod - cons;
-
-  $('sStock').textContent = fmt(stock);
-  $('sStockSub').textContent = `${stockRows(ticker).length} location${stockRows(ticker).length === 1 ? '' : 's'}`;
-  $('sNet').textContent = (net >= 0 ? '+' : '') + fmt1(net);
-  $('sNetSub').textContent = DATA.burn ? `${fmt1(prod)} made · ${fmt1(cons)} used` : 'no burn data';
-  $('sNet').className = 'stat-val ' + (net >= 0 ? 'good' : 'bad');
-
-  if (net < 0) {
-    const cover = stock / -net;
-    $('sCover').textContent = fmt1(cover) + 'd';
-    $('sCoverSub').textContent = 'at current net draw';
-    $('sCover').className = 'stat-val ' + (cover < 7 ? 'bad' : cover < 14 ? 'warn' : 'good');
-  } else {
-    $('sCover').textContent = '∞';
-    $('sCoverSub').textContent = 'production covers demand';
-    $('sCover').className = 'stat-val good';
+// ── model ───────────────────────────────────────────────────────────────────
+function buildModel() {
+  const tickers = new Set();
+  for (const st of DATA.storage) for (const it of (st.StorageItems || [])) {
+    if (it.MaterialTicker && ((+it.MaterialAmount || +it.Amount) > 0)) tickers.add(it.MaterialTicker);
   }
-
-  $('sFree').textContent = fmt(free);
-  $('sFreeSub').textContent = `${horizon}d horizon, reserve ${fmt(reserve.value)}`;
-  $('sFree').className = 'stat-val ' + (free > 0 ? 'good' : 'bad');
-
-  $('sCont').textContent = `${fmt(incoming)} / ${fmt(outgoing)}`;
-  $('sContSub').textContent = `${cRows.filter(r => r.dir === 'in').length} in · ${cRows.filter(r => r.dir === 'out').length} out`;
-
-  // stock table
-  const sRows = stockRows(ticker);
-  $('stockHost').innerHTML = sRows.length
-    ? `<table><thead><tr><th>Location</th><th>Type</th><th class="r">Amount</th></tr></thead><tbody>
-       ${sRows.map(r => `<tr><td class="mono">${esc(r.name)}</td><td class="muted">${esc(r.type)}</td><td class="r mono">${fmt(r.amt)}</td></tr>`).join('')}
-       </tbody><tfoot><tr><td colspan="2">TOTAL</td><td class="r">${fmt(stock)}</td></tr></tfoot></table>`
-    : '<div class="empty-state">No stock of this material.</div>';
-
-  // burn table
-  const bRows = burnRows(ticker);
-  $('burnHost').innerHTML = bRows.length
-    ? `<table><thead><tr><th>Planet</th><th class="r">Prod/day</th><th class="r">Use/day</th><th class="r">Net/day</th></tr></thead><tbody>
-       ${bRows.map(r => `<tr><td class="mono">${esc(r.planet)}</td><td class="r mono muted">${fmt1(r.prod)}</td><td class="r mono muted">${fmt1(r.cons)}</td><td class="r mono ${r.net >= 0 ? 'good' : 'bad'}">${r.net >= 0 ? '+' : ''}${fmt1(r.net)}</td></tr>`).join('')}
-       </tbody><tfoot><tr><td>TOTAL</td><td class="r">${fmt1(prod)}</td><td class="r">${fmt1(cons)}</td><td class="r">${net >= 0 ? '+' : ''}${fmt1(net)}</td></tr></tfoot></table>`
-    : '<div class="empty-state">No production or consumption of this material.</div>';
-
-  // contracts table
-  $('contractHost').innerHTML = cRows.length
-    ? `<table><thead><tr><th>Direction</th><th>Partner</th><th>Destination</th><th>Status</th><th>Due</th><th class="r">Amount</th></tr></thead><tbody>
-       ${cRows.map(r => `<tr>
-          <td class="${r.dir === 'in' ? 'good' : 'warn'}">${r.dir === 'in' ? '← in' : '→ out'}</td>
-          <td class="mono">${esc(r.partner)}</td>
-          <td class="muted">${esc(r.dest || '—')}</td>
-          <td class="muted">${esc(r.status || '—')}</td>
-          <td class="muted mono">${esc(dateOf(r.due))}</td>
-          <td class="r mono">${fmt(r.amt)}</td></tr>`).join('')}
-       </tbody><tfoot><tr><td colspan="5">TOTAL</td><td class="r">in ${fmt(incoming)} · out ${fmt(outgoing)}</td></tr></tfoot></table>`
-    : '<div class="empty-state">No open deliveries of this material.</div>';
-
-  // commitments
-  $('commitHost').innerHTML = commits.length
-    ? `<table><thead><tr><th>Counterparty</th><th class="r">Rate</th><th class="r">Over ${horizon}d</th></tr></thead><tbody>
-       ${commits.map(r => `<tr><td class="mono">${esc(r.who)}</td><td class="r mono muted">${fmt(r.units)}/${r.per}</td><td class="r mono">${fmt1(r.overHorizon)}</td></tr>`).join('')}
-       </tbody><tfoot><tr><td colspan="2">TOTAL</td><td class="r">${fmt1(commitTotal)}</td></tr></tfoot></table>`
-    : '<div class="empty-state">No standing commitments for this material.</div>';
-
-  // reserve
-  $('reserveHost').innerHTML = `<table><thead><tr><th>Basis</th><th class="r">Units</th></tr></thead><tbody>
-      <tr><td class="muted">${reserve.override ? 'Override (config)' : cons > 0 ? `Default — ${CFG.reserveDays.usage} days of usage` : prod > 0 ? `Default — ${CFG.reserveDays.production} days of production` : 'No burn data or override'}</td><td class="r mono">${fmt(reserve.value)}</td></tr>
-      <tr><td class="muted">Stock now</td><td class="r mono">${fmt(stock)}</td></tr>
-      <tr><td class="muted">${stock >= reserve.value ? 'Above reserve by' : 'Below reserve by'}</td><td class="r mono ${stock >= reserve.value ? 'good' : 'bad'}">${fmt(Math.abs(stock - reserve.value))}</td></tr>
-    </tbody></table>`;
-}
-
-function selectMaterial(ticker) {
-  CURRENT = ticker;
-  refresh();
-}
-
-function sellCheck() {
-  if (!DATA) { setStatus('err', 'Press LOAD first.'); return; }
-  const ticker = normalizeTicker($('matInput').value);
-  if (!ticker) { setStatus('err', 'Enter a material ticker.'); return; }
-  const qty = +$('qtyInput').value || 0;
-  const dest = $('destSelect').value;
-  selectMaterial(ticker);
-
-  const stock = stockOf(ticker);
-  const { prod, cons } = burnTotals(ticker);
-  const cRows = contractRows(ticker);
-  const incoming = cRows.filter(r => r.dir === 'in').reduce((s, r) => s + r.amt, 0);
-  const outgoing = cRows.filter(r => r.dir === 'out').reduce((s, r) => s + r.amt, 0);
-  const commitTotal = commitmentsFor(ticker).reduce((s, r) => s + r.overHorizon, 0);
-  const reserve = reserveFor(ticker, cons, prod).value;
-  const free = stock + incoming + prod * CFG.horizonDays - outgoing - commitTotal - reserve;
-
-  $('answerLine').innerHTML = qty <= free
-    ? `<span class="yes">Yes</span> — sell ${fmt(qty)} ${esc(ticker)} ${esc(dest)}; ${fmt(free - qty)} left over reserve.`
-    : `<span class="no">No</span> — selling ${fmt(qty)} ${esc(ticker)} ${esc(dest)} leaves you ${fmt(qty - free)} short; you can sell ${fmt(Math.max(0, free))}.`;
-}
-
-function renderAlerts() {
-  if (!DATA) return;
-  const tickers = new Set(Object.keys(CFG.reserve));
   if (DATA.burn) for (const p of Object.keys(DATA.burn)) for (const r of (DATA.burn[p] || [])) tickers.add(r.MaterialTicker);
-
-  const rows = [];
-  for (const t of tickers) {
-    const stock = stockOf(t);
-    const { prod, cons } = burnTotals(t);
-    const reserve = reserveFor(t, cons, prod).value;
-    if (reserve > 0 && stock < reserve) rows.push({ t, stock, reserve, deficit: reserve - stock });
+  for (const c of DATA.contracts) for (const k of (c.Conditions || [])) {
+    if (String(k.Type || '').toUpperCase() === 'DELIVERY') {
+      const t = k.MaterialTicker || k.QuantityMaterialTicker;
+      if (t) tickers.add(t);
+    }
   }
-  rows.sort((a, b) => b.deficit - a.deficit);
+  for (const c of CFG.commitments) if (c.material) tickers.add(String(c.material).toUpperCase());
+  for (const t of Object.keys(CFG.reserve)) tickers.add(t);
 
-  $('alertHost').innerHTML = rows.length
-    ? `<table><thead><tr><th>Material</th><th class="r">Stock</th><th class="r">Reserve</th><th class="r">Deficit</th></tr></thead><tbody>
-       ${rows.slice(0, 20).map(r => `<tr><td class="mono" style="color:var(--yellow)">${esc(r.t)}</td><td class="r mono">${fmt(r.stock)}</td><td class="r mono muted">${fmt(r.reserve)}</td><td class="r mono bad">−${fmt(r.deficit)}</td></tr>`).join('')}
-       </tbody></table>`
-    : '<div class="empty-state">Nothing below reserve.</div>';
+  MODEL = [...tickers].sort().map(t => {
+    const sRows = stockRows(t);
+    const stock = sRows.reduce((s, r) => s + r.amt, 0);
+    const bRows = burnRows(t);
+    const prod = bRows.reduce((s, r) => s + r.prod, 0);
+    const cons = bRows.reduce((s, r) => s + r.cons, 0);
+    const net = prod - cons;
+    const cRows = contractRows(t);
+    const incoming = cRows.filter(r => r.dir === 'in').reduce((s, r) => s + r.amt, 0);
+    const outgoing = cRows.filter(r => r.dir === 'out').reduce((s, r) => s + r.amt, 0);
+    const commit = commitmentsFor(t).reduce((s, r) => s + r.overHorizon, 0);
+    const reserve = reserveFor(t, cons, prod).value;
+    const free = stock + incoming + prod * CFG.horizonDays - outgoing - commit - reserve;
+    const cover = net < 0 ? stock / -net : Infinity;
+    let status = 'ok';
+    if (reserve > 0 && stock < reserve) status = 'below';
+    else if (net < 0 && cover < 7) status = 'fast';
+    return { ticker: t, name: nameOf(t), stock, prod, cons, net, cover, incoming, outgoing, commit, reserve, free, status,
+             hasContracts: cRows.length > 0, sRows, bRows, cRows };
+  });
+
+  render();
+}
+
+// ── render list ─────────────────────────────────────────────────────────────
+function statusCell(m) {
+  if (m.status === 'below') return '<span class="badge bad">below reserve</span>';
+  if (m.status === 'fast')  return '<span class="badge warn">selling too fast</span>';
+  return '<span class="badge good">ok</span>';
+}
+function coverText(m) {
+  if (!isFinite(m.cover)) return '<span class="dim">—</span>';
+  const cls = m.cover < 7 ? 'bad' : m.cover < 14 ? 'warn' : 'good';
+  return `<span class="${cls}">${fmt1(m.cover)}d</span>`;
+}
+function filtered() {
+  let rows = MODEL;
+  const q = $('searchInput').value.trim().toLowerCase();
+  if (q) rows = rows.filter(r => r.ticker.toLowerCase().includes(q) || (r.name || '').toLowerCase().includes(q));
+  if (FILTER === 'below') rows = rows.filter(r => r.status === 'below');
+  if (FILTER === 'fast') rows = rows.filter(r => r.status === 'fast');
+  if (FILTER === 'contracts') rows = rows.filter(r => r.hasContracts);
+  if (FILTER === 'nostock') rows = rows.filter(r => r.stock === 0);
+  return rows.slice().sort((a, b) => {
+    if (SORT.key === 'status') {
+      const rank = { below: 0, fast: 1, ok: 2 };
+      const d = rank[a.status] - rank[b.status];
+      return d !== 0 ? d : a.ticker.localeCompare(b.ticker);
+    }
+    if (SORT.key === 'ticker') return SORT.dir * a.ticker.localeCompare(b.ticker);
+    const va = a[SORT.key], vb = b[SORT.key];
+    return SORT.dir * (va - vb);
+  });
+}
+function setFilter(f) {
+  FILTER = f;
+  document.querySelectorAll('button.chip').forEach(b => b.classList.toggle('active', b.dataset.filter === f));
+  render();
+}
+function sortBy(k) {
+  if (SORT.key === k) SORT.dir *= -1; else { SORT.key = k; SORT.dir = k === 'ticker' ? 1 : -1; }
+  render();
+}
+function render() {
+  if (!DATA) return;
+  const rows = filtered();
+  $('countLabel').textContent = `${rows.length} of ${MODEL.length}`;
+  if (!rows.length) {
+    $('listHost').innerHTML = '<div class="empty-state">Nothing matches this filter.</div>';
+    return;
+  }
+  const arrow = k => SORT.key === k ? `<span class="arrow">${SORT.dir < 0 ? '▼' : '▲'}</span>` : '';
+  const head = `<thead><tr>
+    <th onclick="sortBy('ticker')">Material${arrow('ticker')}</th>
+    <th class="r" onclick="sortBy('stock')">Stock${arrow('stock')}</th>
+    <th class="r" onclick="sortBy('net')">Net / day${arrow('net')}</th>
+    <th class="r" onclick="sortBy('cover')">Cover${arrow('cover')}</th>
+    <th class="r plain">Open in / out</th>
+    <th class="r" onclick="sortBy('free')">Free${arrow('free')}</th>
+    <th class="plain">Status</th>
+  </tr></thead>`;
+
+  const body = rows.map(m => {
+    const open = OPEN === m.ticker;
+    const row = `<tr class="data-row ${open ? 'open' : ''}" onclick="toggleRow('${m.ticker}')">
+      <td><span class="caret">▶</span> <span class="mat">${esc(m.ticker)}</span> <span class="mat-name">${esc(m.name)}</span></td>
+      <td class="r mono">${fmt(m.stock)}</td>
+      <td class="r mono ${m.net >= 0 ? 'good' : 'bad'}">${m.net >= 0 ? '+' : ''}${fmt1(m.net)}</td>
+      <td class="r mono">${coverText(m)}</td>
+      <td class="r mono muted">${fmt(m.incoming)} / ${fmt(m.outgoing)}</td>
+      <td class="r mono ${m.free >= 0 ? '' : 'bad'}">${fmt(m.free)}</td>
+      <td>${statusCell(m)}</td>
+    </tr>`;
+    const detail = open ? `<tr><td colspan="7" class="detail-cell">${detailHTML(m)}</td></tr>` : '';
+    return row + detail;
+  }).join('');
+
+  $('listHost').innerHTML = `<table>${head}<tbody>${body}</tbody></table>`;
+}
+function toggleRow(t) { OPEN = OPEN === t ? null : t; render(); }
+
+// ── detail ──────────────────────────────────────────────────────────────────
+function detailHTML(m) {
+  const t = m.ticker;
+  const stockTbl = m.sRows.length
+    ? `<table><thead><tr><th>Location</th><th>Type</th><th class="r">Amount</th></tr></thead><tbody>
+       ${m.sRows.map(r => `<tr><td class="mono">${esc(r.name)}</td><td class="muted">${esc(r.type)}</td><td class="r mono">${fmt(r.amt)}</td></tr>`).join('')}
+       </tbody><tfoot><tr><td colspan="2">TOTAL</td><td class="r">${fmt(m.stock)}</td></tr></tfoot></table>`
+    : '<div class="empty-state">No stock.</div>';
+
+  const burnTbl = m.bRows.length
+    ? `<table><thead><tr><th>Planet</th><th class="r">Prod/day</th><th class="r">Use/day</th><th class="r">Net/day</th></tr></thead><tbody>
+       ${m.bRows.map(r => `<tr><td class="mono">${esc(r.planet)}</td><td class="r mono muted">${fmt1(r.prod)}</td><td class="r mono muted">${fmt1(r.cons)}</td><td class="r mono ${r.net >= 0 ? 'good' : 'bad'}">${r.net >= 0 ? '+' : ''}${fmt1(r.net)}</td></tr>`).join('')}
+       </tbody><tfoot><tr><td>TOTAL</td><td class="r">${fmt1(m.prod)}</td><td class="r">${fmt1(m.cons)}</td><td class="r">${m.net >= 0 ? '+' : ''}${fmt1(m.net)}</td></tr></tfoot></table>`
+    : '<div class="empty-state">No production or consumption.</div>';
+
+  const contTbl = m.cRows.length
+    ? `<table><thead><tr><th>Dir</th><th>Partner</th><th>Destination</th><th>Due</th><th class="r">Amount</th></tr></thead><tbody>
+       ${m.cRows.map(r => `<tr>
+         <td class="${r.dir === 'in' ? 'good' : 'warn'}">${r.dir === 'in' ? '← in' : '→ out'}</td>
+         <td class="mono">${esc(r.partner)}</td>
+         <td class="muted">${esc(r.dest || '—')}</td>
+         <td class="muted mono">${esc(dateOf(r.due))}</td>
+         <td class="r mono">${fmt(r.amt)}</td></tr>`).join('')}
+       </tbody><tfoot><tr><td colspan="4">TOTAL</td><td class="r">in ${fmt(m.incoming)} · out ${fmt(m.outgoing)}</td></tr></tfoot></table>`
+    : '<div class="empty-state">No open deliveries.</div>';
+
+  const commits = commitmentsFor(t);
+  const commitTbl = commits.length
+    ? `<table><thead><tr><th>Counterparty</th><th class="r">Rate</th><th class="r">Over ${CFG.horizonDays}d</th></tr></thead><tbody>
+       ${commits.map(r => `<tr><td class="mono">${esc(r.who)}</td><td class="r mono muted">${fmt(r.units)}/${r.per}</td><td class="r mono">${fmt1(r.overHorizon)}</td></tr>`).join('')}
+       </tbody><tfoot><tr><td colspan="2">TOTAL</td><td class="r">${fmt1(m.commit)}</td></tr></tfoot></table>`
+    : '<div class="empty-state">No standing commitments.</div>';
+
+  const res = reserveFor(t, m.cons, m.prod);
+  const resBasis = res.override ? 'Override (config)'
+    : m.cons > 0 ? `Default — ${CFG.reserveDays.usage} days of usage`
+    : m.prod > 0 ? `Default — ${CFG.reserveDays.production} days of production`
+    : 'No burn data or override';
+  const resTbl = `<table><thead><tr><th>Basis</th><th class="r">Units</th></tr></thead><tbody>
+      <tr><td class="muted">${esc(resBasis)}</td><td class="r mono">${fmt(m.reserve)}</td></tr>
+      <tr><td class="muted">Stock now</td><td class="r mono">${fmt(m.stock)}</td></tr>
+      <tr><td class="muted">${m.stock >= m.reserve ? 'Above reserve by' : 'Below reserve by'}</td>
+          <td class="r mono ${m.stock >= m.reserve ? 'good' : 'bad'}">${fmt(Math.abs(m.stock - m.reserve))}</td></tr>
+    </tbody></table>`;
+
+  return `<div class="detail">
+    <div class="detail-head">
+      <div><div class="dstat">Stock</div><div class="dval">${fmt(m.stock)}</div></div>
+      <div><div class="dstat">Reserve</div><div class="dval">${fmt(m.reserve)}</div></div>
+      <div><div class="dstat">Free (${CFG.horizonDays}d)</div><div class="dval ${m.free >= 0 ? 'good' : 'bad'}">${fmt(m.free)}</div></div>
+      <div><div class="dstat">Net / day</div><div class="dval ${m.net >= 0 ? 'good' : 'bad'}">${m.net >= 0 ? '+' : ''}${fmt1(m.net)}</div></div>
+      <div><div class="dstat">Cover</div><div class="dval">${coverText(m)}</div></div>
+    </div>
+    <div class="detail-cols">
+      <div class="subpanel"><div class="subpanel-title">Stock by location</div>${stockTbl}</div>
+      <div class="subpanel"><div class="subpanel-title">Burn by planet</div>${burnTbl}</div>
+    </div>
+    <div class="subpanel" style="margin-top:14px;"><div class="subpanel-title">Open contracts</div>${contTbl}</div>
+    <div class="detail-cols" style="margin-top:14px;">
+      <div class="subpanel"><div class="subpanel-title">Standing commitments</div>${commitTbl}</div>
+      <div class="subpanel"><div class="subpanel-title">Reserve</div>${resTbl}</div>
+    </div>
+    <div class="sell-row">
+      <span class="input-label">Sell check</span>
+      <input id="sellQty_${t}" type="number" min="0" placeholder="qty">
+      <select id="sellDest_${t}">
+        <option value="to corp">to corp</option>
+        <option value="to CX">to CX</option>
+        <option value="to another player">to another player</option>
+      </select>
+      <button class="small" onclick="sellCheck('${t}')">CHECK</button>
+      <span class="sell-answer" id="sellAns_${t}"></span>
+    </div>
+  </div>`;
+}
+
+function sellCheck(t) {
+  const m = MODEL.find(x => x.ticker === t);
+  if (!m) return;
+  const qty = +($('sellQty_' + t).value) || 0;
+  const dest = $('sellDest_' + t).value;
+  const free = m.free;
+  $('sellAns_' + t).innerHTML = qty <= free
+    ? `<span class="yes">Yes</span> — sell ${fmt(qty)} ${esc(t)} ${esc(dest)}; ${fmt(free - qty)} left over reserve.`
+    : `<span class="no">No</span> — selling ${fmt(qty)} leaves you ${fmt(qty - free)} short; you can sell ${fmt(Math.max(0, free))}.`;
 }
 
 // ── init ────────────────────────────────────────────────────────────────────
@@ -563,12 +575,7 @@ function renderAlerts() {
   const user = localStorage.getItem(LS.user); if (user) $('userInput').value = user;
   const fio = localStorage.getItem(LS.fio);  if (fio)  $('fioKeyInput').value = fio;
   const pn  = localStorage.getItem(LS.pn);   if (pn)   $('pnKeyInput').value  = pn;
-
-  $('horizonInput').addEventListener('change', () => { CFG.horizonDays = +$('horizonInput').value || 7; if (DATA && CURRENT) refresh(); });
-  $('matInput').addEventListener('keydown', e => { if (e.key === 'Enter') sellCheck(); });
-  $('qtyInput').addEventListener('keydown', e => { if (e.key === 'Enter') sellCheck(); });
-  $('matInput').addEventListener('change', () => { const t = normalizeTicker($('matInput').value); if (t && DATA) selectMaterial(t); });
-
+  $('horizonInput').addEventListener('change', () => { CFG.horizonDays = +$('horizonInput').value || 7; if (DATA) buildModel(); });
   if (fio) loadAll(false);
 })();
 </script>
