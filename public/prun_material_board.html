@@ -24,7 +24,7 @@
   .top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
   h1 {
     font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
-    color: var(--text2); display: flex; align-items: center; gap: 8px; margin-right: auto;
+    color: var(--text2); display: flex; align-items: center; gap: 8px;
   }
   h1::before { content: ''; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
   .input-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
@@ -349,7 +349,10 @@ function stockRows(ticker) {
   const rows = [];
   for (const st of DATA.storage) {
     let amt = 0;
-    for (const it of (st.StorageItems || [])) if (it.MaterialTicker === ticker) amt += (+it.Amount || 0);
+    for (const it of (st.StorageItems || [])) {
+      if (it.MaterialTicker !== ticker) continue;
+      amt += +(it.MaterialAmount != null ? it.MaterialAmount : it.Amount) || 0;
+    }
     if (amt > 0) rows.push({ name: st.Name || '?', type: TYPE_LABEL[st.Type] || st.Type || '—', amt });
   }
   return rows.sort((a, b) => b.amt - a.amt);
