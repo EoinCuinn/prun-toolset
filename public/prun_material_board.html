@@ -167,19 +167,20 @@ const FIO_BASE = 'https://rest.fnar.net';
 const PN_BASE  = 'https://api.punoted.net/v1';
 const CACHE_TTL = 5 * 60 * 1000;
 const LS = { fio: 'prun_apikey', pn: 'prun_punoted_allkey', user: 'prun_cis_user', cfg: 'prun_cis_cfg' };
-const BUILD = '2026-11-20d';   // shown in the header so a stale cached page is obvious
+const BUILD = '2026-11-20e';   // shown in the header so a stale cached page is obvious
 
 const DEFAULT_CFG = {
   horizonDays: 7,
   reserveDays: { usage: 0, production: 0 },
   commitments: [
-    { counterparty: 'Syrim',        material: 'RAT', units: 3500, per: 'week' },
-    { counterparty: 'Syrim',        material: 'DW',  units: 3500, per: 'week' },
-    { counterparty: 'Purpleorange', material: 'PSL', units: 450,  per: 'week' },
-    { counterparty: 'Purpleorange', material: 'PSM', units: 450,  per: 'week' },
-    { counterparty: 'GuyKid',       material: 'DCM', units: 14,   per: 'day', activeFrom: '2026-11-22' },
-    { counterparty: 'Corp',         material: 'PG',  units: 4000, per: 'day' },
-    { counterparty: 'Corp player',  material: 'BTS', units: 750,  per: 'week', note: 'delivered to Helion Prime' },
+    { counterparty: 'Syrim',        material: 'RAT', units: 3500, per: 'week', due: 'Mon' },
+    { counterparty: 'Syrim',        material: 'DW',  units: 3500, per: 'week', due: 'Mon' },
+    { counterparty: 'Purpleorange', material: 'PSL', units: 450,  per: 'week', due: 'Sat' },
+    { counterparty: 'Purpleorange', material: 'PSM', units: 450,  per: 'week', due: 'Sat' },
+    { counterparty: 'GuyKid',       material: 'DCM', units: 14,   per: 'day',  due: 'Sat', activeFrom: '2026-11-22' },
+    { counterparty: 'Corp',         material: 'PG',  units: 4000, per: 'day',  due: 'Sat' },
+    { counterparty: 'Corp player',  material: 'BTS', units: 750,  per: 'week', due: 'Sat', note: 'delivered to Helion Prime' },
+    { counterparty: 'Corp player',  material: 'GL',  units: 300,  per: 'week', due: 'Sat' },
   ],
   reserve: {},
 };
@@ -377,10 +378,13 @@ function commitmentsFor(t) {
     if (String(c.material || '').toUpperCase() !== t) continue;
     if (c.activeFrom && new Date(c.activeFrom) > new Date()) continue;
     const units = +c.units || 0;
+    const due = c.due || 'Sat';
+    const days = daysUntilWeekday(due);
+    const unitsDue = c.per === 'week' ? units : units * 7;   // a week's worth for daily rates
     const overHorizon = c.per === 'week' ? units * (CFG.horizonDays / 7) : units * CFG.horizonDays;
-    rows.push({ who: c.counterparty, units, per: c.per, overHorizon, note: c.note || '' });
+    rows.push({ who: c.counterparty, units, per: c.per, due, days, unitsDue, overHorizon, note: c.note || '' });
   }
-  return rows;
+  return rows.sort((a, b) => a.days - b.days);
 }
 function reserveFor(t, cons, prod) {
   if (Object.prototype.hasOwnProperty.call(CFG.reserve, t)) return { value: +CFG.reserve[t] || 0, override: true };
@@ -389,10 +393,13 @@ function reserveFor(t, cons, prod) {
   return { value: 0, override: false };
 }
 
-// Days until the coming Saturday (0 if today is Saturday).
-function daysToSaturday() {
-  const d = new Date().getDay();      // 0 Sun … 6 Sat
-  return d === 6 ? 0 : 6 - d;
+const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+// Days until the next occurrence of a weekday (0 if today).
+function daysUntilWeekday(name) {
+  const want = String(name || 'Sat').slice(0, 3).toLowerCase();
+  const idx = DAY_NAMES.findIndex(d => d.toLowerCase() === want);
+  const target = idx >= 0 ? idx : 6;
+  return (target - new Date().getDay() + 7) % 7;
 }
 
 // ── model ───────────────────────────────────────────────────────────────────
@@ -421,24 +428,32 @@ function buildModel() {
     const cRows = contractRows(t);
     const incoming = cRows.filter(r => r.dir === 'in').reduce((s, r) => s + r.amt, 0);
     const outgoing = cRows.filter(r => r.dir === 'out').reduce((s, r) => s + r.amt, 0);
-    const commit = commitmentsFor(t).reduce((s, r) => s + r.overHorizon, 0);
+    const commitRows = commitmentsFor(t);
+    const commit = commitRows.reduce((s, r) => s + r.overHorizon, 0);
     const reserve = reserveFor(t, cons, prod).value;
     const free = stock + incoming + prod * CFG.horizonDays - outgoing - commit - reserve;
     const cover = net < 0 ? stock / -net : Infinity;
 
-    // Saturday: stock + production until the coming Saturday vs commitments due by then.
-    const satDays = daysToSaturday();
-    const satNeed = commitmentsFor(t).reduce((s, c) => s + (c.per === 'week' ? c.units : c.units * satDays), 0);
+    // Saturday column: stock + production until Saturday, against commitments due Saturday.
+    const satDays = daysUntilWeekday('Sat');
+    const satNeed = commitRows.filter(r => r.due === 'Sat').reduce((s, r) => s + r.unitsDue, 0);
     const satHave = stock + incoming + prod * satDays;
     const satGap = satHave - satNeed;
 
+    // Each commitment is measured against its own due day.
+    const dueRows = commitRows.map(r => {
+      const have = stock + incoming + prod * r.days;
+      return { ...r, have, gap: have - r.unitsDue };
+    });
+    const shortOne = dueRows.find(r => r.gap < 0) || null;
+
     let status = 'ok';
-    if (satNeed > 0 && satGap < 0) status = 'satShort';
+    if (shortOne) status = 'short';
     else if (reserve > 0 && stock < reserve) status = 'below';
     else if (net < 0 && cover < 7) status = 'fast';
-    else if (satNeed > 0) status = 'satOk';
+    else if (dueRows.length) status = 'ready';
     return { ticker: t, name: nameOf(t), stock, prod, cons, net, cover, incoming, outgoing, commit, reserve, free, status,
-             satDays, satNeed, satHave, satGap,
+             satDays, satNeed, satHave, satGap, dueRows, shortDay: shortOne ? shortOne.due : '',
              hasContracts: cRows.length > 0, sRows, bRows, cRows };
   });
 
@@ -447,10 +462,10 @@ function buildModel() {
 
 // ── render list ─────────────────────────────────────────────────────────────
 function statusCell(m) {
-  if (m.status === 'satShort') return '<span class="badge bad">short for sat</span>';
-  if (m.status === 'below')    return '<span class="badge bad">below reserve</span>';
-  if (m.status === 'fast')     return '<span class="badge warn">selling too fast</span>';
-  if (m.status === 'satOk')    return '<span class="badge good">ready for sat</span>';
+  if (m.status === 'short') return `<span class="badge bad">short for ${esc(String(m.shortDay || 'sat').toLowerCase())}</span>`;
+  if (m.status === 'below') return '<span class="badge bad">below reserve</span>';
+  if (m.status === 'fast')  return '<span class="badge warn">selling too fast</span>';
+  if (m.status === 'ready') return '<span class="badge good">ready</span>';
   return '<span class="badge good">ok</span>';
 }
 function satText(m) {
@@ -473,7 +488,7 @@ function filtered() {
   if (FILTER === 'nostock') rows = rows.filter(r => r.stock === 0);
   return rows.slice().sort((a, b) => {
     if (SORT.key === 'status') {
-      const rank = { satShort: 0, below: 1, fast: 2, satOk: 3, ok: 4 };
+      const rank = { short: 0, below: 1, fast: 2, ready: 3, ok: 4 };
       const d = rank[a.status] - rank[b.status];
       return d !== 0 ? d : a.ticker.localeCompare(b.ticker);
     }
@@ -559,9 +574,9 @@ function detailHTML(m) {
 
   const commits = commitmentsFor(t);
   const commitTbl = commits.length
-    ? `<table><thead><tr><th>Counterparty</th><th class="r">Rate</th><th class="r">Over ${CFG.horizonDays}d</th></tr></thead><tbody>
-       ${commits.map(r => `<tr><td class="mono">${esc(r.who)}${r.note ? `<div class="mat-name">${esc(r.note)}</div>` : ''}</td><td class="r mono muted">${fmt(r.units)}/${r.per}</td><td class="r mono">${fmt1(r.overHorizon)}</td></tr>`).join('')}
-       </tbody><tfoot><tr><td colspan="2">TOTAL</td><td class="r">${fmt1(m.commit)}</td></tr></tfoot></table>`
+    ? `<table><thead><tr><th>Counterparty</th><th>Due</th><th class="r">Rate</th><th class="r">Over ${CFG.horizonDays}d</th></tr></thead><tbody>
+       ${commits.map(r => `<tr><td class="mono">${esc(r.who)}${r.note ? `<div class="mat-name">${esc(r.note)}</div>` : ''}</td><td class="muted">${esc(r.due)}</td><td class="r mono muted">${fmt(r.units)}/${r.per}</td><td class="r mono">${fmt1(r.overHorizon)}</td></tr>`).join('')}
+       </tbody><tfoot><tr><td colspan="3">TOTAL</td><td class="r">${fmt1(m.commit)}</td></tr></tfoot></table>`
     : '<div class="empty-state">No standing commitments.</div>';
 
   const res = reserveFor(t, m.cons, m.prod);
@@ -576,20 +591,20 @@ function detailHTML(m) {
           <td class="r mono ${m.stock >= m.reserve ? 'good' : 'bad'}">${fmt(Math.abs(m.stock - m.reserve))}</td></tr>
     </tbody></table>`;
 
-  const satPanel = m.satNeed > 0
+  const satPanel = m.dueRows.length
     ? `<div class="subpanel" style="margin-top:14px;">
-         <div class="subpanel-title">Saturday commitments — ${m.satDays} day${m.satDays === 1 ? '' : 's'} to go</div>
+         <div class="subpanel-title">Commitments by due day</div>
          <table>
-           <thead><tr><th>Counterparty</th><th class="r">Due by Sat</th></tr></thead>
+           <thead><tr><th>Counterparty</th><th>Due</th><th class="r">Units due</th><th class="r">Have by then</th><th class="r">Gap</th></tr></thead>
            <tbody>
-             ${commits.map(r => `<tr><td class="mono">${esc(r.who)}${r.note ? `<div class="mat-name">${esc(r.note)}</div>` : ''}</td>
-               <td class="r mono">${fmt1(r.per === 'week' ? r.units : r.units * m.satDays)}</td></tr>`).join('')}
+             ${m.dueRows.map(r => `<tr>
+               <td class="mono">${esc(r.who)}${r.note ? `<div class="mat-name">${esc(r.note)}</div>` : ''}</td>
+               <td class="muted">${esc(r.due)}${r.days === 0 ? ' (today)' : ` (${r.days}d)`}</td>
+               <td class="r mono">${fmt1(r.unitsDue)}</td>
+               <td class="r mono muted">${fmt1(r.have)}</td>
+               <td class="r mono ${r.gap >= 0 ? 'good' : 'bad'}">${r.gap >= 0 ? '+' : ''}${fmt1(r.gap)}</td>
+             </tr>`).join('')}
            </tbody>
-           <tfoot>
-             <tr><td>Have — stock + ${m.satDays}d production + incoming</td><td class="r">${fmt1(m.satHave)}</td></tr>
-             <tr><td>${m.satGap >= 0 ? 'Covered by' : 'Short by'}</td>
-                 <td class="r ${m.satGap >= 0 ? 'good' : 'bad'}">${fmt1(Math.abs(m.satGap))}</td></tr>
-           </tfoot>
          </table>
        </div>`
     : '';
