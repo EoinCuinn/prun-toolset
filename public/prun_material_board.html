@@ -135,6 +135,7 @@
   <button class="chip active" data-filter="all" onclick="setFilter('all')">All</button>
   <button class="chip" data-filter="below" onclick="setFilter('below')">Below reserve</button>
   <button class="chip" data-filter="fast" onclick="setFilter('fast')">Selling too fast</button>
+  <button class="chip" data-filter="commitments" onclick="setFilter('commitments')">Commitments</button>
   <button class="chip" data-filter="contracts" onclick="setFilter('contracts')">Has contracts</button>
   <button class="chip" data-filter="nostock" onclick="setFilter('nostock')">No stock</button>
   <span class="count" id="countLabel"></span>
@@ -168,7 +169,7 @@ const FIO_BASE = 'https://rest.fnar.net';
 const PN_BASE  = 'https://api.punoted.net/v1';
 const CACHE_TTL = 5 * 60 * 1000;
 const LS = { fio: 'prun_apikey', pn: 'prun_punoted_allkey', user: 'prun_cis_user', cfg: 'prun_cis_cfg' };
-const BUILD = '2026-11-20h';   // shown in the header so a stale cached page is obvious
+const BUILD = '2026-11-20i';   // shown in the header so a stale cached page is obvious
 
 const DEFAULT_CFG = {
   horizonDays: 7,
@@ -477,7 +478,7 @@ function buildModel() {
     else if (dueRows.length) status = 'ready';
     return { ticker: t, name: nameOf(t), stock, prod, cons, net, cover, incoming, outgoing, commit, reserve, free, status,
              satDays, satNeed, satHave, satGap, dueRows, shortDay: shortOne ? shortOne.due : '',
-             hasContracts: cRows.length > 0, sRows, bRows, cRows };
+             hasContracts: cRows.length > 0, hasCommitments: commitRows.length > 0, sRows, bRows, cRows };
   });
 
   render();
@@ -508,6 +509,7 @@ function filtered() {
   if (FILTER === 'below') rows = rows.filter(r => r.status === 'below');
   if (FILTER === 'fast') rows = rows.filter(r => r.status === 'fast');
   if (FILTER === 'contracts') rows = rows.filter(r => r.hasContracts);
+  if (FILTER === 'commitments') rows = rows.filter(r => r.hasCommitments);
   if (FILTER === 'nostock') rows = rows.filter(r => r.stock === 0);
   return rows.slice().sort((a, b) => {
     if (SORT.key === 'status') {
