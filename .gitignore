@@ -27,3 +27,6 @@ public/config.js
 *.njsproj
 *.sln
 *.sw?
+
+# Local design notes (not for the public repo)
+can-i-sell-spec.md
