@@ -148,8 +148,8 @@
     <summary>Settings — horizon, commitments, reserve overrides</summary>
     <div class="settings-grid">
       <div><label>Horizon (days)</label><input id="horizonInput" type="number" min="1" max="60" value="7" style="width:100%"></div>
-      <div><label>Reserve: days of usage</label><input id="reserveUseInput" type="number" min="1" max="120" value="30" style="width:100%"></div>
-      <div><label>Reserve: days of production</label><input id="reserveProdInput" type="number" min="1" max="120" value="20" style="width:100%"></div>
+      <div><label>Reserve: days of usage</label><input id="reserveUseInput" type="number" min="0" max="120" value="0" style="width:100%"></div>
+      <div><label>Reserve: days of production</label><input id="reserveProdInput" type="number" min="0" max="120" value="0" style="width:100%"></div>
     </div>
     <label style="display:block;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">
       Config JSON — commitments [{counterparty, material, units, per: "day"|"week", activeFrom?}] and reserve {TICKER: units}
@@ -171,7 +171,7 @@ const BUILD = '2026-11-20c';   // shown in the header so a stale cached page is 
 
 const DEFAULT_CFG = {
   horizonDays: 7,
-  reserveDays: { usage: 30, production: 20 },
+  reserveDays: { usage: 0, production: 0 },
   commitments: [
     { counterparty: 'Syrim',        material: 'RAT', units: 3500, per: 'week' },
     { counterparty: 'Syrim',        material: 'DW',  units: 3500, per: 'week' },
@@ -384,9 +384,15 @@ function commitmentsFor(t) {
 }
 function reserveFor(t, cons, prod) {
   if (Object.prototype.hasOwnProperty.call(CFG.reserve, t)) return { value: +CFG.reserve[t] || 0, override: true };
-  if (cons > 0) return { value: cons * CFG.reserveDays.usage, override: false };
-  if (prod > 0) return { value: prod * CFG.reserveDays.production, override: false };
+  if (cons > 0 && CFG.reserveDays.usage > 0) return { value: cons * CFG.reserveDays.usage, override: false };
+  if (prod > 0 && CFG.reserveDays.production > 0) return { value: prod * CFG.reserveDays.production, override: false };
   return { value: 0, override: false };
+}
+
+// Days until the coming Saturday (0 if today is Saturday).
+function daysToSaturday() {
+  const d = new Date().getDay();      // 0 Sun … 6 Sat
+  return d === 6 ? 0 : 6 - d;
 }
 
 // ── model ───────────────────────────────────────────────────────────────────
@@ -419,10 +425,20 @@ function buildModel() {
     const reserve = reserveFor(t, cons, prod).value;
     const free = stock + incoming + prod * CFG.horizonDays - outgoing - commit - reserve;
     const cover = net < 0 ? stock / -net : Infinity;
+
+    // Saturday: stock + production until the coming Saturday vs commitments due by then.
+    const satDays = daysToSaturday();
+    const satNeed = commitmentsFor(t).reduce((s, c) => s + (c.per === 'week' ? c.units : c.units * satDays), 0);
+    const satHave = stock + incoming + prod * satDays;
+    const satGap = satHave - satNeed;
+
     let status = 'ok';
-    if (reserve > 0 && stock < reserve) status = 'below';
+    if (satNeed > 0 && satGap < 0) status = 'satShort';
+    else if (reserve > 0 && stock < reserve) status = 'below';
     else if (net < 0 && cover < 7) status = 'fast';
+    else if (satNeed > 0) status = 'satOk';
     return { ticker: t, name: nameOf(t), stock, prod, cons, net, cover, incoming, outgoing, commit, reserve, free, status,
+             satDays, satNeed, satHave, satGap,
              hasContracts: cRows.length > 0, sRows, bRows, cRows };
   });
 
@@ -431,9 +447,16 @@ function buildModel() {
 
 // ── render list ─────────────────────────────────────────────────────────────
 function statusCell(m) {
-  if (m.status === 'below') return '<span class="badge bad">below reserve</span>';
-  if (m.status === 'fast')  return '<span class="badge warn">selling too fast</span>';
+  if (m.status === 'satShort') return '<span class="badge bad">short for sat</span>';
+  if (m.status === 'below')    return '<span class="badge bad">below reserve</span>';
+  if (m.status === 'fast')     return '<span class="badge warn">selling too fast</span>';
+  if (m.status === 'satOk')    return '<span class="badge good">ready for sat</span>';
   return '<span class="badge good">ok</span>';
+}
+function satText(m) {
+  if (!m.satNeed) return '<span class="dim">—</span>';
+  const cls = m.satGap < 0 ? 'bad' : 'good';
+  return `<span class="${cls}">${m.satGap >= 0 ? '+' : ''}${fmt1(m.satGap)}</span>`;
 }
 function coverText(m) {
   if (!isFinite(m.cover)) return '<span class="dim">—</span>';
@@ -450,7 +473,7 @@ function filtered() {
   if (FILTER === 'nostock') rows = rows.filter(r => r.stock === 0);
   return rows.slice().sort((a, b) => {
     if (SORT.key === 'status') {
-      const rank = { below: 0, fast: 1, ok: 2 };
+      const rank = { satShort: 0, below: 1, fast: 2, satOk: 3, ok: 4 };
       const d = rank[a.status] - rank[b.status];
       return d !== 0 ? d : a.ticker.localeCompare(b.ticker);
     }
@@ -482,6 +505,7 @@ function render() {
     <th class="r" onclick="sortBy('stock')">Stock${arrow('stock')}</th>
     <th class="r" onclick="sortBy('net')">Net / day${arrow('net')}</th>
     <th class="r" onclick="sortBy('cover')">Cover${arrow('cover')}</th>
+    <th class="r" onclick="sortBy('satGap')">Sat${arrow('satGap')}</th>
     <th class="r plain">Open in / out</th>
     <th class="r" onclick="sortBy('free')">Free${arrow('free')}</th>
     <th class="plain">Status</th>
@@ -494,11 +518,12 @@ function render() {
       <td class="r mono">${fmt(m.stock)}</td>
       <td class="r mono ${m.net >= 0 ? 'good' : 'bad'}">${m.net >= 0 ? '+' : ''}${fmt1(m.net)}</td>
       <td class="r mono">${coverText(m)}</td>
+      <td class="r mono">${satText(m)}</td>
       <td class="r mono muted">${fmt(m.incoming)} / ${fmt(m.outgoing)}</td>
       <td class="r mono ${m.free >= 0 ? '' : 'bad'}">${fmt(m.free)}</td>
       <td>${statusCell(m)}</td>
     </tr>`;
-    const detail = open ? `<tr><td colspan="7" class="detail-cell">${detailHTML(m)}</td></tr>` : '';
+    const detail = open ? `<tr><td colspan="8" class="detail-cell">${detailHTML(m)}</td></tr>` : '';
     return row + detail;
   }).join('');
 
@@ -541,15 +566,33 @@ function detailHTML(m) {
 
   const res = reserveFor(t, m.cons, m.prod);
   const resBasis = res.override ? 'Override (config)'
+    : m.reserve === 0 ? 'No reserve'
     : m.cons > 0 ? `Default — ${CFG.reserveDays.usage} days of usage`
-    : m.prod > 0 ? `Default — ${CFG.reserveDays.production} days of production`
-    : 'No burn data or override';
+    : `Default — ${CFG.reserveDays.production} days of production`;
   const resTbl = `<table><thead><tr><th>Basis</th><th class="r">Units</th></tr></thead><tbody>
       <tr><td class="muted">${esc(resBasis)}</td><td class="r mono">${fmt(m.reserve)}</td></tr>
       <tr><td class="muted">Stock now</td><td class="r mono">${fmt(m.stock)}</td></tr>
       <tr><td class="muted">${m.stock >= m.reserve ? 'Above reserve by' : 'Below reserve by'}</td>
           <td class="r mono ${m.stock >= m.reserve ? 'good' : 'bad'}">${fmt(Math.abs(m.stock - m.reserve))}</td></tr>
     </tbody></table>`;
+
+  const satPanel = m.satNeed > 0
+    ? `<div class="subpanel" style="margin-top:14px;">
+         <div class="subpanel-title">Saturday commitments — ${m.satDays} day${m.satDays === 1 ? '' : 's'} to go</div>
+         <table>
+           <thead><tr><th>Counterparty</th><th class="r">Due by Sat</th></tr></thead>
+           <tbody>
+             ${commits.map(r => `<tr><td class="mono">${esc(r.who)}${r.note ? `<div class="mat-name">${esc(r.note)}</div>` : ''}</td>
+               <td class="r mono">${fmt1(r.per === 'week' ? r.units : r.units * m.satDays)}</td></tr>`).join('')}
+           </tbody>
+           <tfoot>
+             <tr><td>Have — stock + ${m.satDays}d production + incoming</td><td class="r">${fmt1(m.satHave)}</td></tr>
+             <tr><td>${m.satGap >= 0 ? 'Covered by' : 'Short by'}</td>
+                 <td class="r ${m.satGap >= 0 ? 'good' : 'bad'}">${fmt1(Math.abs(m.satGap))}</td></tr>
+           </tfoot>
+         </table>
+       </div>`
+    : '';
 
   return `<div class="detail">
     <div class="detail-head">
@@ -559,6 +602,7 @@ function detailHTML(m) {
       <div><div class="dstat">Net / day</div><div class="dval ${m.net >= 0 ? 'good' : 'bad'}">${m.net >= 0 ? '+' : ''}${fmt1(m.net)}</div></div>
       <div><div class="dstat">Cover</div><div class="dval">${coverText(m)}</div></div>
     </div>
+    ${satPanel}
     <div class="detail-cols">
       <div class="subpanel"><div class="subpanel-title">Stock by location</div>${stockTbl}</div>
       <div class="subpanel"><div class="subpanel-title">Production &amp; use by planet</div>${burnTbl}</div>
