@@ -232,7 +232,7 @@ const FIO_BASE = 'https://rest.fnar.net';
 const PN_BASE  = 'https://api.punoted.net/v1';
 const CACHE_TTL = 5 * 60 * 1000;
 const LS = { fio: 'prun_apikey', pn: 'prun_punoted_allkey', user: 'prun_cis_user', cfg: 'prun_cis_cfg' };
-const BUILD = '2026-11-21d';
+const BUILD = '2026-11-21e';
 // Temporary: hide counterparty names until they are supplied.
 const MASK_COUNTERPARTY = true;   // shown in the header so a stale cached page is obvious
 
@@ -701,18 +701,23 @@ function buildModel() {
 let EXPORT = { json: '', paste: '' };
 let CX_CACHE = null;
 
+// Round to the extension's 3-significant-figure price limit.
+function sig3(n) {
+  n = +n;
+  if (!n) return 0;
+  const mag = Math.floor(Math.log10(Math.abs(n)));
+  const f = Math.pow(10, 2 - mag);
+  return Math.round(n * f) / f;
+}
+
 async function cxPrice(ticker, dir) {
-  if (!CX_CACHE) {
-    const r = await fetch('https://rest.fnar.net/cx/prices');
-    if (!r.ok) throw new Error('CX prices HTTP ' + r.status);
-    CX_CACHE = await r.json();
-  }
   const ex = String(CFG.defaultExchange || 'IC1').toUpperCase();
-  const rows = CX_CACHE.filter(x => x.MaterialTicker === ticker);
-  const row = rows.find(x => String(x.ExchangeCode).toUpperCase() === ex) || rows[0];
-  if (!row) throw new Error('no CX price for ' + ticker);
-  const p = dir === 'buy' ? (row.Ask || row.Price) : (row.Bid || row.Price);
-  return Math.round((+p || 0) * 100) / 100;
+  const r = await fetch(`https://rest.fnar.net/exchange/${encodeURIComponent(ticker)}.${encodeURIComponent(ex)}`);
+  if (!r.ok) throw new Error(`no ${ticker}.${ex} market (HTTP ${r.status})`);
+  const d = await r.json();
+  const p = dir === 'buy' ? (d.Ask || d.Price) : (d.Bid || d.Price);
+  if (!p) throw new Error(`no ${dir === 'buy' ? 'ask' : 'bid'} on ${ex}`);
+  return +p;
 }
 
 async function exportCommit(idx) {
@@ -726,6 +731,7 @@ async function exportCommit(idx) {
     catch (e) { setStatus('err', 'No price available: ' + e.message); return; }
   }
   if (!price) { setStatus('err', 'No price for ' + c.material + ' — set one on the commitment.'); return; }
+  price = sig3(price);
 
   const units = c.per === 'week' ? (+c.units || 0) : (+c.units || 0) * 7;
   const pkg = {
