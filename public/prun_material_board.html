@@ -175,18 +175,20 @@ const FIO_BASE = 'https://rest.fnar.net';
 const PN_BASE  = 'https://api.punoted.net/v1';
 const CACHE_TTL = 5 * 60 * 1000;
 const LS = { fio: 'prun_apikey', pn: 'prun_punoted_allkey', user: 'prun_cis_user', cfg: 'prun_cis_cfg' };
-const BUILD = '2026-11-20j';   // shown in the header so a stale cached page is obvious
+const BUILD = '2026-11-20k';
+// Temporary: hide counterparty names until they are supplied.
+const MASK_COUNTERPARTY = true;   // shown in the header so a stale cached page is obvious
 
 const DEFAULT_CFG = {
   horizonDays: 7,
   reserveDays: { usage: 16, production: 16 },
   commitments: [
-    { counterparty: 'Syrim',        material: 'RAT', units: 3500, per: 'week', due: 'Mon' },
-    { counterparty: 'Syrim',        material: 'DW',  units: 3500, per: 'week', due: 'Mon' },
-    { counterparty: 'Purpleorange', material: 'PSL', units: 450,  per: 'week', due: 'Sat' },
-    { counterparty: 'Purpleorange', material: 'PSM', units: 450,  per: 'week', due: 'Sat' },
-    { counterparty: 'GuyKid',       material: 'DCM', units: 14,   per: 'day',  due: 'Sat', activeFrom: '2026-11-22' },
-    { counterparty: 'Corp',         material: 'PG',  units: 4000, per: 'day',  due: 'Mon' },
+    { counterparty: 'COSM player',        material: 'RAT', units: 3500, per: 'week', due: 'Mon' },
+    { counterparty: 'COSM player',        material: 'DW',  units: 3500, per: 'week', due: 'Mon' },
+    { counterparty: 'COSM player', material: 'PSL', units: 450,  per: 'week', due: 'Sat' },
+    { counterparty: 'COSM player', material: 'PSM', units: 450,  per: 'week', due: 'Sat' },
+    { counterparty: 'COSM player',       material: 'DCM', units: 14,   per: 'day',  due: 'Sat', activeFrom: '2026-11-22' },
+    { counterparty: 'COSM player',         material: 'PG',  units: 4000, per: 'day',  due: 'Mon' },
     { counterparty: 'Corp player',  material: 'BTS', units: 750,  per: 'week', due: 'Sat', note: 'delivered to Helion Prime' },
     { counterparty: 'Corp player',  material: 'GL',  units: 300,  per: 'week', due: 'Sat' },
   ],
@@ -204,6 +206,7 @@ let OPEN = null;         // expanded ticker
 const $ = id => document.getElementById(id);
 const fmt = n => Math.round(n).toLocaleString('en-US');
 const fmt1 = n => (Math.round(n * 10) / 10).toLocaleString('en-US');
+const whoName = w => MASK_COUNTERPARTY ? 'COSM player' : w;
 const esc = s => String(s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 function dateOf(v) {
   if (!v) return '—';
@@ -507,7 +510,7 @@ function renderCommitments() {
     <tbody>${rows.map(r => `<tr>
       <td class="muted">${esc(r.due)}${r.days === 0 ? ' (today)' : ` (${r.days}d)`}</td>
       <td><span class="mat">${esc(r.ticker)}</span> <span class="mat-name">${esc(r.name)}</span></td>
-      <td class="mono">${esc(r.who)}${r.note ? `<div class="mat-name">${esc(r.note)}</div>` : ''}</td>
+      <td class="mono">${esc(whoName(r.who))}${r.note ? `<div class="mat-name">${esc(r.note)}</div>` : ''}</td>
       <td class="r mono muted">${fmt(r.units)}/${r.per}</td>
       <td class="r mono">${fmt1(r.unitsDue)}</td>
       <td class="r mono muted">${fmt1(r.have)}</td>
@@ -633,7 +636,7 @@ function detailHTML(m) {
   const commits = commitmentsFor(t);
   const commitTbl = commits.length
     ? `<table><thead><tr><th>Counterparty</th><th>Due</th><th class="r">Rate</th><th class="r">Over ${CFG.horizonDays}d</th></tr></thead><tbody>
-       ${commits.map(r => `<tr><td class="mono">${esc(r.who)}${r.note ? `<div class="mat-name">${esc(r.note)}</div>` : ''}</td><td class="muted">${esc(r.due)}</td><td class="r mono muted">${fmt(r.units)}/${r.per}</td><td class="r mono">${fmt1(r.overHorizon)}</td></tr>`).join('')}
+       ${commits.map(r => `<tr><td class="mono">${esc(whoName(r.who))}${r.note ? `<div class="mat-name">${esc(r.note)}</div>` : ''}</td><td class="muted">${esc(r.due)}</td><td class="r mono muted">${fmt(r.units)}/${r.per}</td><td class="r mono">${fmt1(r.overHorizon)}</td></tr>`).join('')}
        </tbody><tfoot><tr><td colspan="3">TOTAL</td><td class="r">${fmt1(m.commit)}</td></tr></tfoot></table>`
     : '<div class="empty-state">No standing commitments.</div>';
 
@@ -656,7 +659,7 @@ function detailHTML(m) {
            <thead><tr><th>Counterparty</th><th>Due</th><th class="r">Units due</th><th class="r">Have by then</th><th class="r">Gap</th></tr></thead>
            <tbody>
              ${m.dueRows.map(r => `<tr>
-               <td class="mono">${esc(r.who)}${r.note ? `<div class="mat-name">${esc(r.note)}</div>` : ''}</td>
+               <td class="mono">${esc(whoName(r.who))}${r.note ? `<div class="mat-name">${esc(r.note)}</div>` : ''}</td>
                <td class="muted">${esc(r.due)}${r.days === 0 ? ' (today)' : ` (${r.days}d)`}</td>
                <td class="r mono">${fmt1(r.unitsDue)}</td>
                <td class="r mono muted">${fmt1(r.have)}</td>
