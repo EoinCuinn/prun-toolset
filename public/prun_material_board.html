@@ -148,8 +148,8 @@
     <summary>Settings — horizon, commitments, reserve overrides</summary>
     <div class="settings-grid">
       <div><label>Horizon (days)</label><input id="horizonInput" type="number" min="1" max="60" value="7" style="width:100%"></div>
-      <div><label>Reserve: days of usage</label><input id="reserveUseInput" type="number" min="0" max="120" value="0" style="width:100%"></div>
-      <div><label>Reserve: days of production</label><input id="reserveProdInput" type="number" min="0" max="120" value="0" style="width:100%"></div>
+      <div><label>Reserve: days of usage</label><input id="reserveUseInput" type="number" min="0" max="120" value="16" style="width:100%"></div>
+      <div><label>Reserve: days of production</label><input id="reserveProdInput" type="number" min="0" max="120" value="16" style="width:100%"></div>
     </div>
     <label style="display:block;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">
       Config JSON — commitments [{counterparty, material, units, per: "day"|"week", activeFrom?}] and reserve {TICKER: units}
@@ -167,11 +167,11 @@ const FIO_BASE = 'https://rest.fnar.net';
 const PN_BASE  = 'https://api.punoted.net/v1';
 const CACHE_TTL = 5 * 60 * 1000;
 const LS = { fio: 'prun_apikey', pn: 'prun_punoted_allkey', user: 'prun_cis_user', cfg: 'prun_cis_cfg' };
-const BUILD = '2026-11-20f';   // shown in the header so a stale cached page is obvious
+const BUILD = '2026-11-20g';   // shown in the header so a stale cached page is obvious
 
 const DEFAULT_CFG = {
   horizonDays: 7,
-  reserveDays: { usage: 0, production: 0 },
+  reserveDays: { usage: 16, production: 16 },
   commitments: [
     { counterparty: 'Syrim',        material: 'RAT', units: 3500, per: 'week', due: 'Mon' },
     { counterparty: 'Syrim',        material: 'DW',  units: 3500, per: 'week', due: 'Mon' },
@@ -222,6 +222,16 @@ function renderConfig() {
   $('reserveProdInput').value = CFG.reserveDays.production;
   $('cfgText').value = JSON.stringify({ commitments: CFG.commitments, reserve: CFG.reserve }, null, 2);
 }
+function persistSettings() {
+  CFG.horizonDays = +$('horizonInput').value || 7;
+  CFG.reserveDays = {
+    usage: +$('reserveUseInput').value || 0,
+    production: +$('reserveProdInput').value || 0,
+  };
+  localStorage.setItem(LS.cfg, JSON.stringify(CFG));
+  if (DATA) buildModel();
+}
+
 function saveConfig() {
   try {
     const parsed = JSON.parse($('cfgText').value);
@@ -659,7 +669,8 @@ function sellCheck(t) {
   const user = localStorage.getItem(LS.user); if (user) $('userInput').value = user;
   const fio = localStorage.getItem(LS.fio);  if (fio)  $('fioKeyInput').value = fio;
   const pn  = localStorage.getItem(LS.pn);   if (pn)   $('pnKeyInput').value  = pn;
-  $('horizonInput').addEventListener('change', () => { CFG.horizonDays = +$('horizonInput').value || 7; if (DATA) buildModel(); });
+  ['horizonInput', 'reserveUseInput', 'reserveProdInput'].forEach(id =>
+    $(id).addEventListener('change', persistSettings));
   if (fio) loadAll(false);
 })();
 </script>
