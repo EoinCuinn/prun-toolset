@@ -177,6 +177,7 @@ const DEFAULT_CFG = {
     { counterparty: 'Purpleorange', material: 'PSM', units: 450,  per: 'week' },
     { counterparty: 'GuyKid',       material: 'DCM', units: 14,   per: 'day', activeFrom: '2026-11-22' },
     { counterparty: 'Corp',         material: 'PG',  units: 4000, per: 'day' },
+    { counterparty: 'Corp player',  material: 'BTS', units: 750,  per: 'week', note: 'delivered to Helion Prime' },
   ],
   reserve: {},
 };
@@ -375,7 +376,7 @@ function commitmentsFor(t) {
     if (c.activeFrom && new Date(c.activeFrom) > new Date()) continue;
     const units = +c.units || 0;
     const overHorizon = c.per === 'week' ? units * (CFG.horizonDays / 7) : units * CFG.horizonDays;
-    rows.push({ who: c.counterparty, units, per: c.per, overHorizon });
+    rows.push({ who: c.counterparty, units, per: c.per, overHorizon, note: c.note || '' });
   }
   return rows;
 }
@@ -532,7 +533,7 @@ function detailHTML(m) {
   const commits = commitmentsFor(t);
   const commitTbl = commits.length
     ? `<table><thead><tr><th>Counterparty</th><th class="r">Rate</th><th class="r">Over ${CFG.horizonDays}d</th></tr></thead><tbody>
-       ${commits.map(r => `<tr><td class="mono">${esc(r.who)}</td><td class="r mono muted">${fmt(r.units)}/${r.per}</td><td class="r mono">${fmt1(r.overHorizon)}</td></tr>`).join('')}
+       ${commits.map(r => `<tr><td class="mono">${esc(r.who)}${r.note ? `<div class="mat-name">${esc(r.note)}</div>` : ''}</td><td class="r mono muted">${fmt(r.units)}/${r.per}</td><td class="r mono">${fmt1(r.overHorizon)}</td></tr>`).join('')}
        </tbody><tfoot><tr><td colspan="2">TOTAL</td><td class="r">${fmt1(m.commit)}</td></tr></tfoot></table>`
     : '<div class="empty-state">No standing commitments.</div>';
 
