@@ -175,7 +175,7 @@ const FIO_BASE = 'https://rest.fnar.net';
 const PN_BASE  = 'https://api.punoted.net/v1';
 const CACHE_TTL = 5 * 60 * 1000;
 const LS = { fio: 'prun_apikey', pn: 'prun_punoted_allkey', user: 'prun_cis_user', cfg: 'prun_cis_cfg' };
-const BUILD = '2026-11-20k';
+const BUILD = '2026-11-20l';
 // Temporary: hide counterparty names until they are supplied.
 const MASK_COUNTERPARTY = true;   // shown in the header so a stale cached page is obvious
 
@@ -409,13 +409,13 @@ function commitmentsFor(t) {
   const rows = [];
   for (const c of CFG.commitments) {
     if (String(c.material || '').toUpperCase() !== t) continue;
-    if (c.activeFrom && new Date(c.activeFrom) > new Date()) continue;
+    const pending = c.activeFrom ? new Date(c.activeFrom) > new Date() : false;
     const units = +c.units || 0;
     const due = c.due || 'Sat';
     const days = daysUntilWeekday(due);
     const unitsDue = c.per === 'week' ? units : units * 7;   // a week's worth for daily rates
     const overHorizon = c.per === 'week' ? units * (CFG.horizonDays / 7) : units * CFG.horizonDays;
-    rows.push({ who: c.counterparty, units, per: c.per, due, days, unitsDue, overHorizon, note: c.note || '' });
+    rows.push({ who: c.counterparty, units, per: c.per, due, days, unitsDue, overHorizon, note: c.note || '', pending, starts: c.activeFrom || '' });
   }
   return rows.sort((a, b) => a.days - b.days);
 }
@@ -462,14 +462,14 @@ function buildModel() {
     const incoming = cRows.filter(r => r.dir === 'in').reduce((s, r) => s + r.amt, 0);
     const outgoing = cRows.filter(r => r.dir === 'out').reduce((s, r) => s + r.amt, 0);
     const commitRows = commitmentsFor(t);
-    const commit = commitRows.reduce((s, r) => s + r.overHorizon, 0);
+    const commit = commitRows.filter(r => !r.pending).reduce((s, r) => s + r.overHorizon, 0);
     const reserve = reserveFor(t, cons, prod).value;
     const free = stock + incoming + prod * CFG.horizonDays - outgoing - commit - reserve;
     const cover = net < 0 ? stock / -net : Infinity;
 
     // Saturday column: stock + production until Saturday, against commitments due Saturday.
     const satDays = daysUntilWeekday('Sat');
-    const satNeed = commitRows.filter(r => r.due === 'Sat').reduce((s, r) => s + r.unitsDue, 0);
+    const satNeed = commitRows.filter(r => r.due === 'Sat' && !r.pending).reduce((s, r) => s + r.unitsDue, 0);
     const satHave = stock + incoming + prod * satDays;
     const satGap = satHave - satNeed;
 
@@ -478,7 +478,7 @@ function buildModel() {
       const have = stock + incoming + prod * r.days;
       return { ...r, have, gap: have - r.unitsDue };
     });
-    const shortOne = dueRows.find(r => r.gap < 0) || null;
+    const shortOne = dueRows.find(r => !r.pending && r.gap < 0) || null;
 
     let status = 'ok';
     if (shortOne) status = 'short';
@@ -503,7 +503,7 @@ function renderCommitments() {
 
   const host = $('commitSummary');
   if (!rows.length) { host.innerHTML = '<div class="empty-state">No active commitments.</div>'; return; }
-  const shortCount = rows.filter(r => r.gap < 0).length;
+  const shortCount = rows.filter(r => !r.pending && r.gap < 0).length;
 
   host.innerHTML = `<table>
     <thead><tr><th>Due</th><th>Material</th><th>Counterparty</th><th class="r">Rate</th><th class="r">Units due</th><th class="r">Have by then</th><th class="r">Gap</th></tr></thead>
@@ -514,7 +514,7 @@ function renderCommitments() {
       <td class="r mono muted">${fmt(r.units)}/${r.per}</td>
       <td class="r mono">${fmt1(r.unitsDue)}</td>
       <td class="r mono muted">${fmt1(r.have)}</td>
-      <td class="r mono ${r.gap >= 0 ? 'good' : 'bad'}">${r.gap >= 0 ? '+' : ''}${fmt1(r.gap)}</td>
+      <td class="r mono ${r.pending ? 'dim' : (r.gap >= 0 ? 'good' : 'bad')}">${r.pending ? 'starts ' + esc(dateOf(r.starts)) : ((r.gap >= 0 ? '+' : '') + fmt1(r.gap))}</td>
     </tr>`).join('')}</tbody>
     <tfoot><tr><td colspan="4">${rows.length} commitment${rows.length === 1 ? '' : 's'}${shortCount ? ` · ${shortCount} short` : ' · all covered'}</td><td colspan="3"></td></tr></tfoot>
   </table>`;
@@ -663,7 +663,7 @@ function detailHTML(m) {
                <td class="muted">${esc(r.due)}${r.days === 0 ? ' (today)' : ` (${r.days}d)`}</td>
                <td class="r mono">${fmt1(r.unitsDue)}</td>
                <td class="r mono muted">${fmt1(r.have)}</td>
-               <td class="r mono ${r.gap >= 0 ? 'good' : 'bad'}">${r.gap >= 0 ? '+' : ''}${fmt1(r.gap)}</td>
+               <td class="r mono ${r.pending ? 'dim' : (r.gap >= 0 ? 'good' : 'bad')}">${r.pending ? 'starts ' + esc(dateOf(r.starts)) : ((r.gap >= 0 ? '+' : '') + fmt1(r.gap))}</td>
              </tr>`).join('')}
            </tbody>
          </table>
