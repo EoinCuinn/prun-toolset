@@ -268,17 +268,22 @@ async function loadAll(force) {
   }
 
   setStatus('busy', 'Loading storage, contracts and burn data…');
+  const safe = p => p.catch(() => null);
   try {
-    const [storage, contracts, burn] = await Promise.all([
+    const [storage, contracts, burn, sites, warehouses] = await Promise.all([
       fetchJSON(`${FIO_BASE}/storage/${encodeURIComponent(user)}`, { Authorization: fioKey }),
       fetchJSON(`${FIO_BASE}/contract/allcontracts/${encodeURIComponent(user)}`, { Authorization: fioKey }),
       pnKey ? fetchJSON(`${PN_BASE}/production/user/burn`, { 'X-Data-Token': pnKey }) : Promise.resolve(null),
+      safe(fetchJSON(`${FIO_BASE}/sites/${encodeURIComponent(user)}`, { Authorization: fioKey })),
+      safe(fetchJSON(`${FIO_BASE}/sites/warehouses/${encodeURIComponent(user)}`, { Authorization: fioKey })),
     ]);
     DATA = {
       ts: Date.now(),
       storage: Array.isArray(storage) ? storage : (storage.Data || []),
       contracts: Array.isArray(contracts) ? contracts : (contracts.Data || []),
       burn: burn || null,
+      sites: Array.isArray(sites) ? sites : ((sites && sites.Data) || []),
+      warehouses: Array.isArray(warehouses) ? warehouses : ((warehouses && warehouses.Data) || []),
     };
     try { localStorage.setItem(cacheKey, JSON.stringify(DATA)); } catch (e) { /* quota */ }
     finishLoad('live');
@@ -301,6 +306,14 @@ const TYPE_LABEL = {
 const nameOf = t => (MATERIALS.find(m => m.Ticker === t) || {}).Name || '';
 
 function stockRows(t) {
+  // Warehouses/stores carry no name in /storage — map their ids to planets.
+  const siteMap = new Map((DATA.sites || []).map(s => [s.SiteId, s.PlanetName]));
+  const whMap = new Map();
+  for (const w of (DATA.warehouses || [])) {
+    const addr = String(w.WarehouseId || '').split('-')[0];
+    if (addr) whMap.set(addr, w.LocationName);
+  }
+
   const rows = [];
   for (const st of DATA.storage) {
     let amt = 0;
@@ -308,7 +321,15 @@ function stockRows(t) {
       if (it.MaterialTicker !== t) continue;
       amt += +(it.MaterialAmount != null ? it.MaterialAmount : it.Amount) || 0;
     }
-    if (amt > 0) rows.push({ name: st.Name || '?', type: TYPE_LABEL[st.Type] || st.Type || '—', amt });
+    if (amt <= 0) continue;
+
+    let where = st.Name || '';
+    if (!where) {
+      if (st.Type === 'STORE') where = siteMap.get(st.AddressableId) || 'Base store';
+      else if (st.Type === 'WAREHOUSE_STORE') where = whMap.get(st.AddressableId) || 'Warehouse';
+      else where = TYPE_LABEL[st.Type] || st.Type || '?';
+    }
+    rows.push({ name: where, type: TYPE_LABEL[st.Type] || st.Type || '—', amt });
   }
   return rows.sort((a, b) => b.amt - a.amt);
 }
@@ -537,7 +558,7 @@ function detailHTML(m) {
     </div>
     <div class="detail-cols">
       <div class="subpanel"><div class="subpanel-title">Stock by location</div>${stockTbl}</div>
-      <div class="subpanel"><div class="subpanel-title">Burn by planet</div>${burnTbl}</div>
+      <div class="subpanel"><div class="subpanel-title">Production &amp; use by planet</div>${burnTbl}</div>
     </div>
     <div class="subpanel" style="margin-top:14px;"><div class="subpanel-title">Open contracts</div>${contTbl}</div>
     <div class="detail-cols" style="margin-top:14px;">
