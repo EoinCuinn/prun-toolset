@@ -110,6 +110,11 @@
   .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 12px 0; }
   .settings-grid label { display: block; font-size: 11px; color: var(--text3); text-transform: uppercase;
                          letter-spacing: 0.08em; margin-bottom: 4px; }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
+  .panel-head:hover .panel-title { color: var(--text2); }
+  .chev { color: var(--text3); font-size: 12px; transition: transform 0.15s; }
+  .panel.collapsed .chev { transform: rotate(-90deg); }
+  .panel.collapsed .panel-body { display: none; }
   .panel-title { font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 0.75rem; }
   .panel { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-top: 1rem; }
 </style>
@@ -127,10 +132,17 @@
   <span class="input-label">PUNoted</span>
   <input id="pnKeyInput" type="password" placeholder="token" style="width:140px">
   <button class="primary" onclick="loadAll(true)">↺ LOAD</button>
+  <button class="small" onclick="toggleAllPanels()">COLLAPSE ALL</button>
 </div>
 
 <div class="status" id="statusBar">Enter your keys and press LOAD.</div>
 
+<div class="panel" id="panel-materials">
+  <div class="panel-head" onclick="togglePanel('materials')">
+    <span class="panel-title" style="margin:0">Materials <span id="matCount" class="dim"></span></span>
+    <span class="chev">▾</span>
+  </div>
+  <div class="panel-body" id="body-materials">
 <div class="toolbar">
   <input id="searchInput" type="text" placeholder="search material…" oninput="render()">
   <button class="chip active" data-filter="all" onclick="setFilter('all')">All</button>
@@ -145,10 +157,17 @@
 <div class="list-wrap">
   <div id="listHost"><div class="empty-state">Load your keys to see every material you make, use, hold or owe.</div></div>
 </div>
+  </div>
+</div>
 
-<div class="panel">
-  <div class="panel-title">Commitments</div>
-  <div class="table-wrap"><div id="commitSummary"><div class="empty-state">Load your keys to see commitments.</div></div></div>
+<div class="panel" id="panel-commitments">
+  <div class="panel-head" onclick="togglePanel('commitments')">
+    <span class="panel-title" style="margin:0">Commitments <span id="commitCount" class="dim"></span></span>
+    <span class="chev">▾</span>
+  </div>
+  <div class="panel-body" id="body-commitments">
+    <div class="table-wrap"><div id="commitSummary"><div class="empty-state">Load your keys to see commitments.</div></div></div>
+  </div>
 </div>
 
 <div class="panel">
@@ -178,7 +197,7 @@ const FIO_BASE = 'https://rest.fnar.net';
 const PN_BASE  = 'https://api.punoted.net/v1';
 const CACHE_TTL = 5 * 60 * 1000;
 const LS = { fio: 'prun_apikey', pn: 'prun_punoted_allkey', user: 'prun_cis_user', cfg: 'prun_cis_cfg' };
-const BUILD = '2026-11-21a';
+const BUILD = '2026-11-21b';
 // Temporary: hide counterparty names until they are supplied.
 const MASK_COUNTERPARTY = true;   // shown in the header so a stale cached page is obvious
 
@@ -221,6 +240,35 @@ function setStatus(kind, msg) {
   const el = $('statusBar');
   el.innerHTML = (kind === 'busy' ? '<span class="spinner"></span>' : '') + esc(msg);
   el.style.color = kind === 'err' ? 'var(--red)' : 'var(--text2)';
+}
+
+// ── collapsible panels ──────────────────────────────────────────────────────
+const PANEL_KEY = 'prun_mb_panels';
+let PANELS = { materials: true, commitments: true };
+function loadPanels() {
+  try {
+    const p = JSON.parse(localStorage.getItem(PANEL_KEY) || 'null');
+    if (p) PANELS = Object.assign(PANELS, p);
+  } catch (e) { /* ignore */ }
+  applyPanels();
+}
+function savePanels() { localStorage.setItem(PANEL_KEY, JSON.stringify(PANELS)); }
+function applyPanels() {
+  for (const n of ['materials', 'commitments']) {
+    const el = document.getElementById('panel-' + n);
+    if (el) el.classList.toggle('collapsed', !PANELS[n]);
+  }
+}
+function togglePanel(name) {
+  PANELS[name] = !PANELS[name];
+  savePanels();
+  applyPanels();
+}
+function toggleAllPanels() {
+  const anyOpen = PANELS.materials || PANELS.commitments;
+  PANELS.materials = PANELS.commitments = !anyOpen;
+  savePanels();
+  applyPanels();
 }
 
 // ── config ──────────────────────────────────────────────────────────────────
@@ -540,6 +588,7 @@ function renderCommitments() {
   const host = $('commitSummary');
   if (!rows.length) { host.innerHTML = '<div class="empty-state">No active commitments.</div>'; return; }
   const shortCount = rows.filter(r => !r.pending && r.gap < 0).length;
+  const cc = $('commitCount'); if (cc) cc.textContent = `${rows.length}`;
 
   host.innerHTML = `<table>
     <thead><tr><th>Due</th><th>Material</th><th>Person</th><th>Location</th><th>Cont</th><th class="r">Rate</th><th class="r">Units due</th><th class="r">Have by then</th><th class="r">Gap</th></tr></thead>
@@ -609,6 +658,7 @@ function render() {
   if (!DATA) return;
   const rows = filtered();
   $('countLabel').textContent = `${rows.length} of ${MODEL.length}`;
+  const mc = $('matCount'); if (mc) mc.textContent = `${rows.length}/${MODEL.length}`;
   if (!rows.length) {
     $('listHost').innerHTML = '<div class="empty-state">Nothing matches this filter.</div>';
     return;
@@ -756,6 +806,7 @@ function sellCheck(t) {
 // ── init ────────────────────────────────────────────────────────────────────
 (function init() {
   document.getElementById('buildTag').textContent = BUILD;
+  loadPanels();
   loadConfig();
   const user = localStorage.getItem(LS.user); if (user) $('userInput').value = user;
   const fio = localStorage.getItem(LS.fio);  if (fio)  $('fioKeyInput').value = fio;
