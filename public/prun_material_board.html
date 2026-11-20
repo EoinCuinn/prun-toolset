@@ -232,7 +232,7 @@ const FIO_BASE = 'https://rest.fnar.net';
 const PN_BASE  = 'https://api.punoted.net/v1';
 const CACHE_TTL = 5 * 60 * 1000;
 const LS = { fio: 'prun_apikey', pn: 'prun_punoted_allkey', user: 'prun_cis_user', cfg: 'prun_cis_cfg' };
-const BUILD = '2026-11-21f';
+const BUILD = '2026-11-21g';
 // Temporary: hide counterparty names until they are supplied.
 const MASK_COUNTERPARTY = true;   // shown in the header so a stale cached page is obvious
 
@@ -760,7 +760,7 @@ async function exportCommit(idx) {
       contTradeType: c.dir === 'buy' ? 'BUYING' : 'SELLING',
       daysToFulfill: 3, currency: 'AIC',
     }],
-    global: { name: `Material Board — ${c.material} ${units}` },
+    global: { name: `Material Board ${c.material} ${units}` },
     groups: [{ type: 'Paste', name: 'G1' }],
   };
   EXPORT.json = JSON.stringify(pkg);
