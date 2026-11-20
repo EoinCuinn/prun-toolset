@@ -163,9 +163,12 @@
       Config JSON — commitments [{counterparty, material, units, per: "day"|"week", activeFrom?}] and reserve {TICKER: units}
     </label>
     <textarea id="cfgText"></textarea>
-    <div style="display:flex; gap:8px; margin-top:8px;">
+    <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
       <button class="small" onclick="saveConfig()">SAVE CONFIG</button>
       <button class="small" onclick="resetConfig()">RESET TO DEFAULT</button>
+      <button class="small" onclick="exportConfig()">EXPORT</button>
+      <button class="small" onclick="document.getElementById('importFile').click()">IMPORT</button>
+      <input type="file" id="importFile" accept="application/json,.json" style="display:none" onchange="importConfig(this)">
     </div>
   </details>
 </div>
@@ -175,7 +178,7 @@ const FIO_BASE = 'https://rest.fnar.net';
 const PN_BASE  = 'https://api.punoted.net/v1';
 const CACHE_TTL = 5 * 60 * 1000;
 const LS = { fio: 'prun_apikey', pn: 'prun_punoted_allkey', user: 'prun_cis_user', cfg: 'prun_cis_cfg' };
-const BUILD = '2026-11-20l';
+const BUILD = '2026-11-21a';
 // Temporary: hide counterparty names until they are supplied.
 const MASK_COUNTERPARTY = true;   // shown in the header so a stale cached page is obvious
 
@@ -183,14 +186,14 @@ const DEFAULT_CFG = {
   horizonDays: 7,
   reserveDays: { usage: 16, production: 16 },
   commitments: [
-    { counterparty: 'COSM player',        material: 'RAT', units: 3500, per: 'week', due: 'Mon' },
-    { counterparty: 'COSM player',        material: 'DW',  units: 3500, per: 'week', due: 'Mon' },
-    { counterparty: 'COSM player', material: 'PSL', units: 450,  per: 'week', due: 'Sat' },
-    { counterparty: 'COSM player', material: 'PSM', units: 450,  per: 'week', due: 'Sat' },
-    { counterparty: 'COSM player',       material: 'DCM', units: 14,   per: 'day',  due: 'Sat', activeFrom: '2026-11-22' },
-    { counterparty: 'COSM player',         material: 'PG',  units: 4000, per: 'day',  due: 'Mon' },
-    { counterparty: 'Corp player',  material: 'BTS', units: 750,  per: 'week', due: 'Sat', note: 'delivered to Helion Prime' },
-    { counterparty: 'Corp player',  material: 'GL',  units: 300,  per: 'week', due: 'Sat' },
+    { counterparty: 'COSM player', material: 'RAT', units: 3500, per: 'week', due: 'Mon', location: '', cont: '' },
+    { counterparty: 'COSM player', material: 'DW',  units: 3500, per: 'week', due: 'Mon', location: '', cont: '' },
+    { counterparty: 'COSM player', material: 'PSL', units: 450,  per: 'week', due: 'Sat', location: '', cont: '' },
+    { counterparty: 'COSM player', material: 'PSM', units: 450,  per: 'week', due: 'Sat', location: '', cont: '' },
+    { counterparty: 'COSM player', material: 'DCM', units: 14,   per: 'day',  due: 'Sat', location: '', cont: '', activeFrom: '2026-11-22' },
+    { counterparty: 'COSM player', material: 'PG',  units: 4000, per: 'day',  due: 'Mon', location: '', cont: '' },
+    { counterparty: 'COSM player', material: 'BTS', units: 750,  per: 'week', due: 'Sat', location: 'Helion Prime', cont: 'me' },
+    { counterparty: 'COSM player', material: 'GL',  units: 300,  per: 'week', due: 'Sat', location: '', cont: '' },
   ],
   reserve: {},
 };
@@ -206,6 +209,7 @@ let OPEN = null;         // expanded ticker
 const $ = id => document.getElementById(id);
 const fmt = n => Math.round(n).toLocaleString('en-US');
 const fmt1 = n => (Math.round(n * 10) / 10).toLocaleString('en-US');
+const contLabel = v => v === 'me' ? 'I raise' : v === 'them' ? 'they raise' : '—';
 const whoName = w => MASK_COUNTERPARTY ? 'COSM player' : w;
 const esc = s => String(s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 function dateOf(v) {
@@ -239,6 +243,38 @@ function renderConfig() {
 function markSaved() {
   const tag = document.getElementById('cfgTag');
   if (tag) tag.textContent = 'cfg: saved';
+}
+
+function exportConfig() {
+  const payload = { app: 'prun-material-board', version: 1, exported: new Date().toISOString(), config: CFG };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'material-board-config-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  setStatus('ok', 'Config exported.');
+}
+
+async function importConfig(input) {
+  const f = input.files && input.files[0];
+  if (!f) return;
+  try {
+    const data = JSON.parse(await f.text());
+    const cfg = data && data.config ? data.config : data;
+    if (!cfg || typeof cfg !== 'object') throw new Error('not a config file');
+    CFG = Object.assign({}, DEFAULT_CFG, cfg);
+    localStorage.setItem(LS.cfg, JSON.stringify(CFG));
+    renderConfig();
+    markSaved();
+    if (DATA) buildModel();
+    setStatus('ok', 'Config imported.');
+  } catch (e) {
+    setStatus('err', 'Import failed: ' + e.message);
+  } finally {
+    input.value = '';
+  }
 }
 
 function persistSettings() {
@@ -415,7 +451,7 @@ function commitmentsFor(t) {
     const days = daysUntilWeekday(due);
     const unitsDue = c.per === 'week' ? units : units * 7;   // a week's worth for daily rates
     const overHorizon = c.per === 'week' ? units * (CFG.horizonDays / 7) : units * CFG.horizonDays;
-    rows.push({ who: c.counterparty, units, per: c.per, due, days, unitsDue, overHorizon, note: c.note || '', pending, starts: c.activeFrom || '' });
+    rows.push({ who: c.counterparty, units, per: c.per, due, days, unitsDue, overHorizon, note: c.note || '', pending, starts: c.activeFrom || '', location: c.location || '', cont: c.cont || '' });
   }
   return rows.sort((a, b) => a.days - b.days);
 }
@@ -506,17 +542,19 @@ function renderCommitments() {
   const shortCount = rows.filter(r => !r.pending && r.gap < 0).length;
 
   host.innerHTML = `<table>
-    <thead><tr><th>Due</th><th>Material</th><th>Counterparty</th><th class="r">Rate</th><th class="r">Units due</th><th class="r">Have by then</th><th class="r">Gap</th></tr></thead>
+    <thead><tr><th>Due</th><th>Material</th><th>Person</th><th>Location</th><th>Cont</th><th class="r">Rate</th><th class="r">Units due</th><th class="r">Have by then</th><th class="r">Gap</th></tr></thead>
     <tbody>${rows.map(r => `<tr>
       <td class="muted">${esc(r.due)}${r.days === 0 ? ' (today)' : ` (${r.days}d)`}</td>
       <td><span class="mat">${esc(r.ticker)}</span> <span class="mat-name">${esc(r.name)}</span></td>
       <td class="mono">${esc(whoName(r.who))}${r.note ? `<div class="mat-name">${esc(r.note)}</div>` : ''}</td>
+      <td class="muted">${esc(r.location || '—')}</td>
+      <td class="muted">${esc(contLabel(r.cont))}</td>
       <td class="r mono muted">${fmt(r.units)}/${r.per}</td>
       <td class="r mono">${fmt1(r.unitsDue)}</td>
       <td class="r mono muted">${fmt1(r.have)}</td>
       <td class="r mono ${r.pending ? 'dim' : (r.gap >= 0 ? 'good' : 'bad')}">${r.pending ? 'starts ' + esc(dateOf(r.starts)) : ((r.gap >= 0 ? '+' : '') + fmt1(r.gap))}</td>
     </tr>`).join('')}</tbody>
-    <tfoot><tr><td colspan="4">${rows.length} commitment${rows.length === 1 ? '' : 's'}${shortCount ? ` · ${shortCount} short` : ' · all covered'}</td><td colspan="3"></td></tr></tfoot>
+    <tfoot><tr><td colspan="5">${rows.length} commitment${rows.length === 1 ? '' : 's'}${shortCount ? ` · ${shortCount} short` : ' · all covered'}</td><td colspan="4"></td></tr></tfoot>
   </table>`;
 }
 
@@ -635,9 +673,9 @@ function detailHTML(m) {
 
   const commits = commitmentsFor(t);
   const commitTbl = commits.length
-    ? `<table><thead><tr><th>Counterparty</th><th>Due</th><th class="r">Rate</th><th class="r">Over ${CFG.horizonDays}d</th></tr></thead><tbody>
-       ${commits.map(r => `<tr><td class="mono">${esc(whoName(r.who))}${r.note ? `<div class="mat-name">${esc(r.note)}</div>` : ''}</td><td class="muted">${esc(r.due)}</td><td class="r mono muted">${fmt(r.units)}/${r.per}</td><td class="r mono">${fmt1(r.overHorizon)}</td></tr>`).join('')}
-       </tbody><tfoot><tr><td colspan="3">TOTAL</td><td class="r">${fmt1(m.commit)}</td></tr></tfoot></table>`
+    ? `<table><thead><tr><th>Person</th><th>Location</th><th>Cont</th><th>Due</th><th class="r">Rate</th><th class="r">Over ${CFG.horizonDays}d</th></tr></thead><tbody>
+       ${commits.map(r => `<tr><td class="mono">${esc(whoName(r.who))}${r.note ? `<div class="mat-name">${esc(r.note)}</div>` : ''}</td><td class="muted">${esc(r.location || '—')}</td><td class="muted">${esc(contLabel(r.cont))}</td><td class="muted">${esc(r.due)}</td><td class="r mono muted">${fmt(r.units)}/${r.per}</td><td class="r mono">${fmt1(r.overHorizon)}</td></tr>`).join('')}
+       </tbody><tfoot><tr><td colspan="5">TOTAL</td><td class="r">${fmt1(m.commit)}</td></tr></tfoot></table>`
     : '<div class="empty-state">No standing commitments.</div>';
 
   const res = reserveFor(t, m.cons, m.prod);
@@ -656,10 +694,12 @@ function detailHTML(m) {
     ? `<div class="subpanel" style="margin-top:14px;">
          <div class="subpanel-title">Commitments by due day</div>
          <table>
-           <thead><tr><th>Counterparty</th><th>Due</th><th class="r">Units due</th><th class="r">Have by then</th><th class="r">Gap</th></tr></thead>
+           <thead><tr><th>Person</th><th>Location</th><th>Cont</th><th>Due</th><th class="r">Units due</th><th class="r">Have by then</th><th class="r">Gap</th></tr></thead>
            <tbody>
              ${m.dueRows.map(r => `<tr>
                <td class="mono">${esc(whoName(r.who))}${r.note ? `<div class="mat-name">${esc(r.note)}</div>` : ''}</td>
+               <td class="muted">${esc(r.location || '—')}</td>
+               <td class="muted">${esc(contLabel(r.cont))}</td>
                <td class="muted">${esc(r.due)}${r.days === 0 ? ' (today)' : ` (${r.days}d)`}</td>
                <td class="r mono">${fmt1(r.unitsDue)}</td>
                <td class="r mono muted">${fmt1(r.have)}</td>
