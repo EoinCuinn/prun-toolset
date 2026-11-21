@@ -232,13 +232,14 @@ const FIO_BASE = 'https://rest.fnar.net';
 const PN_BASE  = 'https://api.punoted.net/v1';
 const CACHE_TTL = 5 * 60 * 1000;
 const LS = { fio: 'prun_apikey', pn: 'prun_punoted_allkey', user: 'prun_cis_user', cfg: 'prun_cis_cfg' };
-const BUILD = '2026-11-21g';
+const BUILD = '2026-11-21h';
 // Temporary: hide counterparty names until they are supplied.
 const MASK_COUNTERPARTY = true;   // shown in the header so a stale cached page is obvious
 
 const DEFAULT_CFG = {
   horizonDays: 7,
   defaultExchange: 'IC1',
+  currency: 'ICA',
   reserveDays: { usage: 16, production: 16 },
   commitments: [
     { counterparty: 'COSM player', material: 'RAT', units: 3500, per: 'week', due: 'Mon', dir: 'sell', price: 0, location: '', cont: '' },
@@ -698,7 +699,7 @@ function buildModel() {
 }
 
 // ── XIT export ──────────────────────────────────────────────────────────────
-let EXPORT = { json: '', paste: '' };
+let EXPORT = { json: '', paste: '', contd: '' };
 let CX_CACHE = null;
 
 // Round to the extension's 3-significant-figure price limit.
@@ -753,12 +754,13 @@ async function exportCommit(idx) {
   price = sig3(price);
 
   const units = c.per === 'week' ? (+c.units || 0) : (+c.units || 0) * 7;
+  const currency = CFG.currency || 'ICA';
   const pkg = {
     actions: [{
       type: 'CONT Trade', group: 'G1',
       contLocation: c.location || 'Configure on Execution',
       contTradeType: c.dir === 'buy' ? 'BUYING' : 'SELLING',
-      daysToFulfill: 3, currency: 'AIC',
+      daysToFulfill: 3, currency,
     }],
     global: { name: `Material Board ${c.material} ${units}` },
     groups: [{ type: 'Paste', name: 'G1' }],
@@ -766,29 +768,44 @@ async function exportCommit(idx) {
   EXPORT.json = JSON.stringify(pkg);
   EXPORT.paste = `${c.material} ${units} ${price}`;
 
+  // CONTD import (Sheets/Excel tab): keyword rows plus amount, ticker, price.
+  const contdRows = [
+    `template	${c.dir === 'buy' ? 'BUY' : 'SELL'}`,
+    `currency	${currency}`,
+  ];
+  if (c.location) contdRows.push(`location	${c.location}`);
+  contdRows.push('deadline	3');
+  contdRows.push(`${units}	${c.material}	${price}`);
+  EXPORT.contd = contdRows.join(String.fromCharCode(10));
+
   const host = $('exportPanel');
   host.classList.remove('hidden');
   host.innerHTML = `<div class="subpanel" style="margin-top:12px;">
-    <div class="subpanel-title">XIT export — ${esc(c.material)} ${fmt(units)} (${esc(src)})</div>
+    <div class="subpanel-title">Contract export — ${esc(c.material)} ${fmt(units)} (${esc(src)})</div>
     <div style="display:flex; gap:8px; flex-wrap:wrap; margin:10px 12px;">
-      <button class="small" onclick="copyExport('json')">COPY PACKAGE</button>
-      <button class="small" onclick="copyExport('paste')">COPY PASTE LINE</button>
+      <button class="small" onclick="copyExport('contd')">COPY CONTD (SHEETS)</button>
+      <button class="small" onclick="copyExport('json')">COPY ACT PACKAGE</button>
+      <button class="small" onclick="copyExport('paste')">COPY ACT PASTE LINE</button>
       <span class="muted" style="font-size:12px;">price ${price}</span>
     </div>
+    <div class="subpanel-title" style="border-top:1px solid var(--border);">CONTD → Show → Sheets/Excel</div>
+    <pre class="export-pre">${esc(EXPORT.contd)}</pre>
+    <div class="subpanel-title" style="border-top:1px solid var(--border);">ACT package (XIT ACT → IMPORT)</div>
     <pre class="export-pre">${esc(EXPORT.json)}</pre>
-    <div class="mono" style="padding:0 12px 12px;font-size:12px;">Paste line at execution: <span class="muted">${esc(EXPORT.paste)}</span></div>
+    <div class="mono" style="padding:0 12px 12px;font-size:12px;">ACT paste line: <span class="muted">${esc(EXPORT.paste)}</span></div>
   </div>`;
-  const copied = await copyText(EXPORT.json);
+  const copied = await copyText(EXPORT.contd);
   setStatus(copied ? 'ok' : 'err',
     copied
-      ? `Package copied — price ${price} from ${src}. The paste line is shown below.`
-      : `Package built (price ${price} from ${src}) but the clipboard was blocked — use COPY PACKAGE.`);
+      ? `CONTD template copied — price ${price} from ${src}. Open a draft and paste in Sheets/Excel.`
+      : `Export built (price ${price} from ${src}) but the clipboard was blocked — use COPY CONTD.`);
 }
 
 async function copyExport(which) {
-  const text = which === 'paste' ? EXPORT.paste : EXPORT.json;
+  const text = which === 'paste' ? EXPORT.paste : which === 'contd' ? EXPORT.contd : EXPORT.json;
   const ok = await copyText(text);
-  setStatus(ok ? 'ok' : 'err', ok ? (which === 'paste' ? 'Paste line copied.' : 'Package copied.') : 'Clipboard copy failed.');
+  const label = which === 'paste' ? 'Paste line copied.' : which === 'contd' ? 'CONTD template copied.' : 'ACT package copied.';
+  setStatus(ok ? 'ok' : 'err', ok ? label : 'Clipboard copy failed.');
 }
 
 // ── commitments summary ─────────────────────────────────────────────────────
