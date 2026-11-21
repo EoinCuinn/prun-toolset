@@ -229,7 +229,7 @@ const FIO_BASE = 'https://rest.fnar.net';
 const PN_BASE  = 'https://api.punoted.net/v1';
 const CACHE_TTL = 5 * 60 * 1000;
 const LS = { fio: 'prun_apikey', pn: 'prun_punoted_allkey', user: 'prun_cis_user', cfg: 'prun_cis_cfg' };
-const BUILD = '2026-11-21i';
+const BUILD = '2026-11-21j';
 // Temporary: hide counterparty names until they are supplied.
 const MASK_COUNTERPARTY = true;   // shown in the header so a stale cached page is obvious
 
@@ -238,14 +238,14 @@ const DEFAULT_CFG = {
   defaultExchange: 'IC1',
   currency: 'ICA',
   commitments: [
-    { counterparty: 'COSM player', material: 'RAT', units: 3500, per: 'week', due: 'Mon', dir: 'sell', price: 0, location: '', cont: '' },
-    { counterparty: 'COSM player', material: 'DW',  units: 3500, per: 'week', due: 'Mon', dir: 'sell', price: 0, location: '', cont: '' },
-    { counterparty: 'COSM player', material: 'PSL', units: 450,  per: 'week', due: 'Sat', dir: 'sell', price: 0, location: '', cont: '' },
-    { counterparty: 'COSM player', material: 'PSM', units: 450,  per: 'week', due: 'Sat', dir: 'sell', price: 0, location: '', cont: '' },
-    { counterparty: 'COSM player', material: 'DCM', units: 14,   per: 'day',  due: 'Sat', dir: 'sell', price: 0, location: '', cont: '', activeFrom: '2026-11-22' },
+    { counterparty: 'COSM player', material: 'RAT', units: 3500, per: 'week', due: 'Mon', dir: 'sell', price: 0, location: '', cont: 'them' },
+    { counterparty: 'COSM player', material: 'DW',  units: 3500, per: 'week', due: 'Mon', dir: 'sell', price: 0, location: '', cont: 'them' },
+    { counterparty: 'COSM player', material: 'PSL', units: 450,  per: 'week', due: 'Sat', dir: 'sell', price: 0, location: '', cont: 'me' },
+    { counterparty: 'COSM player', material: 'PSM', units: 450,  per: 'week', due: 'Sat', dir: 'sell', price: 0, location: '', cont: 'me' },
+    { counterparty: 'COSM player', material: 'DCM', units: 14,   per: 'day',  due: 'Sat', dir: 'sell', price: 0, location: '', cont: 'me', activeFrom: '2026-11-22' },
     { counterparty: 'COSM player', material: 'PG',  units: 4000, per: 'day',  due: 'Mon', dir: 'sell', price: 0, location: '', cont: '' },
-    { counterparty: 'COSM player', material: 'BTS', units: 750,  per: 'week', due: 'Sat', dir: 'sell', price: 0, location: 'Helion Prime', cont: 'me' },
-    { counterparty: 'COSM player', material: 'GL',  units: 300,  per: 'week', due: 'Sat', dir: 'sell', price: 0, location: '', cont: '' },
+    { counterparty: 'COSM player', material: 'BTS', units: 750,  per: 'week', due: 'Sat', dir: 'sell', price: 0, location: 'Helion Prime', cont: 'them' },
+    { counterparty: 'COSM player', material: 'GL',  units: 300,  per: 'week', due: 'Sat', dir: 'sell', price: 0, location: '', cont: 'me' },
   ],
 };
 
